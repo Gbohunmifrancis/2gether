@@ -1,0 +1,11 @@
+.git
+.vs
+.tmp
+frontend
+**/bin
+**/obj
+**/.build
+**/node_modules
+**/.next
+*.user
+*.suo

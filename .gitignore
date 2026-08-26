@@ -1,0 +1,31 @@
+# .NET
+**/bin/
+**/obj/
+**/.obj/
+**/.build/
+/.tmp/
+/deploy-publish/
+/.vs/
+*.user
+*.suo
+
+# Node
+**/node_modules/
+**/.next/
+**/out/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+frontend/.env.local
+
+# IDE and OS
+.idea/
+.vs/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

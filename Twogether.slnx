@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Twogether.Api/Twogether.Api.csproj" />
+    <Project Path="src/Twogether.Application/Twogether.Application.csproj" />
+    <Project Path="src/Twogether.Core/Twogether.Core.csproj" />
+    <Project Path="src/Twogether.Infrastructure/Twogether.Infrastructure.csproj" />
+    <Project Path="src/Twogether.Shared/Twogether.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Twogether.ApiTests/Twogether.ApiTests.csproj" />
+    <Project Path="tests/Twogether.IntegrationTests/Twogether.IntegrationTests.csproj" />
+    <Project Path="tests/Twogether.UnitTests/Twogether.UnitTests.csproj" />
+  </Folder>
+</Solution>
