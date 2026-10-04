@@ -50,7 +50,7 @@ public sealed class GameTimeoutWorker(
         var now = clock.UtcNow;
         var sessions = await db.GameSessions
             .Where(session => session.Status == GameSessionStatus.InProgress
-                && session.GameType == GameType.OnGame
+                && session.GameType == GameType.ICallOn
                 && session.DeadlineUtc != null
                 && session.DeadlineUtc <= now)
             .ToListAsync(cancellationToken);

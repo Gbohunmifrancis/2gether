@@ -103,15 +103,15 @@ public sealed class BackendBehaviorTests
         var second = Guid.NewGuid();
         var engine = new GameEngine();
         var now = DateTime.UtcNow;
-        var started = engine.Start(GameType.OnGame, [first, second], now);
+        var started = engine.Start(GameType.ICallOn, [first, second], now);
         const string answers = "{\"Name\":\"Alice\",\"Place\":\"Lagos\",\"Thing\":\"Lamp\",\"Food\":\"Apple\"}";
 
-        var waiting = engine.Apply(GameType.OnGame, started.StateJson, first, "submit", answers, null, now);
-        using (var waitingState = JsonDocument.Parse(engine.ToPublicState(GameType.OnGame, waiting.StateJson)))
+        var waiting = engine.Apply(GameType.ICallOn, started.StateJson, first, "submit", answers, null, now);
+        using (var waitingState = JsonDocument.Parse(engine.ToPublicState(GameType.ICallOn, waiting.StateJson)))
             Assert.Single(waitingState.RootElement.GetProperty("submitted").EnumerateArray());
 
-        var completedRound = engine.Apply(GameType.OnGame, waiting.StateJson, second, "submit", answers, null, now);
-        using var publicState = JsonDocument.Parse(engine.ToPublicState(GameType.OnGame, completedRound.StateJson));
+        var completedRound = engine.Apply(GameType.ICallOn, waiting.StateJson, second, "submit", answers, null, now);
+        using var publicState = JsonDocument.Parse(engine.ToPublicState(GameType.ICallOn, completedRound.StateJson));
         Assert.Equal(1, publicState.RootElement.GetProperty("round").GetInt32());
         Assert.Empty(publicState.RootElement.GetProperty("submitted").EnumerateArray());
     }
