@@ -112,7 +112,7 @@ const gameTypes = [
     icon: Grid3X3,
   },
   {
-    value: "onGame",
+    value: "iCallOn",
     title: "On Game",
     description: "Race through Animal, Place, Things, and Food.",
     icon: LetterText,
@@ -845,7 +845,7 @@ export default function HomePage() {
                     const previousState = parseState(session.stateJson);
                     const freshState = parseState(fresh.stateJson);
                     const sameRound =
-                      session.gameType === "onGame" &&
+                      session.gameType === "iCallOn" &&
                       action === "submit" &&
                       Number(previousState.round ?? 0) ===
                         Number(freshState.round ?? 0) &&
@@ -1701,11 +1701,11 @@ function GamesView({
     ? Math.max(0, Math.ceil((new Date(selected.deadlineUtc).getTime() - roundNow) / 1000))
     : 0;
   useEffect(() => {
-    if (selected?.gameType === "onGame")
+    if (selected?.gameType === "iCallOn")
       setOnGameAnswers({ Name: "", Place: "", Thing: "", Food: "" });
   }, [selected?.id, state.round, state.letter]);
   useEffect(() => {
-    if (selected?.gameType !== "onGame" || selected.status !== "inProgress") return;
+    if (selected?.gameType !== "iCallOn" || selected.status !== "inProgress") return;
     const timer = window.setInterval(() => setRoundNow(Date.now()), 250);
     return () => window.clearInterval(timer);
   }, [selected?.gameType, selected?.status, selected?.deadlineUtc]);
@@ -1824,7 +1824,7 @@ function GamesView({
                     </button>
                   ))}
                 </div>
-              ) : selected.gameType === "onGame" ? (
+              ) : selected.gameType === "iCallOn" ? (
                 <form
                   className="on-game-board"
                   onSubmit={(event) => {

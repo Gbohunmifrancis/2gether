@@ -44,7 +44,7 @@ public sealed class GameController(
         var partnerId = await db.Users.AsNoTracking().Where(user => user.CoupleId == currentUser.CoupleId.Value && user.Id != inviter.Id).Select(user => (Guid?)user.Id).SingleOrDefaultAsync(cancellationToken);
         if (!partnerId.HasValue) return Conflict(new ApiError("game.players_missing", "Both partners must be linked before a game is invited."));
 
-        var setupJson = request.GameType == GameType.OnGame
+        var setupJson = request.GameType == GameType.ICallOn
             ? JsonSerializer.Serialize(new { letter = request.Letter })
             : JsonSerializer.Serialize(new { questions = await questionProvider.GetQuestionsAsync(cancellationToken) });
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
@@ -105,13 +105,13 @@ public sealed class GameController(
         if (session.CountdownEndsAtUtc > clock.UtcNow) return Conflict(new ApiError("game.countdown", "Wait for the countdown to finish."));
         if (session.StateVersion != request.ExpectedStateVersion)
             return Conflict(new ApiError("game.version_conflict", "The game state changed. The latest board has been loaded."));
-        if (session.GameType != GameType.OnGame && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
+        if (session.GameType != GameType.ICallOn && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
         try
         {
             var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
-            if (expired && session.GameType != GameType.OnGame) return Conflict(new ApiError("game.expired", "This round expired. Start another game."));
-            var action = expired && session.GameType == GameType.OnGame ? "timeout" : request.Action;
-            var validations = session.GameType == GameType.OnGame && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && request.Value is not null
+            if (expired && session.GameType != GameType.ICallOn) return Conflict(new ApiError("game.expired", "This round expired. Start another game."));
+            var action = expired && session.GameType == GameType.ICallOn ? "timeout" : request.Action;
+            var validations = session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && request.Value is not null
                 ? await wordValidator.ValidateAsync(session.StateJson, request.Value, cancellationToken)
                 : null;
             var next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, request.Value, request.Index, clock.UtcNow, validations);

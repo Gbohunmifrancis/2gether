@@ -28,13 +28,13 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         if (session.Status != GameSessionStatus.InProgress) throw new HubException("The game is not in progress.");
         if (session.CountdownEndsAtUtc > clock.UtcNow) throw new HubException("Wait for the countdown to finish.");
         if (session.StateVersion != expectedStateVersion) throw new HubException("The game state changed. Reload before acting.");
-        if (session.GameType != GameType.OnGame && session.CurrentTurnUserId != currentUser.UserId!.Value) throw new HubException("It is not this player's turn.");
+        if (session.GameType != GameType.ICallOn && session.CurrentTurnUserId != currentUser.UserId!.Value) throw new HubException("It is not this player's turn.");
         GameEngineResult next;
         var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
-        if (expired && session.GameType != GameType.OnGame) throw new HubException("This round expired. Start another game.");
-        action = expired && session.GameType == GameType.OnGame ? "timeout" : action;
+        if (expired && session.GameType != GameType.ICallOn) throw new HubException("This round expired. Start another game.");
+        action = expired && session.GameType == GameType.ICallOn ? "timeout" : action;
         IReadOnlyDictionary<string, bool?>? validations = null;
-        if (session.GameType == GameType.OnGame && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
+        if (session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
             validations = await wordValidator.ValidateAsync(session.StateJson, value, Context.ConnectionAborted);
         try { next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, value, index, clock.UtcNow, validations); }
         catch (InvalidOperationException exception) { throw new HubException(exception.Message); }
