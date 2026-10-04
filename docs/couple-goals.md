@@ -377,6 +377,11 @@ export const cancelExerciseOccurrence: (id: string) => Promise<ExerciseOccurrenc
 The CV foundation defines these same types in `lib/exercise/types.ts`; `api.ts` re-exports
 them from there so there is one definition.
 
+`createCoupleHubConnection` switches to an unbounded reconnect policy:
+`withAutomaticReconnect({ nextRetryDelayInMilliseconds: ctx => Math.min(30000, 1000 * 2 ** ctx.previousRetryCount) })`.
+The default policy gives up after four attempts, which on a phone that was locked for a
+minute means no alarm events for the rest of the session.
+
 ### `lib/sounds.ts` additions
 
 ```ts
@@ -387,12 +392,18 @@ export function isAlarmArmed(): boolean;   // startAlarm was called and stopAlar
 export function isAlarmRinging(): boolean; // audio is actually running
 ```
 
-Looping Web Audio pattern (no audio files). Autoplay policy: `startAlarm` starts the loop
+Implementation: render each pattern once into a 1–2 s `AudioBuffer` and play it with an
+`AudioBufferSourceNode { loop: true }` through a `GainNode` (no JS timers, so the loop keeps
+running while a background tab is throttled). Autoplay policy: `startAlarm` starts the source
 immediately if `ctx.state === "running"`; otherwise it *arms* and registers one-shot window
-`pointerdown`/`keydown`/`touchend` listeners that call `resume()` and start the loop. While
+`pointerdown`/`keydown`/`touchend` listeners that call `resume()` and start the source. While
 armed it also listens to `visibilitychange` (visible) and the context's `statechange`
-(iOS "interrupted") and calls `resume()` + restarts the loop. `stopAlarm()` removes the
-listeners and leaves the context fully silent.
+(iOS "interrupted") and calls `resume()` + restarts the source. Best effort for the iPhone
+silent switch: while ringing, also play a looping `<audio>` element whose `src` is a tiny
+silent WAV data URI (not `muted`), started from the same gesture, so the audio session is
+treated as playback. `stopAlarm()` stops and disconnects the source, pauses that element,
+removes the listeners and leaves everything silent. `Notification.requestPermission()` is only
+ever called from a user gesture (readiness card button or goal save), never from a hub handler.
 
 ### `lib/exercise/catalog.ts`
 
@@ -415,47 +426,82 @@ from the viewer's.
 
 ```ts
 export type Landmark = { x: number; y: number; z: number; visibility: number };
-export const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
+export const WASM_BASE = "/mediapipe/wasm"; // self-hosted copy of node_modules/@mediapipe/tasks-vision/wasm (see package.json scripts)
+export const WASM_FALLBACK_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 export const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
-export function loadPoseLandmarker(): Promise<import("@mediapipe/tasks-vision").PoseLandmarker>; // singleton, runningMode "VIDEO", numPoses 1; rejects reset the singleton so retry works
-export function angleDegrees(a: Landmark, b: Landmark, c: Landmark): number; // angle at b
+export type PoseFrame = { landmarks: Landmark[]; worldLandmarks: Landmark[]; aspect: number /* videoWidth / videoHeight */ };
+export function loadPoseLandmarker(): Promise<import("@mediapipe/tasks-vision").PoseLandmarker>; // singleton; rejects reset the singleton so retry works
+export function releasePoseLandmarker(): void; // close() and clear the singleton; page.tsx calls it when the session closes
+export function angleDegrees(a: Landmark, b: Landmark, c: Landmark): number; // unsigned angle at b, 0..180
 export const POSE = { nose: 0, leftShoulder: 11, rightShoulder: 12, leftElbow: 13, rightElbow: 14, leftWrist: 15, rightWrist: 16, leftHip: 23, rightHip: 24, leftKnee: 25, rightKnee: 26, leftAnkle: 27, rightAnkle: 28 } as const;
 ```
 
-`@mediapipe/tasks-vision@1.0.1` is installed; read `node_modules/@mediapipe/tasks-vision/vision.d.ts`
+`@mediapipe/tasks-vision` is pinned to exactly `1.0.1` in package.json (the WASM loader must match
+the JS bundle version). `package.json` gains `"predev"` and `"prebuild"` scripts that run
+`node scripts/copy-mediapipe-wasm.mjs`, which copies `node_modules/@mediapipe/tasks-vision/wasm/*`
+into `public/mediapipe/wasm/` (git-ignored). `loadPoseLandmarker` tries `WASM_BASE` first and
+falls back to `WASM_FALLBACK_BASE` if `forVisionTasks`/`createFromOptions` rejects. Options:
+`baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" }`, `runningMode: "VIDEO"`, `numPoses: 1`;
+if creation or the first `detectForVideo` throws with GPU, recreate with `delegate: "CPU"`.
+Timestamps passed to `detectForVideo` are `performance.now()` and strictly increasing for the
+lifetime of the singleton (never `video.currentTime`). Read `node_modules/@mediapipe/tasks-vision/vision.d.ts`
 for the real API (`FilesetResolver.forVisionTasks`, `PoseLandmarker.createFromOptions`,
-`detectForVideo(video, timestampMs)` returning `{ landmarks: Landmark[][] }`, `PoseLandmarker.POSE_CONNECTIONS`).
-Import the package only inside a dynamic `import()` from client code so SSR never touches it.
+`detectForVideo(video, timestampMs)` returning `{ landmarks: NormalizedLandmark[][]; worldLandmarks: Landmark[][] }`,
+`PoseLandmarker.POSE_CONNECTIONS`, `close()`). Import the package only inside a dynamic `import()`
+from client code so SSR never touches it.
 
 ### `lib/exercise/counters.ts` (pure, no DOM)
 
 ```ts
-export type CounterState = { count: number; phase: string; confidence: number; feedback: string | null; inPosition: boolean };
-export type RepCounter = { update(landmarks: Landmark[], timestampMs: number): CounterState; reset(): void; state(): CounterState };
+export type CounterState = { count: number; phase: string; confidence: number; feedback: string | null; inPosition: boolean; personVisible: boolean };
+export type RepCounter = { update(frame: PoseFrame | null, timestampMs: number): CounterState; reset(): void; state(): CounterState };
+export type Orientation = "side" | "front";
+export function orientationOf(type: ExerciseType): Orientation; // squat, pushUp, plank, sitUp: "side"; jumpingJack, armRaise, highKnees: "front"
 export function createCounter(type: ExerciseType, target: number): RepCounter;
 ```
+
+`update(null, ts)` or a frame with no landmarks sets `personVisible: false` and the feedback
+"Step into the frame". **Geometry**: all joint angles and the torso-horizontal test are computed
+from `worldLandmarks` (metres, aspect-independent). Normalized `landmarks` are used only for
+visibility, screen-relative rules (wrist above nose, knee above hip, ankle/hip width ratios) and
+drawing. **Side selection**: for each rule, compute the mean visibility of the left-side and
+right-side joints it needs; if both are >= 0.5 average the two sides, otherwise use the more
+visible side alone (a side view occludes the far side). The rule is unmeasurable only when
+neither side reaches 0.5, which produces the feedback "Step back so your whole body is in frame".
+The first cue shown is the orientation: "Turn sideways to the camera" or "Face the camera".
 
 `confidence` is the running mean of the per-rep (plank: per-second) confidences since
 `reset()`, where a rep's confidence is the mean visibility of the joints its rule needs at
 the moment it was counted. It is not the current frame.
 
-Heuristics (image coordinates: y grows downward; use the average of left/right joints and require visibility >= 0.5 on the joints a rule needs):
+Heuristics (normalized image coordinates: y grows downward; angles from world landmarks):
 
-- **squat**: knee angle (hip-knee-ankle). down < 100°, up > 160°. Count on down→up.
-- **pushUp**: elbow angle (shoulder-elbow-wrist). down < 95°, up > 155°; torso near horizontal (|shoulder.y - hip.y| < 0.25 × |shoulder.x - hip.x| + 0.1). Count on down→up.
-- **jumpingJack**: open = both wrists above the nose (wrist.y < nose.y) AND ankle distance > 1.6 × hip width; closed = wrists below shoulders AND ankle distance < 1.2 × hip width. Count on open→closed.
-- **plank**: shoulder-hip-ankle angle in 155°..205° AND torso horizontal (as pushUp). `count` = whole seconds accumulated while in position (timestamps from `update`); leaving position pauses, does not reset.
-- **armRaise**: up = both wrists above the nose; down = both wrists below the shoulders. Count on up→down.
-- **highKnees**: a knee rising above the hip midline (knee.y < hip.y) counts once per leg lift; alternate legs not required; debounce 250 ms per leg.
-- **sitUp**: hip angle (shoulder-hip-knee). up < 95°, down > 140°. Count a rep when the trunk returns down after reaching up.
+- **squat** (side): knee angle (hip-knee-ankle). down < 100°, up > 160°. Count on down→up.
+- **pushUp** (side): elbow angle (shoulder-elbow-wrist). down < 95°, up > 155°; torso near horizontal: in world coordinates |shoulder.y − hip.y| < 0.35 × distance(shoulder, hip). Count on down→up.
+- **jumpingJack** (front): open = both wrists above the nose (wrist.y < nose.y) AND ankle distance > 1.6 × hip width; closed = wrists below shoulders AND ankle distance < 1.2 × hip width. Count on open→closed.
+- **plank** (side): shoulder-hip-ankle angle >= 155° AND torso horizontal (as pushUp). `count` = whole seconds accumulated while in position; add `dt` only when both the previous and the current frame are in position and clamp each `dt` to 250 ms (a frozen tab must not add minutes). Leaving position pauses, does not reset.
+- **armRaise** (front): up = both wrists above the nose; down = both wrists below the shoulders. Count on up→down.
+- **highKnees** (front): a knee counts once per lift when `knee.y < hipMid.y + 0.25 × (hipMid.y − shoulderMid.y)` (i.e. the knee rises to roughly hip height); alternate legs not required; 100 ms minimum per leg.
+- **sitUp** (side): hip angle (shoulder-hip-knee). up < 90°, down > 120°. Count a rep when the trunk returns down after reaching up.
 
-Feedback strings: "Step back so your whole body is in frame" when required joints are not visible; type-specific cues otherwise (e.g. "Lower until your thighs are parallel").
-Debounce every transition with a 300 ms minimum phase duration to reject jitter.
+Jitter rejection: the hysteresis gap between the down/up thresholds is the primary mechanism.
+Per-exercise `minPhaseMs` (minimum time in a phase before the transition out of it counts):
+squat/pushUp/sitUp 250, armRaise 150, jumpingJack 120, highKnees 100 (per leg), plank n/a.
+Additionally reject a rep that arrives sooner than `minRepIntervalMs = 0.6 × minSecondsPerUnit × 1000`
+after the previous counted rep. Feedback strings: orientation cue first, then "Step back so your
+whole body is in frame" when a rule is unmeasurable, then type-specific cues (e.g. "Lower until your
+thighs are parallel"). Thresholds are starting points to be tuned against recorded clips.
 
 ### Components (`app/exercise/`)
 
-- `ExerciseAlarmOverlay.tsx` — `{ occurrence: ExerciseOccurrence; queue: ExerciseOccurrence[]; now: number; ringing: boolean; onStart(occurrence: ExerciseOccurrence): void }`. Full-screen fixed overlay above everything (`z-index` above modals), pulsing alarm visual, local time, exercise title and target, time left until the deadline, a single primary action "Start the camera". No close button. Copy: "The alarm stops once you finish " + `formatTarget(target, measure)` + " on camera." When `queue.length > 1` show "and N more after this" with a small list to start a different one first. When `ringing` is false (audio not yet unlocked) the whole overlay is a tap target labelled "Tap to hear the alarm". Shows "Reconnecting…" when the page passes `offline`.
-- `LiveExerciseSession.tsx` — `{ occurrence: ExerciseOccurrence; serverMessage: string | null; onProgress(count: number, confidence: number): void; onComplete(count: number, confidence: number): Promise<void>; onExit(): void }`. Requests `getUserMedia({ video: { facingMode: "user" } })`, shows the mirrored video (`playsInline`, `muted`, `autoPlay`) with a canvas skeleton overlay sized to the video's intrinsic size, loads the landmarker (loading state and retry), runs `detectForVideo` in a `requestAnimationFrame` loop with monotonic timestamps, feeds `createCounter`, shows a large count / target, progress ring, confidence meter, cue text and a countdown to `completeByUtc`. Calls `onProgress` whenever the count changes and at most once per second otherwise. **Completion gate**: calls `onComplete` only when `count >= target` AND elapsed since mount `>= minimumSeconds(type, target)`; until then shows "Hold on… N s". If `onComplete` rejects (422), keep counting and call `onComplete` again on every count change and at least every 2 s while `count >= target`, showing `serverMessage` as the cue. Stops all tracks and closes the landmarker on unmount. Camera denied or insecure context → explanatory message (camera needs HTTPS or localhost). "Leave for now" calls `onExit` and states "Your reps so far won't count" (the alarm returns to full volume).
+- `ExerciseAlarmOverlay.tsx` — `{ occurrence: ExerciseOccurrence; queue: ExerciseOccurrence[]; now: number; ringing: boolean; onStart(occurrence: ExerciseOccurrence): void }`. Full-screen fixed overlay above everything (`.alarm-overlay { z-index: 70 }`; the live session uses `z-index: 71`; existing layers are modal 50, celebration 45, live-notification 60), pulsing alarm visual, local time, exercise title and target, time left until the deadline, a single primary action "Start the camera". No close button. Copy: "The alarm stops once you finish " + `formatTarget(target, measure)` + " on camera." When `queue.length > 1` show "and N more after this" with a small list to start a different one first. When `ringing` is false (audio not yet unlocked) the whole overlay is a tap target labelled "Tap to hear the alarm". Shows "Reconnecting…" when the page passes `offline`.
+- `LiveExerciseSession.tsx` — `{ occurrence: ExerciseOccurrence; serverMessage: string | null; onProgress(count: number, confidence: number): void; onComplete(count: number, confidence: number): Promise<void>; onExit(): void }`.
+  - Camera: `getUserMedia({ video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } } })` with a flip button toggling `facingMode` between `"user"` and `"environment"` (side-view exercises are easier with the rear camera propped up). `<video autoPlay playsInline muted>`; set `srcObject`, then on `loadedmetadata` `await video.play()` and size the canvas to `videoWidth`/`videoHeight` (also on resize). Video and canvas share one wrapper with `transform: scaleX(-1)` when the user camera is active, so the skeleton mirrors exactly like the picture; draw normalized coordinates × canvas size. On `visibilitychange` → visible, re-acquire the stream if any track has `readyState === "ended"`.
+  - Detection: do not call `detectForVideo` before `video.readyState >= 2`; use `requestVideoFrameCallback` when available, otherwise `requestAnimationFrame` and skip when `video.currentTime` has not changed; timestamps `performance.now()`. Build a `PoseFrame` (`landmarks[0]`, `worldLandmarks[0]`, aspect) or `null` and feed `createCounter`. Loading state with retry; GPU→CPU fallback handled in `pose.ts`.
+  - UI: large count / target, progress ring, confidence meter, cue text (orientation cue first), countdown to `completeByUtc`, the flip button, "Leave for now".
+  - Progress: `onProgress` whenever the count changes and at most once per second otherwise.
+  - **Completion gate**: call `onComplete` only when `count >= target` AND elapsed since mount `>= minimumSeconds(type, target)` AND `confidence >= 0.35`; otherwise show "Keep going… N s" or "Step into better light". If `onComplete` rejects (422), keep counting and call it again on every count change and at least every 2 s while the gate holds, showing `serverMessage` as the cue.
+  - Cleanup: cancel the frame loop, stop all tracks, and call `releasePoseLandmarker()` on unmount. Camera denied or insecure context → explanatory message (camera needs HTTPS or localhost). "Leave for now" calls `onExit` and states "Your reps so far won't count" (the alarm returns to full volume).
 - `GoalsView.tsx` — list of goals grouped by partner with `goalTodayStatus` labels; create/edit/delete form (exercise type select from catalog, target with catalog bounds, time input, assignee radio, grace minutes); hides delete/deactivate for the assigned user's ringing goal with the hint "Finish it on camera, or ask <partner> to skip today."; a "Let <partner> off today" button on the partner's ringing occurrence (calls `cancelExerciseOccurrence`); a soft warning when a second goal for the same partner lands within 15 minutes of another; history list and partner stats cards. Time zone defaults to `Intl.DateTimeFormat().resolvedOptions().timeZone`. Includes `AlarmReadinessCard` and `GoalsEmptyState` (below).
 - `PartnerLiveCard.tsx` — the partner's current occurrence: ringing / performing with live count / done / missed / skipped.
 - `AlarmReadinessCard.tsx` — three check rows: Notifications (button → `Notification.requestPermission()`), Sound ("Test alarm": 3 s `startAlarm("ring")` from the click then `stopAlarm()`), Camera ("Test camera": `getUserMedia` then stop tracks); plus the sentence "Alarms ring only while Twogether is open. Add it to your home screen and open it before <earliest goal time>." Shown on Home until all three are granted; a "Hide" link remembers dismissal in localStorage.
@@ -463,20 +509,21 @@ Debounce every transition with a 300 ms minimum phase duration to reject jitter.
 
 ### `app/page.tsx` integration
 
-- Navigation: desktop sidebar `Home, Goals, Messages, Games, Cycle, Map, Profile`. Mobile bottom nav stays at 5 items: `Home, Goals, Messages, Games, More`; `More` opens a small sheet with Cycle, Map, Profile, Settings, Sign out. Icon for Goals: `Dumbbell` from lucide-react.
+- Navigation: `Home, Goals, Messages, Games, Cycle, Map` (+ Profile) in both the sidebar and the mobile bottom nav; `.mobile-nav` becomes 7 columns (verified to fit a 360 px phone with the existing 8 px labels and `min-width: 0`). Icon for Goals: `Dumbbell` from lucide-react.
 - New state: `exerciseToday`, `exerciseHistory`, `exerciseCatalog`, `liveOccurrenceId` (camera session open), `liveServerMessage`, `partnerProgress`, `alarmOffline`.
 - `loadData` also fetches `getExerciseToday`, `getExerciseHistory(30)`, `getExerciseCatalog`, each with a `.catch` fallback (empty today / empty history / `[]`) so a failure can never log the user out.
-- Hub handlers for every event in the table above (upsert occurrence by id; replace goals on `ExerciseGoalsChanged`); `onreconnected`, `visibilitychange` → visible, and a timer at the next local midnight all re-fetch today.
+- Hub handlers for every event in the table above (upsert occurrence by id; replace goals on `ExerciseGoalsChanged`). Connection reliability: register `connection.onclose` to restart the connection with backoff (1 s doubling to 30 s) while a user is logged in; on `visibilitychange` → visible call `connection.start()` if `state !== Connected`, re-fetch today and let the alarm resume audio. `onreconnected`, that visibility handler, and a timer at the next local midnight all re-fetch today.
 - **Alarm effect** (pure function of server state): `mine = occurrences.filter(o => o.userId === user.id && (o.status === "alarming" || o.status === "inProgress"))` sorted by `scheduledAtUtc`. If any: `startAlarm(liveOccurrenceId ? "soft" : "ring")`, request `navigator.wakeLock` (if available), show `ExerciseAlarmOverlay` for the first (with the rest as `queue`) unless the live session is open, and `notifyBrowser` once per occurrence id. Else `stopAlarm()` and release the wake lock. The `addNotification` handler skips its sound and toast for type `exerciseDue` while the overlay is showing.
 - **Local fallback timer**: when `exerciseToday.nextDueAtUtc` is within the next 24 h, set a timeout for that instant `+1500 ms` that re-fetches today (covers a missed hub event). When it is within 10 minutes and the tab is visible, call `loadPoseLandmarker()` once to pre-warm the model.
 - **Offline rule**: if `now >= deadlineUtc + 60 s` for the ringing occurrence and the today re-fetch keeps failing, set `alarmOffline`, drop the alarm to `soft` and show "Reconnecting…" on the overlay; server state wins as soon as a fetch succeeds.
-- Start: `startExerciseOccurrence(id)` then open `LiveExerciseSession` (also used to re-enter after leaving; the server resets progress). Progress: `connection.invoke("ReportExerciseProgress", id, count, confidence)` (fire-and-forget, errors ignored); do not send a progress report for the count that triggers `onComplete`. Complete: `completeExerciseOccurrence(id, { achievedCount, confidence })`. On success replace the occurrence, close the session, `playSound("celebrate")`, show the celebration; call `stopAlarm()` only if no other `mine` occurrence remains, otherwise the overlay for the next one appears after 2 s. On 422 set `liveServerMessage` and keep the session open (the component retries). On 409 re-fetch today: if the occurrence is still inProgress retry once, otherwise close the session with a one-line reason. When the live occurrence becomes `missed` or `cancelled` (hub event or re-fetch), close the session and show "Time ran out" / "<Partner> let you off today".
+- Start: `startExerciseOccurrence(id)` then open `LiveExerciseSession` (also used to re-enter after leaving; the server resets progress). Progress: `connection.send("ReportExerciseProgress", id, count, confidence)` wrapped in try/catch, only while `connection.state === Connected` (dropped otherwise); do not send a progress report for the count that triggers `onComplete`. Complete: `completeExerciseOccurrence(id, { achievedCount, confidence })`. On success replace the occurrence, close the session, `playSound("celebrate")`, show the celebration; call `stopAlarm()` only if no other `mine` occurrence remains, otherwise the overlay for the next one appears after 2 s. On 422 set `liveServerMessage` and keep the session open (the component retries). On 409 re-fetch today: if the occurrence is still inProgress retry once, otherwise close the session with a one-line reason. When the live occurrence becomes `missed` or `cancelled` (hub event or re-fetch), close the session and show "Time ran out" / "<Partner> let you off today".
 - `HomeView` becomes goals-first: `AlarmReadinessCard` (until dismissed/complete), "Today's goals" cards for both partners with `goalTodayStatus`, next alarm countdown, streak cards for both partners from history stats, `PartnerLiveCard`, then the existing hero, quick access and love note. `GoalsEmptyState` when there are no active goals.
 - `layout.tsx` metadata title "Twogether — couple goals"; link `public/manifest.webmanifest` (name, short_name, start_url "/", display "standalone", theme/background colours from the CSS tokens, an inline-SVG data-URI icon is acceptable).
+- `frontend/.gitignore` adds `public/mediapipe/` (the copied WASM); `scripts/copy-mediapipe-wasm.mjs` is committed.
 
 ### Styles
 
-New classes in `globals.css`, mobile-first, same tokens. Alarm overlay uses a strong pulsing pink/amber animation; the live session fills the viewport on phones; the mobile nav keeps 5 columns.
+New classes in `globals.css`, mobile-first, same tokens. Alarm overlay (`z-index: 70`) uses a strong pulsing pink/amber animation; the live session (`z-index: 71`) fills the viewport on phones; `.mobile-nav` moves to 7 columns.
 
 ## Verification
 
