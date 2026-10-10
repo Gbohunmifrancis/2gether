@@ -8,5 +8,10 @@ public enum NotificationType
     GameEnded,
     CoupleConnected,
     Breakup,
-    CycleUpdated
+    CycleUpdated,
+    ExerciseDue,
+    ExerciseCompleted,
+    ExerciseMissed,
+    ExerciseCancelled,
+    ExerciseGoalChanged
 }

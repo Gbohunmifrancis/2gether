@@ -15,5 +15,7 @@ public interface IApplicationDbContext
     DbSet<Message> Messages { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<CoupleLocation> CoupleLocations { get; }
+    DbSet<ExerciseGoal> ExerciseGoals { get; }
+    DbSet<ExerciseOccurrence> ExerciseOccurrences { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

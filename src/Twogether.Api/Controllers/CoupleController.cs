@@ -8,6 +8,7 @@ using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Exercise;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 
@@ -104,6 +105,7 @@ public sealed class CoupleController(
         if (couple is null) return NotFound();
         var actor = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = couple.UserAId == actor.Id ? couple.UserBId : couple.UserAId;
+        var cancelledAlarms = await StopExerciseGoalsAsync(couple.Id, cancellationToken);
         couple.Dissolve(clock.UtcNow);
         actor.SetCouple(null, clock.UtcNow);
         if (partnerId is { } linkedPartnerId)
@@ -117,7 +119,25 @@ public sealed class CoupleController(
             await hub.Clients.Group(CoupleHub.UserGroupName(linkedPartnerId)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);
         }
         else await db.SaveChangesAsync(cancellationToken);
+        foreach (var occurrence in cancelledAlarms)
+            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, ExerciseMapper.ToDto(occurrence, actor.DisplayName), cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>
+    /// A dissolved couple must not keep ringing anyone: deactivate every goal and cancel
+    /// whatever is ringing now. The worker also ignores inactive couples, so a stray goal
+    /// could never fire again even if this step were skipped.
+    /// </summary>
+    private async Task<List<ExerciseOccurrence>> StopExerciseGoalsAsync(Guid coupleId, CancellationToken cancellationToken)
+    {
+        var goals = await db.ExerciseGoals.Where(goal => goal.CoupleId == coupleId && goal.IsActive).ToListAsync(cancellationToken);
+        foreach (var goal in goals) goal.Deactivate(clock.UtcNow);
+        var ringing = await db.ExerciseOccurrences
+            .Where(item => item.CoupleId == coupleId && (item.Status == ExerciseOccurrenceStatus.Alarming || item.Status == ExerciseOccurrenceStatus.InProgress))
+            .ToListAsync(cancellationToken);
+        foreach (var occurrence in ringing) occurrence.Cancel(clock.UtcNow);
+        return ringing;
     }
 
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();

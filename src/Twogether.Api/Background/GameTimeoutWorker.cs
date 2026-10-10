@@ -13,17 +13,14 @@ public sealed class GameTimeoutWorker(
     IHubContext<CoupleHub> hub,
     IGameEngine engine,
     IDateTimeProvider clock,
-    IConfiguration configuration,
     ILogger<GameTimeoutWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // The default local profile has no database. Keep the web app usable in
-        // that profile while enabling the worker automatically in deployed setups.
-        if (string.IsNullOrWhiteSpace(configuration["DATABASE_URL"])
-            && string.IsNullOrWhiteSpace(configuration["PGHOST"])
-            && string.IsNullOrWhiteSpace(configuration["Database:ConnectionString"]))
-            return;
+        // The default local profile may have no database. Wait for one instead of
+        // crashing the loop every second; appsettings always supplies a connection
+        // string, so a configuration check alone would never notice.
+        await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(GameTimeoutWorker), stoppingToken);
 
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         while (await timer.WaitForNextTickAsync(stoppingToken))

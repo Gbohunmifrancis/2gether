@@ -33,6 +33,7 @@ builder.Services.AddSingleton<Twogether.Application.Common.Interfaces.ITokenServ
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<GameLiveState>();
 builder.Services.AddHostedService<GameTimeoutWorker>();
+builder.Services.AddHostedService<ExerciseAlarmWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

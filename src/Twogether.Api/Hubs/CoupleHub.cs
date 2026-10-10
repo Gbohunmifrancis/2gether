@@ -7,6 +7,7 @@ using Twogether.Core.Entities;
 using Twogether.Api.Presence;
 using Twogether.Api.Controllers;
 using Twogether.Api.Realtime;
+using Twogether.Application.Features.Exercise;
 using Twogether.Core.Enums;
 
 namespace Twogether.Api.Hubs;
@@ -128,6 +129,25 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
         liveState.RecordDraft(sessionId, userId, round, answersJson);
         var filled = answers.Values.Count(answer => !string.IsNullOrWhiteSpace(answer));
         await Clients.OthersInGroup(GroupName(coupleId)).SendAsync("GameProgress", new GameProgressDto(sessionId, userId, round, filled, answers.Count), Context.ConnectionAborted);
+    }
+
+    /// <summary>
+    /// Live rep count from the assigned partner's camera session. Advisory only: it lets the
+    /// other partner watch, and it never decides completion. Silently ignored when the caller
+    /// is not the assigned user or the occurrence is not in progress, like ReportDraft.
+    /// </summary>
+    public async Task ReportExerciseProgress(Guid occurrenceId, int achievedCount, double confidence)
+    {
+        if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return;
+        var coupleId = currentUser.CoupleId.Value;
+        var userId = currentUser.UserId.Value;
+        var occurrence = await db.ExerciseOccurrences.SingleOrDefaultAsync(item => item.Id == occurrenceId && item.CoupleId == coupleId && item.UserId == userId, Context.ConnectionAborted);
+        if (occurrence is null || occurrence.Status != ExerciseOccurrenceStatus.InProgress) return;
+        occurrence.RecordProgress(Math.Clamp(achievedCount, 0, 10000), Math.Clamp(confidence, 0, 1), clock.UtcNow);
+        try { await db.SaveChangesAsync(Context.ConnectionAborted); }
+        catch (DbUpdateConcurrencyException) { return; }
+        await Clients.OthersInGroup(GroupName(coupleId)).SendAsync(ExerciseEvents.Progress,
+            new ExerciseProgressDto(occurrence.Id, userId, occurrence.AchievedCount, occurrence.Target, occurrence.Confidence), Context.ConnectionAborted);
     }
 
     private async Task<Guid?> PartnerId(Guid coupleId, Guid userId)

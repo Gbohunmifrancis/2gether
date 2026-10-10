@@ -1,0 +1,108 @@
+using Twogether.Core.Enums;
+using Twogether.Core.Exercise;
+using Twogether.Core.Seedwork;
+
+namespace Twogether.Core.Entities;
+
+/// <summary>
+/// One day's alarm for one goal. Exists only while the alarm is ringing or once it has been
+/// resolved; the worker never opens one for a time the server slept through.
+/// </summary>
+public sealed class ExerciseOccurrence : BaseEntity
+{
+    private ExerciseOccurrence() { }
+
+    public Guid GoalId { get; private set; }
+    public Guid CoupleId { get; private set; }
+    /// <summary>The assigned partner.</summary>
+    public Guid UserId { get; private set; }
+    public ExerciseType ExerciseType { get; private set; }
+    public string Title { get; private set; } = string.Empty;
+    public int Target { get; private set; }
+    public DateOnly LocalDate { get; private set; }
+    public DateTime ScheduledAtUtc { get; private set; }
+    /// <summary>Scheduled time plus grace. An alarming occurrence is missed here.</summary>
+    public DateTime DeadlineUtc { get; private set; }
+    /// <summary>Set by Start. An in-progress occurrence is missed here.</summary>
+    public DateTime? CompleteByUtc { get; private set; }
+    public ExerciseOccurrenceStatus Status { get; private set; } = ExerciseOccurrenceStatus.Alarming;
+    public DateTime AlarmStartedAtUtc { get; private set; }
+    /// <summary>When the latest camera session began.</summary>
+    public DateTime? StartedAtUtc { get; private set; }
+    public DateTime? CompletedAtUtc { get; private set; }
+    public int AchievedCount { get; private set; }
+    public double Confidence { get; private set; }
+    /// <summary>Concurrency token. Bumped by every status transition, never by progress.</summary>
+    public long StateVersion { get; private set; }
+
+    public bool IsAlarmActive => Status is ExerciseOccurrenceStatus.Alarming or ExerciseOccurrenceStatus.InProgress;
+
+    public static ExerciseOccurrence Open(ExerciseGoal goal, DateOnly localDate, DateTime scheduledAtUtc, DateTime utcNow) => new()
+    {
+        GoalId = goal.Id,
+        CoupleId = goal.CoupleId,
+        UserId = goal.AssignedUserId,
+        ExerciseType = goal.ExerciseType,
+        Title = goal.Title,
+        Target = goal.Target,
+        LocalDate = localDate,
+        ScheduledAtUtc = scheduledAtUtc,
+        DeadlineUtc = scheduledAtUtc.AddMinutes(goal.GraceMinutes),
+        AlarmStartedAtUtc = utcNow,
+        CreatedAtUtc = utcNow,
+        UpdatedAtUtc = utcNow
+    };
+
+    /// <summary>
+    /// Opens (or re-opens) the camera session. Progress always restarts from zero because the
+    /// counter on the device does, and the plausibility check measures from this instant.
+    /// </summary>
+    public void Start(DateTime utcNow)
+    {
+        if (!IsAlarmActive) throw new InvalidOperationException("Only a ringing or in-progress exercise can be started.");
+        Status = ExerciseOccurrenceStatus.InProgress;
+        StartedAtUtc = utcNow;
+        AchievedCount = 0;
+        Confidence = 0;
+        var allowance = utcNow + ExerciseVerification.CompletionAllowance;
+        CompleteByUtc = allowance > DeadlineUtc ? allowance : DeadlineUtc;
+        StateVersion++;
+        UpdatedAtUtc = utcNow;
+    }
+
+    /// <summary>Advisory live count from the device. Never lowers the count and never bumps the version.</summary>
+    public void RecordProgress(int achievedCount, double confidence, DateTime utcNow)
+    {
+        if (Status != ExerciseOccurrenceStatus.InProgress) throw new InvalidOperationException("Progress can only be recorded while the exercise is in progress.");
+        AchievedCount = Math.Max(AchievedCount, achievedCount);
+        Confidence = confidence;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void Complete(int achievedCount, double confidence, DateTime utcNow)
+    {
+        if (Status != ExerciseOccurrenceStatus.InProgress) throw new InvalidOperationException("Only an in-progress exercise can be completed.");
+        Status = ExerciseOccurrenceStatus.Completed;
+        AchievedCount = achievedCount;
+        Confidence = confidence;
+        CompletedAtUtc = utcNow;
+        StateVersion++;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void Miss(DateTime utcNow)
+    {
+        if (!IsAlarmActive) throw new InvalidOperationException("Only a ringing or in-progress exercise can be missed.");
+        Status = ExerciseOccurrenceStatus.Missed;
+        StateVersion++;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void Cancel(DateTime utcNow)
+    {
+        if (!IsAlarmActive) throw new InvalidOperationException("Only a ringing or in-progress exercise can be cancelled.");
+        Status = ExerciseOccurrenceStatus.Cancelled;
+        StateVersion++;
+        UpdatedAtUtc = utcNow;
+    }
+}

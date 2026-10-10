@@ -67,7 +67,54 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_game_results" PRIMARY KEY ("Id")
         );
 
+        CREATE TABLE IF NOT EXISTS exercise_goals (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "AssignedUserId" uuid NOT NULL,
+            "CreatedByUserId" uuid NOT NULL,
+            "ExerciseType" character varying(40) NOT NULL,
+            "Title" character varying(80) NOT NULL,
+            "Target" integer NOT NULL,
+            "ScheduledTime" time without time zone NOT NULL,
+            "TimeZoneId" character varying(100) NOT NULL,
+            "GraceMinutes" integer NOT NULL,
+            "IsActive" boolean NOT NULL,
+            "NextDueAtUtc" timestamp with time zone NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_exercise_goals" PRIMARY KEY ("Id")
+        );
+
+        CREATE TABLE IF NOT EXISTS exercise_occurrences (
+            "Id" uuid NOT NULL,
+            "GoalId" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "ExerciseType" character varying(40) NOT NULL,
+            "Title" character varying(80) NOT NULL,
+            "Target" integer NOT NULL,
+            "LocalDate" date NOT NULL,
+            "ScheduledAtUtc" timestamp with time zone NOT NULL,
+            "DeadlineUtc" timestamp with time zone NOT NULL,
+            "CompleteByUtc" timestamp with time zone NULL,
+            "Status" character varying(40) NOT NULL,
+            "AlarmStartedAtUtc" timestamp with time zone NOT NULL,
+            "StartedAtUtc" timestamp with time zone NULL,
+            "CompletedAtUtc" timestamp with time zone NULL,
+            "AchievedCount" integer NOT NULL,
+            "Confidence" double precision NOT NULL,
+            "StateVersion" bigint NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_exercise_occurrences" PRIMARY KEY ("Id")
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE INDEX IF NOT EXISTS "IX_exercise_goals_CoupleId_IsActive" ON exercise_goals ("CoupleId", "IsActive");
+        CREATE INDEX IF NOT EXISTS "IX_exercise_goals_IsActive_NextDueAtUtc" ON exercise_goals ("IsActive", "NextDueAtUtc");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_exercise_occurrences_GoalId_LocalDate" ON exercise_occurrences ("GoalId", "LocalDate");
+        CREATE INDEX IF NOT EXISTS "IX_exercise_occurrences_CoupleId_LocalDate" ON exercise_occurrences ("CoupleId", "LocalDate");
+        CREATE INDEX IF NOT EXISTS "IX_exercise_occurrences_Status_DeadlineUtc" ON exercise_occurrences ("Status", "DeadlineUtc");
         CREATE INDEX IF NOT EXISTS "IX_notifications_UserId_CreatedAtUtc" ON notifications ("UserId", "CreatedAtUtc");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_couple_locations_CoupleId_UserId" ON couple_locations ("CoupleId", "UserId");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_game_results_GameSessionId" ON game_results ("GameSessionId");

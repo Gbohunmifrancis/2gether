@@ -17,6 +17,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<CoupleLocation> CoupleLocations => Set<CoupleLocation>();
+    public DbSet<ExerciseGoal> ExerciseGoals => Set<ExerciseGoal>();
+    public DbSet<ExerciseOccurrence> ExerciseOccurrences => Set<ExerciseOccurrence>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
