@@ -1,6 +1,7 @@
 using System.Reflection;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Billing;
 using Twogether.Application.Features.Games;
 
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.AddSingleton<IGameOutcomeService, GameOutcomeService>();
         services.AddScoped<IEntitlementService, EntitlementService>();
         services.AddScoped<GooglePlaySubscriptionSync>();
+        services.AddScoped<AccountExportService>();
         return services;
     }
 }

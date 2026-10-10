@@ -71,6 +71,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
 
                 return Task.CompletedTask;
+            },
+            // Tokens live for hours. Without this, a deleted account could keep writing rows
+            // (locations, food) under an id that no longer exists until its token expired.
+            OnTokenValidated = async context =>
+            {
+                var subject = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? context.Principal?.FindFirst("sub")?.Value;
+                var database = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IApplicationDbContext>();
+                if (!Guid.TryParse(subject, out var userId)
+                    || !await database.Users.AsNoTracking().AnyAsync(user => user.Id == userId, context.HttpContext.RequestAborted))
+                    context.Fail("The account no longer exists.");
             }
         };
     });

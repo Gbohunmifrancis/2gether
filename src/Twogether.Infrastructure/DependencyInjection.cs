@@ -11,6 +11,8 @@ using Twogether.Infrastructure.Food;
 using Twogether.Infrastructure.Media;
 using Twogether.Infrastructure.Push;
 using Twogether.Infrastructure.Billing;
+using Twogether.Infrastructure.Account;
+using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Billing;
 using Twogether.Application.Features.Push;
 using Twogether.Application.Features.Memories;
@@ -52,6 +54,7 @@ public static class DependencyInjection
             default: services.AddSingleton<IPushSender, DisabledPushSender>(); break;
         }
         services.AddScoped<IPushOutbox, PushOutbox>();
+        services.AddScoped<IAccountEraser, AccountEraser>();
         var billing = BuildBillingSettings(configuration);
         services.AddSingleton(billing);
         switch (billing.Provider?.Trim().ToLowerInvariant())
