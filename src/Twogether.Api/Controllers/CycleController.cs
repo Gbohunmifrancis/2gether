@@ -88,6 +88,8 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         if (!owner) return Ok(new CyclePredictionDto(null, null, null));
         var profile = await db.CycleProfiles.AsNoTracking().SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value, cancellationToken);
         if (profile?.LastPeriodStartDate is not { } start) return Ok(new CyclePredictionDto(null, null, null));
+        // Period predictions are meaningless during a pregnancy; show none rather than a wrong date.
+        if (await PregnantAsync(currentUser.UserId.Value, cancellationToken)) return Ok(new CyclePredictionDto(null, null, null));
         var next = start.AddDays(profile.AverageCycleLengthDays);
         return Ok(new CyclePredictionDto(next, next.AddDays(-5), next.AddDays(profile.AveragePeriodLengthDays - 1)));
     }
@@ -104,7 +106,9 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         if (!partnerOwnsCycle) return Ok(new SharedCycleDto(null, null, Array.Empty<CycleDayLogDto>()));
         var profile = await db.CycleProfiles.AsNoTracking().SingleOrDefaultAsync(item => item.UserId == partnerId.Value, cancellationToken);
         if (profile is null || profile.ShareLevelWithPartner == ShareLevel.None) return Ok(new SharedCycleDto(null, null, Array.Empty<CycleDayLogDto>()));
-        var prediction = profile.LastPeriodStartDate is { } start
+        // Hide the partner's predictions only when they share the pregnancy too: predictions that
+        // vanish without explanation would reveal a pregnancy they chose to keep private.
+        var prediction = profile.LastPeriodStartDate is { } start && !await PregnantAsync(partnerId.Value, cancellationToken, sharedOnly: true)
             ? new CyclePredictionDto(start.AddDays(profile.AverageCycleLengthDays), start.AddDays(profile.AverageCycleLengthDays - 5), start.AddDays(profile.AverageCycleLengthDays + profile.AveragePeriodLengthDays - 1))
             : new CyclePredictionDto(null, null, null);
         var sharedLogs = profile.ShareLevelWithPartner == ShareLevel.FullDetail
@@ -113,6 +117,9 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         var logs = sharedLogs.Select(ToLog).ToList();
         return Ok(new SharedCycleDto(ToProfile(profile), prediction, logs));
     }
+
+    private Task<bool> PregnantAsync(Guid userId, CancellationToken cancellationToken, bool sharedOnly = false)
+        => db.Pregnancies.AsNoTracking().AnyAsync(item => item.UserId == userId && item.Status == PregnancyStatus.Active && (!sharedOnly || item.ShareWithPartner), cancellationToken);
 
     private static CycleProfileDto ToProfile(CycleProfile item) => new(item.UserId, item.AverageCycleLengthDays, item.AveragePeriodLengthDays, item.ShareLevelWithPartner, item.LastPeriodStartDate);
     private static CycleDayLogDto ToLog(CycleDayLog item) => new(item.LogDate, item.FlowLevel, item.Symptoms, item.Mood, item.HadSex, item.ProtectionUsed, item.Notes);

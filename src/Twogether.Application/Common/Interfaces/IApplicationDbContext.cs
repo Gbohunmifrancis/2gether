@@ -20,5 +20,8 @@ public interface IApplicationDbContext
     DbSet<FoodEntry> FoodEntries { get; }
     DbSet<NutritionTarget> NutritionTargets { get; }
     DbSet<FoodScan> FoodScans { get; }
+    DbSet<Pregnancy> Pregnancies { get; }
+    DbSet<PregnancyAppointment> PregnancyAppointments { get; }
+    DbSet<KickSession> KickSessions { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

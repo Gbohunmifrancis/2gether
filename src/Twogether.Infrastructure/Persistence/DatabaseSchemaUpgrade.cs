@@ -168,7 +168,51 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_food_scans" PRIMARY KEY ("Id")
         );
 
+        CREATE TABLE IF NOT EXISTS pregnancies (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "DueDate" date NOT NULL,
+            "Status" character varying(20) NOT NULL,
+            "ShareWithPartner" boolean NOT NULL,
+            "EndedAtUtc" timestamp with time zone NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_pregnancies" PRIMARY KEY ("Id")
+        );
+
+        CREATE TABLE IF NOT EXISTS pregnancy_appointments (
+            "Id" uuid NOT NULL,
+            "PregnancyId" uuid NOT NULL,
+            "CreatedByUserId" uuid NOT NULL,
+            "Title" character varying(120) NOT NULL,
+            "AtUtc" timestamp with time zone NOT NULL,
+            "Location" character varying(200) NULL,
+            "Notes" character varying(1000) NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_pregnancy_appointments" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_pregnancy_appointments_pregnancies_PregnancyId" FOREIGN KEY ("PregnancyId") REFERENCES pregnancies ("Id") ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS kick_sessions (
+            "Id" uuid NOT NULL,
+            "PregnancyId" uuid NOT NULL,
+            "StartedAtUtc" timestamp with time zone NOT NULL,
+            "EndedAtUtc" timestamp with time zone NULL,
+            "Count" integer NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_kick_sessions" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_kick_sessions_pregnancies_PregnancyId" FOREIGN KEY ("PregnancyId") REFERENCES pregnancies ("Id") ON DELETE CASCADE,
+            CONSTRAINT "CK_kick_sessions_Count" CHECK ("Count" BETWEEN 0 AND 200)
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_pregnancies_UserId" ON pregnancies ("UserId") WHERE "Status" = 'Active';
+        CREATE INDEX IF NOT EXISTS "IX_pregnancies_CoupleId_Status" ON pregnancies ("CoupleId", "Status");
+        CREATE INDEX IF NOT EXISTS "IX_pregnancy_appointments_PregnancyId_AtUtc" ON pregnancy_appointments ("PregnancyId", "AtUtc");
+        CREATE INDEX IF NOT EXISTS "IX_kick_sessions_PregnancyId_StartedAtUtc" ON kick_sessions ("PregnancyId", "StartedAtUtc");
         CREATE INDEX IF NOT EXISTS "IX_food_entries_UserId_LocalDate" ON food_entries ("UserId", "LocalDate");
         CREATE INDEX IF NOT EXISTS "IX_food_entries_CoupleId_LocalDate" ON food_entries ("CoupleId", "LocalDate");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_nutrition_targets_UserId" ON nutrition_targets ("UserId");

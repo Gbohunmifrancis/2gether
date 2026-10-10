@@ -13,5 +13,6 @@ public enum NotificationType
     ExerciseCompleted,
     ExerciseMissed,
     ExerciseCancelled,
-    ExerciseGoalChanged
+    ExerciseGoalChanged,
+    PregnancyUpdated
 }

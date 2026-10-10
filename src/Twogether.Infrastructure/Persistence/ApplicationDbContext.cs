@@ -22,6 +22,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<FoodEntry> FoodEntries => Set<FoodEntry>();
     public DbSet<NutritionTarget> NutritionTargets => Set<NutritionTarget>();
     public DbSet<FoodScan> FoodScans => Set<FoodScan>();
+    public DbSet<Pregnancy> Pregnancies => Set<Pregnancy>();
+    public DbSet<PregnancyAppointment> PregnancyAppointments => Set<PregnancyAppointment>();
+    public DbSet<KickSession> KickSessions => Set<KickSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
