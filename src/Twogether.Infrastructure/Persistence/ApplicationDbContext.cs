@@ -27,6 +27,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<KickSession> KickSessions => Set<KickSession>();
     public DbSet<DailyQuestion> DailyQuestions => Set<DailyQuestion>();
     public DbSet<DailyAnswer> DailyAnswers => Set<DailyAnswer>();
+    public DbSet<Memory> Memories => Set<Memory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

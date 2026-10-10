@@ -25,5 +25,6 @@ public interface IApplicationDbContext
     DbSet<KickSession> KickSessions { get; }
     DbSet<DailyQuestion> DailyQuestions { get; }
     DbSet<DailyAnswer> DailyAnswers { get; }
+    DbSet<Memory> Memories { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

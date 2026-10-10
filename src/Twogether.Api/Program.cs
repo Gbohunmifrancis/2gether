@@ -34,6 +34,7 @@ builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<GameLiveState>();
 builder.Services.AddHostedService<GameTimeoutWorker>();
 builder.Services.AddHostedService<ExerciseAlarmWorker>();
+builder.Services.AddHostedService<MemoryCleanupWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

@@ -230,7 +230,30 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "FK_daily_answers_daily_questions_DailyQuestionId" FOREIGN KEY ("DailyQuestionId") REFERENCES daily_questions ("Id") ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS memories (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "UploadedByUserId" uuid NOT NULL,
+            "ObjectKey" character varying(200) NOT NULL,
+            "ContentType" character varying(40) NOT NULL,
+            "IsVideo" boolean NOT NULL,
+            "SizeBytes" bigint NOT NULL,
+            "Caption" character varying(500) NULL,
+            "TakenAtUtc" timestamp with time zone NULL,
+            "SortAtUtc" timestamp with time zone NOT NULL,
+            "Source" character varying(20) NOT NULL,
+            "Status" character varying(20) NOT NULL,
+            "ReadyAtUtc" timestamp with time zone NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_memories" PRIMARY KEY ("Id"),
+            CONSTRAINT "CK_memories_SizeBytes" CHECK ("SizeBytes" > 0)
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_memories_ObjectKey" ON memories ("ObjectKey");
+        CREATE INDEX IF NOT EXISTS "IX_memories_CoupleId_Status_SortAtUtc_Id" ON memories ("CoupleId", "Status", "SortAtUtc", "Id");
+        CREATE INDEX IF NOT EXISTS "IX_memories_Status_CreatedAtUtc" ON memories ("Status", "CreatedAtUtc");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_daily_questions_CoupleId_LocalDate" ON daily_questions ("CoupleId", "LocalDate");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_daily_answers_DailyQuestionId_UserId" ON daily_answers ("DailyQuestionId", "UserId");
         CREATE INDEX IF NOT EXISTS "IX_daily_answers_CoupleId" ON daily_answers ("CoupleId");

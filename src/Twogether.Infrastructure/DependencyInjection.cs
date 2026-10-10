@@ -8,6 +8,8 @@ using Twogether.Infrastructure.Security;
 using Twogether.Infrastructure.Time;
 using Twogether.Infrastructure.Games;
 using Twogether.Infrastructure.Food;
+using Twogether.Infrastructure.Media;
+using Twogether.Application.Features.Memories;
 using Twogether.Application.Features.Games;
 using Twogether.Application.Features.Food;
 
@@ -35,7 +37,23 @@ public static class DependencyInjection
         services.AddSingleton<IGameQuestionProvider, OpenTriviaQuestionProvider>();
         services.AddSingleton(BuildFoodSettings(configuration));
         services.AddSingleton<IFoodPhotoEstimator, AnthropicFoodPhotoEstimator>();
+        services.AddSingleton(BuildMediaSettings(configuration));
+        services.AddSingleton<IMediaStorage, S3MediaStorage>();
         return services;
+    }
+
+    private static MediaSettings BuildMediaSettings(IConfiguration configuration)
+    {
+        var defaults = new MediaSettings();
+        return new MediaSettings
+        {
+            ServiceUrl = configuration["Media:ServiceUrl"],
+            Bucket = configuration["Media:Bucket"],
+            AccessKey = configuration["Media:AccessKey"],
+            SecretKey = configuration["Media:SecretKey"],
+            Region = string.IsNullOrWhiteSpace(configuration["Media:Region"]) ? defaults.Region : configuration["Media:Region"]!.Trim(),
+            MaxBytesPerCouple = long.TryParse(configuration["Media:MaxBytesPerCouple"], out var quota) && quota > 0 ? quota : defaults.MaxBytesPerCouple
+        };
     }
 
     private static FoodSettings BuildFoodSettings(IConfiguration configuration)
