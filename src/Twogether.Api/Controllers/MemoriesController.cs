@@ -25,6 +25,7 @@ public sealed class MemoriesController(
     IDateTimeProvider clock,
     IMediaStorage storage,
     MediaSettings settings,
+    Twogether.Application.Features.Billing.IEntitlementService entitlements,
     IHubContext<CoupleHub> hub,
     ILogger<MemoriesController> logger) : ApiControllerBase
 {
@@ -36,10 +37,12 @@ public sealed class MemoriesController(
     [HttpGet("usage")]
     public async Task<ActionResult<MemoryUsageDto>> Usage(CancellationToken cancellationToken)
     {
+        if (!currentUser.UserId.HasValue) return Unauthorized();
+        var limit = (await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken)).Limits.MemoriesBytes;
         var couple = await ActiveCoupleAsync(cancellationToken);
-        if (couple is null) return Ok(new MemoryUsageDto(0, 0, settings.MaxBytesPerCouple));
+        if (couple is null) return Ok(new MemoryUsageDto(0, 0, limit));
         var ready = db.Memories.AsNoTracking().Where(item => item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready);
-        return Ok(new MemoryUsageDto(await ready.CountAsync(cancellationToken), await ready.SumAsync(item => item.SizeBytes, cancellationToken), settings.MaxBytesPerCouple));
+        return Ok(new MemoryUsageDto(await ready.CountAsync(cancellationToken), await ready.SumAsync(item => item.SizeBytes, cancellationToken), limit));
     }
 
     /// <summary>Reserves a slot and returns a signed PUT URL. The client must send the Content-Type it declared.</summary>
@@ -58,8 +61,11 @@ public sealed class MemoriesController(
         var used = await db.Memories.AsNoTracking()
             .Where(item => item.CoupleId == couple.Id && item.Status != MemoryStatus.Deleting)
             .SumAsync(item => item.SizeBytes, cancellationToken);
-        if (used + request.SizeBytes > settings.MaxBytesPerCouple)
-            return Conflict(new ApiError("memories.quota_exceeded", "Your shared album is full. Remove some memories to add more."));
+        var entitlement = await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken);
+        if (used + request.SizeBytes > entitlement.Limits.MemoriesBytes)
+            return Conflict(new ApiError("memories.quota_exceeded", entitlement.Plan == Plan.Free
+                ? "Your shared album is full. Heartpact Plus gives you more room, or remove some memories."
+                : "Your shared album is full. Remove some memories to add more."));
 
         var memory = Memory.Reserve(couple.Id, currentUser.UserId.Value, kind.Value, request.SizeBytes, request.Caption, request.TakenAtUtc, request.Source, now);
         db.Memories.Add(memory);

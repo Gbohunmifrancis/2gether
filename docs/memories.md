@@ -6,7 +6,7 @@ The couple's shared album. Route prefix `api/memories`, authorized. Bytes live i
 ## Configuration
 
 `Media:ServiceUrl`, `Media:Bucket`, `Media:AccessKey`, `Media:SecretKey`, `Media:Region` (default `auto`, right for
-R2), `Media:MaxBytesPerCouple` (default 2 GB). Set the secrets as environment variables (`Media__AccessKey`, ...),
+R2). The storage quota per couple is a plan limit (Free 500 MB, Plus 2 GB by default; see `docs/billing.md`). Set the secrets as environment variables (`Media__AccessKey`, ...),
 never in appsettings. Without them, upload and album endpoints answer `503 memories.storage_unavailable` and the
 cleanup worker stays off. Railway's disk is wiped on deploy, so local disk is not an option there.
 

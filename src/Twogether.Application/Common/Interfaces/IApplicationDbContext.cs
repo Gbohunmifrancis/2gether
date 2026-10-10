@@ -27,5 +27,6 @@ public interface IApplicationDbContext
     DbSet<DailyAnswer> DailyAnswers { get; }
     DbSet<Memory> Memories { get; }
     DbSet<DeviceRegistration> DeviceRegistrations { get; }
+    DbSet<StoreSubscription> StoreSubscriptions { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

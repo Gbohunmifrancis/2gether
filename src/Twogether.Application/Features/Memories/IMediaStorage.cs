@@ -23,7 +23,6 @@ public sealed class MediaSettings
     public string? AccessKey { get; init; }
     public string? SecretKey { get; init; }
     public string Region { get; init; } = "auto";
-    public long MaxBytesPerCouple { get; init; } = 2L * 1024 * 1024 * 1024;
     public TimeSpan UploadUrlLifetime { get; init; } = TimeSpan.FromMinutes(15);
     public TimeSpan DownloadUrlLifetime { get; init; } = TimeSpan.FromHours(1);
     /// <summary>An upload slot not completed within this window is treated as abandoned.</summary>

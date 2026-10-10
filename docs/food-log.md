@@ -12,8 +12,8 @@ Reads work for an unlinked user (they see their own data and no partner); writes
 - `nutrition_targets`: one row per user, always looked up by user id (the stored couple id is historical) (`DailyCalories` 800..6000, optional macro targets) plus `ShareLevel`
   (`none` / `totalsOnly` / `fullDetail`, default `totalsOnly`), which is what the partner may see.
 - `food_scans`: audit row per photo estimate call. Never stores the photo; stores the model, token counts, latency,
-  success or error code, and the accepted estimate as JSON. Drives the per-user daily quota (`Food:DailyScanLimit`,
-  default 20, counted per UTC day, failed calls included because they were billed).
+  success or error code, and the accepted estimate as JSON. Drives the per-user daily quota, which comes from the couple's plan (Free 3, Plus 20 by default; see
+  `docs/billing.md`), counted per UTC day, failed calls included because they were billed.
 
 ## Endpoints
 
@@ -45,5 +45,6 @@ any entry change, unless the user's share level is `none`.
 ## Configuration
 
 `Food:Model` (default `claude-opus-5-5`), `Food:AnthropicApiKey` or the `ANTHROPIC_API_KEY` environment variable,
-`Food:DailyScanLimit`, `Food:MaxImageBytes`, `Food:TimeoutSeconds`. The estimator uses the official Anthropic C# SDK
+`Food:MaxImageBytes`, `Food:TimeoutSeconds`. The scan limit is a plan limit (`Billing:Free:FoodScansPerDay`,
+`Billing:Plus:FoodScansPerDay`). The estimator uses the official Anthropic C# SDK
 with a schema-constrained JSON output (`FoodEstimateParser.JsonSchema`) at low effort.

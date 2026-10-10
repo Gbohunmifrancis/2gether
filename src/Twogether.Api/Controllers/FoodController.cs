@@ -23,6 +23,7 @@ public sealed class FoodController(
     IHubContext<CoupleHub> hub,
     IFoodPhotoEstimator estimator,
     FoodSettings settings,
+    Twogether.Application.Features.Billing.IEntitlementService entitlements,
     ILogger<FoodController> logger) : ApiControllerBase
 {
     private static readonly ApiError NoCouple = new("food.no_couple", "Link your partner before logging food.");
@@ -74,6 +75,7 @@ public sealed class FoodController(
             .ToListAsync(cancellationToken);
         var totals = FoodMapper.Totals(entries);
         var scansUsed = await ScansUsedTodayAsync(userId, cancellationToken);
+        var scanLimit = (await entitlements.ForUserAsync(userId, cancellationToken)).Limits.FoodScansPerDay;
 
         FoodPartnerDayDto? partner = null;
         if (couple is not null && PartnerOf(couple, userId) is { } partnerId)
@@ -101,7 +103,7 @@ public sealed class FoodController(
             entries.Select(FoodMapper.ToDto).ToList(),
             partner,
             scansUsed,
-            settings.DailyScanLimit));
+            scanLimit));
     }
 
     [HttpPost("entries")]
@@ -229,8 +231,13 @@ public sealed class FoodController(
         var photo = FoodRules.ValidateImage(request.ImageBase64, request.MediaType, settings.MaxImageBytes);
         if (photo.IsFailure) return Problem(photo.Error);
         var used = await ScansUsedTodayAsync(userId, cancellationToken);
-        if (used >= settings.DailyScanLimit)
-            return StatusCode(StatusCodes.Status429TooManyRequests, new ApiError("food.scan_limit", $"You have used today's {settings.DailyScanLimit} photo scans. Log this one by hand."));
+        var entitlement = await entitlements.ForUserAsync(userId, cancellationToken);
+        var limit = entitlement.Limits.FoodScansPerDay;
+        if (used >= limit)
+            return StatusCode(StatusCodes.Status429TooManyRequests, new ApiError("food.scan_limit",
+                entitlement.Plan == Core.Enums.Plan.Free
+                    ? $"You have used today's {limit} free photo scans. Heartpact Plus gives you more, or log this one by hand."
+                    : $"You have used today's {limit} photo scans. Log this one by hand."));
 
         var watch = Stopwatch.StartNew();
         var result = await estimator.EstimateAsync(photo.Value, FoodRules.CleanHint(request.Portion, request.Hint), cancellationToken);
@@ -262,7 +269,7 @@ public sealed class FoodController(
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Food scan {ScanId} for user {UserId}: {Model}, {InputTokens} in / {OutputTokens} out, {LatencyMs} ms, confidence {Confidence}.",
             scan.Id, userId, estimator.ModelName, estimate.InputTokens, estimate.OutputTokens, latency, estimate.Confidence);
-        return Ok(FoodMapper.ToDto(scan.Id, estimate, estimator.ModelName, Math.Max(0, settings.DailyScanLimit - used - 1)));
+        return Ok(FoodMapper.ToDto(scan.Id, estimate, estimator.ModelName, Math.Max(0, limit - used - 1)));
     }
 
     private async Task NotifyDayAsync(Couple couple, Guid userId, DateOnly localDate, CancellationToken cancellationToken)

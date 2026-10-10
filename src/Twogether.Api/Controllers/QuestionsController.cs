@@ -27,6 +27,7 @@ public sealed class QuestionsController(
     ICurrentUser currentUser,
     IDateTimeProvider clock,
     IHubContext<CoupleHub> hub,
+    Twogether.Application.Features.Billing.IEntitlementService entitlements,
     ILogger<QuestionsController> logger) : ApiControllerBase
 {
     public const string AnsweredEvent = "DailyQuestionAnswered";
@@ -101,7 +102,9 @@ public sealed class QuestionsController(
     public async Task<ActionResult<DailyQuestionHistoryDto>> History([FromQuery] int days = 30, [FromQuery] string? date = null, CancellationToken cancellationToken = default)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
-        days = Math.Clamp(days, 1, 90);
+        // Free couples look back a week; Plus couples get the full archive window.
+        var maxDays = (await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken)).Limits.QuestionHistoryDays;
+        days = Math.Clamp(days, 1, Math.Min(90, maxDays));
         var couple = await ActiveCoupleAsync(cancellationToken);
         if (couple is null) return Ok(new DailyQuestionHistoryDto(days, 0, []));
         var today = ResolveDate(date) ?? DateOnly.FromDateTime(clock.UtcNow);

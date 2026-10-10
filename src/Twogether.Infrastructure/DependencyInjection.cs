@@ -10,6 +10,8 @@ using Twogether.Infrastructure.Games;
 using Twogether.Infrastructure.Food;
 using Twogether.Infrastructure.Media;
 using Twogether.Infrastructure.Push;
+using Twogether.Infrastructure.Billing;
+using Twogether.Application.Features.Billing;
 using Twogether.Application.Features.Push;
 using Twogether.Application.Features.Memories;
 using Twogether.Application.Features.Games;
@@ -50,7 +52,32 @@ public static class DependencyInjection
             default: services.AddSingleton<IPushSender, DisabledPushSender>(); break;
         }
         services.AddScoped<IPushOutbox, PushOutbox>();
+        var billing = BuildBillingSettings(configuration);
+        services.AddSingleton(billing);
+        switch (billing.Provider?.Trim().ToLowerInvariant())
+        {
+            case "googleplay": services.AddSingleton<IGooglePlayBilling, GooglePlayBilling>(); break;
+            case "fake": services.AddSingleton<IGooglePlayBilling, FakeGooglePlayBilling>(); break;
+            default: services.AddSingleton<IGooglePlayBilling, DisabledGooglePlayBilling>(); break;
+        }
         return services;
+    }
+
+    private static BillingSettings BuildBillingSettings(IConfiguration configuration)
+    {
+        var defaults = new BillingSettings();
+        int Int(string key, int fallback) => int.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
+        long Long(string key, long fallback) => long.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
+        return new BillingSettings
+        {
+            Provider = configuration["Billing:Provider"],
+            GooglePlayPackageName = configuration["Billing:GooglePlayPackageName"],
+            GooglePlayCredentialsJson = configuration["Billing:GooglePlayCredentialsJson"],
+            ProductIds = (configuration["Billing:ProductIds"] ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            RtdnSecret = configuration["Billing:RtdnSecret"],
+            Free = new PlanLimits(Int("Billing:Free:FoodScansPerDay", defaults.Free.FoodScansPerDay), Long("Billing:Free:MemoriesBytes", defaults.Free.MemoriesBytes), Int("Billing:Free:QuestionHistoryDays", defaults.Free.QuestionHistoryDays)),
+            Plus = new PlanLimits(Int("Billing:Plus:FoodScansPerDay", defaults.Plus.FoodScansPerDay), Long("Billing:Plus:MemoriesBytes", defaults.Plus.MemoriesBytes), Int("Billing:Plus:QuestionHistoryDays", defaults.Plus.QuestionHistoryDays))
+        };
     }
 
     private static PushSettings BuildPushSettings(IConfiguration configuration) => new()
@@ -70,8 +97,7 @@ public static class DependencyInjection
             Bucket = configuration["Media:Bucket"],
             AccessKey = configuration["Media:AccessKey"],
             SecretKey = configuration["Media:SecretKey"],
-            Region = string.IsNullOrWhiteSpace(configuration["Media:Region"]) ? defaults.Region : configuration["Media:Region"]!.Trim(),
-            MaxBytesPerCouple = long.TryParse(configuration["Media:MaxBytesPerCouple"], out var quota) && quota > 0 ? quota : defaults.MaxBytesPerCouple
+            Region = string.IsNullOrWhiteSpace(configuration["Media:Region"]) ? defaults.Region : configuration["Media:Region"]!.Trim()
         };
     }
 
@@ -82,7 +108,6 @@ public static class DependencyInjection
         {
             Model = string.IsNullOrWhiteSpace(configuration["Food:Model"]) ? defaults.Model : configuration["Food:Model"]!.Trim(),
             AnthropicApiKey = configuration["Food:AnthropicApiKey"],
-            DailyScanLimit = int.TryParse(configuration["Food:DailyScanLimit"], out var limit) && limit > 0 ? limit : defaults.DailyScanLimit,
             MaxImageBytes = int.TryParse(configuration["Food:MaxImageBytes"], out var bytes) && bytes > 0 ? bytes : defaults.MaxImageBytes,
             TimeoutSeconds = int.TryParse(configuration["Food:TimeoutSeconds"], out var seconds) && seconds > 0 ? seconds : defaults.TimeoutSeconds
         };

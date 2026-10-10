@@ -105,6 +105,11 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+if (app.Environment.IsProduction() && string.Equals(app.Configuration["Billing:Provider"]?.Trim(), "fake", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException("Billing:Provider=fake grants paid access for free and is refused in Production.");
+}
+
 if (app.Environment.IsProduction() && jwtSettings.SigningKey.Contains("change-before-production", StringComparison.OrdinalIgnoreCase))
 {
     throw new InvalidOperationException("Jwt:SigningKey must be configured with a production secret.");

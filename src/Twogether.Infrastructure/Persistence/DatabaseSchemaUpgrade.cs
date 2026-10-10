@@ -277,7 +277,26 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_device_registrations" PRIMARY KEY ("Id")
         );
 
+        CREATE TABLE IF NOT EXISTS store_subscriptions (
+            "Id" uuid NOT NULL,
+            "Store" character varying(20) NOT NULL,
+            "PurchaseToken" character varying(1024) NOT NULL,
+            "ProductId" character varying(100) NOT NULL,
+            "UserId" uuid NOT NULL,
+            "Status" character varying(30) NOT NULL,
+            "ExpiresAtUtc" timestamp with time zone NOT NULL,
+            "AutoRenewing" boolean NOT NULL,
+            "Acknowledged" boolean NOT NULL,
+            "LinkedPurchaseToken" character varying(1024) NULL,
+            "LastVerifiedAtUtc" timestamp with time zone NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_store_subscriptions" PRIMARY KEY ("Id")
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_store_subscriptions_PurchaseToken" ON store_subscriptions ("PurchaseToken");
+        CREATE INDEX IF NOT EXISTS "IX_store_subscriptions_UserId_ExpiresAtUtc" ON store_subscriptions ("UserId", "ExpiresAtUtc");
         CREATE INDEX IF NOT EXISTS "IX_notifications_pending_push" ON notifications ("CreatedAtUtc") WHERE "PushState" = 'Pending';
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_device_registrations_Token" ON device_registrations ("Token");
         CREATE INDEX IF NOT EXISTS "IX_device_registrations_UserId_DisabledAtUtc" ON device_registrations ("UserId", "DisabledAtUtc");
