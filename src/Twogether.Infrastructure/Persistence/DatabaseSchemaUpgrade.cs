@@ -19,6 +19,7 @@ public static class DatabaseSchemaUpgrade
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "MapColor" character varying(20) NOT NULL DEFAULT '#f45c91';
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "CycleOwner" boolean NOT NULL DEFAULT false;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "Gender" character varying(32) NOT NULL DEFAULT 'PreferNotToSay';
+        ALTER TABLE IF EXISTS couple_locations ADD COLUMN IF NOT EXISTS "PausedUntilUtc" timestamp with time zone NULL;
 
         -- "On game" is now "I call on". GameType is stored as a string, so rows written
         -- before the rename carry the old name and would fail to map on read.
@@ -46,6 +47,7 @@ public static class DatabaseSchemaUpgrade
             "Longitude" double precision NOT NULL,
             "AccuracyMeters" double precision NOT NULL,
             "SharingEnabled" boolean NOT NULL,
+            "PausedUntilUtc" timestamp with time zone NULL,
             "CreatedAtUtc" timestamp with time zone NOT NULL,
             "UpdatedAtUtc" timestamp with time zone NOT NULL,
             CONSTRAINT "PK_couple_locations" PRIMARY KEY ("Id")
