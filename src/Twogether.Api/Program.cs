@@ -35,6 +35,7 @@ builder.Services.AddSingleton<GameLiveState>();
 builder.Services.AddHostedService<GameTimeoutWorker>();
 builder.Services.AddHostedService<ExerciseAlarmWorker>();
 builder.Services.AddHostedService<MemoryCleanupWorker>();
+builder.Services.AddHostedService<PushDispatchWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

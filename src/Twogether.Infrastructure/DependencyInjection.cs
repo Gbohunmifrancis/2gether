@@ -9,6 +9,8 @@ using Twogether.Infrastructure.Time;
 using Twogether.Infrastructure.Games;
 using Twogether.Infrastructure.Food;
 using Twogether.Infrastructure.Media;
+using Twogether.Infrastructure.Push;
+using Twogether.Application.Features.Push;
 using Twogether.Application.Features.Memories;
 using Twogether.Application.Features.Games;
 using Twogether.Application.Features.Food;
@@ -39,8 +41,25 @@ public static class DependencyInjection
         services.AddSingleton<IFoodPhotoEstimator, AnthropicFoodPhotoEstimator>();
         services.AddSingleton(BuildMediaSettings(configuration));
         services.AddSingleton<IMediaStorage, S3MediaStorage>();
+        var push = BuildPushSettings(configuration);
+        services.AddSingleton(push);
+        switch (push.Provider?.Trim().ToLowerInvariant())
+        {
+            case "fcm": services.AddSingleton<IPushSender, FcmPushSender>(); break;
+            case "log": services.AddSingleton<IPushSender, LogPushSender>(); break;
+            default: services.AddSingleton<IPushSender, DisabledPushSender>(); break;
+        }
+        services.AddScoped<IPushOutbox, PushOutbox>();
         return services;
     }
+
+    private static PushSettings BuildPushSettings(IConfiguration configuration) => new()
+    {
+        Provider = configuration["Push:Provider"],
+        FcmProjectId = configuration["Push:FcmProjectId"],
+        FcmCredentialsJson = configuration["Push:FcmCredentialsJson"],
+        MaxDevicesPerUser = int.TryParse(configuration["Push:MaxDevicesPerUser"], out var max) && max > 0 ? max : 10
+    };
 
     private static MediaSettings BuildMediaSettings(IConfiguration configuration)
     {

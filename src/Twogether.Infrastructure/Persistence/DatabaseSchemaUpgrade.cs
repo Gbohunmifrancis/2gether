@@ -20,6 +20,13 @@ public static class DatabaseSchemaUpgrade
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "CycleOwner" boolean NOT NULL DEFAULT false;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "Gender" character varying(32) NOT NULL DEFAULT 'PreferNotToSay';
         ALTER TABLE IF EXISTS couple_locations ADD COLUMN IF NOT EXISTS "PausedUntilUtc" timestamp with time zone NULL;
+        -- Push outbox columns. Rows that existed before push delivery are marked skipped so a
+        -- deploy never sends a backlog of old notifications to phones.
+        ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS "PushState" character varying(20) NOT NULL DEFAULT 'Skipped';
+        ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS "PushAttempts" integer NOT NULL DEFAULT 0;
+        ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS "PushNextAttemptAtUtc" timestamp with time zone NULL;
+        ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS "PushLockedUntilUtc" timestamp with time zone NULL;
+        ALTER TABLE IF EXISTS notifications ADD COLUMN IF NOT EXISTS "PushedAtUtc" timestamp with time zone NULL;
 
         -- "On game" is now "I call on". GameType is stored as a string, so rows written
         -- before the rename carry the old name and would fail to map on read.
@@ -34,6 +41,11 @@ public static class DatabaseSchemaUpgrade
             "Body" character varying(1000) NOT NULL,
             "DataJson" jsonb NULL,
             "ReadAtUtc" timestamp with time zone NULL,
+            "PushState" character varying(20) NOT NULL DEFAULT 'Skipped',
+            "PushAttempts" integer NOT NULL DEFAULT 0,
+            "PushNextAttemptAtUtc" timestamp with time zone NULL,
+            "PushLockedUntilUtc" timestamp with time zone NULL,
+            "PushedAtUtc" timestamp with time zone NULL,
             "CreatedAtUtc" timestamp with time zone NOT NULL,
             "UpdatedAtUtc" timestamp with time zone NOT NULL,
             CONSTRAINT "PK_notifications" PRIMARY KEY ("Id")
@@ -250,7 +262,25 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "CK_memories_SizeBytes" CHECK ("SizeBytes" > 0)
         );
 
+        CREATE TABLE IF NOT EXISTS device_registrations (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "Platform" character varying(20) NOT NULL,
+            "TokenKind" character varying(30) NOT NULL,
+            "Token" character varying(1024) NOT NULL,
+            "AppVersion" character varying(40) NULL,
+            "LastSeenAtUtc" timestamp with time zone NOT NULL,
+            "DisabledAtUtc" timestamp with time zone NULL,
+            "DisabledReason" character varying(40) NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_device_registrations" PRIMARY KEY ("Id")
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE INDEX IF NOT EXISTS "IX_notifications_pending_push" ON notifications ("CreatedAtUtc") WHERE "PushState" = 'Pending';
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_device_registrations_Token" ON device_registrations ("Token");
+        CREATE INDEX IF NOT EXISTS "IX_device_registrations_UserId_DisabledAtUtc" ON device_registrations ("UserId", "DisabledAtUtc");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_memories_ObjectKey" ON memories ("ObjectKey");
         CREATE INDEX IF NOT EXISTS "IX_memories_CoupleId_Status_SortAtUtc_Id" ON memories ("CoupleId", "Status", "SortAtUtc", "Id");
         CREATE INDEX IF NOT EXISTS "IX_memories_Status_CreatedAtUtc" ON memories ("Status", "CreatedAtUtc");
