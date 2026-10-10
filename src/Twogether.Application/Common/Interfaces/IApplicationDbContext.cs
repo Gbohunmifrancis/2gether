@@ -23,5 +23,7 @@ public interface IApplicationDbContext
     DbSet<Pregnancy> Pregnancies { get; }
     DbSet<PregnancyAppointment> PregnancyAppointments { get; }
     DbSet<KickSession> KickSessions { get; }
+    DbSet<DailyQuestion> DailyQuestions { get; }
+    DbSet<DailyAnswer> DailyAnswers { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

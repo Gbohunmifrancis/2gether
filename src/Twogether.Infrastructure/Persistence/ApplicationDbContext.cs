@@ -25,6 +25,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<Pregnancy> Pregnancies => Set<Pregnancy>();
     public DbSet<PregnancyAppointment> PregnancyAppointments => Set<PregnancyAppointment>();
     public DbSet<KickSession> KickSessions => Set<KickSession>();
+    public DbSet<DailyQuestion> DailyQuestions => Set<DailyQuestion>();
+    public DbSet<DailyAnswer> DailyAnswers => Set<DailyAnswer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

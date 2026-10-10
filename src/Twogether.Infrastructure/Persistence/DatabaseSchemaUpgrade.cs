@@ -208,7 +208,32 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "CK_kick_sessions_Count" CHECK ("Count" BETWEEN 0 AND 200)
         );
 
+        CREATE TABLE IF NOT EXISTS daily_questions (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "LocalDate" date NOT NULL,
+            "QuestionKey" character varying(40) NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_daily_questions" PRIMARY KEY ("Id")
+        );
+
+        CREATE TABLE IF NOT EXISTS daily_answers (
+            "Id" uuid NOT NULL,
+            "DailyQuestionId" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "Body" character varying(1000) NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_daily_answers" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_daily_answers_daily_questions_DailyQuestionId" FOREIGN KEY ("DailyQuestionId") REFERENCES daily_questions ("Id") ON DELETE CASCADE
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_daily_questions_CoupleId_LocalDate" ON daily_questions ("CoupleId", "LocalDate");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_daily_answers_DailyQuestionId_UserId" ON daily_answers ("DailyQuestionId", "UserId");
+        CREATE INDEX IF NOT EXISTS "IX_daily_answers_CoupleId" ON daily_answers ("CoupleId");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_pregnancies_UserId" ON pregnancies ("UserId") WHERE "Status" = 'Active';
         CREATE INDEX IF NOT EXISTS "IX_pregnancies_CoupleId_Status" ON pregnancies ("CoupleId", "Status");
         CREATE INDEX IF NOT EXISTS "IX_pregnancy_appointments_PregnancyId_AtUtc" ON pregnancy_appointments ("PregnancyId", "AtUtc");
