@@ -19,6 +19,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<CoupleLocation> CoupleLocations => Set<CoupleLocation>();
     public DbSet<ExerciseGoal> ExerciseGoals => Set<ExerciseGoal>();
     public DbSet<ExerciseOccurrence> ExerciseOccurrences => Set<ExerciseOccurrence>();
+    public DbSet<FoodEntry> FoodEntries => Set<FoodEntry>();
+    public DbSet<NutritionTarget> NutritionTargets => Set<NutritionTarget>();
+    public DbSet<FoodScan> FoodScans => Set<FoodScan>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

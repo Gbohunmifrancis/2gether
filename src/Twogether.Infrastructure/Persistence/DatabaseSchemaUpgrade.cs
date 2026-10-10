@@ -109,7 +109,68 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_exercise_occurrences" PRIMARY KEY ("Id")
         );
 
+        CREATE TABLE IF NOT EXISTS food_entries (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "LocalDate" date NOT NULL,
+            "MealType" character varying(20) NOT NULL,
+            "Description" character varying(120) NOT NULL,
+            "Calories" integer NOT NULL,
+            "CaloriesLow" integer NULL,
+            "CaloriesHigh" integer NULL,
+            "ProteinGrams" double precision NULL,
+            "CarbsGrams" double precision NULL,
+            "FatGrams" double precision NULL,
+            "Source" character varying(20) NOT NULL,
+            "Confidence" double precision NULL,
+            "ScanId" uuid NULL,
+            "LoggedAtUtc" timestamp with time zone NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_food_entries" PRIMARY KEY ("Id"),
+            CONSTRAINT "CK_food_entries_Calories" CHECK ("Calories" >= 0),
+            CONSTRAINT "CK_food_entries_Range" CHECK ("CaloriesLow" IS NULL OR ("CaloriesHigh" IS NOT NULL AND "CaloriesLow" <= "Calories" AND "Calories" <= "CaloriesHigh"))
+        );
+
+        CREATE TABLE IF NOT EXISTS nutrition_targets (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "DailyCalories" integer NOT NULL,
+            "ProteinGrams" double precision NULL,
+            "CarbsGrams" double precision NULL,
+            "FatGrams" double precision NULL,
+            "ShareLevel" character varying(20) NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_nutrition_targets" PRIMARY KEY ("Id"),
+            CONSTRAINT "CK_nutrition_targets_DailyCalories" CHECK ("DailyCalories" BETWEEN 800 AND 6000)
+        );
+
+        CREATE TABLE IF NOT EXISTS food_scans (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "Model" character varying(80) NOT NULL,
+            "MediaType" character varying(40) NOT NULL,
+            "ImageBytes" integer NOT NULL,
+            "Succeeded" boolean NOT NULL,
+            "ErrorCode" character varying(60) NULL,
+            "InputTokens" integer NOT NULL,
+            "OutputTokens" integer NOT NULL,
+            "LatencyMs" integer NOT NULL,
+            "ResultJson" jsonb NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_food_scans" PRIMARY KEY ("Id")
+        );
+
         CREATE INDEX IF NOT EXISTS "IX_game_sessions_InvitedByUserId" ON game_sessions ("InvitedByUserId");
+        CREATE INDEX IF NOT EXISTS "IX_food_entries_UserId_LocalDate" ON food_entries ("UserId", "LocalDate");
+        CREATE INDEX IF NOT EXISTS "IX_food_entries_CoupleId_LocalDate" ON food_entries ("CoupleId", "LocalDate");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_nutrition_targets_UserId" ON nutrition_targets ("UserId");
+        CREATE INDEX IF NOT EXISTS "IX_food_scans_UserId_CreatedAtUtc" ON food_scans ("UserId", "CreatedAtUtc");
         CREATE INDEX IF NOT EXISTS "IX_exercise_goals_CoupleId_IsActive" ON exercise_goals ("CoupleId", "IsActive");
         CREATE INDEX IF NOT EXISTS "IX_exercise_goals_IsActive_NextDueAtUtc" ON exercise_goals ("IsActive", "NextDueAtUtc");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_exercise_occurrences_GoalId_LocalDate" ON exercise_occurrences ("GoalId", "LocalDate");

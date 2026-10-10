@@ -17,5 +17,8 @@ public interface IApplicationDbContext
     DbSet<CoupleLocation> CoupleLocations { get; }
     DbSet<ExerciseGoal> ExerciseGoals { get; }
     DbSet<ExerciseOccurrence> ExerciseOccurrences { get; }
+    DbSet<FoodEntry> FoodEntries { get; }
+    DbSet<NutritionTarget> NutritionTargets { get; }
+    DbSet<FoodScan> FoodScans { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

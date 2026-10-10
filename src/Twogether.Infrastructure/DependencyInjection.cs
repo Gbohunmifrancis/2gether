@@ -7,7 +7,9 @@ using Twogether.Infrastructure.Persistence;
 using Twogether.Infrastructure.Security;
 using Twogether.Infrastructure.Time;
 using Twogether.Infrastructure.Games;
+using Twogether.Infrastructure.Food;
 using Twogether.Application.Features.Games;
+using Twogether.Application.Features.Food;
 
 namespace Twogether.Infrastructure;
 
@@ -31,7 +33,22 @@ public static class DependencyInjection
         services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(5) });
         services.AddSingleton<IGameWordValidator, PublicGameWordValidator>();
         services.AddSingleton<IGameQuestionProvider, OpenTriviaQuestionProvider>();
+        services.AddSingleton(BuildFoodSettings(configuration));
+        services.AddSingleton<IFoodPhotoEstimator, AnthropicFoodPhotoEstimator>();
         return services;
+    }
+
+    private static FoodSettings BuildFoodSettings(IConfiguration configuration)
+    {
+        var defaults = new FoodSettings();
+        return new FoodSettings
+        {
+            Model = string.IsNullOrWhiteSpace(configuration["Food:Model"]) ? defaults.Model : configuration["Food:Model"]!.Trim(),
+            AnthropicApiKey = configuration["Food:AnthropicApiKey"],
+            DailyScanLimit = int.TryParse(configuration["Food:DailyScanLimit"], out var limit) && limit > 0 ? limit : defaults.DailyScanLimit,
+            MaxImageBytes = int.TryParse(configuration["Food:MaxImageBytes"], out var bytes) && bytes > 0 ? bytes : defaults.MaxImageBytes,
+            TimeoutSeconds = int.TryParse(configuration["Food:TimeoutSeconds"], out var seconds) && seconds > 0 ? seconds : defaults.TimeoutSeconds
+        };
     }
 
     private static string? BuildRailwayConnectionString(IConfiguration configuration)
