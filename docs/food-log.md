@@ -9,7 +9,7 @@ Reads work for an unlinked user (they see their own data and no partner); writes
 - `food_entries`: one meal or snack per row, owned by `UserId`. `Calories` is what the user accepted. When the
   entry came from a scan it also carries `CaloriesLow`/`CaloriesHigh`, `Confidence` and `ScanId`; a hand edit that
   moves `Calories` outside the range drops the range. Check constraints keep calories non-negative and the range ordered.
-- `nutrition_targets`: one row per user (`DailyCalories` 800..6000, optional macro targets) plus `ShareLevel`
+- `nutrition_targets`: one row per user, always looked up by user id (the stored couple id is historical) (`DailyCalories` 800..6000, optional macro targets) plus `ShareLevel`
   (`none` / `totalsOnly` / `fullDetail`, default `totalsOnly`), which is what the partner may see.
 - `food_scans`: audit row per photo estimate call. Never stores the photo; stores the model, token counts, latency,
   success or error code, and the accepted estimate as JSON. Drives the per-user daily quota (`Food:DailyScanLimit`,
@@ -26,6 +26,8 @@ Reads work for an unlinked user (they see their own data and no partner); writes
 | PUT | `entries/{id}` | `UpdateFoodEntryRequest` | `FoodEntryDto` | own entries only (404 otherwise) |
 | DELETE | `entries/{id}` | | 204 | own entries only |
 | GET | `history?days=14` | | `FoodHistoryDto` | per-day totals for me and, when shared, my partner; days clamped 1..90 |
+
+A partner only ever sees entries logged while linked to the current couple. My own entries are always mine, whichever couple they were logged under.
 | POST | `scans` | `FoodScanRequest` | `FoodScanResultDto` | see below |
 
 `POST scans` order of checks: 503 `food.estimation_unavailable` when no API key is configured; 422 `food.image_type`,

@@ -213,9 +213,7 @@ public sealed class ExerciseController(
         var stats = new List<ExercisePartnerStatsDto>();
         foreach (var userId in Members(couple))
         {
-            var zoneId = goals.FirstOrDefault(goal => goal.IsActive && goal.AssignedUserId == userId)?.TimeZoneId
-                ?? occurrences.Where(item => item.UserId == userId).Select(item => goals.FirstOrDefault(goal => goal.Id == item.GoalId)?.TimeZoneId).FirstOrDefault(zone => zone is not null);
-            var today = ExerciseSchedule.LocalDate(now, ExerciseSchedule.ResolveTimeZone(zoneId));
+            var today = ExerciseStats.TodayFor(userId, goals, occurrences, now);
             stats.Add(ExerciseStats.Compute(userId, Name(names, userId), occurrences, today));
         }
         return Ok(new ExerciseHistoryDto(days, occurrences.Select(item => ExerciseMapper.ToDto(item, Name(names, item.UserId))).ToList(), stats));

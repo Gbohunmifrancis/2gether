@@ -65,7 +65,7 @@ public sealed class FoodController(
         if (localDate == default) return UnprocessableEntity(new ApiError("food.invalid_date", "Date must look like yyyy-MM-dd."));
 
         var couple = await ActiveCoupleAsync(cancellationToken);
-        var targets = await db.NutritionTargets.AsNoTracking().Where(item => couple != null ? item.CoupleId == couple.Id : item.UserId == userId).ToListAsync(cancellationToken);
+        var targets = await TargetsAsync(couple, userId, cancellationToken);
         var mine = targets.FirstOrDefault(item => item.UserId == userId);
         var myTargets = mine is null ? FoodMapper.DefaultTargets(userId) : FoodMapper.ToDto(mine);
         var entries = await db.FoodEntries.AsNoTracking()
@@ -83,7 +83,7 @@ public sealed class FoodController(
             var share = theirs?.ShareLevel ?? FoodShareLevel.TotalsOnly;
             var partnerEntries = share == FoodShareLevel.None
                 ? []
-                : await db.FoodEntries.AsNoTracking().Where(item => item.UserId == partnerId && item.LocalDate == localDate).OrderBy(item => item.LoggedAtUtc).ToListAsync(cancellationToken);
+                : await db.FoodEntries.AsNoTracking().Where(item => item.UserId == partnerId && item.CoupleId == couple.Id && item.LocalDate == localDate).OrderBy(item => item.LoggedAtUtc).ToListAsync(cancellationToken);
             partner = new FoodPartnerDayDto(
                 partnerId,
                 partnerName,
@@ -182,14 +182,18 @@ public sealed class FoodController(
         var userId = currentUser.UserId.Value;
         var since = DateOnly.FromDateTime(clock.UtcNow).AddDays(-days);
         var couple = await ActiveCoupleAsync(cancellationToken);
-        var users = new List<Guid> { userId };
-        var targets = await db.NutritionTargets.AsNoTracking().Where(item => couple != null ? item.CoupleId == couple.Id : item.UserId == userId).ToListAsync(cancellationToken);
+        var targets = await TargetsAsync(couple, userId, cancellationToken);
+        Guid? visiblePartnerId = null;
         if (couple is not null && PartnerOf(couple, userId) is { } partnerId
             && (targets.FirstOrDefault(item => item.UserId == partnerId)?.ShareLevel ?? FoodShareLevel.TotalsOnly) != FoodShareLevel.None)
-            users.Add(partnerId);
+            visiblePartnerId = partnerId;
 
+        // My own history is always mine; my partner's is limited to what they logged while
+        // linked to me, so a new partner never sees days from a previous relationship.
+        var coupleId = couple?.Id;
         var rows = await db.FoodEntries.AsNoTracking()
-            .Where(item => users.Contains(item.UserId) && item.LocalDate > since)
+            .Where(item => item.LocalDate > since
+                && (item.UserId == userId || (visiblePartnerId != null && item.UserId == visiblePartnerId && item.CoupleId == coupleId)))
             .GroupBy(item => new { item.UserId, item.LocalDate })
             .Select(group => new
             {
@@ -267,6 +271,17 @@ public sealed class FoodController(
         if (share == FoodShareLevel.None) return;
         var entries = await db.FoodEntries.AsNoTracking().Where(item => item.UserId == userId && item.LocalDate == localDate).ToListAsync(cancellationToken);
         await FoodEvents.DayUpdatedAsync(hub, couple.Id, new FoodDayUpdatedDto(userId, FoodMapper.Wire(localDate), FoodMapper.Totals(entries), share), cancellationToken);
+    }
+
+    /// <summary>
+    /// Targets for me and my current partner, looked up by user rather than by couple: a target
+    /// row keeps the couple id it was created under, and a stale id must never reset someone's
+    /// share level to the default for a new partner.
+    /// </summary>
+    private async Task<List<NutritionTarget>> TargetsAsync(Couple? couple, Guid userId, CancellationToken cancellationToken)
+    {
+        var ids = couple is not null && PartnerOf(couple, userId) is { } partnerId ? new[] { userId, partnerId } : [userId];
+        return await db.NutritionTargets.AsNoTracking().Where(item => ids.Contains(item.UserId)).ToListAsync(cancellationToken);
     }
 
     private Task<int> ScansUsedTodayAsync(Guid userId, CancellationToken cancellationToken)

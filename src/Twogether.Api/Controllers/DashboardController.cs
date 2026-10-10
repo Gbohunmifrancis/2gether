@@ -96,6 +96,41 @@ public sealed class DashboardController(
             }
         }
 
+        DashboardExerciseDto? exercise = null;
+        DashboardFoodDto? food = null;
+        if (user.CoupleId is { } summaryCoupleId)
+        {
+            var couple = await db.Couples.AsNoTracking().SingleOrDefaultAsync(item => item.Id == summaryCoupleId && item.Status == CoupleStatus.Active, cancellationToken);
+            if (couple is not null)
+            {
+                var now = clock.UtcNow;
+                var partnerId = couple.UserAId == user.Id ? couple.UserBId : couple.UserAId;
+                // Bounded reads: a couple has a handful of goals, and 60 days of occurrences is
+                // at most goals x 60 rows, which covers any streak the home card shows.
+                var goals = await db.ExerciseGoals.AsNoTracking()
+                    .Where(item => item.CoupleId == couple.Id)
+                    .OrderByDescending(item => item.UpdatedAtUtc)
+                    .ToListAsync(cancellationToken);
+                var since = now.AddDays(-60);
+                var occurrences = await db.ExerciseOccurrences.AsNoTracking()
+                    .Where(item => item.CoupleId == couple.Id && item.ScheduledAtUtc >= since)
+                    .OrderByDescending(item => item.ScheduledAtUtc)
+                    .ToListAsync(cancellationToken);
+                exercise = DashboardSummaries.Exercise(user.Id, partnerId, goals, occurrences, now);
+
+                var today = DateOnly.FromDateTime(now);
+                var entries = await db.FoodEntries.AsNoTracking()
+                    .Where(item => item.LocalDate == today
+                        && (item.UserId == user.Id || (item.UserId == partnerId && item.CoupleId == couple.Id)))
+                    .ToListAsync(cancellationToken);
+                var targetUsers = partnerId is { } other ? new[] { user.Id, other } : [user.Id];
+                var targets = await db.NutritionTargets.AsNoTracking()
+                    .Where(item => targetUsers.Contains(item.UserId))
+                    .ToListAsync(cancellationToken);
+                food = DashboardSummaries.Food(user.Id, partnerId, today, entries, targets);
+            }
+        }
+
         var snapshot = new DashboardSnapshotDto(
             clock.UtcNow,
             currentUserName,
@@ -113,7 +148,9 @@ public sealed class DashboardController(
                 new DashboardGameDto("guess-my-answer", "Guess my answer", "How well do you know me?", "question", "rose"),
                 new DashboardGameDto("couple-quiz", "Couple quiz", "Discover something new", "sparkles", "violet"),
                 new DashboardGameDto("memory-match", "Memory match", activeGameCount > 0 ? $"{activeGameCount} game{(activeGameCount == 1 ? "" : "s")} in progress" : "Find your little moments", "heart", "cyan")
-            ]);
+            ],
+            exercise,
+            food);
 
         return Ok(snapshot);
     }
