@@ -220,6 +220,7 @@ public sealed class FoodController(
     /// estimate and token counts are stored. Bounded by a per-user daily quota.
     /// </summary>
     [HttpPost("scans")]
+    [RequestSizeLimit(FoodSettings.MaxScanRequestBytes)]
     public async Task<ActionResult<FoodScanResultDto>> Scan(FoodScanRequest request, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();

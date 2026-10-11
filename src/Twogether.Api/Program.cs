@@ -150,7 +150,17 @@ if (trustForwardedHeaders)
     });
 }
 
+// Requests are small JSON everywhere except the food scan, which raises its own limit. The
+// 30 MB default would let any endpoint be made to buffer and parse a huge body.
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1024 * 1024);
+
 var app = builder.Build();
+
+var foodSettings = app.Services.GetRequiredService<Twogether.Application.Features.Food.FoodSettings>();
+if (!Twogether.Application.Features.Food.FoodSettings.FitsInRequest(foodSettings.MaxImageBytes))
+{
+    throw new InvalidOperationException($"Food:MaxImageBytes={foodSettings.MaxImageBytes} does not fit in a scan request once base64-encoded; keep it under about 6 MB.");
+}
 
 if (app.Environment.IsProduction() && !rateLimitsEnabled)
 {

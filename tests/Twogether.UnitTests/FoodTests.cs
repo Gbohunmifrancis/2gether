@@ -136,3 +136,13 @@ public sealed class FoodTests
         Assert.Contains(scans.GetIndexes(), index => index.GetDatabaseName() == "IX_food_scans_UserId_CreatedAtUtc");
     }
 }
+
+public sealed class FoodScanRequestSizeTests
+{
+    [Theory]
+    [InlineData(5 * 1024 * 1024, true)]
+    [InlineData(6 * 1024 * 1024 - 64 * 1024, true)]
+    [InlineData(6 * 1024 * 1024, false)]
+    public void The_largest_photo_still_fits_in_the_scan_request_once_encoded(int imageBytes, bool fits)
+        => Assert.Equal(fits, Twogether.Application.Features.Food.FoodSettings.FitsInRequest(imageBytes));
+}

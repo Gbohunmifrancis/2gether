@@ -34,3 +34,7 @@ Invite codes are short enough to guess, so the limits above apply to them, along
 
 - **Counts are kept per process.** With several API instances, each enforces its own budget. Move them to Postgres or Redis before scaling out.
 - **An account's sign-in budget can be spent by someone else.** Ten wrong guesses lock its owner out for up to 15 minutes. That is the cost of stopping password guessing against a single account.
+
+## Request size
+
+Request bodies are capped at 1 MB, because every endpoint takes small JSON. The one exception is `POST /api/food/scans`, which carries a base64 photo and is allowed 8 MB. That fits the default 5 MB photo (`Food:MaxImageBytes`). The API refuses to start if `Food:MaxImageBytes` is set too large to fit once encoded, which is about 6 MB. When a body is too large, Kestrel answers `413` or drops the connection while the client is still sending.
