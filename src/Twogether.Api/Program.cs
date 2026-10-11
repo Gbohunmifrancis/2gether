@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Twogether.Application;
+using Twogether.Api.Auth;
 using Twogether.Api.Hubs;
 using Twogether.Api.Presence;
 using Twogether.Infrastructure;
@@ -72,21 +74,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 return Task.CompletedTask;
             },
-            // Tokens live for hours. Without this, a deleted account could keep writing rows
-            // (locations, food) under an id that no longer exists until its token expired.
+            // Tokens live for days, but the account and its couple can change sooner. A deleted
+            // account must stop writing at once, and after a breakup the old couple id in the
+            // token must not keep opening the old chat, games and album. So the couple claim is
+            // replaced by the one stored now, and every endpoint and hub sees the current couple.
             OnTokenValidated = async context =>
             {
                 var subject = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                     ?? context.Principal?.FindFirst("sub")?.Value;
                 var database = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IApplicationDbContext>();
-                if (!Guid.TryParse(subject, out var userId)
-                    || !await database.Users.AsNoTracking().AnyAsync(user => user.Id == userId, context.HttpContext.RequestAborted))
+                var current = Guid.TryParse(subject, out var userId)
+                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
+                    : null;
+                if (current is null)
+                {
                     context.Fail("The account no longer exists.");
+                    return;
+                }
+                if (context.Principal?.Identity is not System.Security.Claims.ClaimsIdentity identity) return;
+                foreach (var stale in identity.FindAll(JwtTokenService.CoupleClaim).ToList()) identity.RemoveClaim(stale);
+                if (current.CoupleId is { } coupleId) identity.AddClaim(new System.Security.Claims.Claim(JwtTokenService.CoupleClaim, coupleId.ToString()));
             }
         };
     });
 builder.Services.AddAuthorization();
-builder.Services.AddSignalR()
+builder.Services.AddSignalR(options => options.AddFilter<CoupleMembershipHubFilter>())
     .AddJsonProtocol(options =>
     {
         // Hub payloads must match the controller contract: enums as camelCase

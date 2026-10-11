@@ -106,6 +106,11 @@ public sealed class CoupleController(
         var actor = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = couple.UserAId == actor.Id ? couple.UserBId : couple.UserAId;
         var cancelledAlarms = await StopExerciseGoalsAsync(couple.Id, cancellationToken);
+        var endedGames = await db.GameSessions
+            .Where(session => session.CoupleId == couple.Id
+                && (session.Status == GameSessionStatus.WaitingForPartner || session.Status == GameSessionStatus.InProgress || session.Status == GameSessionStatus.Paused))
+            .ToListAsync(cancellationToken);
+        foreach (var session in endedGames) session.EndBy(actor.Id, clock.UtcNow);
         couple.Dissolve(clock.UtcNow);
         actor.SetCouple(null, clock.UtcNow);
         if (partnerId is { } linkedPartnerId)
@@ -119,6 +124,10 @@ public sealed class CoupleController(
             await hub.Clients.Group(CoupleHub.UserGroupName(linkedPartnerId)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);
         }
         else await db.SaveChangesAsync(cancellationToken);
+        foreach (var session in endedGames)
+            await hub.Clients.Group(CoupleHub.GroupName(couple.Id)).SendAsync("GameEnded", new GameEndedDto(session.Id, actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
+        // The actor's other devices: they reconnect and lose the old couple's groups.
+        await hub.Clients.Group(CoupleHub.UserGroupName(actor.Id)).SendAsync("CoupleEnded", new CoupleEndedDto(actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
         foreach (var occurrence in cancelledAlarms)
             await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, ExerciseMapper.ToDto(occurrence, actor.DisplayName), cancellationToken);
         return NoContent();

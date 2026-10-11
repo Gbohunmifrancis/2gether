@@ -76,10 +76,12 @@ public sealed class GameSession : BaseEntity
         UpdatedAtUtc = utcNow;
     }
 
+    /// <summary>Not finished yet: waiting for the partner, being played, or paused on an end request.</summary>
+    public bool IsOpen => Status is GameSessionStatus.WaitingForPartner or GameSessionStatus.InProgress or GameSessionStatus.Paused;
+
     public void Abandon(DateTime utcNow)
     {
-        if (Status is not (GameSessionStatus.WaitingForPartner or GameSessionStatus.InProgress))
-            throw new InvalidOperationException("Only waiting or active games can be abandoned.");
+        if (!IsOpen) throw new InvalidOperationException("Only waiting, active or paused games can be abandoned.");
         Status = GameSessionStatus.Abandoned;
         EndedAtUtc = utcNow;
         CurrentTurnUserId = null;

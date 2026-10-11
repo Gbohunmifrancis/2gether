@@ -9,6 +9,7 @@ public sealed class GameSessionConfiguration : IEntityTypeConfiguration<GameSess
     public void Configure(EntityTypeBuilder<GameSession> builder)
     {
         builder.ToTable("game_sessions");
+        builder.Ignore(item => item.IsOpen);
         builder.HasKey(session => session.Id);
         builder.Property(session => session.GameType).HasConversion<string>().HasMaxLength(40).IsRequired();
         builder.Property(session => session.Status).HasConversion<string>().HasMaxLength(40).IsRequired();
