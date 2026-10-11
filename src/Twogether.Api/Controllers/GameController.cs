@@ -150,6 +150,7 @@ public sealed class GameController(
     {
         var session = await OwnedSession(sessionId, cancellationToken);
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
+        if (!session.IsOpen) return Conflict(new ApiError("game.already_ended", "This game has already ended."));
         session.EndBy(currentUser.UserId.Value, clock.UtcNow);
         var endedBy = await db.Users.AsNoTracking().SingleAsync(user => user.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = await db.Users.AsNoTracking().Where(user => user.CoupleId == session.CoupleId && user.Id != endedBy.Id).Select(user => (Guid?)user.Id).SingleOrDefaultAsync(cancellationToken);
