@@ -278,4 +278,42 @@ class LiveApiTest {
         mayaUs.endPact() as ApiResult.Ok
         assertTrue((mayaCouple.current(maya.id) as? ApiResult.Ok)?.value?.status != CoupleStatus.Active)
     }
+
+    @Test fun `a cycle predicts from the last period, the partner sees what is shared, and pregnancy pauses it`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        val maya = (mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val mayaCycle = app.heartpact.data.CycleRepository(apis.getValue("maya"), json)
+        val theoCycle = app.heartpact.data.CycleRepository(apis.getValue("theo"), json)
+        val today = java.time.LocalDate.now(ZoneOffset.UTC)
+
+        assertTrue((mayaCycle.me() as ApiResult.Ok).value.cycleOwner)
+        // Last period 40 days ago, 28-day cycles: the forecast rolls forward to the current cycle.
+        mayaCycle.saveProfile(app.heartpact.data.UpdateCycleProfile(28, 5, today.minusDays(40).toString(), app.heartpact.data.CycleShare.PredictionsOnly)) as ApiResult.Ok
+        val prediction = (mayaCycle.prediction(today.toString()) as ApiResult.Ok).value
+        assertEquals(13, prediction.cycleDay)
+        assertEquals(today.plusDays(16).toString(), prediction.nextPeriodStart)
+        assertEquals(today.plusDays(16 - 14).toString(), prediction.fertileWindowEnd)
+        mayaCycle.log(today.toString(), app.heartpact.data.CycleLogRequest(app.heartpact.data.FlowLevel.None, listOf("Tired"), notes = "private")) as ApiResult.Ok
+
+        val shared = (theoCycle.shared(today.toString()) as ApiResult.Ok).value
+        assertEquals(13, shared.prediction?.cycleDay)
+        assertTrue("predictions only: no logs", shared.logs.isEmpty())
+
+        val mayaP = app.heartpact.data.PregnancyRepository(apis.getValue("maya"), json)
+        val theoP = app.heartpact.data.PregnancyRepository(apis.getValue("theo"), json)
+        val p = (mayaP.start(app.heartpact.data.StartPregnancyRequest(dueDate = today.plusDays(150).toString())) as ApiResult.Ok).value
+        assertTrue(p.isMine)
+        assertEquals("cycle predictions pause", null, (mayaCycle.prediction(today.toString()) as ApiResult.Ok).value.nextPeriodStart)
+        val seen = (theoP.list(today.toString()) as ApiResult.Ok).value.single()
+        theoP.addAppointment(seen.id, app.heartpact.data.AppointmentRequest("Anatomy scan", java.time.Instant.now().plusSeconds(86_400).toString(), "City Hospital")) as ApiResult.Ok
+        assertEquals(1, (mayaP.appointments(p.id) as ApiResult.Ok).value.size)
+        val session = (mayaP.startKicks(p.id) as ApiResult.Ok).value
+        assertEquals(7, (mayaP.recordKicks(session.id, 7, end = true) as ApiResult.Ok).value.count)
+        assertTrue("only she counts kicks", theoP.startKicks(p.id) is ApiResult.Failure)
+    }
 }

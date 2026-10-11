@@ -70,7 +70,7 @@ private fun Heading(text: String, modifier: Modifier = Modifier) =
     Text(text, style = Heartpact.type.titleSmall, color = Heartpact.colors.ink, modifier = modifier.padding(top = 20.dp, bottom = 10.dp))
 
 @Composable
-private fun Chevron() = Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = Heartpact.colors.ink2)
+fun Chevron() = Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = Heartpact.colors.ink2)
 
 /** Us (mockup 12): the two of you, the daily question, notifications, and the account. */
 @Composable

@@ -68,6 +68,8 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val exercise = ExerciseRepository(api, json)
     val food = FoodRepository(api, json)
     val us = UsRepository(api, json)
+    val cycle = CycleRepository(api, json)
+    val pregnancy = PregnancyRepository(api, json)
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */

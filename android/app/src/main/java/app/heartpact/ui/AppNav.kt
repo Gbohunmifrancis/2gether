@@ -21,6 +21,20 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChildCare
+import androidx.compose.material.icons.outlined.WaterDrop
+import app.heartpact.ui.components.CardRow
+import app.heartpact.ui.cycle.CycleActions
+import app.heartpact.ui.cycle.CycleMode
+import app.heartpact.ui.cycle.CyclePlan
+import app.heartpact.ui.cycle.CycleScreen
+import app.heartpact.ui.cycle.CycleViewModel
+import app.heartpact.ui.pregnancy.PregnancyActions
+import app.heartpact.ui.pregnancy.PregnancyScreen
+import app.heartpact.ui.pregnancy.PregnancyText
+import app.heartpact.ui.pregnancy.PregnancyViewModel
+import app.heartpact.ui.us.Chevron
 import app.heartpact.ui.us.NotificationsScreen
 import app.heartpact.ui.us.NotificationsViewModel
 import app.heartpact.ui.us.QuestionScreen
@@ -92,6 +106,8 @@ private object Routes {
     const val HOME = "home"
     const val NEW_DARE = "newdare"
     const val QUESTION = "question"
+    const val CYCLE = "cycle"
+    const val PREGNANCY = "pregnancy"
     const val NOTIFICATIONS = "notifications"
     const val FOOD_SCAN = "foodscan?uri={uri}"
     const val FOOD_ENTRY = "foodentry?id={id}"
@@ -175,10 +191,17 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
                     val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us) } })
                     val usUi by usModel.ui.collectAsStateWithLifecycle()
+                    // Summaries for the Us rows; the full screens load their own.
+                    val cycleSummary: CycleViewModel = viewModel(key = "cycle-summary", factory = viewModelFactory { initializer { CycleViewModel(container.cycle) } })
+                    val cycleSummaryUi by cycleSummary.ui.collectAsStateWithLifecycle()
+                    val pregnancySummary: PregnancyViewModel = viewModel(key = "pregnancy-summary", factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy) } })
+                    val pregnancySummaryUi by pregnancySummary.ui.collectAsStateWithLifecycle()
                     // Back from logging a meal, answering, or settings: what they show may have moved.
                     LifecycleResumeEffect(Unit) {
                         foodModel.refresh()
                         usModel.refresh()
+                        cycleSummary.load()
+                        pregnancySummary.load()
                         onPauseOrDispose { }
                     }
                     var mealPhoto by remember { mutableStateOf<Uri?>(null) }
@@ -213,6 +236,17 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 onEndPact = { usModel.endPact { appModel.refresh() } },
                                 onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
                                 onClearDeleteError = usModel::clearDeleteError,
+                                extraRows = {
+                                    val cycleMode = cycleSummaryUi.mode
+                                    if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
+                                        val partnerDay = cycleSummaryUi.shared?.prediction?.cycleDay
+                                        CardRow(if (cycleMode == CycleMode.Partner) "$partner's cycle" else "Your cycle",
+                                            subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner, partnerDay),
+                                            icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
+                                    }
+                                    CardRow("Pregnancy mode", subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
+                                        icon = Icons.Outlined.ChildCare, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
+                                },
                             )
                         },
                         food = {
@@ -256,6 +290,31 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us) } })
                     val state by model.ui.collectAsStateWithLifecycle()
                     QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
+                }
+                composable(Routes.CYCLE) {
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val model: CycleViewModel = viewModel(factory = viewModelFactory { initializer { CycleViewModel(container.cycle) } })
+                    LaunchedEffect(Unit) { model.load() }
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    CycleScreen(state, partner, CycleActions(
+                        onClaim = model::claim, onSetup = { start, cycle, period -> model.saveSetup(start, cycle, period) }, onShare = model::share,
+                        onFlow = model::flow, onSymptom = model::symptom, onMood = model::mood, onNotes = model::notes, onBack = { nav.popBackStack() },
+                    ))
+                }
+                composable(Routes.PREGNANCY) {
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val model: PregnancyViewModel = viewModel(factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy) } })
+                    LaunchedEffect(Unit) { model.load() }
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    PregnancyScreen(state, session?.user?.id.orEmpty(), partner, PregnancyActions(
+                        onStart = { due, lmp, share -> model.start(due, lmp, share) }, onShare = model::share, onEnd = model::end,
+                        onAddAppointment = { t, at, loc -> model.addAppointment(t, at, loc) }, onDeleteAppointment = { model.deleteAppointment(it) },
+                        onStartKicks = model::startKicks, onKick = model::kick, onFinishKicks = model::finishKicks, onBack = { nav.popBackStack() },
+                    ))
                 }
                 composable(Routes.NOTIFICATIONS) {
                     val model: NotificationsViewModel = viewModel(factory = viewModelFactory { initializer { NotificationsViewModel(container.us) } })

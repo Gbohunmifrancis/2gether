@@ -64,3 +64,27 @@ class UsRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun endPact(): ApiResult<Unit> = apiCall(json) { api.breakup() }
     suspend fun deleteAccount(request: DeleteAccountRequest): ApiResult<Unit> = apiCall(json) { api.deleteAccount(request) }
 }
+
+class CycleRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun me(): ApiResult<AuthUser> = apiCall(json) { api.me() }
+    suspend fun profile(): ApiResult<CycleProfile?> = apiCall(json) { api.cycleProfile() }
+    suspend fun claim(): ApiResult<CycleProfile> = apiCall(json) { api.claimCycle() }
+    suspend fun saveProfile(request: UpdateCycleProfile): ApiResult<CycleProfile> = apiCall(json) { api.saveCycleProfile(request) }
+    suspend fun logs(from: String, to: String): ApiResult<List<CycleDayLog>> = apiCall(json) { api.cycleLogs(from, to) }
+    suspend fun log(date: String, request: CycleLogRequest): ApiResult<CycleDayLog> = apiCall(json) { api.saveCycleLog(date, request) }
+    suspend fun prediction(date: String): ApiResult<CyclePrediction> = apiCall(json) { api.cyclePrediction(date) }
+    suspend fun shared(date: String): ApiResult<SharedCycle> = apiCall(json) { api.sharedCycle(date) }
+}
+
+class PregnancyRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun list(date: String): ApiResult<List<Pregnancy>> = apiCall(json) { api.pregnancies(date) }
+    suspend fun start(request: StartPregnancyRequest): ApiResult<Pregnancy> = apiCall(json) { api.startPregnancy(request) }
+    suspend fun update(id: String, request: UpdatePregnancyRequest): ApiResult<Pregnancy> = apiCall(json) { api.updatePregnancy(id, request) }
+    suspend fun end(id: String): ApiResult<Unit> = apiCall(json) { api.endPregnancy(id) }
+    suspend fun appointments(id: String): ApiResult<List<Appointment>> = apiCall(json) { api.appointments(id) }
+    suspend fun addAppointment(id: String, request: AppointmentRequest): ApiResult<Appointment> = apiCall(json) { api.addAppointment(id, request) }
+    suspend fun deleteAppointment(id: String): ApiResult<Unit> = apiCall(json) { api.deleteAppointment(id) }
+    suspend fun kicks(id: String): ApiResult<List<KickSession>> = apiCall(json) { api.kicks(id) }
+    suspend fun startKicks(id: String): ApiResult<KickSession> = apiCall(json) { api.startKicks(id) }
+    suspend fun recordKicks(id: String, count: Int, end: Boolean): ApiResult<KickSession> = apiCall(json) { api.recordKicks(id, KickUpdate(count, end)) }
+}

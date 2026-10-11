@@ -120,4 +120,55 @@ interface HeartpactApi {
 
     @POST("api/account/delete")
     suspend fun deleteAccount(@Body request: DeleteAccountRequest): Response<Unit>
+
+    @GET("api/cycle/profile")
+    suspend fun cycleProfile(): Response<CycleProfile?>
+
+    @POST("api/cycle/claim")
+    suspend fun claimCycle(): Response<CycleProfile>
+
+    @PUT("api/cycle/profile")
+    suspend fun saveCycleProfile(@Body request: UpdateCycleProfile): Response<CycleProfile>
+
+    @GET("api/cycle/logs")
+    suspend fun cycleLogs(@Query("from") from: String, @Query("to") to: String): Response<List<CycleDayLog>>
+
+    @PUT("api/cycle/logs/{date}")
+    suspend fun saveCycleLog(@Path("date") date: String, @Body request: CycleLogRequest): Response<CycleDayLog>
+
+    @GET("api/cycle/prediction")
+    suspend fun cyclePrediction(@Query("date") date: String): Response<CyclePrediction>
+
+    @GET("api/cycle/shared")
+    suspend fun sharedCycle(@Query("date") date: String): Response<SharedCycle>
+
+    @GET("api/pregnancy")
+    suspend fun pregnancies(@Query("date") date: String): Response<List<Pregnancy>>
+
+    @POST("api/pregnancy")
+    suspend fun startPregnancy(@Body request: StartPregnancyRequest): Response<Pregnancy>
+
+    @PUT("api/pregnancy/{id}")
+    suspend fun updatePregnancy(@Path("id") id: String, @Body request: UpdatePregnancyRequest): Response<Pregnancy>
+
+    @POST("api/pregnancy/{id}/end")
+    suspend fun endPregnancy(@Path("id") id: String): Response<Unit>
+
+    @GET("api/pregnancy/{id}/appointments")
+    suspend fun appointments(@Path("id") id: String): Response<List<Appointment>>
+
+    @POST("api/pregnancy/{id}/appointments")
+    suspend fun addAppointment(@Path("id") id: String, @Body request: AppointmentRequest): Response<Appointment>
+
+    @DELETE("api/pregnancy/appointments/{id}")
+    suspend fun deleteAppointment(@Path("id") id: String): Response<Unit>
+
+    @GET("api/pregnancy/{id}/kicks")
+    suspend fun kicks(@Path("id") id: String, @Query("days") days: Int = 7): Response<List<KickSession>>
+
+    @POST("api/pregnancy/{id}/kicks")
+    suspend fun startKicks(@Path("id") id: String): Response<KickSession>
+
+    @PUT("api/pregnancy/kicks/{id}")
+    suspend fun recordKicks(@Path("id") id: String, @Body request: KickUpdate): Response<KickSession>
 }
