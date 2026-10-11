@@ -152,6 +152,39 @@ public sealed class MemoriesController(
             .ToList());
     }
 
+    /// <summary>
+    /// After a breakup the shared album closes for both people. Each can still download the
+    /// photos they uploaded themselves until <see cref="MediaSettings.BreakupRetention"/> runs
+    /// out; then the cleanup worker deletes the whole album. The partner's uploads stay theirs.
+    /// </summary>
+    [HttpGet("archive")]
+    public async Task<ActionResult<MemoryArchivePageDto>> Archive([FromQuery] string? cursor, [FromQuery] int limit = 30, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.UserId.HasValue) return Unauthorized();
+        var userId = currentUser.UserId.Value;
+        if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
+        limit = Math.Clamp(limit, 1, 100);
+        var after = MemoryCursor.Decode(cursor);
+        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", "That page cursor is not valid."));
+
+        var cutoff = clock.UtcNow - settings.BreakupRetention;
+        var query = db.Memories.AsNoTracking()
+            .Where(item => item.UploadedByUserId == userId && item.Status == MemoryStatus.Ready)
+            .Join(db.Couples.AsNoTracking().Where(couple => couple.Status == CoupleStatus.Dissolved && couple.DissolvedAtUtc > cutoff),
+                memory => memory.CoupleId, couple => couple.Id, (memory, couple) => new { Memory = memory, EndedAt = couple.DissolvedAtUtc!.Value });
+        if (after is not null)
+            query = query.Where(row => row.Memory.SortAtUtc < after.SortAtUtc || (row.Memory.SortAtUtc == after.SortAtUtc && row.Memory.Id.CompareTo(after.Id) < 0));
+        var page = await query.OrderByDescending(row => row.Memory.SortAtUtc).ThenByDescending(row => row.Memory.Id).Take(limit + 1).ToListAsync(cancellationToken);
+
+        var name = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.DisplayName).SingleAsync(cancellationToken);
+        var names = new Dictionary<Guid, string> { [userId] = name };
+        var items = page.Take(limit)
+            .Select(row => new ArchivedMemoryDto(ToDto(row.Memory, names), row.EndedAt, row.EndedAt + settings.BreakupRetention))
+            .ToList();
+        var next = page.Count > limit ? new MemoryCursor(page[limit - 1].Memory.SortAtUtc, page[limit - 1].Memory.Id).Encode() : null;
+        return Ok(new MemoryArchivePageDto(items, next));
+    }
+
     [HttpPatch("{memoryId:guid}")]
     public async Task<ActionResult<MemoryDto>> Update(Guid memoryId, UpdateMemoryRequest request, CancellationToken cancellationToken)
     {
@@ -183,6 +216,24 @@ public sealed class MemoriesController(
         await db.SaveChangesAsync(cancellationToken);
         if (storage.IsConfigured) await TryDeleteAsync(memory, cancellationToken);
         await ChangedAsync(couple, memory.Id, "deleted", cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Delete one of your own photos from an ended couple's album now, instead of waiting for the window to close.</summary>
+    [HttpDelete("archive/{memoryId:guid}")]
+    public async Task<IActionResult> DeleteArchived(Guid memoryId, CancellationToken cancellationToken)
+    {
+        if (!currentUser.UserId.HasValue) return Unauthorized();
+        var userId = currentUser.UserId.Value;
+        var memory = await db.Memories.SingleOrDefaultAsync(item => item.Id == memoryId
+            && item.UploadedByUserId == userId
+            && item.Status != MemoryStatus.Deleting
+            && db.Couples.Any(couple => couple.Id == item.CoupleId && couple.Status == CoupleStatus.Dissolved), cancellationToken);
+        if (memory is null) return NotFound();
+        memory.Describe(null, null, clock.UtcNow);
+        memory.MarkDeleting(clock.UtcNow);
+        await db.SaveChangesAsync(cancellationToken);
+        if (storage.IsConfigured) await TryDeleteAsync(memory, cancellationToken);
         return NoContent();
     }
 

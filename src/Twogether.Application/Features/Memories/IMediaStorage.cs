@@ -27,4 +27,6 @@ public sealed class MediaSettings
     public TimeSpan DownloadUrlLifetime { get; init; } = TimeSpan.FromHours(1);
     /// <summary>An upload slot not completed within this window is treated as abandoned.</summary>
     public TimeSpan PendingLifetime { get; init; } = TimeSpan.FromHours(1);
+    /// <summary>After a breakup each person can download their own uploads for this long; then the album is deleted.</summary>
+    public TimeSpan BreakupRetention { get; init; } = TimeSpan.FromDays(30);
 }

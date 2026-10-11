@@ -32,7 +32,8 @@ public sealed class MemoryCleanupWorker(
         {
             try
             {
-                await SweepAsync(stoppingToken);
+                // Drain: an ended album can hold thousands of photos.
+                while (await SweepAsync(stoppingToken) == BatchSize) { }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -50,6 +51,19 @@ public sealed class MemoryCleanupWorker(
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        // Albums of couples that ended longer ago than the retention window: queue every photo,
+        // wiping captions now so nothing personal lingers while the objects are removed.
+        var endedBefore = clock.UtcNow - settings.BreakupRetention;
+        var expired = await db.Memories
+            .Where(item => item.Status != MemoryStatus.Deleting
+                && db.Couples.Any(couple => couple.Id == item.CoupleId && couple.Status == CoupleStatus.Dissolved && couple.DissolvedAtUtc <= endedBefore))
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(item => item.Status, MemoryStatus.Deleting)
+                .SetProperty(item => item.Caption, (string?)null)
+                .SetProperty(item => item.TakenAtUtc, (DateTime?)null)
+                .SetProperty(item => item.UpdatedAtUtc, clock.UtcNow), cancellationToken);
+        if (expired > 0) logger.LogInformation("Queued {Count} memory object(s) from albums past their post-breakup window.", expired);
+
         var abandonedBefore = clock.UtcNow - settings.PendingLifetime;
         var batch = await db.Memories
             .Where(item => item.Status == MemoryStatus.Deleting || (item.Status == MemoryStatus.Pending && item.CreatedAtUtc < abandonedBefore))

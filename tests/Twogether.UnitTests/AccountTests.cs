@@ -49,3 +49,21 @@ public sealed class AccountTests
         Assert.Equal(expected, AccountDeletionRules.WillRenew(subscription));
     }
 }
+
+public sealed class CoupleDissolutionTests
+{
+    [Fact]
+    public void Dissolving_records_when_the_couple_ended_once()
+    {
+        var start = new DateTime(2026, 10, 1, 9, 0, 0, DateTimeKind.Utc);
+        var couple = Couple.Create(Guid.NewGuid(), start);
+        couple.LinkPartner(Guid.NewGuid(), start);
+
+        couple.Dissolve(start.AddDays(3));
+        couple.Dissolve(start.AddDays(9));
+
+        Assert.Equal(CoupleStatus.Dissolved, couple.Status);
+        // A second call must not restart the post-breakup download window.
+        Assert.Equal(start.AddDays(3), couple.DissolvedAtUtc);
+    }
+}

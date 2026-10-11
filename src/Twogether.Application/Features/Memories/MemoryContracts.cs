@@ -23,6 +23,11 @@ public sealed record MemoryDto(
 
 public sealed record MemoryPageDto(IReadOnlyList<MemoryDto> Items, string? NextCursor);
 
+/// <summary>A photo the caller uploaded to a couple that has since ended, downloadable until the deadline.</summary>
+public sealed record ArchivedMemoryDto(MemoryDto Memory, DateTime CoupleEndedAtUtc, DateTime AvailableUntilUtc);
+
+public sealed record MemoryArchivePageDto(IReadOnlyList<ArchivedMemoryDto> Items, string? NextCursor);
+
 public sealed record MemoryUploadDto(Guid MemoryId, string UploadUrl, string Method, IReadOnlyDictionary<string, string> Headers, DateTime ExpiresAtUtc);
 
 public sealed record MemoryUsageDto(int Count, long UsedBytes, long LimitBytes);

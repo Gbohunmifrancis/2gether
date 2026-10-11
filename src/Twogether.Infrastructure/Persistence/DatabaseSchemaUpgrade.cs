@@ -8,6 +8,9 @@ public static class DatabaseSchemaUpgrade
         => database.Database.ExecuteSqlRawAsync(Sql, Array.Empty<object>(), cancellationToken);
 
     private const string Sql = """
+        ALTER TABLE couples ADD COLUMN IF NOT EXISTS "DissolvedAtUtc" timestamp with time zone NULL;
+        -- Nothing updates a couple after it ends, so its last update is when it ended.
+        UPDATE couples SET "DissolvedAtUtc" = "UpdatedAtUtc" WHERE "Status" = 'Dissolved' AND "DissolvedAtUtc" IS NULL;
         ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS "InvitedByUserId" uuid NULL;
         ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS "InviteAcceptedAtUtc" timestamp with time zone NULL;
         ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS "CountdownEndsAtUtc" timestamp with time zone NULL;

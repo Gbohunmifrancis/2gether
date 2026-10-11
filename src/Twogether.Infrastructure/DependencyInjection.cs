@@ -100,7 +100,10 @@ public static class DependencyInjection
             Bucket = configuration["Media:Bucket"],
             AccessKey = configuration["Media:AccessKey"],
             SecretKey = configuration["Media:SecretKey"],
-            Region = string.IsNullOrWhiteSpace(configuration["Media:Region"]) ? defaults.Region : configuration["Media:Region"]!.Trim()
+            Region = string.IsNullOrWhiteSpace(configuration["Media:Region"]) ? defaults.Region : configuration["Media:Region"]!.Trim(),
+            BreakupRetention = int.TryParse(configuration["Media:BreakupRetentionDays"], out var days) && days is >= 1 and <= 365
+                ? TimeSpan.FromDays(days)
+                : defaults.BreakupRetention
         };
     }
 

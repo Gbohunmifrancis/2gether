@@ -11,6 +11,8 @@ public sealed class Couple : BaseEntity
     public Guid? UserBId { get; private set; }
     public CoupleStatus Status { get; private set; } = CoupleStatus.PendingInvite;
     public DateTime? LinkedAtUtc { get; private set; }
+    /// <summary>When the couple ended. Starts the window in which each ex can still download their own photos.</summary>
+    public DateTime? DissolvedAtUtc { get; private set; }
 
     public static Couple Create(Guid userAId, DateTime utcNow) => new()
     {
@@ -29,7 +31,9 @@ public sealed class Couple : BaseEntity
 
     public void Dissolve(DateTime utcNow)
     {
+        if (Status == CoupleStatus.Dissolved) return;
         Status = CoupleStatus.Dissolved;
+        DissolvedAtUtc = utcNow;
         UpdatedAtUtc = utcNow;
     }
 }
