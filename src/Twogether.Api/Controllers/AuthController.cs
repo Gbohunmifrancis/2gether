@@ -91,6 +91,7 @@ public sealed class AuthController(
             limiter.RecordFailure(AttemptRules.ResetCodePerIp, ClientIp);
             return BadRequest(BadResetCode);
         }
+        if (user.DisabledAtUtc is not null) return Disabled();
         reset.Retire(now);
         user.ResetPassword(passwordHasher.Hash(request.NewPassword), now);
         await db.SaveChangesAsync(cancellationToken);
@@ -126,6 +127,7 @@ public sealed class AuthController(
             ?? await db.Users.SingleOrDefaultAsync(candidate => candidate.Email == address, cancellationToken);
         if (user is not null)
         {
+            if (user.DisabledAtUtc is not null) return Disabled();
             if (user.GoogleId is null) user.LinkGoogle(identity.Subject, now);
             else if (user.GoogleId != identity.Subject) return Conflict(new ApiError("auth.google_mismatch", "This email is linked to a different Google account."));
             await db.SaveChangesAsync(cancellationToken);
@@ -199,6 +201,7 @@ public sealed class AuthController(
             return Unauthorized(new ApiError("auth.invalid_credentials", "Email or password is incorrect."));
         }
         limiter.Reset(AttemptRules.LoginPerEmail, email);
+        if (user.DisabledAtUtc is not null) return Disabled();
         await EnsureFemaleCycleOwnerAsync(user, cancellationToken);
         var token = tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(ToResponse(user, token));
@@ -237,6 +240,8 @@ public sealed class AuthController(
         var token = tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(new AuthResponse(token, ToUser(user)));
     }
+
+    private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError("auth.account_disabled", "This account has been disabled. Contact support if you think this is a mistake."));
 
     private static AuthResponse ToResponse(User user, string token) => new(token, ToUser(user));
     private static AuthUserDto ToUser(User user) => new(user.Id, user.Email, user.DisplayName, user.CoupleId, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender);

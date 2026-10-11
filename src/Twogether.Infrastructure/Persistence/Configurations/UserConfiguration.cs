@@ -16,6 +16,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.GoogleId).HasMaxLength(128);
         builder.Property(user => user.DisplayName).HasMaxLength(100).IsRequired();
         builder.Property(user => user.AvatarUrl).HasMaxLength(500);
+        builder.Property(user => user.DisabledReason).HasMaxLength(500);
         builder.Property(user => user.MapColor).HasMaxLength(20).HasDefaultValue("#f45c91").IsRequired();
         builder.Property(user => user.CycleOwner).HasDefaultValue(false).IsRequired();
         builder.Property(user => user.Gender).HasConversion<string>().HasMaxLength(32).HasDefaultValue(Gender.PreferNotToSay).IsRequired();

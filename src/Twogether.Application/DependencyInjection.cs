@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IEntitlementService, EntitlementService>();
         services.AddScoped<GooglePlaySubscriptionSync>();
         services.AddScoped<AccountExportService>();
+        services.AddScoped<Twogether.Application.Features.Admin.AdminAnalytics>();
         return services;
     }
 }

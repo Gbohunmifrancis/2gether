@@ -29,6 +29,9 @@ public abstract class ApiControllerBase : ControllerBase
     protected IActionResult HandleNoContent(Result result)
         => result.IsSuccess ? NoContent() : Problem(result.Error);
 
+    /// <summary>An expected failure as its HTTP answer: validation 422, not found 404, conflict 409...</summary>
+    protected IActionResult FromError(Error error) => Problem(error);
+
     private IActionResult Problem(Error error)
     {
         var status = error.Type switch

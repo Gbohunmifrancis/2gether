@@ -38,12 +38,19 @@ public interface IGooglePlayBilling
     bool IsConfigured { get; }
     Task<Result<PlaySubscriptionSnapshot>> GetAsync(string purchaseToken, CancellationToken cancellationToken);
     Task<Result> AcknowledgeAsync(string productId, string purchaseToken, CancellationToken cancellationToken);
+    /// <summary>Stops renewal; access lasts until the paid period ends.</summary>
+    Task<Result> CancelAsync(string productId, string purchaseToken, CancellationToken cancellationToken);
+    /// <summary>Refunds the latest payment; the subscription carries on.</summary>
+    Task<Result> RefundAsync(string productId, string purchaseToken, CancellationToken cancellationToken);
+    /// <summary>Refunds the latest payment and ends access now.</summary>
+    Task<Result> RevokeAsync(string productId, string purchaseToken, CancellationToken cancellationToken);
 }
 
 public sealed record SubscriptionSummaryDto(string Store, string ProductId, StoreSubscriptionStatus Status, DateTime ExpiresAtUtc, bool AutoRenewing, Guid PurchasedByUserId, bool PurchasedByMe);
 
 /// <summary>CanPurchase is false when my partner already pays: one plan covers both of us.</summary>
-public sealed record EntitlementDto(Plan Plan, PlanLimits Limits, SubscriptionSummaryDto? Subscription, bool CanPurchase);
+/// <summary>Complimentary: Plus comes from a grant by Heartpact (support), not a purchase.</summary>
+public sealed record EntitlementDto(Plan Plan, PlanLimits Limits, SubscriptionSummaryDto? Subscription, bool CanPurchase, bool Complimentary = false);
 
 public sealed record VerifyGooglePurchaseRequest(string ProductId, string PurchaseToken);
 

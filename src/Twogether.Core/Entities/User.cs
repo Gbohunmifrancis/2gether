@@ -22,6 +22,11 @@ public sealed class User : BaseEntity
     public string TimeZoneId { get; private set; } = "UTC";
     /// <summary>Tokens issued before this are rejected: set when the password is reset, to end every other session.</summary>
     public DateTime? SessionsValidFromUtc { get; private set; }
+    /// <summary>Set by an admin: the account can't sign in and its sessions end.</summary>
+    public DateTime? DisabledAtUtc { get; private set; }
+    public string? DisabledReason { get; private set; }
+    /// <summary>Last authenticated request, at most every 15 minutes; for active-user analytics.</summary>
+    public DateTime? LastActiveAtUtc { get; private set; }
 
     public static User Create(string email, string displayName, DateOnly dateOfBirth, DateTime utcNow, string? passwordHash = null, string? googleId = null, bool cycleOwner = false, Gender gender = Gender.PreferNotToSay)
     {
@@ -87,6 +92,27 @@ public sealed class User : BaseEntity
     {
         GoogleId = googleId;
         EmailVerified = true;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void Disable(string reason, DateTime utcNow)
+    {
+        DisabledAtUtc = utcNow;
+        DisabledReason = reason.Length > 500 ? reason[..500] : reason;
+        EndSessions(utcNow);
+    }
+
+    public void Enable(DateTime utcNow)
+    {
+        DisabledAtUtc = null;
+        DisabledReason = null;
+        UpdatedAtUtc = utcNow;
+    }
+
+    /// <summary>Every token issued before now stops working (same whole-second rule as a password reset).</summary>
+    public void EndSessions(DateTime utcNow)
+    {
+        SessionsValidFromUtc = new DateTime(utcNow.Ticks - utcNow.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Utc).AddSeconds(1);
         UpdatedAtUtc = utcNow;
     }
 }

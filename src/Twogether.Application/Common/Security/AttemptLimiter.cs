@@ -31,6 +31,9 @@ public static class AttemptRules
     public static readonly AttemptRule ResetCodePerIp = new("reset-code-ip", 30, TimeSpan.FromMinutes(15));
     /// <summary>Google sign-ins that fail verification, per address.</summary>
     public static readonly AttemptRule GooglePerIp = new("google-ip", 30, TimeSpan.FromMinutes(15));
+    /// <summary>Admin sign-in failures (password or authenticator code): tight, since an admin account opens everything.</summary>
+    public static readonly AttemptRule AdminLoginPerEmail = new("admin-email", 5, TimeSpan.FromMinutes(15));
+    public static readonly AttemptRule AdminLoginPerIp = new("admin-ip", 20, TimeSpan.FromMinutes(15));
 }
 
 /// <summary>

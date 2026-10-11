@@ -36,6 +36,57 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "FK_password_reset_codes_users_UserId" FOREIGN KEY ("UserId") REFERENCES users ("Id") ON DELETE CASCADE
         );
         CREATE INDEX IF NOT EXISTS "IX_password_reset_codes_UserId_CreatedAtUtc" ON password_reset_codes ("UserId", "CreatedAtUtc");
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "DisabledAtUtc" timestamp with time zone NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "DisabledReason" character varying(500) NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "LastActiveAtUtc" timestamp with time zone NULL;
+        CREATE TABLE IF NOT EXISTS admin_accounts (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "TotpSecret" character varying(64) NOT NULL,
+            "EnrolledAtUtc" timestamp with time zone NULL,
+            "LastUsedStep" bigint NOT NULL DEFAULT 0,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_admin_accounts" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_admin_accounts_users_UserId" FOREIGN KEY ("UserId") REFERENCES users ("Id") ON DELETE CASCADE
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_admin_accounts_UserId" ON admin_accounts ("UserId");
+        CREATE TABLE IF NOT EXISTS admin_audit_events (
+            "Id" uuid NOT NULL,
+            "AdminUserId" uuid NULL,
+            "AdminEmail" character varying(320) NOT NULL,
+            "Action" character varying(60) NOT NULL,
+            "TargetType" character varying(40) NULL,
+            "TargetId" character varying(80) NULL,
+            "Details" character varying(4000) NULL,
+            "IpAddress" character varying(64) NULL,
+            "Succeeded" boolean NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_admin_audit_events" PRIMARY KEY ("Id")
+        );
+        CREATE INDEX IF NOT EXISTS "IX_admin_audit_events_CreatedAtUtc" ON admin_audit_events ("CreatedAtUtc");
+        CREATE INDEX IF NOT EXISTS "IX_admin_audit_events_TargetType_TargetId" ON admin_audit_events ("TargetType", "TargetId");
+        CREATE TABLE IF NOT EXISTS plus_grants (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "ExpiresAtUtc" timestamp with time zone NOT NULL,
+            "Reason" character varying(500) NOT NULL,
+            "GrantedByUserId" uuid NOT NULL,
+            "RevokedAtUtc" timestamp with time zone NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_plus_grants" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_plus_grants_couples_CoupleId" FOREIGN KEY ("CoupleId") REFERENCES couples ("Id") ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS "IX_plus_grants_CoupleId_ExpiresAtUtc" ON plus_grants ("CoupleId", "ExpiresAtUtc");
+        CREATE TABLE IF NOT EXISTS user_activity_days (
+            "UserId" uuid NOT NULL,
+            "Day" date NOT NULL,
+            CONSTRAINT "PK_user_activity_days" PRIMARY KEY ("UserId", "Day"),
+            CONSTRAINT "FK_user_activity_days_users_UserId" FOREIGN KEY ("UserId") REFERENCES users ("Id") ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS "IX_user_activity_days_Day" ON user_activity_days ("Day");
         ALTER TABLE IF EXISTS couple_locations ADD COLUMN IF NOT EXISTS "PausedUntilUtc" timestamp with time zone NULL;
         -- Push outbox columns. Rows that existed before push delivery are marked skipped so a
         -- deploy never sends a backlog of old notifications to phones.

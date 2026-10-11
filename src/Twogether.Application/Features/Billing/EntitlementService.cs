@@ -29,11 +29,15 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
             .Where(item => members.Contains(item.UserId) && item.ExpiresAtUtc > now)
             .ToListAsync(cancellationToken);
         var granting = candidates.Where(item => item.GrantsAccess(now)).MaxBy(item => item.ExpiresAtUtc);
-        var plan = granting is null ? Plan.Free : Plan.Plus;
+        // No paid plan: a complimentary grant on the current couple still gives Plus.
+        var complimentary = granting is null && coupleId is { } current
+            && await db.PlusGrants.AsNoTracking().AnyAsync(item => item.CoupleId == current && item.RevokedAtUtc == null && item.ExpiresAtUtc > now, cancellationToken);
+        var plan = granting is null && !complimentary ? Plan.Free : Plan.Plus;
         return new EntitlementDto(
             plan,
             settings.Limits(plan),
             granting is null ? null : new SubscriptionSummaryDto(granting.Store, granting.ProductId, granting.Status, granting.ExpiresAtUtc, granting.AutoRenewing, granting.UserId, granting.UserId == userId),
-            CanPurchase: granting is null || granting.UserId == userId);
+            CanPurchase: granting is null || granting.UserId == userId,
+            Complimentary: complimentary);
     }
 }

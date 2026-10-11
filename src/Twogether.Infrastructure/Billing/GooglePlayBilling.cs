@@ -82,6 +82,51 @@ public sealed class GooglePlayBilling : IGooglePlayBilling, IDisposable
         }
     }
 
+    public Task<Result> CancelAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
+        => ManageAsync("cancel", () => _service!.Purchases.Subscriptions.Cancel(_packageName, productId, purchaseToken).ExecuteAsync(cancellationToken));
+
+    /// <summary>Refunds the latest successful order of the line item for this product; access continues.</summary>
+    public Task<Result> RefundAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
+        => ManageAsync("refund", async () =>
+        {
+            var purchase = await _service!.Purchases.Subscriptionsv2.Get(_packageName, purchaseToken).ExecuteAsync(cancellationToken);
+            var orderId = purchase.LineItems?.Where(item => item.ProductId == productId).Select(item => item.LatestSuccessfulOrderId).FirstOrDefault(id => !string.IsNullOrEmpty(id))
+                ?? purchase.LineItems?.Select(item => item.LatestSuccessfulOrderId).FirstOrDefault(id => !string.IsNullOrEmpty(id))
+                ?? throw new GoogleApiException("androidpublisher", "No paid order to refund.") { HttpStatusCode = HttpStatusCode.BadRequest };
+            var refund = _service.Orders.Refund(_packageName, orderId);
+            refund.Revoke = false;
+            return await refund.ExecuteAsync(cancellationToken);
+        });
+
+    /// <summary>Full refund of the current period and access ends now.</summary>
+    public Task<Result> RevokeAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
+        => ManageAsync("revoke", async () =>
+        {
+            var request = new RevokeSubscriptionPurchaseRequest { RevocationContext = new RevocationContext { FullRefund = new RevocationContextFullRefund() } };
+            await _service!.Purchases.Subscriptionsv2.Revoke(request, _packageName, purchaseToken).ExecuteAsync(cancellationToken);
+            return string.Empty;
+        });
+
+    private async Task<Result> ManageAsync<T>(string action, Func<Task<T>> call)
+    {
+        if (_service is null) return Unavailable();
+        try
+        {
+            await call();
+            return Result.Success();
+        }
+        catch (GoogleApiException exception) when (exception.HttpStatusCode is HttpStatusCode.NotFound or HttpStatusCode.Gone or HttpStatusCode.BadRequest)
+        {
+            _logger.LogWarning(exception, "Google Play refused to {Action} a subscription.", action);
+            return new Error("billing.store_refused", $"Google Play refused to {action} this subscription: {exception.Error?.Message ?? exception.Message}", ErrorType.Conflict);
+        }
+        catch (Exception exception) when (exception is GoogleApiException or HttpRequestException)
+        {
+            _logger.LogWarning(exception, "Google Play {Action} failed.", action);
+            return new Error("billing.store_unavailable", "Google Play could not be reached. Try again shortly.", ErrorType.Network);
+        }
+    }
+
     public void Dispose() => _service?.Dispose();
 
     private static Error Unavailable() => new("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure);
@@ -93,8 +138,11 @@ public sealed class DisabledGooglePlayBilling : IGooglePlayBilling
     public bool IsConfigured => false;
     public Task<Result<PlaySubscriptionSnapshot>> GetAsync(string purchaseToken, CancellationToken cancellationToken)
         => Task.FromResult(Result.Failure<PlaySubscriptionSnapshot>(new Error("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure)));
-    public Task<Result> AcknowledgeAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
-        => Task.FromResult(Result.Failure(new Error("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure)));
+    public Task<Result> AcknowledgeAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
+    public Task<Result> CancelAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
+    public Task<Result> RefundAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
+    public Task<Result> RevokeAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
+    private static Task<Result> Off() => Task.FromResult(Result.Failure(new Error("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure)));
 }
 
 /// <summary>
@@ -105,6 +153,8 @@ public sealed class DisabledGooglePlayBilling : IGooglePlayBilling
 public sealed class FakeGooglePlayBilling : IGooglePlayBilling
 {
     private readonly ConcurrentDictionary<string, bool> _acknowledged = new();
+    /// <summary>What an admin did to a fake purchase: canceled (no renewal) or revoked (ended now).</summary>
+    private readonly ConcurrentDictionary<string, string> _managed = new();
 
     public bool IsConfigured => true;
 
@@ -122,14 +172,36 @@ public sealed class FakeGooglePlayBilling : IGooglePlayBilling
             "expired" => StoreSubscriptionStatus.Expired,
             _ => StoreSubscriptionStatus.Pending
         };
+        var expires = DateTime.UtcNow.AddDays(days);
+        var autoRenew = status == StoreSubscriptionStatus.Active;
+        if (_managed.TryGetValue(purchaseToken, out var managed))
+        {
+            if (managed == "revoked") { status = StoreSubscriptionStatus.Expired; expires = DateTime.UtcNow.AddSeconds(-1); }
+            else if (status == StoreSubscriptionStatus.Active) status = StoreSubscriptionStatus.Canceled;
+            autoRenew = false;
+        }
         return Task.FromResult(Result.Success(new PlaySubscriptionSnapshot(
-            parts[4], status, DateTime.UtcNow.AddDays(days), status == StoreSubscriptionStatus.Active,
+            parts[4], status, expires, autoRenew,
             _acknowledged.ContainsKey(purchaseToken), parts[3] == "none" ? null : parts[3], null)));
     }
 
     public Task<Result> AcknowledgeAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
     {
         _acknowledged[purchaseToken] = true;
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> CancelAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
+    {
+        _managed.TryAdd(purchaseToken, "canceled");
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> RefundAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Task.FromResult(Result.Success());
+
+    public Task<Result> RevokeAsync(string productId, string purchaseToken, CancellationToken cancellationToken)
+    {
+        _managed[purchaseToken] = "revoked";
         return Task.FromResult(Result.Success());
     }
 }

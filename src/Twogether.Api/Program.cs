@@ -32,6 +32,17 @@ builder.Services.AddScoped<Twogether.Application.Common.Interfaces.ICurrentUser,
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<Twogether.Api.Auth.JwtSettings>() ?? new Twogether.Api.Auth.JwtSettings();
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<Twogether.Application.Common.Interfaces.ITokenService, Twogether.Api.Auth.JwtTokenService>();
+var adminSettings = new Twogether.Application.Features.Admin.AdminSettings
+{
+    Emails = (builder.Configuration["Admin:Emails"] ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+    TokenLifetime = TimeSpan.FromHours(Math.Clamp(builder.Configuration.GetValue<double?>("Admin:TokenHours") ?? 4, 0.25, 12)),
+    MonthlyPrices = builder.Configuration.GetSection("Admin:MonthlyPrices").GetChildren()
+        .Where(item => decimal.TryParse(item.Value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out _))
+        .ToDictionary(item => item.Key, item => decimal.Parse(item.Value!, System.Globalization.CultureInfo.InvariantCulture)),
+    Currency = builder.Configuration["Admin:Currency"] ?? "USD",
+};
+builder.Services.AddSingleton(adminSettings);
+builder.Services.AddScoped<Twogether.Api.Admin.AdminAudit>();
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<HubConnectionRegistry>();
 builder.Services.AddSingleton<GameLiveState>();
@@ -86,13 +97,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ?? context.Principal?.FindFirst("sub")?.Value;
                 var database = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IApplicationDbContext>();
                 var current = Guid.TryParse(subject, out var userId)
-                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId, user.SessionsValidFromUtc }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
+                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId, user.SessionsValidFromUtc, user.DisabledAtUtc, user.LastActiveAtUtc }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
                     : null;
                 if (current is null)
                 {
                     context.Fail("The account no longer exists.");
                     return;
                 }
+                if (current.DisabledAtUtc is not null)
+                {
+                    context.Fail("This account has been disabled.");
+                    return;
+                }
+                // For active-user analytics: at most one write per user every 15 minutes, and one row per day.
+                var clockNow = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IDateTimeProvider>().UtcNow;
+                if (current.LastActiveAtUtc is null || clockNow - current.LastActiveAtUtc > TimeSpan.FromMinutes(15))
+                    await Twogether.Infrastructure.Admin.UserActivity.RecordAsync(database, userId, current.LastActiveAtUtc, clockNow, context.HttpContext.RequestAborted);
                 // A password reset ends every session that started before it.
                 if (current.SessionsValidFromUtc is { } validFrom && context.SecurityToken.ValidFrom < validFrom)
                 {
@@ -104,8 +124,54 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (current.CoupleId is { } coupleId) identity.AddClaim(new System.Security.Claims.Claim(JwtTokenService.CoupleClaim, coupleId.ToString()));
             }
         };
+    })
+    .AddJwtBearer(Twogether.Api.Admin.AdminAuth.Scheme, options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidateAudience = true,
+            ValidAudience = Twogether.Api.Admin.AdminAuth.Audience(jwtSettings),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+        options.MapInboundClaims = false;
+        options.Events = new JwtBearerEvents
+        {
+            // An admin stays an admin only while the account exists, is enabled, is still on the
+            // allowlist, and its sessions haven't been ended since the token was issued.
+            OnTokenValidated = async context =>
+            {
+                var subject = context.Principal?.FindFirst("sub")?.Value;
+                var database = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IApplicationDbContext>();
+                var current = Guid.TryParse(subject, out var userId)
+                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.Email, user.DisplayName, user.DisabledAtUtc, user.SessionsValidFromUtc }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
+                    : null;
+                if (current is null || current.DisabledAtUtc is not null || !adminSettings.IsAdmin(current.Email)
+                    || (current.SessionsValidFromUtc is { } validFrom && context.SecurityToken.ValidFrom < validFrom))
+                {
+                    context.Fail("Not an admin session.");
+                    return;
+                }
+                if (context.Principal?.Identity is System.Security.Claims.ClaimsIdentity identity)
+                {
+                    identity.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
+                    identity.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, current.Email));
+                    identity.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, current.DisplayName));
+                }
+            }
+        };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Twogether.Api.Admin.AdminAuth.Policy, policy => policy
+        .AddAuthenticationSchemes(Twogether.Api.Admin.AdminAuth.Scheme)
+        .RequireAuthenticatedUser()
+        .RequireClaim(Twogether.Api.Admin.AdminAuth.RoleClaim, Twogether.Api.Admin.AdminAuth.RoleValue));
+});
 builder.Services.AddSignalR(options => options.AddFilter<CoupleMembershipHubFilter>())
     .AddJsonProtocol(options =>
     {

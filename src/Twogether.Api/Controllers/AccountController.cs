@@ -58,16 +58,22 @@ public sealed class AccountController(
         var erased = await eraser.EraseAsync(userId, cancellationToken);
         if (erased is null) return NotFound();
 
+        await AnnounceErasureAsync(hub, erased, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>After an erasure (by the person or by an admin): other devices sign out, the partner is told, alarms stop.</summary>
+    public static async Task AnnounceErasureAsync(IHubContext<CoupleHub> hub, AccountErasure erased, CancellationToken cancellationToken)
+    {
         // Other devices signed in to this account: tell them to sign out. Their tokens stop working anyway.
-        await hub.Clients.Group(CoupleHub.UserGroupName(userId)).SendAsync("AccountDeleted", cancellationToken);
+        await hub.Clients.Group(CoupleHub.UserGroupName(erased.UserId)).SendAsync("AccountDeleted", cancellationToken);
         if (erased.FormerPartnerId is { } partnerId)
         {
             var partner = hub.Clients.Group(CoupleHub.UserGroupName(partnerId));
-            await partner.SendAsync("CoupleEnded", new CoupleEndedDto(userId, erased.DisplayName, erased.PartnerNotice!.CreatedAtUtc), cancellationToken);
+            await partner.SendAsync("CoupleEnded", new CoupleEndedDto(erased.UserId, erased.DisplayName, erased.PartnerNotice!.CreatedAtUtc), cancellationToken);
             await partner.SendAsync("NotificationCreated", NotificationController.ToDto(erased.PartnerNotice), cancellationToken);
         }
         foreach (var occurrence in erased.CancelledAlarms)
             await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, ExerciseMapper.ToDto(occurrence, erased.DisplayName), cancellationToken);
-        return NoContent();
     }
 }

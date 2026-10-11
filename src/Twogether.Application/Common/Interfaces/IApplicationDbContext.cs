@@ -7,6 +7,10 @@ public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
     DbSet<PasswordResetCode> PasswordResetCodes { get; }
+    DbSet<AdminAccount> AdminAccounts { get; }
+    DbSet<AdminAuditEvent> AdminAuditEvents { get; }
+    DbSet<PlusGrant> PlusGrants { get; }
+    DbSet<UserActivityDay> UserActivityDays { get; }
     DbSet<Couple> Couples { get; }
     DbSet<PartnerInvite> PartnerInvites { get; }
     DbSet<CycleProfile> CycleProfiles { get; }
