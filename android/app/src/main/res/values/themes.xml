@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Heartpact" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/page</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- The system splash is plain indigo with no icon: the halves walk on in Compose right after,
+         so showing the finished mark first would spoil the moment they meet. -->
+    <style name="Theme.Heartpact.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_indigo</item>
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.Heartpact</item>
+    </style>
+</resources>

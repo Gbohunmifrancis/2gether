@@ -8,7 +8,7 @@ android
 
 ## Stack
 
-Open decision for the Android app. The backend is the existing .NET 10 API with PostgreSQL and SignalR in `src/`. The rep-counting pose loop has to be a native Kotlin module whatever hosts the UI (`docs/research/mobile-pivot-viability.md` §4.2). The web app in `frontend/` predates the mobile pivot.
+Native Android in Kotlin and Jetpack Compose, in `android/`. The backend is the existing .NET 10 API with PostgreSQL and SignalR in `src/`. The rep-counting pose loop will be CameraX with MediaPipe in the same app (`docs/research/mobile-pivot-viability.md` §4.2). iOS comes later, as SwiftUI or through Kotlin Multiplatform. The web app in `frontend/` predates the mobile pivot.
 
 ## Users
 

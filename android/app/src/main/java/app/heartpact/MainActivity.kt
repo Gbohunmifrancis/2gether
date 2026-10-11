@@ -1,0 +1,40 @@
+package app.heartpact
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import app.heartpact.ui.AppViewModel
+import app.heartpact.ui.HeartpactApp
+
+class MainActivity : ComponentActivity() {
+    private val container get() = (application as HeartpactApplication).container
+    private val appModel: AppViewModel by viewModels { viewModelFactory { initializer { AppViewModel(container) } } }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // The system splash is a plain indigo frame; the walk-together scene starts as soon as Compose draws.
+        installSplashScreen()
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        if (savedInstanceState == null) handleInvite(intent)
+        setContent { HeartpactApp(container, appModel) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleInvite(intent)
+    }
+
+    /** https://heartpact.app/invite/{token}: remember the token; pairing accepts it once signed in. */
+    private fun handleInvite(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.host != "heartpact.app") return
+        val segments = uri.pathSegments
+        if (segments.size == 2 && segments[0] == "invite" && segments[1].matches(Regex("[0-9a-f]{16,128}"))) appModel.openedInvite(segments[1])
+    }
+}
