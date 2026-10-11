@@ -56,6 +56,9 @@ fun HeartField(
     error: String? = null,
     hint: String? = null,
     trailing: @Composable (() -> Unit)? = null,
+    /** More than one line makes it a writing box (answers, notes) instead of a single-line field. */
+    minLines: Int = 1,
+    maxLength: Int? = null,
 ) {
     val colors = Heartpact.colors
     val interaction = remember { MutableInteractionSource() }
@@ -79,7 +82,7 @@ fun HeartField(
             ) {
                 BasicTextField(
                     value = value,
-                    onValueChange = onValueChange,
+                    onValueChange = { onValueChange(if (maxLength != null) it.take(maxLength) else it) },
                     modifier = Modifier
                         .weight(1f)
                         .padding(vertical = 12.dp)
@@ -87,7 +90,8 @@ fun HeartField(
                             contentDescription = label
                             if (error != null) error(error)
                         },
-                    singleLine = true,
+                    singleLine = minLines == 1,
+                    minLines = minLines,
                     textStyle = Heartpact.type.bodyLarge.copy(color = colors.ink),
                     cursorBrush = SolidColor(Heartpact.actor.action),
                     keyboardOptions = if (password) keyboard.copy(keyboardType = KeyboardType.Password) else keyboard,
@@ -114,6 +118,9 @@ fun HeartField(
             )
         }
         val note = error ?: hint
+        if (maxLength != null && minLines > 1) {
+            Text("${value.length} / $maxLength", style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.align(Alignment.End).padding(top = 6.dp, end = 4.dp))
+        }
         if (note != null) {
             Text(note, style = Heartpact.type.small, color = if (error != null) colors.error else colors.ink2, modifier = Modifier.padding(start = 6.dp, top = 6.dp))
         }

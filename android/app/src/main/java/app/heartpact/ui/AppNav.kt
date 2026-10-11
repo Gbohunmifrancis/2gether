@@ -21,6 +21,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import app.heartpact.ui.us.NotificationsScreen
+import app.heartpact.ui.us.NotificationsViewModel
+import app.heartpact.ui.us.QuestionScreen
+import app.heartpact.ui.us.QuestionViewModel
+import app.heartpact.ui.us.UsTab
+import app.heartpact.ui.us.UsText
+import app.heartpact.ui.us.UsViewModel
 import app.heartpact.ui.food.FoodEntryScreen
 import app.heartpact.ui.food.FoodEntryViewModel
 import app.heartpact.ui.food.FoodScanScreen
@@ -84,6 +91,8 @@ private object Routes {
     const val PAIR = "pair"
     const val HOME = "home"
     const val NEW_DARE = "newdare"
+    const val QUESTION = "question"
+    const val NOTIFICATIONS = "notifications"
     const val FOOD_SCAN = "foodscan?uri={uri}"
     const val FOOD_ENTRY = "foodentry?id={id}"
     fun foodScan(uri: Uri) = "foodscan?uri=" + Uri.encode(uri.toString())
@@ -164,9 +173,12 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
                     val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food) } })
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
-                    // Back from logging a meal (or from anywhere): the day's numbers may have moved.
+                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us) } })
+                    val usUi by usModel.ui.collectAsStateWithLifecycle()
+                    // Back from logging a meal, answering, or settings: what they show may have moved.
                     LifecycleResumeEffect(Unit) {
                         foodModel.refresh()
+                        usModel.refresh()
                         onPauseOrDispose { }
                     }
                     var mealPhoto by remember { mutableStateOf<Uri?>(null) }
@@ -189,8 +201,19 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 Tab.Pacts -> pactsModel.refresh()
                                 Tab.Album -> albumModel.refresh()
                                 Tab.Food -> foodModel.refresh()
+                                Tab.Us -> usModel.refresh()
                                 else -> Unit
                             }
+                        },
+                        us = {
+                            UsTab(
+                                ui = usUi, myName = me.displayName, partnerName = partner, togetherSince = UsText.togetherSince(couple?.linkedAtUtc),
+                                onQuestion = { nav.navigate(Routes.QUESTION) }, onNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
+                                onSignOut = { appModel.signOut() },
+                                onEndPact = { usModel.endPact { appModel.refresh() } },
+                                onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
+                                onClearDeleteError = usModel::clearDeleteError,
+                            )
                         },
                         food = {
                             FoodTab(
@@ -225,6 +248,20 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
                         )
                     })
+                }
+                composable(Routes.QUESTION) {
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us) } })
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
+                }
+                composable(Routes.NOTIFICATIONS) {
+                    val model: NotificationsViewModel = viewModel(factory = viewModelFactory { initializer { NotificationsViewModel(container.us) } })
+                    val prefs by model.prefs.collectAsStateWithLifecycle()
+                    val note by model.note.collectAsStateWithLifecycle()
+                    NotificationsScreen(prefs, note, model::change, onBack = { nav.popBackStack() })
                 }
                 composable(Routes.FOOD_SCAN, arguments = listOf(navArgument("uri") { type = NavType.StringType })) { entry ->
                     val uri = Uri.parse(entry.arguments?.getString("uri") ?: return@composable)

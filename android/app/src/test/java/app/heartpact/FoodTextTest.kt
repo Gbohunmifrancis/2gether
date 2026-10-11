@@ -44,3 +44,18 @@ class FoodTextTest {
         assertEquals(MealType.Dinner, FoodText.mealFor(LocalTime.of(19, 30)))
     }
 }
+
+class UsTextTest {
+    private val q = app.heartpact.data.DailyQuestion("q", "2026-10-11", category = "future", text = "?", streakDays = 14)
+
+    @org.junit.Test fun `question status never reveals before answering`() {
+        org.junit.Assert.assertEquals("Theo answered · answer to see theirs", app.heartpact.ui.us.UsText.questionStatus(q.copy(partnerAnswered = true), "Theo"))
+        org.junit.Assert.assertEquals("Not answered yet", app.heartpact.ui.us.UsText.questionStatus(q, "Theo"))
+        org.junit.Assert.assertEquals("Day 14 of asking each other · plans and dreams", app.heartpact.ui.us.UsText.dayLine(q))
+    }
+
+    @org.junit.Test fun `together since reads like a date`() {
+        org.junit.Assert.assertEquals("together since 2 March", app.heartpact.ui.us.UsText.togetherSince("2026-03-02T10:00:00Z", java.time.LocalDate.of(2026, 10, 11), java.time.ZoneOffset.UTC))
+        org.junit.Assert.assertEquals("together since 2 March 2025", app.heartpact.ui.us.UsText.togetherSince("2025-03-02T10:00:00Z", java.time.LocalDate.of(2026, 10, 11), java.time.ZoneOffset.UTC))
+    }
+}

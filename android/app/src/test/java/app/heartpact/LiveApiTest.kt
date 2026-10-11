@@ -249,4 +249,33 @@ class LiveApiTest {
         val scan = maya.scan(app.heartpact.data.FoodScanRequest("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q=="))
         if (scan is ApiResult.Failure) assertTrue(scan.code, scan.code in setOf("food.estimation_unavailable", "food.not_food", "food.image_invalid"))
     }
+
+    @Test fun `the daily question opens only after answering, settings save, and ending the pact unlinks both`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        val maya = (mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val mayaUs = app.heartpact.data.UsRepository(apis.getValue("maya"), json)
+        val theoUs = app.heartpact.data.UsRepository(apis.getValue("theo"), json)
+        val today = java.time.LocalDate.now(ZoneOffset.UTC).toString()
+
+        val q = (theoUs.question(today) as ApiResult.Ok).value
+        theoUs.answer(q.id, "Learn to sail, badly.") as ApiResult.Ok
+        val before = (mayaUs.question(today) as ApiResult.Ok).value
+        assertTrue(before.partnerAnswered)
+        assertEquals("hidden until Maya answers", null, before.partnerAnswer)
+        val after = (mayaUs.answer(q.id, "A cabin with no signal.") as ApiResult.Ok).value
+        assertEquals("Learn to sail, badly.", after.partnerAnswer?.body)
+
+        val prefs = (mayaUs.preferences() as ApiResult.Ok).value
+        val saved = (mayaUs.savePreferences(prefs.copy(quietHoursEnabled = true, quietStart = "23:00", quietEnd = "06:30", album = false, timeZoneId = "Africa/Lagos")) as ApiResult.Ok).value
+        assertEquals(Triple(true, "23:00", "06:30"), Triple(saved.quietHoursEnabled, saved.quietStart, saved.quietEnd))
+        assertEquals(false, saved.album)
+
+        mayaUs.endPact() as ApiResult.Ok
+        assertTrue((mayaCouple.current(maya.id) as? ApiResult.Ok)?.value?.status != CoupleStatus.Active)
+    }
 }

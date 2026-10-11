@@ -25,6 +25,9 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
         coerceInputValues = true
     }
 
+    /** For work that outlives a screen: alarms, notifications. */
+    val appContext: Context = context.applicationContext
+
     val session = SessionStore(context, json)
 
     private val http = OkHttpClient.Builder()
@@ -64,6 +67,7 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val couple = CoupleRepository(api, session, json)
     val exercise = ExerciseRepository(api, json)
     val food = FoodRepository(api, json)
+    val us = UsRepository(api, json)
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */

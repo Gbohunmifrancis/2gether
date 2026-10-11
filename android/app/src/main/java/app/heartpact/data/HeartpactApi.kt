@@ -99,4 +99,25 @@ interface HeartpactApi {
 
     @POST("api/food/scans")
     suspend fun scanFood(@Body request: FoodScanRequest): Response<FoodScanResult>
+
+    @GET("api/questions/today")
+    suspend fun questionToday(@Query("date") date: String): Response<DailyQuestion>
+
+    @PUT("api/questions/{id}/answer")
+    suspend fun answerQuestion(@Path("id") id: String, @Body request: AnswerRequest): Response<DailyQuestion>
+
+    @GET("api/questions/history")
+    suspend fun questionHistory(@Query("days") days: Int = 30): Response<DailyQuestionHistory>
+
+    @GET("api/notification/preferences")
+    suspend fun notificationPreferences(): Response<NotificationPreferences>
+
+    @PUT("api/notification/preferences")
+    suspend fun saveNotificationPreferences(@Body request: NotificationPreferences): Response<NotificationPreferences>
+
+    @POST("api/couple/breakup")
+    suspend fun breakup(): Response<Unit>
+
+    @POST("api/account/delete")
+    suspend fun deleteAccount(@Body request: DeleteAccountRequest): Response<Unit>
 }

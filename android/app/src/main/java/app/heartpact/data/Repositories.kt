@@ -54,3 +54,13 @@ class FoodRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun delete(id: String): ApiResult<Unit> = apiCall(json) { api.deleteFoodEntry(id) }
     suspend fun scan(request: FoodScanRequest): ApiResult<FoodScanResult> = apiCall(json) { api.scanFood(request) }
 }
+
+class UsRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun question(date: String): ApiResult<DailyQuestion> = apiCall(json) { api.questionToday(date) }
+    suspend fun answer(id: String, body: String): ApiResult<DailyQuestion> = apiCall(json) { api.answerQuestion(id, AnswerRequest(body)) }
+    suspend fun history(days: Int = 30): ApiResult<DailyQuestionHistory> = apiCall(json) { api.questionHistory(days) }
+    suspend fun preferences(): ApiResult<NotificationPreferences> = apiCall(json) { api.notificationPreferences() }
+    suspend fun savePreferences(value: NotificationPreferences): ApiResult<NotificationPreferences> = apiCall(json) { api.saveNotificationPreferences(value) }
+    suspend fun endPact(): ApiResult<Unit> = apiCall(json) { api.breakup() }
+    suspend fun deleteAccount(request: DeleteAccountRequest): ApiResult<Unit> = apiCall(json) { api.deleteAccount(request) }
+}

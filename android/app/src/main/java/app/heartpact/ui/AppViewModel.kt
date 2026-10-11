@@ -7,6 +7,7 @@ import app.heartpact.data.AppContainer
 import app.heartpact.data.Couple
 import app.heartpact.data.CoupleSide
 import app.heartpact.data.CoupleStatus
+import app.heartpact.alarm.AlarmScheduler
 import app.heartpact.push.Push
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,11 +66,15 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     fun signOut() = viewModelScope.launch {
         withTimeoutOrNull(5_000) { Push.unregister(app) }
         app.auth.signOut()
+        stopAlarms()
         // Photos waiting on this phone belong to this account's album: never sync them into another's.
         app.albumQueue.clear()
         _couple.value = null
         _destination.value = Destination.Welcome
     }
+
+    /** Signed out or no longer linked: nothing may ring for a pact that no longer applies here. */
+    private fun stopAlarms() = AlarmScheduler.apply(app.appContext, emptyList())
 
     private suspend fun decide(): Destination {
         val session = app.session.load() ?: return if (app.session.onboardingSeen.first()) Destination.Welcome else Destination.Onboarding
@@ -79,12 +84,14 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         if (couple != null) _couple.value = couple
         if (fresh is ApiResult.Failure && fresh.status == 401) {
             app.auth.signOut()
+            stopAlarms()
             app.albumQueue.clear()
             return Destination.Welcome
         }
         // Re-register on every start: tokens rotate, and the server keeps only the newest installs.
         viewModelScope.launch { Push.register(app) }
         val status = couple?.status ?: session.coupleStatus
+        if (status != CoupleStatus.Active) stopAlarms()
         return if (status == CoupleStatus.Active) Destination.Home else Destination.Pair
     }
 }

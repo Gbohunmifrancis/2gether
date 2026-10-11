@@ -65,7 +65,7 @@ enum class Tab(val label: String, val icon: ImageVector, val selectedIcon: Image
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
 @Composable
-fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, food: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}) {
+fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, food: (@Composable () -> Unit)? = null, us: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     // A notification can ask for a tab (the album nudge opens Album).
     LaunchedEffect(requestedTab) {
@@ -77,7 +77,7 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
                 Tab.Today -> today()
                 Tab.Pacts -> pacts?.invoke() ?: TabPage("Pacts", "Your sticker page") { EmptyPage(Who.Right, Pose.Stand, "No dares yet", "Dares you set each other live here, with every heart you've kept.") }
                 Tab.Food -> food?.invoke() ?: TabPage("Food", "Photo estimates run about ±30%") { EmptyPage(Who.Left, Pose.Stand, "Nothing logged today", "Snap a meal and you'll get a calorie range, never a single made-up number.") }
-                Tab.Us -> TabPage("Us", "$myName and $partnerName") {
+                Tab.Us -> us?.invoke() ?: TabPage("Us", "$myName and $partnerName") {
                     Column(Modifier.padding(horizontal = 12.dp)) {
                         Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) { Character(Who.Both, Pose.Hug, 130.dp) }
                         StickerCard {
