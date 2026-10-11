@@ -1,10 +1,16 @@
 import type { CoupleStatus, SubscriptionStatus } from "../api/types";
 
 const numberFormat = new Intl.NumberFormat("en-GB");
-const compactFormat = new Intl.NumberFormat("en-GB", { notation: "compact", maximumFractionDigits: 1 });
 
 export const count = (value: number) => numberFormat.format(value);
-export const compact = (value: number) => (Math.abs(value) < 10_000 ? numberFormat.format(value) : compactFormat.format(value));
+/** 9,999 · 12.5K · 340K · 1.2M: written out here because Intl's compact style varies with the ICU data ("k" or "K"). */
+export function compact(value: number): string {
+  const size = Math.abs(value);
+  if (size < 10_000) return numberFormat.format(value);
+  const [divisor, suffix] = size < 1e6 ? [1e3, "K"] : size < 1e9 ? [1e6, "M"] : [1e9, "B"];
+  const scaled = value / divisor;
+  return `${Math.abs(scaled) < 100 ? Number(scaled.toFixed(1)) : Math.round(scaled)}${suffix}`;
+}
 
 export function percent(ratio: number, digits = 0): string {
   if (!Number.isFinite(ratio)) return "–";

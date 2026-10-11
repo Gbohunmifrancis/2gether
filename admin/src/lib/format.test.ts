@@ -6,6 +6,9 @@ describe("format", () => {
     expect(count(1234567)).toBe("1,234,567");
     expect(compact(9999)).toBe("9,999");
     expect(compact(12_500)).toBe("12.5K");
+    expect(compact(340_000)).toBe("340K");
+    expect(compact(1_200_000)).toBe("1.2M");
+    expect(compact(20_000)).toBe("20K");
   });
 
   it("formats money, percent and bytes", () => {
