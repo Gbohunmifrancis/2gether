@@ -1,401 +1,419 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-11T06:45:35+00:00",
+  "generatedAt": "2026-10-11T08:36:09+00:00",
   "title": "Design System: Heartpact",
   "extensions": {
     "colorMeta": {
       "album-page": {
         "role": "neutral",
-        "displayName": "Album Page Periwinkle",
-        "canonical": "#DFE3FB",
-        "oklch": "oklch(92.0% 0.033 278.2)",
+        "displayName": "Album Page",
+        "canonical": "#E3E5F6",
+        "oklch": "oklch(92.5% 0.023 280.6)",
         "tonalRamp": [
-          "#080919",
-          "#202234",
-          "#3B3E51",
-          "#595C70",
-          "#787C91",
-          "#999DB3",
-          "#BFC3DA",
-          "#EAEDFF"
+          "#090A15",
+          "#242532",
+          "#424451",
+          "#636573",
+          "#868897",
+          "#ABADBD",
+          "#CED0E0",
+          "#EBEDFE"
         ]
       },
       "album-page-deep": {
         "role": "neutral",
-        "displayName": "Deep Album Page",
-        "canonical": "#D3D8F5",
-        "oklch": "oklch(88.7% 0.040 277.8)",
+        "displayName": "Album Page, deep",
+        "canonical": "#D7DAEF",
+        "oklch": "oklch(89.2% 0.029 279.3)",
         "tonalRamp": [
-          "#08091C",
-          "#1F2237",
-          "#3A3E55",
-          "#585C75",
-          "#777B96",
-          "#989DB8",
-          "#BDC2DF",
+          "#090A17",
+          "#232535",
+          "#414455",
+          "#626577",
+          "#85889B",
+          "#AAACC1",
+          "#CCCFE4",
           "#EAEDFF"
         ]
       },
       "sticker-stock": {
         "role": "neutral",
-        "displayName": "Sticker Stock White",
+        "displayName": "Sticker Stock",
         "canonical": "#FFFFFF",
         "oklch": "oklch(100.0% 0.000 89.9)",
         "tonalRamp": [
           "#0B0B0B",
-          "#242424",
-          "#404040",
-          "#5D5D5D",
-          "#7D7D7D",
-          "#9E9E9E",
-          "#C4C4C4",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#AEAEAE",
+          "#D1D1D1",
           "#EEEEEE"
         ]
       },
       "sticker-recess": {
         "role": "neutral",
         "displayName": "Sticker Recess",
-        "canonical": "#F3F4FC",
-        "oklch": "oklch(96.9% 0.011 280.5)",
+        "canonical": "#F2F3FA",
+        "oklch": "oklch(96.5% 0.009 279.7)",
         "tonalRamp": [
-          "#0A0B10",
-          "#232429",
-          "#3E3F45",
-          "#5C5D64",
-          "#7C7D84",
-          "#9D9EA5",
-          "#C2C3CB",
-          "#EDEEF6"
+          "#0A0B0F",
+          "#25262B",
+          "#44454A",
+          "#65666C",
+          "#88898F",
+          "#ACADB4",
+          "#CFD0D7",
+          "#EDEEF5"
         ]
       },
       "ink": {
         "role": "neutral",
-        "displayName": "Night Ink",
-        "canonical": "#1B2230",
-        "oklch": "oklch(25.2% 0.029 263.9)",
+        "displayName": "Ink",
+        "canonical": "#161A3D",
+        "oklch": "oklch(23.6% 0.066 275.2)",
         "tonalRamp": [
-          "#060B17",
-          "#1D2432",
-          "#38404F",
-          "#555E6E",
-          "#757D8F",
-          "#959FB1",
-          "#BBC4D7",
-          "#E7EFFF"
-        ],
-        "note": "Also the full-screen alarm ground."
+          "#060626",
+          "#1E2246",
+          "#3B4268",
+          "#5B638C",
+          "#7D86B2",
+          "#A1ABD9",
+          "#C4CEFD",
+          "#E1ECFF"
+        ]
       },
       "ink-2": {
         "role": "neutral",
-        "displayName": "Muted Ink",
-        "canonical": "#4B5370",
-        "oklch": "oklch(44.7% 0.049 272.4)",
+        "displayName": "Ink 2 (muted)",
+        "canonical": "#474C72",
+        "oklch": "oklch(42.9% 0.063 277.6)",
         "tonalRamp": [
-          "#05081F",
-          "#1C223C",
-          "#373E5A",
-          "#545C7A",
-          "#737C9B",
-          "#949DBE",
-          "#B9C3E5",
-          "#E9EEFF"
+          "#070625",
+          "#1F2245",
+          "#3D4167",
+          "#5D638A",
+          "#7F86B0",
+          "#A4ABD6",
+          "#C6CEFB",
+          "#E4EBFF"
         ]
       },
       "ink-3": {
         "role": "neutral",
-        "displayName": "Faint Ink",
-        "canonical": "#6D7492",
-        "oklch": "oklch(56.4% 0.047 274.5)",
+        "displayName": "Ink 3 (faint, white stock only)",
+        "canonical": "#6A6F92",
+        "oklch": "oklch(55.1% 0.055 278.1)",
         "tonalRamp": [
-          "#06081F",
-          "#1D223B",
-          "#383E59",
-          "#555C79",
-          "#747C9A",
-          "#959DBC",
-          "#BAC2E3",
-          "#EAEEFE"
+          "#070721",
+          "#202341",
+          "#3E4262",
+          "#5E6386",
+          "#8186AB",
+          "#A5ABD1",
+          "#C8CEF5",
+          "#E5ECFF"
         ],
-        "note": "Text on sticker stock only (4.6:1); 3.62:1 on album page."
+        "note": "4.88:1 on white stock; 3.91:1 on the album page, so stock only."
       },
       "ink-4": {
         "role": "neutral",
-        "displayName": "Pencil Line",
-        "canonical": "#A3A9C6",
-        "oklch": "oklch(74.0% 0.042 276.1)",
+        "displayName": "Ink 4 (non-text)",
+        "canonical": "#A4A8C6",
+        "oklch": "oklch(73.8% 0.043 279.3)",
         "tonalRamp": [
-          "#07091D",
-          "#1E2238",
-          "#393E56",
-          "#575C76",
-          "#767C97",
-          "#979DB9",
-          "#BCC2E0",
-          "#EAEEFE"
-        ],
-        "note": "Non-text only."
+          "#08081D",
+          "#22243B",
+          "#40435C",
+          "#60647F",
+          "#8387A4",
+          "#A8ACCA",
+          "#CACFEE",
+          "#E8ECFF"
+        ]
       },
       "rule": {
         "role": "neutral",
-        "displayName": "Perforation",
-        "canonical": "#E3E6F4",
-        "oklch": "oklch(92.7% 0.019 276.3)",
+        "displayName": "Perforation Rule",
+        "canonical": "#E4E6F3",
+        "oklch": "oklch(92.7% 0.018 279.0)",
         "tonalRamp": [
           "#090A13",
-          "#21232D",
-          "#3D3F4A",
-          "#5A5D69",
-          "#7A7D89",
-          "#9B9EAB",
-          "#C0C3D1",
-          "#EBEEFC"
+          "#24262F",
+          "#43444F",
+          "#646570",
+          "#868894",
+          "#ABADB9",
+          "#CED0DD",
+          "#ECEEFB"
         ]
       },
       "rule-2": {
         "role": "neutral",
-        "displayName": "Crease Line",
-        "canonical": "#C9CEE8",
-        "oklch": "oklch(85.6% 0.036 277.0)",
+        "displayName": "Stroke Rule",
+        "canonical": "#C8CBE3",
+        "oklch": "oklch(84.7% 0.033 280.0)",
         "tonalRamp": [
-          "#08091A",
-          "#1F2236",
-          "#3B3E53",
-          "#585C72",
-          "#777C93",
-          "#989DB6",
-          "#BEC3DC",
-          "#EAEEFD"
+          "#090919",
+          "#232537",
+          "#414357",
+          "#626479",
+          "#85879E",
+          "#A9ACC3",
+          "#CCCFE7",
+          "#E9EDFF"
         ]
       },
       "maya-art": {
         "role": "primary",
-        "displayName": "Maya Teal (art only)",
-        "canonical": "#2C8C85",
-        "oklch": "oklch(58.4% 0.088 188.1)",
+        "displayName": "Fold Indigo (art)",
+        "canonical": "#1F2557",
+        "oklch": "oklch(29.0% 0.090 274.3)",
         "tonalRamp": [
-          "#010E0D",
-          "#042A28",
-          "#014A46",
-          "#116C66",
-          "#2F8E87",
-          "#55B0A9",
-          "#7DD7CF",
-          "#B7FFF7"
+          "#050130",
+          "#1B2051",
+          "#374074",
+          "#566299",
+          "#7885C0",
+          "#9CAAE7",
+          "#BFCDFF",
+          "#DCEBFF"
         ],
-        "note": "Illustration only: white text 4.04:1."
+        "note": "Maya's half of every sticker and the mark; same value as maya-action. White text 14.38:1."
       },
       "theo-art": {
         "role": "secondary",
-        "displayName": "Theo Persimmon (art only)",
-        "canonical": "#E2683C",
-        "oklch": "oklch(65.8% 0.163 39.7)",
+        "displayName": "Theo Periwinkle (art only)",
+        "canonical": "#7480D4",
+        "oklch": "oklch(62.7% 0.127 276.0)",
         "tonalRamp": [
-          "#1A0400",
-          "#421202",
-          "#6C260A",
-          "#9E3708",
-          "#CA5225",
-          "#F17549",
-          "#FBAF95",
-          "#FEE9E2"
+          "#09003C",
+          "#1B195F",
+          "#353B84",
+          "#545EAA",
+          "#7682D1",
+          "#99A7F9",
+          "#BBCAFF",
+          "#D8E8FF"
         ],
-        "note": "Illustration only: white text 3.34:1."
+        "note": "Illustration only: 3.63:1 on white, 3.96:1 against Fold Indigo. Never carries text."
       },
       "maya-action": {
         "role": "primary",
-        "displayName": "Maya Teal Action",
-        "canonical": "#23746E",
-        "oklch": "oklch(51.0% 0.077 187.9)",
+        "displayName": "Fold Indigo (action)",
+        "canonical": "#1F2557",
+        "oklch": "oklch(29.0% 0.090 274.3)",
         "tonalRamp": [
-          "#000F0D",
-          "#002B28",
-          "#054A46",
-          "#176B66",
-          "#3F8C86",
-          "#62AEA7",
-          "#88D5CD",
-          "#B9FEF7"
+          "#050130",
+          "#1B2051",
+          "#374074",
+          "#566299",
+          "#7885C0",
+          "#9CAAE7",
+          "#BFCDFF",
+          "#DCEBFF"
         ],
-        "note": "White labels 5.53:1."
+        "note": "White labels 14.38:1."
       },
       "maya-soft": {
         "role": "primary",
-        "displayName": "Maya Soft",
-        "canonical": "#D3ECE8",
-        "oklch": "oklch(92.4% 0.027 185.1)",
+        "displayName": "Fold Indigo, soft",
+        "canonical": "#D5D8F6",
+        "oklch": "oklch(88.9% 0.041 281.0)",
         "tonalRamp": [
-          "#000F0D",
-          "#142826",
-          "#304542",
-          "#4D6360",
-          "#6C837F",
-          "#8DA4A0",
-          "#B2CAC6",
-          "#DCF5F1"
+          "#09081C",
+          "#23243A",
+          "#41435B",
+          "#61647E",
+          "#8487A2",
+          "#A9ABC8",
+          "#CCCEEC",
+          "#E9ECFF"
         ]
       },
       "maya-tint": {
         "role": "primary",
-        "displayName": "Maya Tint",
-        "canonical": "#EAF6F4",
-        "oklch": "oklch(96.4% 0.013 185.1)",
+        "displayName": "Fold Indigo, tint",
+        "canonical": "#ECEEFC",
+        "oklch": "oklch(95.2% 0.019 279.5)",
         "tonalRamp": [
-          "#060D0C",
-          "#1D2625",
-          "#384241",
-          "#56605E",
-          "#75807E",
-          "#96A19F",
-          "#BBC7C5",
-          "#E5F1EF"
+          "#090A13",
+          "#242630",
+          "#43444F",
+          "#646571",
+          "#868895",
+          "#ABADBA",
+          "#CED0DE",
+          "#EBEDFB"
         ]
+      },
+      "maya-ink": {
+        "role": "primary",
+        "displayName": "Fold Indigo (on-soft ink)",
+        "canonical": "#1F2557",
+        "oklch": "oklch(29.0% 0.090 274.3)",
+        "tonalRamp": [
+          "#050130",
+          "#1B2051",
+          "#374074",
+          "#566299",
+          "#7885C0",
+          "#9CAAE7",
+          "#BFCDFF",
+          "#DCEBFF"
+        ],
+        "note": "10.26:1 on maya-soft."
       },
       "theo-action": {
         "role": "secondary",
-        "displayName": "Theo Persimmon Action",
-        "canonical": "#C4532C",
-        "oklch": "oklch(58.2% 0.154 38.8)",
+        "displayName": "Theo Periwinkle (action)",
+        "canonical": "#4D58BE",
+        "oklch": "oklch(50.7% 0.159 274.6)",
         "tonalRamp": [
-          "#1B0300",
-          "#431101",
-          "#6E2406",
-          "#A13300",
-          "#C7562F",
-          "#ED7851",
-          "#FDAE94",
-          "#FFE9E2"
+          "#08003C",
+          "#19195F",
+          "#343C84",
+          "#525EAA",
+          "#7482D1",
+          "#97A8FA",
+          "#B9CBFF",
+          "#D6E9FF"
         ],
-        "note": "White labels 4.54:1."
+        "note": "White labels 6.08:1."
       },
       "theo-soft": {
         "role": "secondary",
-        "displayName": "Theo Soft",
-        "canonical": "#FCDCCD",
-        "oklch": "oklch(91.7% 0.041 46.7)",
+        "displayName": "Theo Periwinkle, soft",
+        "canonical": "#DFE2FA",
+        "oklch": "oklch(91.8% 0.033 280.1)",
         "tonalRamp": [
-          "#180500",
-          "#341D12",
-          "#52392D",
-          "#72574A",
-          "#937669",
-          "#B59789",
-          "#DCBDAE",
-          "#FFEAE0"
+          "#090919",
+          "#232536",
+          "#414357",
+          "#626479",
+          "#85879D",
+          "#A9ACC3",
+          "#CCCFE7",
+          "#EAEDFF"
         ]
       },
       "theo-tint": {
         "role": "secondary",
-        "displayName": "Theo Tint",
-        "canonical": "#FFF0E9",
-        "oklch": "oklch(96.5% 0.019 46.8)",
+        "displayName": "Theo Periwinkle, tint",
+        "canonical": "#EEF0FD",
+        "oklch": "oklch(95.7% 0.018 279.1)",
         "tonalRamp": [
-          "#120905",
-          "#2C211C",
-          "#493D37",
-          "#675B55",
-          "#877A74",
-          "#A99B95",
-          "#CFC1BA",
-          "#FAEBE4"
+          "#090A13",
+          "#24262F",
+          "#43444F",
+          "#646570",
+          "#878894",
+          "#ABADB9",
+          "#CED0DD",
+          "#ECEEFB"
         ]
       },
-      "maya-on-soft": {
-        "role": "primary",
-        "displayName": "Maya On-Soft Ink",
-        "canonical": "#1D6862",
-        "oklch": "oklch(47.1% 0.072 187.3)",
-        "note": "Text on maya-soft and maya-tint fills: selected chips, segments, tonal buttons, tags. 5.28:1 on soft."
-      },
-      "theo-on-soft": {
+      "theo-ink": {
         "role": "secondary",
-        "displayName": "Theo On-Soft Ink",
-        "canonical": "#A8401C",
-        "oklch": "oklch(51.0% 0.145 38.3)",
-        "note": "Text on theo-soft and theo-tint fills. 4.76:1 on soft; theo-action measures 3.52:1 there."
+        "displayName": "Theo Periwinkle (on-soft ink)",
+        "canonical": "#3F49A8",
+        "oklch": "oklch(45.2% 0.151 274.1)",
+        "tonalRamp": [
+          "#07003C",
+          "#181A5F",
+          "#333C84",
+          "#525FAA",
+          "#7382D1",
+          "#97A8FA",
+          "#B9CBFF",
+          "#D5E9FF"
+        ],
+        "note": "6.01:1 on theo-soft."
       },
       "on-action": {
         "role": "neutral",
-        "displayName": "On-Action White",
+        "displayName": "On Action",
         "canonical": "#FFFFFF",
         "oklch": "oklch(100.0% 0.000 89.9)",
         "tonalRamp": [
           "#0B0B0B",
-          "#242424",
-          "#404040",
-          "#5D5D5D",
-          "#7D7D7D",
-          "#9E9E9E",
-          "#C4C4C4",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#AEAEAE",
+          "#D1D1D1",
           "#EEEEEE"
         ]
       },
       "scrim": {
         "role": "neutral",
-        "displayName": "Ink Scrim",
-        "canonical": "rgba(27,34,48,.42)"
+        "displayName": "Scrim",
+        "canonical": "rgba(22,26,61,.42)"
       },
       "night-page": {
         "role": "neutral",
-        "displayName": "Night Page",
-        "canonical": "#151933",
-        "oklch": "oklch(22.5% 0.051 275.0)",
+        "displayName": "Night Album Page",
+        "canonical": "#10132B",
+        "oklch": "oklch(19.9% 0.048 275.8)",
         "tonalRamp": [
-          "#060820",
-          "#1D223C",
-          "#383E5B",
-          "#555C7B",
-          "#747B9C",
-          "#959DBF",
-          "#BAC2E6",
-          "#EAEEFE"
+          "#07081F",
+          "#20243E",
+          "#3E435F",
+          "#5E6482",
+          "#8187A7",
+          "#A5ACCD",
+          "#C8CFF1",
+          "#E5EDFF"
         ]
       },
       "night-page-deep": {
         "role": "neutral",
-        "displayName": "Night Page Deep",
-        "canonical": "#1C2142",
-        "oklch": "oklch(26.2% 0.062 274.8)",
+        "displayName": "Night Album Page, deep",
+        "canonical": "#161A38",
+        "oklch": "oklch(23.2% 0.058 275.3)",
         "tonalRamp": [
-          "#060624",
-          "#1C2141",
-          "#363D60",
-          "#535B81",
-          "#727BA2",
-          "#939CC5",
-          "#B8C2ED",
-          "#EAEEFD"
+          "#060723",
+          "#1F2342",
+          "#3C4264",
+          "#5C6487",
+          "#7F87AD",
+          "#A3ACD3",
+          "#C6CFF8",
+          "#E3ECFF"
         ]
       },
       "night-sticker": {
         "role": "neutral",
-        "displayName": "Night Sticker",
-        "canonical": "#232951",
-        "oklch": "oklch(29.8% 0.072 274.7)",
+        "displayName": "Night Sticker Stock",
+        "canonical": "#1E2347",
+        "oklch": "oklch(27.2% 0.067 275.1)",
         "tonalRamp": [
-          "#050529",
-          "#1A1F46",
-          "#353C66",
-          "#515A87",
-          "#707AA9",
-          "#919BCC",
-          "#B6C1F4",
-          "#EAEEFE"
+          "#060626",
+          "#1E2246",
+          "#3B4269",
+          "#5B638C",
+          "#7D86B2",
+          "#A1ABD9",
+          "#C4CEFD",
+          "#E1ECFF"
         ]
       },
       "night-sticker-recess": {
         "role": "neutral",
         "displayName": "Night Sticker Recess",
-        "canonical": "#2B3260",
-        "oklch": "oklch(33.6% 0.081 274.7)",
+        "canonical": "#262C55",
+        "oklch": "oklch(31.0% 0.074 275.0)",
         "tonalRamp": [
-          "#05032C",
-          "#1A1E4A",
-          "#333B6A",
-          "#505A8B",
-          "#6F7AAE",
-          "#8F9BD1",
-          "#B4C1F9",
-          "#EAEEFE"
+          "#060429",
+          "#1D224A",
+          "#3A416C",
+          "#5A6390",
+          "#7C86B6",
+          "#A0ABDD",
+          "#C2CEFF",
+          "#E0ECFF"
         ]
       },
       "night-ink": {
@@ -405,204 +423,224 @@
         "oklch": "oklch(95.7% 0.015 277.9)",
         "tonalRamp": [
           "#0A0B11",
-          "#22232B",
-          "#3E3F48",
-          "#5B5D66",
-          "#7B7D86",
-          "#9C9EA8",
-          "#C1C3CE",
+          "#25262E",
+          "#43444D",
+          "#64656F",
+          "#878892",
+          "#ABADB8",
+          "#CED0DB",
           "#ECEEF9"
         ]
       },
       "night-ink-2": {
         "role": "neutral",
-        "displayName": "Night Ink 2",
-        "canonical": "#B7BCDA",
-        "oklch": "oklch(80.1% 0.043 277.9)",
+        "displayName": "Night Ink 2 (muted)",
+        "canonical": "#B5B9D8",
+        "oklch": "oklch(79.3% 0.044 279.5)",
         "tonalRamp": [
           "#08081D",
-          "#1F2238",
-          "#3A3E56",
-          "#585C76",
-          "#777B97",
-          "#989CB9",
-          "#BDC2E0",
-          "#EAEDFE"
+          "#22243C",
+          "#40435D",
+          "#60647F",
+          "#8387A4",
+          "#A8ACCA",
+          "#CACFEE",
+          "#E8ECFF"
         ]
       },
       "night-ink-3": {
         "role": "neutral",
-        "displayName": "Night Ink 3",
-        "canonical": "#8E94B8",
-        "oklch": "oklch(67.4% 0.054 277.5)",
+        "displayName": "Night Ink 3 (faint, white stock only)",
+        "canonical": "#8C91B6",
+        "oklch": "oklch(66.6% 0.055 278.8)",
         "tonalRamp": [
           "#070721",
-          "#1E213E",
-          "#393D5C",
-          "#565B7C",
-          "#757B9D",
-          "#969CC0",
-          "#BBC2E7",
-          "#EAEDFE"
+          "#212341",
+          "#3E4262",
+          "#5F6386",
+          "#8186AB",
+          "#A6ABD1",
+          "#C8CEF6",
+          "#E6ECFF"
         ]
       },
       "night-ink-4": {
         "role": "neutral",
-        "displayName": "Night Ink 4",
-        "canonical": "#5E6590",
-        "oklch": "oklch(51.9% 0.069 276.6)",
+        "displayName": "Night Ink 4 (non-text)",
+        "canonical": "#5B618C",
+        "oklch": "oklch(50.5% 0.069 277.5)",
         "tonalRamp": [
-          "#060527",
-          "#1C1F44",
-          "#363C64",
-          "#535A84",
-          "#727AA6",
-          "#939BC9",
-          "#B8C1F1",
-          "#EAEEFD"
+          "#070527",
+          "#1F2247",
+          "#3C4169",
+          "#5C628D",
+          "#7F86B3",
+          "#A3AADA",
+          "#C5CDFF",
+          "#E3EBFF"
         ]
       },
       "night-rule": {
         "role": "neutral",
-        "displayName": "Night Rule",
-        "canonical": "#2F3664",
-        "oklch": "oklch(35.1% 0.080 275.0)",
+        "displayName": "Night Perforation Rule",
+        "canonical": "#2B3160",
+        "oklch": "oklch(33.4% 0.082 275.5)",
         "tonalRamp": [
-          "#06032C",
-          "#1A1E4A",
-          "#343B6A",
-          "#505A8B",
-          "#6F79AD",
-          "#909BD1",
-          "#B4C1F9",
-          "#EAEEFE"
+          "#06032D",
+          "#1C204E",
+          "#394071",
+          "#596295",
+          "#7B85BB",
+          "#9FAAE3",
+          "#C1CDFF",
+          "#DEEBFF"
         ]
       },
       "night-rule-2": {
         "role": "neutral",
-        "displayName": "Night Rule 2",
-        "canonical": "#3C4475",
-        "oklch": "oklch(40.4% 0.083 275.1)",
+        "displayName": "Night Stroke Rule",
+        "canonical": "#383F72",
+        "oklch": "oklch(38.8% 0.087 275.7)",
         "tonalRamp": [
-          "#06032D",
-          "#1A1E4B",
-          "#333B6B",
-          "#50598C",
-          "#6F79AF",
-          "#8F9BD2",
-          "#B4C0FA",
-          "#EAEEFF"
+          "#06022E",
+          "#1C2050",
+          "#394073",
+          "#586197",
+          "#7A85BE",
+          "#9EAAE5",
+          "#C1CDFF",
+          "#DEEBFF"
         ]
       },
       "night-maya-action": {
         "role": "primary",
-        "displayName": "Night Maya Action",
-        "canonical": "#6CCFC4",
-        "oklch": "oklch(79.1% 0.095 186.0)",
+        "displayName": "Night Fold Indigo (action)",
+        "canonical": "#E6E8FF",
+        "oklch": "oklch(93.6% 0.031 281.8)",
         "tonalRamp": [
-          "#000F0D",
-          "#002B27",
-          "#064A45",
-          "#186B64",
-          "#228F86",
-          "#4DB2A7",
-          "#76D8CD",
-          "#BAFEF5"
-        ]
+          "#090918",
+          "#242535",
+          "#424356",
+          "#636478",
+          "#86879C",
+          "#AAACC2",
+          "#CDCFE6",
+          "#EAEDFF"
+        ],
+        "note": "Takes night-on-action labels, 15.02:1."
       },
       "night-maya-soft": {
         "role": "primary",
-        "displayName": "Night Maya Soft",
-        "canonical": "#1E4A4B",
-        "oklch": "oklch(37.9% 0.048 197.3)",
+        "displayName": "Night Fold Indigo, soft",
+        "canonical": "#2C3263",
+        "oklch": "oklch(33.9% 0.085 275.6)",
         "tonalRamp": [
-          "#000E0F",
-          "#012A2B",
-          "#1B4849",
-          "#3B6667",
-          "#5A8687",
-          "#7BA8A9",
-          "#A0CECF",
-          "#CAF9FA"
+          "#06022E",
+          "#1C204F",
+          "#394072",
+          "#586197",
+          "#7A85BD",
+          "#9EAAE4",
+          "#C1CDFF",
+          "#DEEBFF"
         ]
       },
       "night-maya-tint": {
         "role": "primary",
-        "displayName": "Night Maya Tint",
-        "canonical": "#1B3B40",
-        "oklch": "oklch(33.0% 0.039 208.7)",
+        "displayName": "Night Fold Indigo, tint",
+        "canonical": "#232853",
+        "oklch": "oklch(29.7% 0.077 275.7)",
         "tonalRamp": [
-          "#000E11",
-          "#07292E",
-          "#26464B",
-          "#436469",
-          "#63848A",
-          "#83A6AB",
-          "#A8CCD1",
-          "#D2F6FC"
+          "#06042B",
+          "#1D214B",
+          "#3A416E",
+          "#5A6292",
+          "#7C85B8",
+          "#A0AADF",
+          "#C2CEFF",
+          "#DFEBFF"
+        ]
+      },
+      "night-maya-ink": {
+        "role": "primary",
+        "displayName": "Night Fold Indigo (on-soft ink)",
+        "canonical": "#E6E8FF",
+        "oklch": "oklch(93.6% 0.031 281.8)",
+        "tonalRamp": [
+          "#090918",
+          "#242535",
+          "#424356",
+          "#636478",
+          "#86879C",
+          "#AAACC2",
+          "#CDCFE6",
+          "#EAEDFF"
         ]
       },
       "night-theo-action": {
         "role": "secondary",
-        "displayName": "Night Theo Action",
-        "canonical": "#FF9B73",
-        "oklch": "oklch(78.4% 0.132 42.3)",
+        "displayName": "Night Theo Periwinkle (action)",
+        "canonical": "#A9B1F2",
+        "oklch": "oklch(77.8% 0.093 278.6)",
         "tonalRamp": [
-          "#1A0400",
-          "#411300",
-          "#6C2704",
-          "#983E13",
-          "#BC5F38",
-          "#E28159",
-          "#FAB093",
-          "#FEEAE2"
-        ]
+          "#080031",
+          "#1E1E52",
+          "#3B3E76",
+          "#5A609B",
+          "#7C83C1",
+          "#A0A8E9",
+          "#C3CBFF",
+          "#E0E9FF"
+        ],
+        "note": "Takes night-on-action labels, 8.88:1; right half of the night mark."
       },
       "night-theo-soft": {
         "role": "secondary",
-        "displayName": "Night Theo Soft",
-        "canonical": "#4D2C25",
-        "oklch": "oklch(33.3% 0.051 32.7)",
+        "displayName": "Night Theo Periwinkle, soft",
+        "canonical": "#2F3670",
+        "oklch": "oklch(35.9% 0.099 275.1)",
         "tonalRamp": [
-          "#1C0201",
-          "#391A14",
-          "#57362E",
-          "#78534B",
-          "#99736A",
-          "#BC938A",
-          "#E3B9AF",
-          "#FEE9E4"
+          "#060033",
+          "#1B1E56",
+          "#373E79",
+          "#56609F",
+          "#7884C5",
+          "#9BA9ED",
+          "#BECCFF",
+          "#DBEAFF"
         ]
       },
       "night-theo-tint": {
         "role": "secondary",
-        "displayName": "Night Theo Tint",
-        "canonical": "#3B2421",
-        "oklch": "oklch(28.8% 0.036 27.7)",
+        "displayName": "Night Theo Periwinkle, tint",
+        "canonical": "#262C5C",
+        "oklch": "oklch(31.5% 0.085 275.1)",
         "tonalRamp": [
-          "#180504",
-          "#331D1A",
-          "#513935",
-          "#715652",
-          "#927672",
-          "#B49692",
-          "#DBBCB7",
-          "#FEE9E6"
+          "#06022E",
+          "#1C204F",
+          "#384072",
+          "#586297",
+          "#7A85BD",
+          "#9EAAE4",
+          "#C0CDFF",
+          "#DDEBFF"
         ]
       },
-      "night-maya-on-soft": {
-        "role": "primary",
-        "displayName": "Night Maya On-Soft Ink",
-        "canonical": "#6CCFC4",
-        "oklch": "oklch(79.1% 0.095 186.0)",
-        "note": "Equals night maya-action."
-      },
-      "night-theo-on-soft": {
+      "night-theo-ink": {
         "role": "secondary",
-        "displayName": "Night Theo On-Soft Ink",
-        "canonical": "#FF9B73",
-        "oklch": "oklch(78.4% 0.132 42.3)",
-        "note": "Equals night theo-action."
+        "displayName": "Night Theo Periwinkle (on-soft ink)",
+        "canonical": "#A9B1F2",
+        "oklch": "oklch(77.8% 0.093 278.6)",
+        "tonalRamp": [
+          "#080031",
+          "#1E1E52",
+          "#3B3E76",
+          "#5A609B",
+          "#7C83C1",
+          "#A0A8E9",
+          "#C3CBFF",
+          "#E0E9FF"
+        ]
       },
       "night-on-action": {
         "role": "neutral",
@@ -611,20 +649,20 @@
         "oklch": "oklch(20.0% 0.044 274.0)",
         "tonalRamp": [
           "#06091D",
-          "#1D2239",
-          "#383E57",
-          "#565C77",
-          "#757C98",
-          "#959DBB",
-          "#BBC3E2",
-          "#E9EEFF"
+          "#20253C",
+          "#3D435D",
+          "#5E6580",
+          "#8088A5",
+          "#A5ADCB",
+          "#C7D0EF",
+          "#E5EDFF"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Giant minutes-left and rep numerals; the alarm clock enlarges to 108px."
+        "purpose": "Giant minutes-left and rep numerals in Sora; the alarm clock enlarges to 108px."
       },
       "display-s": {
         "displayName": "Display S",
@@ -632,7 +670,7 @@
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Large top app bar titles."
+        "purpose": "Large top app bar titles and onboarding headlines."
       },
       "title": {
         "displayName": "Title",
@@ -641,6 +679,10 @@
       "title-s": {
         "displayName": "Title S",
         "purpose": "Section headings and secondary card titles."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Lowercase \"heartpact\" lockup beside the mark only; part of the logo, not a reading role."
       },
       "body-l": {
         "displayName": "Body L",
@@ -666,17 +708,17 @@
     "shadows": [
       {
         "name": "lift-1",
-        "value": "0 1px 0 rgba(27,34,48,.04), 0 12px 24px -16px rgba(52,58,120,.40)",
+        "value": "0 1px 0 rgba(22,26,61,.04), 0 12px 24px -16px rgba(31,37,87,.38)",
         "purpose": "Cards and the week sticker row lifting off the album page."
       },
       {
         "name": "lift-2",
-        "value": "0 2px 0 rgba(27,34,48,.04), 0 22px 40px -22px rgba(52,58,120,.48)",
+        "value": "0 2px 0 rgba(22,26,61,.04), 0 22px 40px -22px rgba(31,37,87,.46)",
         "purpose": "The dare card, the largest element on a screen."
       },
       {
         "name": "lift-3",
-        "value": "0 2px 4px rgba(27,34,48,.06), 0 30px 60px -22px rgba(52,58,120,.55)",
+        "value": "0 2px 4px rgba(22,26,61,.06), 0 30px 60px -22px rgba(31,37,87,.52)",
         "purpose": "Extended FAB and bottom sheet."
       },
       {
@@ -686,8 +728,8 @@
       },
       {
         "name": "sticker-keyline",
-        "value": "13px white stroke + drop-shadow(0 3px 3px rgba(52,58,120,.25))",
-        "purpose": "Die-cut edge on heart stickers and character stickers."
+        "value": "13px white stroke + drop-shadow(0 3px 3px rgba(31,37,87,.25)); characters: 6px white dilate + shadow #1E2350 at .24",
+        "purpose": "Die-cut edge on heart stickers and character stickers; stays white at night."
       },
       {
         "name": "night-lift-1",
@@ -720,10 +762,10 @@
     ],
     "fonts": [
       {
-        "family": "Fredoka",
-        "source": "design/heartpact-v3/fonts/fredoka-latin.woff2",
-        "weights": "300-700",
-        "role": "display and numerals"
+        "family": "Sora",
+        "source": "design/heartpact-v3/fonts/sora-latin.woff2",
+        "weights": "400-700",
+        "role": "display, numerals, headline, titles, app bar titles, section heads, wordmark"
       },
       {
         "family": "Figtree",
@@ -737,16 +779,31 @@
         "role": "icons"
       }
     ],
-    "source": "design/heartpact-v3 (styles.css, mascots.js, render.js, screens/*.html)"
+    "source": "design/heartpact-v3 (styles.css, render.js, mascots.js, screens/*.html, png/00-contact-sheet.png, logo/)",
+    "logo": {
+      "mark": "Geometric heart: a square turned 45deg with two round lobes (radius = half the side), split on its vertical centre line. Left half maya-art, right half theo-art; on night grounds left #FFFFFF, right #A9B1F2.",
+      "wordmark": "Lowercase \"heartpact\", Sora 600, letter-spacing -0.045em, ink.",
+      "clearSpace": "One lobe radius on every side.",
+      "assets": [
+        "design/heartpact-v3/logo/heartpact-mark.svg",
+        "design/heartpact-v3/logo/heartpact-mark-dark.svg",
+        "design/heartpact-v3/logo/ic_launcher_foreground.svg",
+        "design/heartpact-v3/logo/ic_launcher_background.svg",
+        "design/heartpact-v3/logo/ic_launcher_monochrome.svg",
+        "design/heartpact-v3/logo/play-store-icon-512.png",
+        "design/heartpact-v3/logo/brand.png"
+      ],
+      "adaptiveIcon": "Background: linear gradient #2C3474 to #1A1F4D. Foreground: night mark at 54% scale. Monochrome: left half solid, right half at 55% opacity."
+    }
   },
   "components": [
     {
       "name": "Filled Button (Maya)",
       "kind": "button",
       "refersTo": "button-filled-maya",
-      "description": "Primary action when Maya is the actor; white label on action teal.",
+      "description": "Primary action when Maya is the actor; white label on Fold Indigo.",
       "html": "<button class=\"ds-btn-maya\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 8h3.5l1.6-2.2h5.8L16.5 8H20v11H4z\"/><circle cx=\"12\" cy=\"13.2\" r=\"3.4\"/></svg>Start on camera</button>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-btn-maya{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--maya);color:#fff;box-shadow:0 12px 22px -14px var(--maya)} .ds-btn-maya:hover{transform:translateY(-1px);box-shadow:0 16px 26px -14px var(--maya)} .ds-btn-maya:active{transform:scale(.98)} .ds-btn-maya:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-btn-maya{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--maya);color:#fff;box-shadow:0 12px 22px -14px var(--maya)} .ds-btn-maya:hover{transform:translateY(-1px);box-shadow:0 16px 26px -14px var(--maya)} .ds-btn-maya:active{transform:scale(.98)} .ds-btn-maya:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
     },
     {
       "name": "Filled Button (Theo)",
@@ -754,7 +811,7 @@
       "refersTo": "button-filled-theo",
       "description": "Primary action when Theo is the actor or it is his to agree to.",
       "html": "<button class=\"ds-btn-theo\">Call it off together</button>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-btn-theo{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--theo);color:#fff;box-shadow:0 12px 22px -14px var(--theo)} .ds-btn-theo:hover{transform:translateY(-1px)} .ds-btn-theo:active{transform:scale(.98)} .ds-btn-theo:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-btn-theo{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--theo);color:#fff;box-shadow:0 12px 22px -14px var(--theo)} .ds-btn-theo:hover{transform:translateY(-1px)} .ds-btn-theo:active{transform:scale(.98)} .ds-btn-theo:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
     },
     {
       "name": "Outline and Text Buttons",
@@ -762,7 +819,7 @@
       "refersTo": "button-outline",
       "description": "Refusal (outline) and partner-consent exit (text) beside a filled action.",
       "html": "<div class=\"ds-row\"><button class=\"ds-btn-outline\">Keep it</button><button class=\"ds-btn-text\">Ask Theo to call it off</button></div>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-row{display:flex;gap:8px;align-items:center} .ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2);color:var(--ink)} .ds-btn-outline:hover{background:var(--sticker-2)} .ds-btn-text{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;height:46px;padding:0 14px;background:none;color:var(--maya)} .ds-btn-text:hover{background:var(--maya-tint)} .ds-btn-outline:focus-visible,.ds-btn-text:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-row{display:flex;gap:8px;align-items:center} .ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2);color:var(--ink)} .ds-btn-outline:hover{background:var(--sticker-2)} .ds-btn-text{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;height:46px;padding:0 14px;background:none;color:var(--maya)} .ds-btn-text:hover{background:var(--maya-tint)} .ds-btn-outline:focus-visible,.ds-btn-text:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
     },
     {
       "name": "Chips",
@@ -770,7 +827,7 @@
       "refersTo": "chip-selected-maya",
       "description": "Filter/choice chips; selected takes the actor soft fill with a check.",
       "html": "<div class=\"ds-chips\"><button class=\"ds-chip on\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg>Push-ups</button><button class=\"ds-chip\">Sit-ups</button><button class=\"ds-chip\">Plank</button></div>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-chips{display:flex;gap:8px;flex-wrap:wrap} .ds-chip{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:19px;border:none;font-family:Figtree,sans-serif;font-weight:700;font-size:13.5px;background:var(--sticker);color:var(--ink-2);box-shadow:inset 0 0 0 2px var(--rule);cursor:pointer} .ds-chip:hover{background:var(--sticker-2)} .ds-chip.on{background:var(--maya-soft);color:var(--maya);box-shadow:none} .ds-chip:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-chips{display:flex;gap:8px;flex-wrap:wrap} .ds-chip{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:19px;border:none;font-family:Figtree,sans-serif;font-weight:700;font-size:13.5px;background:var(--sticker);color:var(--ink-2);box-shadow:inset 0 0 0 2px var(--rule);cursor:pointer} .ds-chip:hover{background:var(--sticker-2)} .ds-chip.on{background:var(--maya-soft);color:var(--maya-ink);box-shadow:none} .ds-chip:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
     },
     {
       "name": "Text Field",
@@ -778,7 +835,7 @@
       "refersTo": "text-field",
       "description": "Outlined field on sticker stock with notched label; focus in the actor colour.",
       "html": "<label class=\"ds-field\"><span>Your answer</span><input value=\"A cabin, a lake, no alarms\" /></label>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-field{position:relative;display:block;border-radius:18px;padding:18px 16px 14px;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2);width:300px} .ds-field span{position:absolute;top:-10px;left:12px;padding:0 6px;border-radius:8px;background:var(--sticker);font-family:Figtree,sans-serif;font-weight:700;font-size:12px;color:var(--ink-2)} .ds-field input{border:none;outline:none;background:none;font-family:Figtree,sans-serif;font-weight:500;font-size:15px;color:var(--ink);width:100%;caret-color:var(--maya)} .ds-field:focus-within{box-shadow:inset 0 0 0 2.5px var(--maya)} .ds-field:focus-within span{color:var(--maya)}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-field{position:relative;display:block;border-radius:18px;padding:18px 16px 14px;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2);width:300px} .ds-field span{position:absolute;top:-10px;left:12px;padding:0 6px;border-radius:8px;background:var(--sticker);font-family:Figtree,sans-serif;font-weight:700;font-size:12px;color:var(--ink-2)} .ds-field input{border:none;outline:none;background:none;font-family:Figtree,sans-serif;font-weight:500;font-size:15px;color:var(--ink);width:100%;caret-color:var(--maya)} .ds-field:focus-within{box-shadow:inset 0 0 0 2.5px var(--maya)} .ds-field:focus-within span{color:var(--maya)}"
     },
     {
       "name": "Navigation Bar",
@@ -786,73 +843,74 @@
       "refersTo": "nav-bar",
       "description": "Material 3 nav on the deep album page; active item gets a sticker-stock pill.",
       "html": "<nav class=\"ds-nav\"><a class=\"on\"><i><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm2 6v7h10v-7z\"/></svg></i>Today</a><a><i><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z\"/></svg></i>Pacts</a><a><i><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"><path d=\"M7 3v8M5 3v4a2 2 0 004 0V3M7 11v10M17 3c-2 1-3 4-3 7h3v11\"/></svg></i>Food</a></nav>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-nav{display:flex;height:84px;padding:12px 8px 0;background:var(--page-2);width:320px} .ds-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:Figtree,sans-serif;font-weight:600;font-size:12px;color:var(--ink-2);cursor:pointer;text-decoration:none} .ds-nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .2s} .ds-nav a:hover i{background:rgba(255,255,255,.5)} .ds-nav a.on{color:var(--ink);font-weight:800} .ds-nav a.on i{background:var(--sticker);color:var(--maya)} .ds-nav a:focus-visible i{outline:3px solid var(--ink);outline-offset:3px;}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-nav{display:flex;height:84px;padding:12px 8px 0;background:var(--page-2);width:320px} .ds-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:Figtree,sans-serif;font-weight:600;font-size:12px;color:var(--ink-2);cursor:pointer;text-decoration:none} .ds-nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .2s} .ds-nav a:hover i{background:rgba(255,255,255,.5)} .ds-nav a.on{color:var(--ink);font-weight:800} .ds-nav a.on i{background:var(--sticker);color:var(--maya)} .ds-nav a:focus-visible i{outline:3px solid var(--ink);outline-offset:3px;}"
     },
     {
       "name": "Dare Card",
       "kind": "card",
       "refersTo": "dare-card",
-      "description": "The largest element on Today: Fredoka title, giant numeral, sticker slot, filled action.",
-      "html": "<div class=\"ds-dare\"><div class=\"ds-dare-t\">20 sit-ups by 8:00</div><div class=\"ds-dare-s\">Theo's dare · your phone rings if you don't</div><div class=\"ds-dare-n\"><b>12</b><span>minutes left<br>0 of 20 counted</span></div><div class=\"ds-well\"><span class=\"ds-pair\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"none\" stroke=\"#23746E\" stroke-width=\"5\" stroke-dasharray=\"9 8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg><span style=\"margin-left:-34px\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\"/></svg></span></span><span><b>Theo stuck his half.</b><br>Do the reps and the camera sticks yours.</span></div></div>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-dare{background:var(--sticker);border-radius:30px;box-shadow:var(--lift-2);padding:22px 20px 18px;width:340px;color:var(--ink)} .ds-dare-t{font:600 21px/1.18 Fredoka,sans-serif} .ds-dare-s{font-family:Figtree,sans-serif;font-weight:500;font-size:14px;color:var(--ink-2);margin-top:4px} .ds-dare-n{display:flex;align-items:flex-end;gap:12px;margin-top:10px} .ds-dare-n b{font:600 66px/.9 Fredoka,sans-serif;letter-spacing:-.02em} .ds-dare-n span{font-family:Figtree,sans-serif;font-size:14px;color:var(--ink-2);padding-bottom:4px} .ds-well{display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--sticker-2);font-family:Figtree,sans-serif;font-size:13px;line-height:1.35} .ds-pair{display:flex;align-items:center} svg{display:block;overflow:visible}"
+      "description": "The largest element on Today: Sora title, giant numeral, sticker slot, filled action.",
+      "html": "<div class=\"ds-dare\"><div class=\"ds-dare-t\">20 sit-ups by 8:00</div><div class=\"ds-dare-s\">Theo's dare · your phone rings if you don't</div><div class=\"ds-dare-n\"><b>12</b><span>minutes left<br>0 of 20 counted</span></div><div class=\"ds-well\"><span class=\"ds-pair\"><svg viewBox=\"-8 -2 116 112\" width=\"34\" height=\"33\"><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z\" fill=\"none\" stroke=\"#1F2557\" stroke-width=\"5\" stroke-dasharray=\"9 8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg><span style=\"margin-left:-34px\"><svg viewBox=\"-8 -2 116 112\" width=\"34\" height=\"33\"><path d=\"M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(31,37,87,.25))\"/><path d=\"M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z\" fill=\"#7480D4\"/></svg></span></span><span><b>Theo stuck his half.</b><br>Do the reps and the camera sticks yours.</span></div></div>",
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-dare{background:var(--sticker);border-radius:30px;box-shadow:var(--lift-2);padding:22px 20px 18px;width:340px;color:var(--ink)} .ds-dare-t{font:600 19px/1.22 Sora,sans-serif;letter-spacing:-.02em} .ds-dare-s{font-family:Figtree,sans-serif;font-weight:500;font-size:14px;color:var(--ink-2);margin-top:4px} .ds-dare-n{display:flex;align-items:flex-end;gap:12px;margin-top:10px} .ds-dare-n b{font:600 60px/.92 Sora,sans-serif;letter-spacing:-.04em} .ds-dare-n span{font-family:Figtree,sans-serif;font-size:14px;color:var(--ink-2);padding-bottom:4px} .ds-well{display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--sticker-2);font-family:Figtree,sans-serif;font-size:13px;line-height:1.35} .ds-pair{display:flex;align-items:center} svg{display:block;overflow:visible}"
     },
     {
       "name": "Sticker States",
       "kind": "custom",
       "refersTo": "dare-card",
-      "description": "Done together, one side pending, called off together, missed, coming up: shape and outline carry state, not hue.",
-      "html": "<div class=\"ds-legend\"><span><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 C 74 78 96 58 96 33 C 96 16 86 4 71 4 C 62 4 54 10 50 20 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"#2C8C85\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\"/></svg>done together</span><span><span class=\"ds-pair\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"none\" stroke=\"#23746E\" stroke-width=\"5\" stroke-dasharray=\"9 8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg><span style=\"margin-left:-34px\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\"/></svg></span></span>one side pending</span><span><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 C 74 78 96 58 96 33 C 96 16 86 4 71 4 C 62 4 54 10 50 20 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"#2C8C85\" opacity=\".55\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\" opacity=\".55\"/><path d=\"M70 4 C 86 4 96 16 96 33 L 70 33 Z\" fill=\"#F3F4FC\"/><path d=\"M70 4 L70 33 L96 33\" fill=\"none\" stroke=\"#C9CEE8\" stroke-width=\"3\" stroke-linejoin=\"round\"/></svg>called off together</span><span><i class=\"ds-slot missed\"></i>missed</span><span><i class=\"ds-slot next\"></i>coming up</span></div>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-legend{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;padding:16px;background:var(--page);border-radius:20px;font-family:Figtree,sans-serif;font-weight:500;font-size:12.5px;color:var(--ink-2)} .ds-legend span{display:flex;align-items:center;gap:8px} .ds-pair{display:flex;align-items:center} .ds-slot{display:block;width:24px;height:26px;border-radius:9px} .ds-slot.missed{border:2px solid var(--rule-2);background:var(--sticker-2)} .ds-slot.next{border:2px dashed var(--ink-4)} svg{display:block;overflow:visible;transition:transform .24s cubic-bezier(.2,.8,.2,1)} .ds-legend span:hover svg{transform:scale(1.06)}"
+      "description": "Geometric split heart. Done together, one side pending, called off together, missed, coming up: shape and outline carry state, not hue.",
+      "html": "<div class=\"ds-legend\"><span><svg viewBox=\"-8 -2 116 112\" width=\"34\" height=\"33\"><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(31,37,87,.25))\"/><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z\" fill=\"#1F2557\"/><path d=\"M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z\" fill=\"#7480D4\"/></svg>done together</span><span><span class=\"ds-pair\"><svg viewBox=\"-8 -2 116 112\" width=\"34\" height=\"33\"><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(31,37,87,.25))\"/><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z\" fill=\"#1F2557\"/></svg><span style=\"margin-left:-34px\"><svg viewBox=\"-8 -2 116 112\" width=\"34\" height=\"33\"><path d=\"M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z\" fill=\"none\" stroke=\"#4D58BE\" stroke-width=\"5\" stroke-dasharray=\"9 8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg></span></span>one half on</span><span><svg viewBox=\"-8 -2 116 112\" width=\"34\" height=\"33\"><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(31,37,87,.25))\"/><path d=\"M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z\" fill=\"#1F2557\" opacity=\".5\"/><path d=\"M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z\" fill=\"#7480D4\" opacity=\".5\"/><path d=\"M71.21 6.36 A30 30 0 0 1 101.21 36.36 L71.21 36.36 Z\" fill=\"#F2F3FA\"/><path d=\"M71.21 6.36 L71.21 36.36 L101.21 36.36\" fill=\"none\" stroke=\"#C8CBE3\" stroke-width=\"3\" stroke-linejoin=\"round\"/></svg>called off together</span><span><i class=\"ds-slot missed\"></i>missed</span><span><i class=\"ds-slot next\"></i>coming up</span></div>",
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-legend{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;padding:16px;background:var(--page);border-radius:20px;font-family:Figtree,sans-serif;font-weight:500;font-size:12.5px;color:var(--ink-2)} .ds-legend span{display:flex;align-items:center;gap:8px} .ds-pair{display:flex;align-items:center} .ds-slot{display:block;width:24px;height:26px;border-radius:9px} .ds-slot.missed{border:2px solid var(--rule-2);background:var(--sticker-2)} .ds-slot.next{border:2px dashed var(--ink-4)} svg{display:block;overflow:visible;transition:transform .24s cubic-bezier(.2,.8,.2,1)} .ds-legend span:hover svg{transform:scale(1.06)}"
     },
     {
       "name": "Partner Tags",
       "kind": "chip",
       "refersTo": "tag-maya",
-      "description": "Status tags in the partner tint with action-colour text.",
+      "description": "Status tags in the partner tint with the partner on-soft ink.",
       "html": "<div class=\"ds-tags\"><span class=\"ds-tag maya\">Done today</span><span class=\"ds-tag theo\">Theo added</span><span class=\"ds-tag\">Tomorrow</span></div>",
-      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-tags{display:flex;gap:8px} .ds-tag{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;font-family:Figtree,sans-serif;font-weight:700;font-size:12px;background:var(--sticker-2);color:var(--ink-2)} .ds-tag.maya{background:var(--maya-tint);color:var(--maya)} .ds-tag.theo{background:var(--theo-tint);color:var(--theo)}"
+      "css": ":host{--page:#E3E5F6;--page-2:#D7DAEF;--sticker:#FFFFFF;--sticker-2:#F2F3FA;--ink:#161A3D;--ink-2:#474C72;--ink-3:#6A6F92;--ink-4:#A4A8C6;--rule:#E4E6F3;--rule-2:#C8CBE3;--maya-art:#1F2557;--theo-art:#7480D4;--maya:#1F2557;--maya-soft:#D5D8F6;--maya-tint:#ECEEFC;--maya-ink:#1F2557;--theo:#4D58BE;--theo-soft:#DFE2FA;--theo-tint:#EEF0FD;--theo-ink:#3F49A8;--lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);--lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);--lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52)} .ds-tags{display:flex;gap:8px} .ds-tag{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;font-family:Figtree,sans-serif;font-weight:700;font-size:12px;background:var(--sticker-2);color:var(--ink-2)} .ds-tag.maya{background:var(--maya-tint);color:var(--maya-ink)} .ds-tag.theo{background:var(--theo-tint);color:var(--theo-ink)}"
     }
   ],
   "narrative": {
     "northStar": "The Shared Sticker Book",
-    "overview": "Heartpact is a periwinkle album page that two people fill together. Every pact one partner sets and the other keeps lands on that page as a heart sticker built from two halves: Maya's teal half and Theo's persimmon half. Cards are white die-cut sticker stock with large radii that lift off the page on soft lilac-tinted shadows. The two half-heart characters, each with a face, arms, legs and a stitched seam on the cut edge, are the illustration voice. They sit on cards as die-cut stickers and are never decoration-only. Two halves always make one heart, and they are never drawn as a single-heart mascot.\n\nThe structure is Material 3 on Android: large top app bars, a five-destination navigation bar, pill buttons, extended FABs, bottom sheets and system Back, with 48dp minimum targets. The world lives in the materials (album page, sticker stock, sticker states and characters), not in a custom chrome. Density is calm. Each screen shows the next thing to do first, then the week as a row of stickers, then a white sheet of rows.\n\nState is carried by sticker shape and outline, so nothing disappears: an ended pact stays on the page, peeled, and is not deleted. Saturated colour is spent only on what you can press, or on a partner's own sticker.",
+    "overview": "Heartpact is a periwinkle album page that two people fill together, now on an indigo fold: one ink folded in two. Every pact one partner sets and the other keeps lands on that page as a heart sticker built from two halves, Maya's solid indigo half and Theo's periwinkle half, meeting on the fold line. Cards are white die-cut sticker stock with large radii that lift off the page on soft indigo-tinted shadows. The two half-heart characters, each with a face, arms, legs and a stitched seam on the cut edge, are the illustration voice. They sit on cards as die-cut stickers and are never decoration-only. Two halves always make one heart, and they are never drawn as a single-heart mascot.\n\nThe structure is Material 3 on Android: large top app bars, a five-destination navigation bar, pill buttons, extended FABs, bottom sheets and system Back, with 48dp minimum targets. The world lives in the materials (album page, sticker stock, sticker states and characters), not in a custom chrome. Density is calm. Each screen shows the next thing to do first, then the week as a row of stickers, then a white sheet of rows.\n\nState is carried by sticker shape and outline, so nothing disappears: an ended pact stays on the page, peeled, and is not deleted. Saturated colour is spent only on what you can press, or on a partner's own sticker.",
     "keyCharacteristics": [
-      "Periwinkle album page ground with white sticker-stock cards (26-30px radii) and lilac-tinted lift shadows.",
-      "Two fixed partner colours. Each has an art value for illustration and a darker action value for anything carrying a label.",
+      "Periwinkle album page ground with white sticker-stock cards (26-30px radii) and indigo-tinted lift shadows.",
+      "One ink folded in two: Maya is solid indigo, Theo is periwinkle. Maya's art and action are the same indigo; Theo has a lighter art value and a deeper action value for anything carrying a label.",
+      "A geometric split heart shared by the mark and every in-app sticker; the characters keep a softer hand-drawn half-heart.",
       "Sticker state vocabulary (heart, half, slot, peeled) that reads without hue.",
-      "Fredoka for display and numerals, Figtree for everything you read or tap, and Material Symbols Rounded icons at weight 300.",
+      "Sora for display, numerals and titles with tight negative tracking; Figtree for everything you read or tap; Material Symbols Rounded icons at weight 300.",
       "Estimates are always shown as ranges.",
-      "A night scheme where the page goes deep indigo and the sticker colours stay."
+      "A night scheme where the page goes deep indigo, Maya's action turns near-white, and the sticker colours stay."
     ],
     "rules": [
       {
         "name": "The Fixed Ribbon Rule",
-        "body": "Each partner's colour belongs to that partner on every screen. Teal is always Maya and persimmon is always Theo, whoever is viewing. A colour is never reassigned to mean \"you\" or \"them\".",
+        "body": "Each partner's colour belongs to that partner on every screen. Fold Indigo is always Maya and periwinkle is always Theo, whoever is viewing. A colour is never reassigned to mean \"you\" or \"them\".",
         "section": "colors"
       },
       {
         "name": "The Art-Is-Not-Action Rule",
-        "body": "maya-art and theo-art fill stickers, characters and pins only. Anything with a text label, including a filled button, FAB, tag or initial disc, uses the action value.",
+        "body": "This applies to Theo. theo-art fills stickers, characters, the mark and pins only. Anything of Theo's with a text label, including a filled button, FAB, tag or initial disc, uses theo-action. Maya's art and action are the same indigo, so her half needs no split.",
         "section": "colors"
       },
       {
         "name": "The Press-or-Own Rule",
-        "body": "Saturated colour appears only on what you can press, or on that partner's own sticker. Grounds, headers and full-screen moments stay neutral. The alarm grounds on ink (#1B2230), not on a partner colour.",
+        "body": "Saturated colour appears only on what you can press, or on that partner's own sticker. Grounds, headers and full-screen moments stay neutral. The alarm grounds on ink, not on a partner colour.",
         "section": "colors"
       },
       {
         "name": "The Faint-on-Stock Rule",
-        "body": "ink-3 is used only on sticker stock (4.6:1 on white). On the album page it drops to 3.62:1, so secondary text on the page uses ink-2.",
+        "body": "ink-3 is used only on white sticker stock (4.88:1). On the album page it drops to 3.91:1, so secondary text on the page uses ink-2.",
         "section": "colors"
       },
       {
         "name": "The One Ramp Rule",
-        "body": "The ten roles above are the whole ramp. A new screen picks from them rather than adding sizes.",
+        "body": "The ten reading roles above are the whole ramp. A new screen picks from them rather than adding sizes.",
         "section": "typography"
       },
       {
-        "name": "The Rounded Numeral Rule",
-        "body": "Every number that matters (minutes, reps, counts, estimates) is set in Fredoka. Figtree numerals are for metadata only.",
+        "name": "The Geometric Numeral Rule",
+        "body": "Every number that matters (minutes, reps, counts, estimates) is set in Sora with its negative tracking. Figtree numerals are for metadata only.",
         "section": "typography"
       },
       {
@@ -867,21 +925,25 @@
       }
     ],
     "dos": [
-      "**Do** keep teal on Maya and persimmon on Theo on every screen, in illustration, slots and actions alike.",
-      "**Do** use maya-action (#23746E) or theo-action (#C4532C) under any white label. Keep maya-art and theo-art for stickers, characters and pins.",
-      "**Do** carry every pact state by sticker shape and outline (whole, half plus dashed slot, peeled, solid empty slot, dashed empty slot) so it reads without hue.",
-      "**Do** show food and nutrition estimates as ranges and label them as estimates.",
-      "**Do** ground the full-screen alarm on ink (#1B2230), and keep the local silence control visible.",
-      "**Do** keep ended pacts on the page as peeled hearts.",
-      "**Do** keep text at 4.5:1 or above (ink-3 only on sticker stock), and set any label on a soft or tint fill in the on-soft ink, not the action value."
+      "Do keep indigo on Maya and periwinkle on Theo on every screen, in the mark, illustration, slots and actions alike.",
+      "Do use maya-action (#1F2557) or theo-action (#4D58BE) under any white label. Keep theo-art for stickers, characters, the mark and pins.",
+      "Do carry every pact state by sticker shape and outline (whole, half plus dashed slot, peeled, solid empty slot, dashed empty slot) so it reads without hue.",
+      "Do draw in-app stickers and the mark with the geometric heart, and keep the softer hand-drawn half-heart for the characters.",
+      "Do use heartpact-mark-dark.svg (white and #A9B1F2 halves) on night grounds, and keep one lobe radius of clear space around the mark.",
+      "Do show food and nutrition estimates as ranges and label them as estimates.",
+      "Do ground the full-screen alarm on ink (#161A3D), and keep the local silence control visible.",
+      "Do keep ended pacts on the page as peeled hearts.",
+      "Do keep text at 4.5:1 or above (ink-3 only on sticker stock), and set any label on a soft or tint fill in the partner's on-soft ink."
     ],
     "donts": [
-      "**Don't** put white text on maya-art (#2C8C85, 4.04:1) or theo-art (#E2683C, 3.34:1).",
-      "**Don't** fill a ground, header or full-screen moment with a partner colour. Saturated colour goes only on what you can press, or on that partner's own sticker.",
-      "**Don't** signal a state by hue alone, for example a grey heart for missed or a red heart for ended.",
-      "**Don't** draw the two characters as a single-heart mascot, or use them as decoration with no role on the screen.",
-      "**Don't** show a bare point estimate as the primary figure for calories or macros.",
-      "**Don't** replace sticker progress with progress rings or same-size icon cards."
-    ]
+      "Don't put any text on theo-art (#7480D4, 3.63:1 against white).",
+      "Don't fill a ground, header or full-screen moment with a partner colour. Saturated colour goes only on what you can press, or on that partner's own sticker.",
+      "Don't signal a state by hue alone, for example a grey heart for missed or a red heart for ended.",
+      "Don't recolour sticker art for the night scheme; the white keyline frames the fixed indigo and periwinkle.",
+      "Don't draw the two characters as a single-heart mascot, or use them as decoration with no role on the screen.",
+      "Don't show a bare point estimate as the primary figure for calories or macros.",
+      "Don't replace sticker progress with progress rings or same-size icon cards."
+    ],
+    "logo": "The mark is a geometric heart: a square turned 45° with two round lobes (lobe radius half the square's side), split on its vertical centre line. The left half is solid indigo (maya-art) and the right half periwinkle (theo-art). On night grounds the left half turns white (#FFFFFF) and the right half takes night-theo-action. The wordmark is lowercase \"heartpact\" in Sora 600 at -0.045em (the wordmark role), set in ink beside the mark. Clear space is one lobe radius on every side. Assets live in `design/heartpact-v3/logo/`: `heartpact-mark.svg` (light grounds), `heartpact-mark-dark.svg` (night grounds), the Android adaptive icon layers `ic_launcher_foreground.svg` (the night mark at 54% scale), `ic_launcher_background.svg` (an indigo gradient, #2C3474 to #1A1F4D) and `ic_launcher_monochrome.svg` (left half solid, right half at 55% opacity), plus `play-store-icon-512.png` and the `brand.png` board. In-app, the mark leads the welcome screen with the wordmark."
   }
 }
