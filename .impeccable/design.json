@@ -1,0 +1,887 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T06:45:35+00:00",
+  "title": "Design System: Heartpact",
+  "extensions": {
+    "colorMeta": {
+      "album-page": {
+        "role": "neutral",
+        "displayName": "Album Page Periwinkle",
+        "canonical": "#DFE3FB",
+        "oklch": "oklch(92.0% 0.033 278.2)",
+        "tonalRamp": [
+          "#080919",
+          "#202234",
+          "#3B3E51",
+          "#595C70",
+          "#787C91",
+          "#999DB3",
+          "#BFC3DA",
+          "#EAEDFF"
+        ]
+      },
+      "album-page-deep": {
+        "role": "neutral",
+        "displayName": "Deep Album Page",
+        "canonical": "#D3D8F5",
+        "oklch": "oklch(88.7% 0.040 277.8)",
+        "tonalRamp": [
+          "#08091C",
+          "#1F2237",
+          "#3A3E55",
+          "#585C75",
+          "#777B96",
+          "#989DB8",
+          "#BDC2DF",
+          "#EAEDFF"
+        ]
+      },
+      "sticker-stock": {
+        "role": "neutral",
+        "displayName": "Sticker Stock White",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C4C4C4",
+          "#EEEEEE"
+        ]
+      },
+      "sticker-recess": {
+        "role": "neutral",
+        "displayName": "Sticker Recess",
+        "canonical": "#F3F4FC",
+        "oklch": "oklch(96.9% 0.011 280.5)",
+        "tonalRamp": [
+          "#0A0B10",
+          "#232429",
+          "#3E3F45",
+          "#5C5D64",
+          "#7C7D84",
+          "#9D9EA5",
+          "#C2C3CB",
+          "#EDEEF6"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "#1B2230",
+        "oklch": "oklch(25.2% 0.029 263.9)",
+        "tonalRamp": [
+          "#060B17",
+          "#1D2432",
+          "#38404F",
+          "#555E6E",
+          "#757D8F",
+          "#959FB1",
+          "#BBC4D7",
+          "#E7EFFF"
+        ],
+        "note": "Also the full-screen alarm ground."
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#4B5370",
+        "oklch": "oklch(44.7% 0.049 272.4)",
+        "tonalRamp": [
+          "#05081F",
+          "#1C223C",
+          "#373E5A",
+          "#545C7A",
+          "#737C9B",
+          "#949DBE",
+          "#B9C3E5",
+          "#E9EEFF"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "#6D7492",
+        "oklch": "oklch(56.4% 0.047 274.5)",
+        "tonalRamp": [
+          "#06081F",
+          "#1D223B",
+          "#383E59",
+          "#555C79",
+          "#747C9A",
+          "#959DBC",
+          "#BAC2E3",
+          "#EAEEFE"
+        ],
+        "note": "Text on sticker stock only (4.6:1); 3.62:1 on album page."
+      },
+      "ink-4": {
+        "role": "neutral",
+        "displayName": "Pencil Line",
+        "canonical": "#A3A9C6",
+        "oklch": "oklch(74.0% 0.042 276.1)",
+        "tonalRamp": [
+          "#07091D",
+          "#1E2238",
+          "#393E56",
+          "#575C76",
+          "#767C97",
+          "#979DB9",
+          "#BCC2E0",
+          "#EAEEFE"
+        ],
+        "note": "Non-text only."
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Perforation",
+        "canonical": "#E3E6F4",
+        "oklch": "oklch(92.7% 0.019 276.3)",
+        "tonalRamp": [
+          "#090A13",
+          "#21232D",
+          "#3D3F4A",
+          "#5A5D69",
+          "#7A7D89",
+          "#9B9EAB",
+          "#C0C3D1",
+          "#EBEEFC"
+        ]
+      },
+      "rule-2": {
+        "role": "neutral",
+        "displayName": "Crease Line",
+        "canonical": "#C9CEE8",
+        "oklch": "oklch(85.6% 0.036 277.0)",
+        "tonalRamp": [
+          "#08091A",
+          "#1F2236",
+          "#3B3E53",
+          "#585C72",
+          "#777C93",
+          "#989DB6",
+          "#BEC3DC",
+          "#EAEEFD"
+        ]
+      },
+      "maya-art": {
+        "role": "primary",
+        "displayName": "Maya Teal (art only)",
+        "canonical": "#2C8C85",
+        "oklch": "oklch(58.4% 0.088 188.1)",
+        "tonalRamp": [
+          "#010E0D",
+          "#042A28",
+          "#014A46",
+          "#116C66",
+          "#2F8E87",
+          "#55B0A9",
+          "#7DD7CF",
+          "#B7FFF7"
+        ],
+        "note": "Illustration only: white text 4.04:1."
+      },
+      "theo-art": {
+        "role": "secondary",
+        "displayName": "Theo Persimmon (art only)",
+        "canonical": "#E2683C",
+        "oklch": "oklch(65.8% 0.163 39.7)",
+        "tonalRamp": [
+          "#1A0400",
+          "#421202",
+          "#6C260A",
+          "#9E3708",
+          "#CA5225",
+          "#F17549",
+          "#FBAF95",
+          "#FEE9E2"
+        ],
+        "note": "Illustration only: white text 3.34:1."
+      },
+      "maya-action": {
+        "role": "primary",
+        "displayName": "Maya Teal Action",
+        "canonical": "#23746E",
+        "oklch": "oklch(51.0% 0.077 187.9)",
+        "tonalRamp": [
+          "#000F0D",
+          "#002B28",
+          "#054A46",
+          "#176B66",
+          "#3F8C86",
+          "#62AEA7",
+          "#88D5CD",
+          "#B9FEF7"
+        ],
+        "note": "White labels 5.53:1."
+      },
+      "maya-soft": {
+        "role": "primary",
+        "displayName": "Maya Soft",
+        "canonical": "#D3ECE8",
+        "oklch": "oklch(92.4% 0.027 185.1)",
+        "tonalRamp": [
+          "#000F0D",
+          "#142826",
+          "#304542",
+          "#4D6360",
+          "#6C837F",
+          "#8DA4A0",
+          "#B2CAC6",
+          "#DCF5F1"
+        ]
+      },
+      "maya-tint": {
+        "role": "primary",
+        "displayName": "Maya Tint",
+        "canonical": "#EAF6F4",
+        "oklch": "oklch(96.4% 0.013 185.1)",
+        "tonalRamp": [
+          "#060D0C",
+          "#1D2625",
+          "#384241",
+          "#56605E",
+          "#75807E",
+          "#96A19F",
+          "#BBC7C5",
+          "#E5F1EF"
+        ]
+      },
+      "theo-action": {
+        "role": "secondary",
+        "displayName": "Theo Persimmon Action",
+        "canonical": "#C4532C",
+        "oklch": "oklch(58.2% 0.154 38.8)",
+        "tonalRamp": [
+          "#1B0300",
+          "#431101",
+          "#6E2406",
+          "#A13300",
+          "#C7562F",
+          "#ED7851",
+          "#FDAE94",
+          "#FFE9E2"
+        ],
+        "note": "White labels 4.54:1."
+      },
+      "theo-soft": {
+        "role": "secondary",
+        "displayName": "Theo Soft",
+        "canonical": "#FCDCCD",
+        "oklch": "oklch(91.7% 0.041 46.7)",
+        "tonalRamp": [
+          "#180500",
+          "#341D12",
+          "#52392D",
+          "#72574A",
+          "#937669",
+          "#B59789",
+          "#DCBDAE",
+          "#FFEAE0"
+        ]
+      },
+      "theo-tint": {
+        "role": "secondary",
+        "displayName": "Theo Tint",
+        "canonical": "#FFF0E9",
+        "oklch": "oklch(96.5% 0.019 46.8)",
+        "tonalRamp": [
+          "#120905",
+          "#2C211C",
+          "#493D37",
+          "#675B55",
+          "#877A74",
+          "#A99B95",
+          "#CFC1BA",
+          "#FAEBE4"
+        ]
+      },
+      "maya-on-soft": {
+        "role": "primary",
+        "displayName": "Maya On-Soft Ink",
+        "canonical": "#1D6862",
+        "oklch": "oklch(47.1% 0.072 187.3)",
+        "note": "Text on maya-soft and maya-tint fills: selected chips, segments, tonal buttons, tags. 5.28:1 on soft."
+      },
+      "theo-on-soft": {
+        "role": "secondary",
+        "displayName": "Theo On-Soft Ink",
+        "canonical": "#A8401C",
+        "oklch": "oklch(51.0% 0.145 38.3)",
+        "note": "Text on theo-soft and theo-tint fills. 4.76:1 on soft; theo-action measures 3.52:1 there."
+      },
+      "on-action": {
+        "role": "neutral",
+        "displayName": "On-Action White",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C4C4C4",
+          "#EEEEEE"
+        ]
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Ink Scrim",
+        "canonical": "rgba(27,34,48,.42)"
+      },
+      "night-page": {
+        "role": "neutral",
+        "displayName": "Night Page",
+        "canonical": "#151933",
+        "oklch": "oklch(22.5% 0.051 275.0)",
+        "tonalRamp": [
+          "#060820",
+          "#1D223C",
+          "#383E5B",
+          "#555C7B",
+          "#747B9C",
+          "#959DBF",
+          "#BAC2E6",
+          "#EAEEFE"
+        ]
+      },
+      "night-page-deep": {
+        "role": "neutral",
+        "displayName": "Night Page Deep",
+        "canonical": "#1C2142",
+        "oklch": "oklch(26.2% 0.062 274.8)",
+        "tonalRamp": [
+          "#060624",
+          "#1C2141",
+          "#363D60",
+          "#535B81",
+          "#727BA2",
+          "#939CC5",
+          "#B8C2ED",
+          "#EAEEFD"
+        ]
+      },
+      "night-sticker": {
+        "role": "neutral",
+        "displayName": "Night Sticker",
+        "canonical": "#232951",
+        "oklch": "oklch(29.8% 0.072 274.7)",
+        "tonalRamp": [
+          "#050529",
+          "#1A1F46",
+          "#353C66",
+          "#515A87",
+          "#707AA9",
+          "#919BCC",
+          "#B6C1F4",
+          "#EAEEFE"
+        ]
+      },
+      "night-sticker-recess": {
+        "role": "neutral",
+        "displayName": "Night Sticker Recess",
+        "canonical": "#2B3260",
+        "oklch": "oklch(33.6% 0.081 274.7)",
+        "tonalRamp": [
+          "#05032C",
+          "#1A1E4A",
+          "#333B6A",
+          "#505A8B",
+          "#6F7AAE",
+          "#8F9BD1",
+          "#B4C1F9",
+          "#EAEEFE"
+        ]
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "#EEF0FB",
+        "oklch": "oklch(95.7% 0.015 277.9)",
+        "tonalRamp": [
+          "#0A0B11",
+          "#22232B",
+          "#3E3F48",
+          "#5B5D66",
+          "#7B7D86",
+          "#9C9EA8",
+          "#C1C3CE",
+          "#ECEEF9"
+        ]
+      },
+      "night-ink-2": {
+        "role": "neutral",
+        "displayName": "Night Ink 2",
+        "canonical": "#B7BCDA",
+        "oklch": "oklch(80.1% 0.043 277.9)",
+        "tonalRamp": [
+          "#08081D",
+          "#1F2238",
+          "#3A3E56",
+          "#585C76",
+          "#777B97",
+          "#989CB9",
+          "#BDC2E0",
+          "#EAEDFE"
+        ]
+      },
+      "night-ink-3": {
+        "role": "neutral",
+        "displayName": "Night Ink 3",
+        "canonical": "#8E94B8",
+        "oklch": "oklch(67.4% 0.054 277.5)",
+        "tonalRamp": [
+          "#070721",
+          "#1E213E",
+          "#393D5C",
+          "#565B7C",
+          "#757B9D",
+          "#969CC0",
+          "#BBC2E7",
+          "#EAEDFE"
+        ]
+      },
+      "night-ink-4": {
+        "role": "neutral",
+        "displayName": "Night Ink 4",
+        "canonical": "#5E6590",
+        "oklch": "oklch(51.9% 0.069 276.6)",
+        "tonalRamp": [
+          "#060527",
+          "#1C1F44",
+          "#363C64",
+          "#535A84",
+          "#727AA6",
+          "#939BC9",
+          "#B8C1F1",
+          "#EAEEFD"
+        ]
+      },
+      "night-rule": {
+        "role": "neutral",
+        "displayName": "Night Rule",
+        "canonical": "#2F3664",
+        "oklch": "oklch(35.1% 0.080 275.0)",
+        "tonalRamp": [
+          "#06032C",
+          "#1A1E4A",
+          "#343B6A",
+          "#505A8B",
+          "#6F79AD",
+          "#909BD1",
+          "#B4C1F9",
+          "#EAEEFE"
+        ]
+      },
+      "night-rule-2": {
+        "role": "neutral",
+        "displayName": "Night Rule 2",
+        "canonical": "#3C4475",
+        "oklch": "oklch(40.4% 0.083 275.1)",
+        "tonalRamp": [
+          "#06032D",
+          "#1A1E4B",
+          "#333B6B",
+          "#50598C",
+          "#6F79AF",
+          "#8F9BD2",
+          "#B4C0FA",
+          "#EAEEFF"
+        ]
+      },
+      "night-maya-action": {
+        "role": "primary",
+        "displayName": "Night Maya Action",
+        "canonical": "#6CCFC4",
+        "oklch": "oklch(79.1% 0.095 186.0)",
+        "tonalRamp": [
+          "#000F0D",
+          "#002B27",
+          "#064A45",
+          "#186B64",
+          "#228F86",
+          "#4DB2A7",
+          "#76D8CD",
+          "#BAFEF5"
+        ]
+      },
+      "night-maya-soft": {
+        "role": "primary",
+        "displayName": "Night Maya Soft",
+        "canonical": "#1E4A4B",
+        "oklch": "oklch(37.9% 0.048 197.3)",
+        "tonalRamp": [
+          "#000E0F",
+          "#012A2B",
+          "#1B4849",
+          "#3B6667",
+          "#5A8687",
+          "#7BA8A9",
+          "#A0CECF",
+          "#CAF9FA"
+        ]
+      },
+      "night-maya-tint": {
+        "role": "primary",
+        "displayName": "Night Maya Tint",
+        "canonical": "#1B3B40",
+        "oklch": "oklch(33.0% 0.039 208.7)",
+        "tonalRamp": [
+          "#000E11",
+          "#07292E",
+          "#26464B",
+          "#436469",
+          "#63848A",
+          "#83A6AB",
+          "#A8CCD1",
+          "#D2F6FC"
+        ]
+      },
+      "night-theo-action": {
+        "role": "secondary",
+        "displayName": "Night Theo Action",
+        "canonical": "#FF9B73",
+        "oklch": "oklch(78.4% 0.132 42.3)",
+        "tonalRamp": [
+          "#1A0400",
+          "#411300",
+          "#6C2704",
+          "#983E13",
+          "#BC5F38",
+          "#E28159",
+          "#FAB093",
+          "#FEEAE2"
+        ]
+      },
+      "night-theo-soft": {
+        "role": "secondary",
+        "displayName": "Night Theo Soft",
+        "canonical": "#4D2C25",
+        "oklch": "oklch(33.3% 0.051 32.7)",
+        "tonalRamp": [
+          "#1C0201",
+          "#391A14",
+          "#57362E",
+          "#78534B",
+          "#99736A",
+          "#BC938A",
+          "#E3B9AF",
+          "#FEE9E4"
+        ]
+      },
+      "night-theo-tint": {
+        "role": "secondary",
+        "displayName": "Night Theo Tint",
+        "canonical": "#3B2421",
+        "oklch": "oklch(28.8% 0.036 27.7)",
+        "tonalRamp": [
+          "#180504",
+          "#331D1A",
+          "#513935",
+          "#715652",
+          "#927672",
+          "#B49692",
+          "#DBBCB7",
+          "#FEE9E6"
+        ]
+      },
+      "night-maya-on-soft": {
+        "role": "primary",
+        "displayName": "Night Maya On-Soft Ink",
+        "canonical": "#6CCFC4",
+        "oklch": "oklch(79.1% 0.095 186.0)",
+        "note": "Equals night maya-action."
+      },
+      "night-theo-on-soft": {
+        "role": "secondary",
+        "displayName": "Night Theo On-Soft Ink",
+        "canonical": "#FF9B73",
+        "oklch": "oklch(78.4% 0.132 42.3)",
+        "note": "Equals night theo-action."
+      },
+      "night-on-action": {
+        "role": "neutral",
+        "displayName": "Night On Action",
+        "canonical": "#10142A",
+        "oklch": "oklch(20.0% 0.044 274.0)",
+        "tonalRamp": [
+          "#06091D",
+          "#1D2239",
+          "#383E57",
+          "#565C77",
+          "#757C98",
+          "#959DBB",
+          "#BBC3E2",
+          "#E9EEFF"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Giant minutes-left and rep numerals; the alarm clock enlarges to 108px."
+      },
+      "display-s": {
+        "displayName": "Display S",
+        "purpose": "Secondary hero numerals: calorie ranges, ring time left, invite code."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Large top app bar titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Dare titles and small app bar title."
+      },
+      "title-s": {
+        "displayName": "Title S",
+        "purpose": "Section headings and secondary card titles."
+      },
+      "body-l": {
+        "displayName": "Body L",
+        "purpose": "Alarm and onboarding sentences."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Supporting card copy."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Metadata, row subtitles, date captions."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Row keys, card labels."
+      },
+      "label-s": {
+        "displayName": "Label S",
+        "purpose": "Tags and compact labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift-1",
+        "value": "0 1px 0 rgba(27,34,48,.04), 0 12px 24px -16px rgba(52,58,120,.40)",
+        "purpose": "Cards and the week sticker row lifting off the album page."
+      },
+      {
+        "name": "lift-2",
+        "value": "0 2px 0 rgba(27,34,48,.04), 0 22px 40px -22px rgba(52,58,120,.48)",
+        "purpose": "The dare card, the largest element on a screen."
+      },
+      {
+        "name": "lift-3",
+        "value": "0 2px 4px rgba(27,34,48,.06), 0 30px 60px -22px rgba(52,58,120,.55)",
+        "purpose": "Extended FAB and bottom sheet."
+      },
+      {
+        "name": "action-glow",
+        "value": "0 12px 22px -14px <action colour>",
+        "purpose": "Under filled buttons, in their own action colour."
+      },
+      {
+        "name": "sticker-keyline",
+        "value": "13px white stroke + drop-shadow(0 3px 3px rgba(52,58,120,.25))",
+        "purpose": "Die-cut edge on heart stickers and character stickers."
+      },
+      {
+        "name": "night-lift-1",
+        "value": "0 1px 0 rgba(255,255,255,.04) inset, 0 12px 24px -16px rgba(0,0,0,.7)",
+        "purpose": "Night scheme cards."
+      },
+      {
+        "name": "night-lift-2",
+        "value": "0 1px 0 rgba(255,255,255,.05) inset, 0 22px 40px -22px rgba(0,0,0,.8)",
+        "purpose": "Night scheme dare card."
+      },
+      {
+        "name": "night-lift-3",
+        "value": "0 1px 0 rgba(255,255,255,.05) inset, 0 30px 60px -22px rgba(0,0,0,.85)",
+        "purpose": "Night scheme FAB and sheet."
+      }
+    ],
+    "motion": [
+      {
+        "name": "stick-half",
+        "value": "scale 1.1 -> press -> 1.0, 240ms ease-out",
+        "purpose": "Signature: your half-heart sticker drops, lands with a small press and settles; both characters cheer when the heart completes. With reduced motion, cut to the last frame."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "390dp x 844dp (portrait phone frame)"
+      }
+    ],
+    "fonts": [
+      {
+        "family": "Fredoka",
+        "source": "design/heartpact-v3/fonts/fredoka-latin.woff2",
+        "weights": "300-700",
+        "role": "display and numerals"
+      },
+      {
+        "family": "Figtree",
+        "source": "design/heartpact-v3/fonts/figtree-latin.woff2",
+        "weights": "300-900",
+        "role": "UI text"
+      },
+      {
+        "family": "Material Symbols Rounded",
+        "settings": "'FILL' 0,'wght' 300,'opsz' 24; active nav 'FILL' 1,'wght' 400",
+        "role": "icons"
+      }
+    ],
+    "source": "design/heartpact-v3 (styles.css, mascots.js, render.js, screens/*.html)"
+  },
+  "components": [
+    {
+      "name": "Filled Button (Maya)",
+      "kind": "button",
+      "refersTo": "button-filled-maya",
+      "description": "Primary action when Maya is the actor; white label on action teal.",
+      "html": "<button class=\"ds-btn-maya\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 8h3.5l1.6-2.2h5.8L16.5 8H20v11H4z\"/><circle cx=\"12\" cy=\"13.2\" r=\"3.4\"/></svg>Start on camera</button>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-btn-maya{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--maya);color:#fff;box-shadow:0 12px 22px -14px var(--maya)} .ds-btn-maya:hover{transform:translateY(-1px);box-shadow:0 16px 26px -14px var(--maya)} .ds-btn-maya:active{transform:scale(.98)} .ds-btn-maya:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+    },
+    {
+      "name": "Filled Button (Theo)",
+      "kind": "button",
+      "refersTo": "button-filled-theo",
+      "description": "Primary action when Theo is the actor or it is his to agree to.",
+      "html": "<button class=\"ds-btn-theo\">Call it off together</button>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-btn-theo{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--theo);color:#fff;box-shadow:0 12px 22px -14px var(--theo)} .ds-btn-theo:hover{transform:translateY(-1px)} .ds-btn-theo:active{transform:scale(.98)} .ds-btn-theo:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+    },
+    {
+      "name": "Outline and Text Buttons",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Refusal (outline) and partner-consent exit (text) beside a filled action.",
+      "html": "<div class=\"ds-row\"><button class=\"ds-btn-outline\">Keep it</button><button class=\"ds-btn-text\">Ask Theo to call it off</button></div>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-row{display:flex;gap:8px;align-items:center} .ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2);color:var(--ink)} .ds-btn-outline:hover{background:var(--sticker-2)} .ds-btn-text{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 24px;border-radius:28px;border:none;font:700 16px Figtree,sans-serif;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;height:46px;padding:0 14px;background:none;color:var(--maya)} .ds-btn-text:hover{background:var(--maya-tint)} .ds-btn-outline:focus-visible,.ds-btn-text:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+    },
+    {
+      "name": "Chips",
+      "kind": "chip",
+      "refersTo": "chip-selected-maya",
+      "description": "Filter/choice chips; selected takes the actor soft fill with a check.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip on\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg>Push-ups</button><button class=\"ds-chip\">Sit-ups</button><button class=\"ds-chip\">Plank</button></div>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-chips{display:flex;gap:8px;flex-wrap:wrap} .ds-chip{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 15px;border-radius:19px;border:none;font-family:Figtree,sans-serif;font-weight:700;font-size:13.5px;background:var(--sticker);color:var(--ink-2);box-shadow:inset 0 0 0 2px var(--rule);cursor:pointer} .ds-chip:hover{background:var(--sticker-2)} .ds-chip.on{background:var(--maya-soft);color:var(--maya);box-shadow:none} .ds-chip:focus-visible{outline:3px solid var(--ink);outline-offset:3px;}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Outlined field on sticker stock with notched label; focus in the actor colour.",
+      "html": "<label class=\"ds-field\"><span>Your answer</span><input value=\"A cabin, a lake, no alarms\" /></label>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-field{position:relative;display:block;border-radius:18px;padding:18px 16px 14px;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2);width:300px} .ds-field span{position:absolute;top:-10px;left:12px;padding:0 6px;border-radius:8px;background:var(--sticker);font-family:Figtree,sans-serif;font-weight:700;font-size:12px;color:var(--ink-2)} .ds-field input{border:none;outline:none;background:none;font-family:Figtree,sans-serif;font-weight:500;font-size:15px;color:var(--ink);width:100%;caret-color:var(--maya)} .ds-field:focus-within{box-shadow:inset 0 0 0 2.5px var(--maya)} .ds-field:focus-within span{color:var(--maya)}"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Material 3 nav on the deep album page; active item gets a sticker-stock pill.",
+      "html": "<nav class=\"ds-nav\"><a class=\"on\"><i><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm2 6v7h10v-7z\"/></svg></i>Today</a><a><i><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z\"/></svg></i>Pacts</a><a><i><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"><path d=\"M7 3v8M5 3v4a2 2 0 004 0V3M7 11v10M17 3c-2 1-3 4-3 7h3v11\"/></svg></i>Food</a></nav>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-nav{display:flex;height:84px;padding:12px 8px 0;background:var(--page-2);width:320px} .ds-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:Figtree,sans-serif;font-weight:600;font-size:12px;color:var(--ink-2);cursor:pointer;text-decoration:none} .ds-nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .2s} .ds-nav a:hover i{background:rgba(255,255,255,.5)} .ds-nav a.on{color:var(--ink);font-weight:800} .ds-nav a.on i{background:var(--sticker);color:var(--maya)} .ds-nav a:focus-visible i{outline:3px solid var(--ink);outline-offset:3px;}"
+    },
+    {
+      "name": "Dare Card",
+      "kind": "card",
+      "refersTo": "dare-card",
+      "description": "The largest element on Today: Fredoka title, giant numeral, sticker slot, filled action.",
+      "html": "<div class=\"ds-dare\"><div class=\"ds-dare-t\">20 sit-ups by 8:00</div><div class=\"ds-dare-s\">Theo's dare · your phone rings if you don't</div><div class=\"ds-dare-n\"><b>12</b><span>minutes left<br>0 of 20 counted</span></div><div class=\"ds-well\"><span class=\"ds-pair\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"none\" stroke=\"#23746E\" stroke-width=\"5\" stroke-dasharray=\"9 8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg><span style=\"margin-left:-34px\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\"/></svg></span></span><span><b>Theo stuck his half.</b><br>Do the reps and the camera sticks yours.</span></div></div>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-dare{background:var(--sticker);border-radius:30px;box-shadow:var(--lift-2);padding:22px 20px 18px;width:340px;color:var(--ink)} .ds-dare-t{font:600 21px/1.18 Fredoka,sans-serif} .ds-dare-s{font-family:Figtree,sans-serif;font-weight:500;font-size:14px;color:var(--ink-2);margin-top:4px} .ds-dare-n{display:flex;align-items:flex-end;gap:12px;margin-top:10px} .ds-dare-n b{font:600 66px/.9 Fredoka,sans-serif;letter-spacing:-.02em} .ds-dare-n span{font-family:Figtree,sans-serif;font-size:14px;color:var(--ink-2);padding-bottom:4px} .ds-well{display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--sticker-2);font-family:Figtree,sans-serif;font-size:13px;line-height:1.35} .ds-pair{display:flex;align-items:center} svg{display:block;overflow:visible}"
+    },
+    {
+      "name": "Sticker States",
+      "kind": "custom",
+      "refersTo": "dare-card",
+      "description": "Done together, one side pending, called off together, missed, coming up: shape and outline carry state, not hue.",
+      "html": "<div class=\"ds-legend\"><span><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 C 74 78 96 58 96 33 C 96 16 86 4 71 4 C 62 4 54 10 50 20 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"#2C8C85\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\"/></svg>done together</span><span><span class=\"ds-pair\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"none\" stroke=\"#23746E\" stroke-width=\"5\" stroke-dasharray=\"9 8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></svg><span style=\"margin-left:-34px\"><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\"/></svg></span></span>one side pending</span><span><svg viewBox=\"-8 -6 116 120\" width=\"34\" height=\"35\"><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 C 74 78 96 58 96 33 C 96 16 86 4 71 4 C 62 4 54 10 50 20 Z\" fill=\"#fff\" stroke=\"#fff\" stroke-width=\"13\" stroke-linejoin=\"round\" style=\"filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))\"/><path d=\"M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z\" fill=\"#2C8C85\" opacity=\".55\"/><path d=\"M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z\" fill=\"#E2683C\" opacity=\".55\"/><path d=\"M70 4 C 86 4 96 16 96 33 L 70 33 Z\" fill=\"#F3F4FC\"/><path d=\"M70 4 L70 33 L96 33\" fill=\"none\" stroke=\"#C9CEE8\" stroke-width=\"3\" stroke-linejoin=\"round\"/></svg>called off together</span><span><i class=\"ds-slot missed\"></i>missed</span><span><i class=\"ds-slot next\"></i>coming up</span></div>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-legend{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;padding:16px;background:var(--page);border-radius:20px;font-family:Figtree,sans-serif;font-weight:500;font-size:12.5px;color:var(--ink-2)} .ds-legend span{display:flex;align-items:center;gap:8px} .ds-pair{display:flex;align-items:center} .ds-slot{display:block;width:24px;height:26px;border-radius:9px} .ds-slot.missed{border:2px solid var(--rule-2);background:var(--sticker-2)} .ds-slot.next{border:2px dashed var(--ink-4)} svg{display:block;overflow:visible;transition:transform .24s cubic-bezier(.2,.8,.2,1)} .ds-legend span:hover svg{transform:scale(1.06)}"
+    },
+    {
+      "name": "Partner Tags",
+      "kind": "chip",
+      "refersTo": "tag-maya",
+      "description": "Status tags in the partner tint with action-colour text.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-tag maya\">Done today</span><span class=\"ds-tag theo\">Theo added</span><span class=\"ds-tag\">Tomorrow</span></div>",
+      "css": ":host{--page:#DFE3FB;--page-2:#D3D8F5;--sticker:#FFFFFF;--sticker-2:#F3F4FC;--ink:#1B2230;--ink-2:#4B5370;--ink-3:#6D7492;--ink-4:#A3A9C6;--rule:#E3E6F4;--rule-2:#C9CEE8;--maya-art:#2C8C85;--theo-art:#E2683C;--maya:#23746E;--maya-soft:#D3ECE8;--maya-tint:#EAF6F4;--theo:#C4532C;--theo-soft:#FCDCCD;--theo-tint:#FFF0E9;--lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);--lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);--lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55)} .ds-tags{display:flex;gap:8px} .ds-tag{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;font-family:Figtree,sans-serif;font-weight:700;font-size:12px;background:var(--sticker-2);color:var(--ink-2)} .ds-tag.maya{background:var(--maya-tint);color:var(--maya)} .ds-tag.theo{background:var(--theo-tint);color:var(--theo)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Shared Sticker Book",
+    "overview": "Heartpact is a periwinkle album page that two people fill together. Every pact one partner sets and the other keeps lands on that page as a heart sticker built from two halves: Maya's teal half and Theo's persimmon half. Cards are white die-cut sticker stock with large radii that lift off the page on soft lilac-tinted shadows. The two half-heart characters, each with a face, arms, legs and a stitched seam on the cut edge, are the illustration voice. They sit on cards as die-cut stickers and are never decoration-only. Two halves always make one heart, and they are never drawn as a single-heart mascot.\n\nThe structure is Material 3 on Android: large top app bars, a five-destination navigation bar, pill buttons, extended FABs, bottom sheets and system Back, with 48dp minimum targets. The world lives in the materials (album page, sticker stock, sticker states and characters), not in a custom chrome. Density is calm. Each screen shows the next thing to do first, then the week as a row of stickers, then a white sheet of rows.\n\nState is carried by sticker shape and outline, so nothing disappears: an ended pact stays on the page, peeled, and is not deleted. Saturated colour is spent only on what you can press, or on a partner's own sticker.",
+    "keyCharacteristics": [
+      "Periwinkle album page ground with white sticker-stock cards (26-30px radii) and lilac-tinted lift shadows.",
+      "Two fixed partner colours. Each has an art value for illustration and a darker action value for anything carrying a label.",
+      "Sticker state vocabulary (heart, half, slot, peeled) that reads without hue.",
+      "Fredoka for display and numerals, Figtree for everything you read or tap, and Material Symbols Rounded icons at weight 300.",
+      "Estimates are always shown as ranges.",
+      "A night scheme where the page goes deep indigo and the sticker colours stay."
+    ],
+    "rules": [
+      {
+        "name": "The Fixed Ribbon Rule",
+        "body": "Each partner's colour belongs to that partner on every screen. Teal is always Maya and persimmon is always Theo, whoever is viewing. A colour is never reassigned to mean \"you\" or \"them\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Art-Is-Not-Action Rule",
+        "body": "maya-art and theo-art fill stickers, characters and pins only. Anything with a text label, including a filled button, FAB, tag or initial disc, uses the action value.",
+        "section": "colors"
+      },
+      {
+        "name": "The Press-or-Own Rule",
+        "body": "Saturated colour appears only on what you can press, or on that partner's own sticker. Grounds, headers and full-screen moments stay neutral. The alarm grounds on ink (#1B2230), not on a partner colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Faint-on-Stock Rule",
+        "body": "ink-3 is used only on sticker stock (4.6:1 on white). On the album page it drops to 3.62:1, so secondary text on the page uses ink-2.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Ramp Rule",
+        "body": "The ten roles above are the whole ramp. A new screen picks from them rather than adding sizes.",
+        "section": "typography"
+      },
+      {
+        "name": "The Rounded Numeral Rule",
+        "body": "Every number that matters (minutes, reps, counts, estimates) is set in Fredoka. Figtree numerals are for metadata only.",
+        "section": "typography"
+      },
+      {
+        "name": "The Next-Thing-First Rule",
+        "body": "The first card on a screen is the next thing to do: the live dare on Today, the current pact on Pacts, and the estimate so far on Food. Summaries come after it.",
+        "section": "layout"
+      },
+      {
+        "name": "The Lift-Not-Line Rule",
+        "body": "Cards separate from the page by lift and colour, not by borders. Strokes are reserved for fields, outline buttons and unselected chips.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep teal on Maya and persimmon on Theo on every screen, in illustration, slots and actions alike.",
+      "**Do** use maya-action (#23746E) or theo-action (#C4532C) under any white label. Keep maya-art and theo-art for stickers, characters and pins.",
+      "**Do** carry every pact state by sticker shape and outline (whole, half plus dashed slot, peeled, solid empty slot, dashed empty slot) so it reads without hue.",
+      "**Do** show food and nutrition estimates as ranges and label them as estimates.",
+      "**Do** ground the full-screen alarm on ink (#1B2230), and keep the local silence control visible.",
+      "**Do** keep ended pacts on the page as peeled hearts.",
+      "**Do** keep text at 4.5:1 or above (ink-3 only on sticker stock), and set any label on a soft or tint fill in the on-soft ink, not the action value."
+    ],
+    "donts": [
+      "**Don't** put white text on maya-art (#2C8C85, 4.04:1) or theo-art (#E2683C, 3.34:1).",
+      "**Don't** fill a ground, header or full-screen moment with a partner colour. Saturated colour goes only on what you can press, or on that partner's own sticker.",
+      "**Don't** signal a state by hue alone, for example a grey heart for missed or a red heart for ended.",
+      "**Don't** draw the two characters as a single-heart mascot, or use them as decoration with no role on the screen.",
+      "**Don't** show a bare point estimate as the primary figure for calories or macros.",
+      "**Don't** replace sticker progress with progress rings or same-size icon cards."
+    ]
+  }
+}

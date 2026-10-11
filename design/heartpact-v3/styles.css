@@ -15,7 +15,7 @@
   --maya-art:#2C8C85; --theo-art:#E2683C;
   /* Action and text colours (white text passes 4.5:1 on these) */
   --maya:#23746E; --maya-soft:#D3ECE8; --maya-tint:#EAF6F4;
-  --theo:#C4532C; --theo-soft:#FCDCCD; --theo-tint:#FFF0E9;
+  --theo:#C4532C; --theo-soft:#FCDCCD; --theo-tint:#FFF0E9; --maya-ink:#1D6862; --theo-ink:#A8401C;
   --error:#B3261E;
   /* Depth: soft lilac-tinted lift, like a sticker lifting off the page */
   --lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);
@@ -26,7 +26,7 @@
 body.dark{
   --page:#151933; --page-2:#1C2142; --page-3:#252B52; --sticker:#232951; --sticker-2:#2B3260;
   --ink:#EEF0FB; --ink-2:#B7BCDA; --ink-3:#8E94B8; --ink-4:#5E6590; --rule:#2F3664; --rule-2:#3C4475;
-  --maya:#6CCFC4; --maya-soft:#1E4A4B; --maya-tint:#1B3B40; --theo:#FF9B73; --theo-soft:#4D2C25; --theo-tint:#3B2421;
+  --maya:#6CCFC4; --maya-soft:#1E4A4B; --maya-tint:#1B3B40; --theo:#FF9B73; --theo-soft:#4D2C25; --theo-tint:#3B2421; --maya-ink:#6CCFC4; --theo-ink:#FF9B73;
   --lift-1:0 1px 0 rgba(255,255,255,.04) inset,0 12px 24px -16px rgba(0,0,0,.7);
   --lift-2:0 1px 0 rgba(255,255,255,.05) inset,0 22px 40px -22px rgba(0,0,0,.8);
   --lift-3:0 1px 0 rgba(255,255,255,.05) inset,0 30px 60px -22px rgba(0,0,0,.85);
@@ -95,21 +95,21 @@ svg{display:block;overflow:visible}
 /* Buttons: pills, the action colour only on what you can press */
 .btn{height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 24px;font:700 16px 'Figtree';white-space:nowrap}
 .btn.filled{background:var(--act,var(--ink));color:#fff;box-shadow:0 12px 22px -14px var(--act,var(--ink))}
-.btn.tonal{background:var(--act-soft,var(--page-2));color:var(--act,var(--ink))}
+.btn.tonal{background:var(--act-soft,var(--page-2));color:var(--act-ink,var(--ink))}
 .btn.outline{border:2px solid var(--rule-2);color:var(--ink)}
 .btn.text{height:46px;color:var(--act,var(--ink));padding:0 14px}
 .btn.sm{height:40px;border-radius:20px;font-size:14px;padding:0 18px}
-.act-maya{--act:var(--maya);--act-soft:var(--maya-soft)}
-.act-theo{--act:var(--theo);--act-soft:var(--theo-soft)}
+.act-maya{--act:var(--maya);--act-soft:var(--maya-soft);--act-ink:var(--maya-ink)}
+.act-theo{--act:var(--theo);--act-soft:var(--theo-soft);--act-ink:var(--theo-ink)}
 .stack{display:flex;flex-direction:column;gap:4px}
 
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{height:38px;border-radius:19px;padding:0 15px;display:flex;align-items:center;gap:6px;font:700 13.5px 'Figtree';background:var(--sticker);color:var(--ink-2);box-shadow:inset 0 0 0 2px var(--rule)}
-.chip.on{background:var(--act-soft,var(--maya-soft));color:var(--act,var(--maya));box-shadow:none}
+.chip.on{background:var(--act-soft,var(--maya-soft));color:var(--act-ink,var(--maya-ink));box-shadow:none}
 .chip .ms{font-size:18px}
 .seg{display:flex;height:46px;border-radius:23px;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule);padding:4px;gap:4px}
 .seg div{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:19px;font:700 13.5px 'Figtree';color:var(--ink-2)}
-.seg .on{background:var(--act-soft,var(--maya-soft));color:var(--act,var(--maya))}
+.seg .on{background:var(--act-soft,var(--maya-soft));color:var(--act-ink,var(--maya-ink))}
 .switch{width:52px;height:32px;border-radius:16px;background:var(--page-2);box-shadow:inset 0 0 0 2px var(--ink-4);position:relative;flex:none}
 .switch::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--ink-3);top:8px;left:8px}
 .switch.on{background:var(--act,var(--maya));box-shadow:none}.switch.on::after{width:24px;height:24px;top:4px;left:24px;background:#fff}
@@ -141,9 +141,10 @@ svg{display:block;overflow:visible}
 .bsheet .grip{width:32px;height:4px;border-radius:2px;background:var(--ink-4);margin:4px auto 18px}
 
 .tag{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:13px;font:700 12px 'Figtree';background:var(--sticker-2);color:var(--ink-2);white-space:nowrap;flex:none}
-.tag.maya{background:var(--maya-tint);color:var(--maya)}.tag.theo{background:var(--theo-tint);color:var(--theo)}
+.tag.maya{background:var(--maya-tint);color:var(--maya-ink)}.tag.theo{background:var(--theo-tint);color:var(--theo-ink)}
 .disc{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:700 14px 'Figtree';color:#fff;flex:none}
-.disc.maya{background:var(--maya-art)}.disc.theo{background:var(--theo-art)}
+.disc.maya{background:var(--maya)}.disc.theo{background:var(--theo)}
+body.dark .disc{color:#10142A}
 .disc.sm{width:24px;height:24px;font-size:11px}
 .dot{width:8px;height:8px;border-radius:50%;flex:none}
 .photo{background-size:cover;background-position:center;border-radius:16px}
