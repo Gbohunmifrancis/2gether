@@ -16,7 +16,7 @@ const keyline = d => `<path d="${d}" fill="#fff" stroke="#fff" stroke-width="13"
 const STICKERS = {
   heart: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="#2C8C85"/><path d="${RIGHT}" fill="#E2683C"/>`),
   half: (side, s) => box(s, keyline(side === 'l' ? LEFT : RIGHT) + `<path d="${side === 'l' ? LEFT : RIGHT}" fill="${side === 'l' ? '#2C8C85' : '#E2683C'}"/>`),
-  slot: (side, s) => box(s, `<path d="${side === 'l' ? LEFT : RIGHT}" fill="rgba(255,255,255,.5)" stroke="${side === 'l' ? '#23746E' : '#C4532C'}" stroke-width="5" stroke-dasharray="9 8" stroke-linejoin="round" stroke-linecap="round"/>`),
+  slot: (side, s) => box(s, `<path d="${side === 'l' ? LEFT : RIGHT}" fill="none" style="stroke:var(${side === 'l' ? '--maya' : '--theo'})" stroke-width="5" stroke-dasharray="9 8" stroke-linejoin="round" stroke-linecap="round"/>`),
   peeled: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="#2C8C85" opacity=".55"/><path d="${RIGHT}" fill="#E2683C" opacity=".55"/><path d="M70 4 C 86 4 96 16 96 33 L 70 33 Z" fill="#F3F4FC"/><path d="M70 4 L70 33 L96 33" fill="none" stroke="#C9CEE8" stroke-width="3" stroke-linejoin="round"/>`),
 };
 function expand(html) {
