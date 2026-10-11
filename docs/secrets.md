@@ -32,7 +32,7 @@ App Bundle uploaded as a build artifact.
 |---|---|---|
 | `DATABASE_URL` (or `Database__ConnectionString`, or `PGHOST`/`PGPORT`/`PGDATABASE`/`PGUSER`/`PGPASSWORD`) | everything | |
 | `Jwt__SigningKey` | sign-in | long random string; production refuses the default |
-| `Frontend__Origin` | the web app | CORS, comma-separated |
+| `Frontend__Origin` | the web app and admin dashboard | CORS, comma-separated: include the dashboard's origin |
 | `Push__Provider` = `fcm`, `Push__FcmProjectId`, `Push__FcmCredentialsJson` | push | the service account JSON itself (Firebase → Project settings → Service accounts → Generate new private key) |
 | `Media__ServiceUrl`, `Media__Bucket`, `Media__AccessKey`, `Media__SecretKey`, `Media__Region` | shared album | any S3-compatible store: Cloudflare R2 (`Region=auto`), AWS S3, MinIO |
 | `Email__Provider` = `smtp`, `Email__Host`, `Email__Port` (587), `Email__User`, `Email__Password`, `Email__From` (`Email__FromName`, `Email__StartTls` optional) | password reset codes | any SMTP service: Amazon SES, Postmark, Mailgun, Resend, SendGrid, Google Workspace. `Email__StartTls=false` for implicit TLS on 465. Without it "Forgot password?" says reset isn't set up |
@@ -40,6 +40,14 @@ App Bundle uploaded as a build artifact.
 | `Food__AnthropicApiKey` (or `ANTHROPIC_API_KEY`) | food photo estimates | without it the app logs meals by hand |
 | `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
 | `ForwardedHeaders__Enabled` = `true` | behind a proxy (Railway) | |
+| `Admin__Emails` | the admin dashboard | who may sign in, comma-separated; each signs up in the app first, then enrolls an authenticator. See `docs/admin.md` |
+| `Admin__MonthlyPrices__<productId>`, `Admin__Currency`, `Admin__TokenHours` | the admin dashboard | list prices for the revenue estimate (monthly equivalent), their currency (default `USD`), admin session hours (default 4) |
+
+## Admin dashboard build
+
+| Variable | Notes |
+|---|---|
+| `VITE_API_URL` | the API's public URL, read when `admin/` is built (`npm run build`). Not secret: it ends up in the page |
 
 If the API is deployed from GitHub Actions, add these as secrets there and pass them as `env:` to the deploy step;
 otherwise set them in the host's dashboard.

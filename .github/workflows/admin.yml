@@ -1,0 +1,102 @@
+name: Admin
+
+on:
+  push:
+    branches: [ "main", "claude/**" ]
+    paths: [ "admin/**", "src/**", ".github/workflows/admin.yml" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: admin-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Format, lint, types, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  screens:
+    name: Dashboard against the real API
+    runs-on: ubuntu-latest
+    needs: check
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: twogether
+          POSTGRES_PASSWORD: twogether_dev
+          POSTGRES_DB: twogether
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd "pg_isready -U twogether" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - name: Start the API
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://localhost:5135
+          Database__ConnectionString: Host=localhost;Port=5432;Database=twogether;Username=twogether;Password=twogether_dev
+          Database__EnsureCreated: "true"
+          RateLimits__Enabled: "false"
+          Email__Provider: log
+          Billing__Provider: fake
+          Admin__Emails: ops@heartpact.app
+          Admin__Currency: GBP
+          Admin__MonthlyPrices__heartpact_plus_monthly: "4.99"
+          Admin__MonthlyPrices__heartpact_plus_yearly: "3.33"
+        run: |
+          dotnet build Twogether.slnx -c Debug
+          nohup dotnet run --no-build --project src/Twogether.Api --no-launch-profile > "$RUNNER_TEMP/api.log" 2>&1 &
+          for i in $(seq 1 90); do code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5135/api/admin/auth/me || true); [ "$code" = "401" ] && exit 0; sleep 2; done
+          cat "$RUNNER_TEMP/api.log"; exit 1
+      - name: Seed couples, a purchase and the admin
+        run: python3 admin/scripts/seed.py http://localhost:5135 | tee "$RUNNER_TEMP/seed.txt"
+      - name: Serve the production build
+        working-directory: admin
+        run: |
+          npm ci
+          npm run build
+          nohup npx vite preview --port 5173 --strictPort > "$RUNNER_TEMP/vite.log" 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:5173/ >/dev/null && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/vite.log"; exit 1
+      - name: Sign in and screenshot every page
+        working-directory: admin
+        run: |
+          npx playwright-core install --with-deps chromium
+          export ADMIN_TOTP_SECRET=$(tail -1 "$RUNNER_TEMP/seed.txt" | python3 -c 'import json,sys; print(json.load(sys.stdin)["totpSecret"])')
+          ADMIN_PASSWORD=longenough SCREEN_USER=maya node scripts/screens.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: admin-screens
+          path: admin/screens/
+          if-no-files-found: ignore
+      - name: API log
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log"
