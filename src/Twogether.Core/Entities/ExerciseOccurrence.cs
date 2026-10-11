@@ -12,6 +12,8 @@ public sealed class ExerciseOccurrence : BaseEntity
 {
     private ExerciseOccurrence() { }
 
+    public const int MaxCallOffNoteLength = 140;
+
     public Guid GoalId { get; private set; }
     public Guid CoupleId { get; private set; }
     /// <summary>The assigned partner.</summary>
@@ -34,6 +36,10 @@ public sealed class ExerciseOccurrence : BaseEntity
     public double Confidence { get; private set; }
     /// <summary>Concurrency token. Bumped by every status transition, never by progress.</summary>
     public long StateVersion { get; private set; }
+    /// <summary>When the assigned partner asked to be let off today. Only the partner can grant it, by cancelling.</summary>
+    public DateTime? CallOffRequestedAtUtc { get; private set; }
+    /// <summary>Optional note with the request; trimmed, empty is null.</summary>
+    public string? CallOffNote { get; private set; }
 
     public bool IsAlarmActive => Status is ExerciseOccurrenceStatus.Alarming or ExerciseOccurrenceStatus.InProgress;
 
@@ -105,4 +111,23 @@ public sealed class ExerciseOccurrence : BaseEntity
         StateVersion++;
         UpdatedAtUtc = utcNow;
     }
+
+    /// <summary>
+    /// The assigned partner asks to be let off today. Advisory, like progress: it does not bump
+    /// the version, so it cannot make a completion or the partner's cancel lose a race.
+    /// </summary>
+    public void RequestCallOff(string? note, DateTime utcNow)
+    {
+        if (!IsAlarmActive) throw new InvalidOperationException("Only a ringing or in-progress exercise can be called off.");
+        if (CallOffRequestedAtUtc.HasValue) throw new InvalidOperationException("Calling off today has already been requested.");
+        var clean = NormalizeCallOffNote(note);
+        if (clean is not null && clean.Length > MaxCallOffNoteLength)
+            throw new ArgumentException($"The note must be at most {MaxCallOffNoteLength} characters.", nameof(note));
+        CallOffRequestedAtUtc = utcNow;
+        CallOffNote = clean;
+        UpdatedAtUtc = utcNow;
+    }
+
+    /// <summary>Trimmed; empty or whitespace becomes null.</summary>
+    public static string? NormalizeCallOffNote(string? note) => string.IsNullOrWhiteSpace(note) ? null : note.Trim();
 }

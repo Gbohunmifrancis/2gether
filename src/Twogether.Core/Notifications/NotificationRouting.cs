@@ -13,7 +13,8 @@ public static class NotificationRouting
         NotificationType.ExerciseDue => NotificationCategory.Alarm,
         NotificationType.Message => NotificationCategory.Messages,
         NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.GameEnded => NotificationCategory.Games,
-        NotificationType.ExerciseCompleted or NotificationType.ExerciseMissed or NotificationType.ExerciseCancelled or NotificationType.ExerciseGoalChanged => NotificationCategory.Exercise,
+        NotificationType.ExerciseCompleted or NotificationType.ExerciseMissed or NotificationType.ExerciseCancelled or NotificationType.ExerciseGoalChanged
+            or NotificationType.ExerciseCallOffAsked => NotificationCategory.Exercise,
         NotificationType.CycleUpdated => NotificationCategory.Cycle,
         NotificationType.PregnancyUpdated => NotificationCategory.Pregnancy,
         NotificationType.DailyQuestionAnswered => NotificationCategory.DailyQuestions,

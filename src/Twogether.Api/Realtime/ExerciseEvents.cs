@@ -18,6 +18,7 @@ public static class ExerciseEvents
     public const string Completed = "ExerciseCompleted";
     public const string Missed = "ExerciseMissed";
     public const string Cancelled = "ExerciseCancelled";
+    public const string CallOffAsked = "ExerciseCallOffAsked";
     public const string GoalsChanged = "ExerciseGoalsChanged";
     public const string NotificationCreated = "NotificationCreated";
 

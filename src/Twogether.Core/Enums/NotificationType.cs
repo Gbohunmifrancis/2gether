@@ -19,5 +19,7 @@ public enum NotificationType
     /// <summary>To the partner, once per finished sync: "Maya added 12 photos to your album".</summary>
     MemoriesSynced,
     /// <summary>To the person with photos waiting on their phone; at most once a day.</summary>
-    AlbumSyncReminder
+    AlbumSyncReminder,
+    /// <summary>To the partner: the person whose alarm is ringing asks to be let off today.</summary>
+    ExerciseCallOffAsked
 }

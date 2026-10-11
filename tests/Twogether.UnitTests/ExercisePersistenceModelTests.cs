@@ -41,5 +41,8 @@ public sealed class ExercisePersistenceModelTests
         Assert.Equal(typeof(string), entity.FindProperty(nameof(ExerciseOccurrence.Status))!.GetProviderClrType());
         var unique = entity.GetIndexes().Single(index => index.IsUnique);
         Assert.Equal("IX_exercise_occurrences_GoalId_LocalDate", unique.GetDatabaseName());
+        Assert.Equal(140, entity.FindProperty(nameof(ExerciseOccurrence.CallOffNote))!.GetMaxLength());
+        Assert.True(entity.FindProperty(nameof(ExerciseOccurrence.CallOffNote))!.IsNullable);
+        Assert.True(entity.FindProperty(nameof(ExerciseOccurrence.CallOffRequestedAtUtc))!.IsNullable);
     }
 }

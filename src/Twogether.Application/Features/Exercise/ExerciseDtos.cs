@@ -41,7 +41,10 @@ public sealed record ExerciseOccurrenceDto(
     DateTime? CompletedAtUtc,
     int AchievedCount,
     double Confidence,
-    long StateVersion);
+    long StateVersion,
+    /// <summary>Set once the assigned partner asked to be let off today; only the partner can grant it.</summary>
+    DateTime? CallOffRequestedAtUtc = null,
+    string? CallOffNote = null);
 
 public sealed record ExerciseTodayDto(
     DateTime GeneratedAtUtc,
@@ -95,3 +98,6 @@ public sealed record UpdateExerciseGoalRequest(
     bool IsActive);
 
 public sealed record CompleteExerciseRequest(int AchievedCount, double Confidence);
+
+/// <summary>The assigned partner asks to be let off today. The note is optional, at most 140 characters.</summary>
+public sealed record AskCallOffRequest(string? Note);

@@ -125,6 +125,9 @@ public static class DatabaseSchemaUpgrade
             "UpdatedAtUtc" timestamp with time zone NOT NULL,
             CONSTRAINT "PK_exercise_occurrences" PRIMARY KEY ("Id")
         );
+        -- "Ask to call it off": advisory, set by the assigned partner while the alarm rings.
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "CallOffRequestedAtUtc" timestamp with time zone NULL;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "CallOffNote" character varying(140) NULL;
 
         CREATE TABLE IF NOT EXISTS food_entries (
             "Id" uuid NOT NULL,

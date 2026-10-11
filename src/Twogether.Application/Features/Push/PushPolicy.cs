@@ -22,7 +22,8 @@ public static class PushPolicy
     public static TimeSpan TimeToLive(NotificationType type) => type switch
     {
         NotificationType.ExerciseDue => TimeSpan.FromMinutes(30),
-        NotificationType.Message or NotificationType.GameInvite or NotificationType.GameStarted => TimeSpan.FromHours(1),
+        // A call-off request only matters while the alarm window is open.
+        NotificationType.Message or NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.ExerciseCallOffAsked => TimeSpan.FromHours(1),
         _ => TimeSpan.FromDays(1)
     };
 

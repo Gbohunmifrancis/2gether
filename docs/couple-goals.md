@@ -21,7 +21,8 @@ completions and misses as notifications, and both partners see streaks and a
 history. Either partner may create goals for either partner. Only the *other*
 partner can let someone off for the day (cancel a ringing occurrence); the
 assigned partner cannot delete, pause or reschedule a goal while its alarm is
-ringing for them.
+ringing for them. The person whose alarm is ringing can *ask* to call it off
+(once, with an optional note), but only the partner can grant it, with cancel.
 
 **Scope assumption.** "Rebuild" is read as: goals become the primary experience
 (branding, Home, first tabs) and the existing features (love notes, games, cycle,
@@ -58,7 +59,7 @@ public enum ExerciseMeasure { Reps, Seconds }
 public enum ExerciseOccurrenceStatus { Alarming, InProgress, Completed, Missed, Cancelled }
 ```
 
-`NotificationType` gains: `ExerciseDue, ExerciseCompleted, ExerciseMissed, ExerciseCancelled, ExerciseGoalChanged`.
+`NotificationType` gains: `ExerciseDue, ExerciseCompleted, ExerciseMissed, ExerciseCancelled, ExerciseGoalChanged, ExerciseCallOffAsked`. `ExerciseCallOffAsked` is in the `Exercise` category (can be muted, general channel, 1-hour push TTL); only `ExerciseDue` is an alarm.
 
 Wire form (camelCase strings): `squat, pushUp, jumpingJack, plank, armRaise, highKnees, sitUp`;
 `reps, seconds`; `alarming, inProgress, completed, missed, cancelled`.
@@ -194,6 +195,8 @@ public sealed class ExerciseOccurrence : BaseEntity
     public int AchievedCount { get; private set; }
     public double Confidence { get; private set; }
     public long StateVersion { get; private set; }      // concurrency token
+    public DateTime? CallOffRequestedAtUtc { get; private set; } // set by RequestCallOff
+    public string? CallOffNote { get; private set; }    // trimmed, empty -> null, max 140
     public bool IsAlarmActive => Status is ExerciseOccurrenceStatus.Alarming or ExerciseOccurrenceStatus.InProgress;
 
     public static ExerciseOccurrence Open(ExerciseGoal goal, DateOnly localDate, DateTime scheduledAtUtc, DateTime utcNow); // Alarming
@@ -202,6 +205,7 @@ public sealed class ExerciseOccurrence : BaseEntity
     public void Complete(int achievedCount, double confidence, DateTime utcNow);       // InProgress -> Completed; bumps version
     public void Miss(DateTime utcNow);                    // Alarming/InProgress -> Missed; bumps version
     public void Cancel(DateTime utcNow);                  // Alarming/InProgress -> Cancelled; bumps version
+    public void RequestCallOff(string? note, DateTime utcNow); // Alarming/InProgress only, once; does NOT bump StateVersion; throws otherwise
 }
 ```
 
@@ -215,7 +219,7 @@ latest start).
 
 ```csharp
 public sealed record ExerciseGoalDto(Guid Id, Guid CoupleId, Guid AssignedUserId, string AssignedUserName, Guid CreatedByUserId, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string ScheduledTime /* "HH:mm" */, string TimeZoneId, int GraceMinutes, bool IsActive, DateTime NextDueAtUtc, DateTime CreatedAtUtc);
-public sealed record ExerciseOccurrenceDto(Guid Id, Guid GoalId, Guid CoupleId, Guid UserId, string UserName, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string LocalDate /* yyyy-MM-dd */, DateTime ScheduledAtUtc, DateTime DeadlineUtc, DateTime? CompleteByUtc, ExerciseOccurrenceStatus Status, DateTime AlarmStartedAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, int AchievedCount, double Confidence, long StateVersion);
+public sealed record ExerciseOccurrenceDto(Guid Id, Guid GoalId, Guid CoupleId, Guid UserId, string UserName, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string LocalDate /* yyyy-MM-dd */, DateTime ScheduledAtUtc, DateTime DeadlineUtc, DateTime? CompleteByUtc, ExerciseOccurrenceStatus Status, DateTime AlarmStartedAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, int AchievedCount, double Confidence, long StateVersion, DateTime? CallOffRequestedAtUtc = null, string? CallOffNote = null);
 public sealed record ExerciseTodayDto(DateTime GeneratedAtUtc, IReadOnlyList<ExerciseGoalDto> Goals, IReadOnlyList<ExerciseOccurrenceDto> Occurrences, DateTime? NextDueAtUtc, Guid? NextDueGoalId);
 public sealed record ExercisePartnerStatsDto(Guid UserId, string UserName, int CurrentStreakDays, int CompletedCount, int MissedCount, double CompletionRate);
 public sealed record ExerciseHistoryDto(int Days, IReadOnlyList<ExerciseOccurrenceDto> Occurrences, IReadOnlyList<ExercisePartnerStatsDto> Stats);
@@ -257,7 +261,7 @@ occurrence's goal, else UTC. (`User.TimeZoneId` is never set by the app and stay
 ## Infrastructure
 
 - `Persistence/Configurations/ExerciseGoalConfiguration.cs`: table `exercise_goals`; `ExerciseType` string(40); `Title` varchar(80); `TimeZoneId` varchar(100); `ScheduledTime` column type `time`; `builder.Property<uint>("xmin").IsRowVersion()` (the Npgsql 10 form of the xmin concurrency token) so the worker and the controller cannot silently overwrite each other; indexes `(CoupleId, IsActive)` and `(IsActive, NextDueAtUtc)`.
-- `Persistence/Configurations/ExerciseOccurrenceConfiguration.cs`: table `exercise_occurrences`; `ExerciseType` and `Status` string(40); `Title` varchar(80); `StateVersion` concurrency token; unique index `(GoalId, LocalDate)`; indexes `(CoupleId, LocalDate)`, `(Status, DeadlineUtc)`.
+- `Persistence/Configurations/ExerciseOccurrenceConfiguration.cs`: table `exercise_occurrences`; `ExerciseType` and `Status` string(40); `Title` varchar(80); `CallOffNote` varchar(140) null; `CallOffRequestedAtUtc` timestamptz null; `StateVersion` concurrency token; unique index `(GoalId, LocalDate)`; indexes `(CoupleId, LocalDate)`, `(Status, DeadlineUtc)`.
 - `ApplicationDbContext` adds both DbSets.
 - `DatabaseSchemaUpgrade.Sql` appends `CREATE TABLE IF NOT EXISTS` for both tables with the exact EF column names (quoted PascalCase) and the indexes above. Types: uuid, character varying(n), integer, boolean, timestamp with time zone, date, time without time zone, double precision, bigint. Constraint and index names must equal EF's defaults so a database created by `EnsureCreatedAsync` does not get duplicates: `PK_exercise_goals`, `PK_exercise_occurrences`, `IX_exercise_goals_CoupleId_IsActive`, `IX_exercise_goals_IsActive_NextDueAtUtc`, `IX_exercise_occurrences_GoalId_LocalDate` (UNIQUE), `IX_exercise_occurrences_CoupleId_LocalDate`, `IX_exercise_occurrences_Status_DeadlineUtc`. The SQL literal is a raw string passed through `ExecuteSqlRawAsync` with format args, so any literal brace must be doubled (none are needed for these tables).
 
@@ -285,6 +289,7 @@ General rules for this controller:
 | POST | `occurrences/{id}/start` | | `ExerciseOccurrenceDto` | 403 unless caller is the assigned user; 409 `exercise.not_active` unless alarming/inProgress or if `DeadlineUtc <= now` while alarming. Calls `Start` (also when already inProgress: progress resets). Sends `ExerciseStarted` to couple group |
 | POST | `occurrences/{id}/complete` | `CompleteExerciseRequest` | `ExerciseOccurrenceDto` | 403 unless assigned user; 409 `exercise.not_active` unless inProgress; 422 with the `ExerciseVerification` error. On success: Notification `ExerciseCompleted` to the partner, `ExerciseCompleted` event to couple group |
 | POST | `occurrences/{id}/cancel` | | `ExerciseOccurrenceDto` | **partner only**: 403 for the assigned user; 409 `exercise.not_active` unless alarming/inProgress. `Cancel`, Notification `ExerciseCancelled` to the assigned user ("<Partner> let you off today"), `ExerciseCancelled` event to couple group |
+| POST | `occurrences/{id}/ask-off` | `AskCallOffRequest { note?: string }` | `ExerciseOccurrenceDto` | **assigned user only**: 400 `exercise.no_couple` without an active couple; 404 if not in the caller's couple; 403 `exercise.not_assignee` for the partner; 409 `exercise.not_active` unless alarming/inProgress or once the window closed (`DeadlineUtc` while alarming, `CompleteByUtc` while inProgress); 409 `exercise.already_asked` if asked before; 422 `exercise.invalid_note` over 140 characters. `RequestCallOff` (no version bump), Notification `ExerciseCallOffAsked` to the partner ("<Name> asks to call off today's sit-ups", body = note or a default line, data `{ occurrenceId, goalId }`), `ExerciseCallOffAsked` event to couple group. The partner grants it with `cancel` |
 
 Progress is reported through the hub, not REST.
 
@@ -342,6 +347,7 @@ Register with `AddHostedService<ExerciseAlarmWorker>()` in `Program.cs`.
 | `ExerciseCompleted` | `ExerciseOccurrenceDto` |
 | `ExerciseMissed` | `ExerciseOccurrenceDto` |
 | `ExerciseCancelled` | `ExerciseOccurrenceDto` |
+| `ExerciseCallOffAsked` | `ExerciseOccurrenceDto` |
 | `ExerciseGoalsChanged` | `ExerciseGoalDto[]` (active goals) |
 | `NotificationCreated` | existing `NotificationDto` (user group) |
 

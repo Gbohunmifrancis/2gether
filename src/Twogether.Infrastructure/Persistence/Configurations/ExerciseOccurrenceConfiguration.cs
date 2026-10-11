@@ -17,6 +17,7 @@ public sealed class ExerciseOccurrenceConfiguration : IEntityTypeConfiguration<E
         // for the same row then collide instead of one silently winning.
         builder.Property(occurrence => occurrence.StateVersion).IsConcurrencyToken();
         builder.Ignore(occurrence => occurrence.IsAlarmActive);
+        builder.Property(occurrence => occurrence.CallOffNote).HasMaxLength(ExerciseOccurrence.MaxCallOffNoteLength);
         // One alarm per goal per local day, whatever two worker instances think.
         builder.HasIndex(occurrence => new { occurrence.GoalId, occurrence.LocalDate }).IsUnique();
         builder.HasIndex(occurrence => new { occurrence.CoupleId, occurrence.LocalDate });

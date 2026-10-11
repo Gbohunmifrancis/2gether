@@ -122,6 +122,53 @@ public sealed class ExerciseTests
     }
 
     [Fact]
+    public void Call_off_can_be_asked_once_while_active_and_never_bumps_the_version()
+    {
+        var now = DateTime.UtcNow;
+        var ringing = Ringing(now);
+        ringing.RequestCallOff("  Knee is sore today  ", now.AddMinutes(1));
+        Assert.Equal(now.AddMinutes(1), ringing.CallOffRequestedAtUtc);
+        Assert.Equal("Knee is sore today", ringing.CallOffNote);
+        Assert.Equal(now.AddMinutes(1), ringing.UpdatedAtUtc);
+        Assert.Equal(0, ringing.StateVersion);
+        Assert.Equal(ExerciseOccurrenceStatus.Alarming, ringing.Status);
+        Assert.Throws<InvalidOperationException>(() => ringing.RequestCallOff(null, now.AddMinutes(2)));
+
+        var started = Ringing(now);
+        started.Start(now);
+        started.RequestCallOff("   ", now.AddMinutes(1));
+        Assert.Null(started.CallOffNote);
+        Assert.NotNull(started.CallOffRequestedAtUtc);
+        Assert.Equal(1, started.StateVersion);
+        started.Cancel(now.AddMinutes(2)); // the partner grants it
+
+        var done = Ringing(now);
+        done.Miss(now.AddMinutes(31));
+        Assert.Throws<InvalidOperationException>(() => done.RequestCallOff(null, now.AddMinutes(32)));
+        Assert.Null(done.CallOffRequestedAtUtc);
+    }
+
+    [Fact]
+    public void Call_off_note_is_trimmed_and_limited_to_140_characters()
+    {
+        var now = DateTime.UtcNow;
+        Assert.Null(ExerciseGoalRules.CallOffNote(null).Value);
+        Assert.Null(ExerciseGoalRules.CallOffNote(" \t ").Value);
+        Assert.Equal(new string('x', 140), ExerciseGoalRules.CallOffNote("  " + new string('x', 140) + "  ").Value);
+        Assert.Equal("exercise.invalid_note", ExerciseGoalRules.CallOffNote(new string('x', 141)).Error.Code);
+
+        var occurrence = Ringing(now);
+        Assert.Throws<ArgumentException>(() => occurrence.RequestCallOff(new string('x', 141), now));
+        Assert.Null(occurrence.CallOffRequestedAtUtc);
+        occurrence.RequestCallOff(" " + new string('x', 140) + " ", now);
+        Assert.Equal(140, occurrence.CallOffNote!.Length);
+
+        var dto = ExerciseMapper.ToDto(occurrence, "Maya");
+        Assert.Equal(now, dto.CallOffRequestedAtUtc);
+        Assert.Equal(occurrence.CallOffNote, dto.CallOffNote);
+    }
+
+    [Fact]
     public void Verification_rejects_implausible_completions()
     {
         var started = DateTime.UtcNow;

@@ -34,4 +34,13 @@ public static class ExerciseGoalRules
             return Error.Validation("exercise.invalid_grace", $"Grace must be between {ExerciseGoal.MinGraceMinutes} and {ExerciseGoal.MaxGraceMinutes} minutes.");
         return Result.Success();
     }
+
+    /// <summary>Trims the call-off note; empty becomes null. The entity re-checks the length as a programmer error.</summary>
+    public static Result<string?> CallOffNote(string? note)
+    {
+        var clean = ExerciseOccurrence.NormalizeCallOffNote(note);
+        if (clean is not null && clean.Length > ExerciseOccurrence.MaxCallOffNoteLength)
+            return Error.Validation("exercise.invalid_note", $"The note must be at most {ExerciseOccurrence.MaxCallOffNoteLength} characters.");
+        return clean;
+    }
 }

@@ -27,6 +27,22 @@ public sealed class NotificationPreferenceTests
     }
 
     [Fact]
+    public void A_call_off_request_is_an_ordinary_exercise_notification_not_an_alarm()
+    {
+        Assert.Equal(NotificationCategory.Exercise, NotificationRouting.CategoryOf(NotificationType.ExerciseCallOffAsked));
+        var preference = Preference();
+        preference.Update(true, true, false, true, true, true, true, false, new TimeOnly(22, 0), new TimeOnly(7, 0), LagosNoon);
+        Assert.Equal(PushRoute.Muted, NotificationRouting.Route(NotificationType.ExerciseCallOffAsked, preference, "Africa/Lagos", LagosNoon));
+
+        var asked = Notification.Create(Guid.NewGuid(), Guid.NewGuid(), NotificationType.ExerciseCallOffAsked, "Maya asks to call off today's sit-ups", "Knee is sore", "{\"occurrenceId\":\"x\"}", LagosNoon);
+        var push = PushPolicy.Build(asked, "t", PushTokenKind.RegistrationToken, LagosNoon);
+        Assert.Equal((PushPriority.Normal, PushPolicy.GeneralChannel, false), (push.Priority, push.ChannelId, push.DataOnly));
+        Assert.Equal("exerciseCallOffAsked", push.Data["type"]);
+        Assert.Equal(TimeSpan.FromHours(1), push.TimeToLive);
+        Assert.True(PushPolicy.IsStale(asked, LagosNoon.AddMinutes(61)));
+    }
+
+    [Fact]
     public void No_preferences_means_every_push_is_normal()
     {
         foreach (var type in Enum.GetValues<NotificationType>())

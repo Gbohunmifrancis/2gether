@@ -43,7 +43,9 @@ public static class ExerciseMapper
         occurrence.CompletedAtUtc,
         occurrence.AchievedCount,
         occurrence.Confidence,
-        occurrence.StateVersion);
+        occurrence.StateVersion,
+        occurrence.CallOffRequestedAtUtc,
+        occurrence.CallOffNote);
 
     public static ExerciseDefinitionDto ToDto(ExerciseDefinition definition) => new(
         definition.Type,
