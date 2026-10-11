@@ -66,3 +66,54 @@ public sealed class MemoryTests
         Assert.Null(MemoryCursor.Decode(null));
     }
 }
+
+public sealed class MemoryThumbnailTests
+{
+    private static readonly DateTime Now = new(2026, 10, 11, 9, 0, 0, DateTimeKind.Utc);
+
+    private static Twogether.Core.Entities.Memory Photo()
+        => Twogether.Core.Entities.Memory.Reserve(Guid.NewGuid(), Guid.NewGuid(), MemoryRules.Kind("image/jpeg")!, 1000, null, null, MemorySource.Camera, Now);
+
+    [Fact]
+    public void Thumbnail_key_is_fixed_per_memory_and_never_the_original()
+    {
+        var memory = Photo();
+        Assert.Equal(MemoryRules.ThumbnailKey(memory.CoupleId, memory.Id), memory.ThumbnailKey);
+        Assert.NotEqual(memory.ObjectKey, memory.ThumbnailKey);
+        Assert.StartsWith($"couples/{memory.CoupleId:N}/", memory.ThumbnailKey);
+    }
+
+    [Theory]
+    [InlineData("image/jpeg", "image/jpeg")]
+    [InlineData("IMAGE/WEBP", "image/webp")]
+    [InlineData("image/webp; charset=binary", "image/webp")]
+    [InlineData("image/png", null)]
+    [InlineData("image/heic", null)]
+    [InlineData(null, null)]
+    public void Only_jpeg_and_webp_thumbnails_are_accepted(string? declared, string? expected)
+        => Assert.Equal(expected, MemoryRules.ThumbnailType(declared));
+
+    [Fact]
+    public void Attaching_checks_type_and_size_and_detaching_clears_it()
+    {
+        var memory = Photo();
+        Assert.Throws<ArgumentOutOfRangeException>(() => memory.AttachThumbnail("image/jpeg", MemoryRules.MaxThumbnailBytes + 1, Now));
+        Assert.Throws<ArgumentException>(() => memory.AttachThumbnail("image/png", 100, Now));
+        Assert.False(memory.HasThumbnail);
+
+        memory.AttachThumbnail("image/webp", 4096, Now);
+        Assert.True(memory.HasThumbnail);
+        Assert.Equal(4096, memory.ThumbnailBytes);
+
+        memory.DetachThumbnail(Now);
+        Assert.False(memory.HasThumbnail);
+        Assert.Equal(0, memory.ThumbnailBytes);
+    }
+
+    [Fact]
+    public void A_reservation_may_ask_for_a_thumbnail_slot_of_a_supported_type()
+    {
+        Assert.True(MemoryRequestRules.ValidateReserve(new ReserveMemoryRequest("video/mp4", 5000, null, null, MemorySource.Camera, "image/jpeg"), Now).IsSuccess);
+        Assert.Equal("memories.unsupported_thumbnail", MemoryRequestRules.ValidateReserve(new ReserveMemoryRequest("image/jpeg", 5000, null, null, MemorySource.Camera, "image/gif"), Now).Error.Code);
+    }
+}

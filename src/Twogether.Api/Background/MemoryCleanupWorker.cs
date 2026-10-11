@@ -76,6 +76,8 @@ public sealed class MemoryCleanupWorker(
             try
             {
                 await storage.DeleteAsync(memory.ObjectKey, cancellationToken);
+                // Always: a thumbnail may have been uploaded and never confirmed.
+                await storage.DeleteAsync(memory.ThumbnailKey, cancellationToken);
                 db.Memories.Remove(memory);
                 removed++;
             }

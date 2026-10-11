@@ -25,6 +25,11 @@ public sealed class Memory : BaseEntity
     public MemorySource Source { get; private set; }
     public MemoryStatus Status { get; private set; } = MemoryStatus.Pending;
     public DateTime? ReadyAtUtc { get; private set; }
+    /// <summary>Set once a thumbnail has been verified in storage, under <see cref="ThumbnailKey"/>.</summary>
+    public string? ThumbnailContentType { get; private set; }
+    public long ThumbnailBytes { get; private set; }
+    public bool HasThumbnail => ThumbnailContentType is not null;
+    public string ThumbnailKey => MemoryRules.ThumbnailKey(CoupleId, Id);
 
     /// <summary>TakenAtUtc, or the upload time when unknown. Stored so the album can be paged by index.</summary>
     public DateTime SortAtUtc { get; private set; }
@@ -46,6 +51,23 @@ public sealed class Memory : BaseEntity
         memory.ObjectKey = MemoryRules.ObjectKey(coupleId, memory.Id, kind);
         memory.Describe(caption, takenAtUtc, utcNow);
         return memory;
+    }
+
+    public void AttachThumbnail(string contentType, long storedBytes, DateTime utcNow)
+    {
+        if (Status == MemoryStatus.Deleting) throw new InvalidOperationException("A memory being deleted cannot get a thumbnail.");
+        var type = MemoryRules.ThumbnailType(contentType) ?? throw new ArgumentException("Unsupported thumbnail type.", nameof(contentType));
+        if (storedBytes <= 0 || storedBytes > MemoryRules.MaxThumbnailBytes) throw new ArgumentOutOfRangeException(nameof(storedBytes));
+        ThumbnailContentType = type;
+        ThumbnailBytes = storedBytes;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void DetachThumbnail(DateTime utcNow)
+    {
+        ThumbnailContentType = null;
+        ThumbnailBytes = 0;
+        UpdatedAtUtc = utcNow;
     }
 
     public void MarkReady(long storedBytes, DateTime utcNow)

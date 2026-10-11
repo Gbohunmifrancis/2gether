@@ -7,6 +7,9 @@ public static class MemoryRules
     public const long MaxPhotoBytes = 15L * 1024 * 1024;
     public const long MaxVideoBytes = 100L * 1024 * 1024;
     public const int MaxCaptionLength = 500;
+    /// <summary>A grid tile, not a photo: about 512 px on the long side.</summary>
+    public const long MaxThumbnailBytes = 256 * 1024;
+    private static readonly HashSet<string> ThumbnailTypes = new(StringComparer.OrdinalIgnoreCase) { "image/jpeg", "image/webp" };
 
     private static readonly Dictionary<string, MemoryMediaKind> Kinds = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -24,6 +27,16 @@ public static class MemoryRules
 
     /// <summary>Storage keys are built here and only here; nothing from the client reaches a path.</summary>
     public static string ObjectKey(Guid coupleId, Guid memoryId, MemoryMediaKind kind) => $"couples/{coupleId:N}/{memoryId:N}{kind.Extension}";
+
+    /// <summary>
+    /// One fixed key per memory, whatever the type: replacing a thumbnail overwrites it, and a
+    /// delete always knows what to remove even if the upload was never confirmed.
+    /// </summary>
+    public static string ThumbnailKey(Guid coupleId, Guid memoryId) => $"couples/{coupleId:N}/{memoryId:N}-thumb";
+
+    /// <summary>The canonical spelling of a supported thumbnail type, or null.</summary>
+    public static string? ThumbnailType(string? contentType)
+        => string.IsNullOrWhiteSpace(contentType) || !ThumbnailTypes.TryGetValue(contentType.Split(';')[0].Trim(), out var type) ? null : type.ToLowerInvariant();
 
     /// <summary>
     /// "On this day": same month and day in an earlier year. A 29 February memory shows on

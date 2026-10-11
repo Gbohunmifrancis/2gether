@@ -42,7 +42,7 @@ public sealed class MemoriesController(
         var couple = await ActiveCoupleAsync(cancellationToken);
         if (couple is null) return Ok(new MemoryUsageDto(0, 0, limit));
         var ready = db.Memories.AsNoTracking().Where(item => item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready);
-        return Ok(new MemoryUsageDto(await ready.CountAsync(cancellationToken), await ready.SumAsync(item => item.SizeBytes, cancellationToken), limit));
+        return Ok(new MemoryUsageDto(await ready.CountAsync(cancellationToken), await ready.SumAsync(item => item.SizeBytes + item.ThumbnailBytes, cancellationToken), limit));
     }
 
     /// <summary>Reserves a slot and returns a signed PUT URL. The client must send the Content-Type it declared.</summary>
@@ -60,7 +60,7 @@ public sealed class MemoriesController(
         // Pending slots count against the quota at their declared size, so parallel uploads cannot overshoot it.
         var used = await db.Memories.AsNoTracking()
             .Where(item => item.CoupleId == couple.Id && item.Status != MemoryStatus.Deleting)
-            .SumAsync(item => item.SizeBytes, cancellationToken);
+            .SumAsync(item => item.SizeBytes + item.ThumbnailBytes, cancellationToken);
         var entitlement = await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken);
         if (used + request.SizeBytes > entitlement.Limits.MemoriesBytes)
             return Conflict(new ApiError("memories.quota_exceeded", entitlement.Plan == Plan.Free
@@ -71,7 +71,8 @@ public sealed class MemoriesController(
         db.Memories.Add(memory);
         await db.SaveChangesAsync(cancellationToken);
         var url = storage.PresignUpload(memory.ObjectKey, memory.ContentType, settings.UploadUrlLifetime);
-        return Ok(new MemoryUploadDto(memory.Id, url.ToString(), "PUT", new Dictionary<string, string> { ["Content-Type"] = memory.ContentType }, now.Add(settings.UploadUrlLifetime)));
+        var thumbnail = MemoryRules.ThumbnailType(request.ThumbnailContentType) is { } thumbnailType ? ThumbnailSlot(memory, thumbnailType, now) : null;
+        return Ok(new MemoryUploadDto(memory.Id, url.ToString(), "PUT", new Dictionary<string, string> { ["Content-Type"] = memory.ContentType }, now.Add(settings.UploadUrlLifetime), thumbnail));
     }
 
     /// <summary>
@@ -105,6 +106,15 @@ public sealed class MemoriesController(
         }
 
         memory.MarkReady(stored.SizeBytes, clock.UtcNow);
+        // A thumbnail uploaded alongside is picked up here; a missing or bad one never fails the photo.
+        try
+        {
+            await VerifyThumbnailAsync(memory, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            logger.LogWarning(exception, "Could not check the thumbnail of memory {MemoryId}; the app can add it later.", memory.Id);
+        }
         await db.SaveChangesAsync(cancellationToken);
         await ChangedAsync(couple, memory.Id, "added", cancellationToken);
         return Ok(ToDto(memory, names));
@@ -219,6 +229,77 @@ public sealed class MemoriesController(
         return NoContent();
     }
 
+    /// <summary>
+    /// A slot to add or replace the thumbnail of a memory you uploaded: a video's poster frame,
+    /// or a photo added before the app made thumbnails. Confirm it with thumbnail/complete.
+    /// </summary>
+    [HttpPost("{memoryId:guid}/thumbnail")]
+    public async Task<ActionResult<ThumbnailUploadDto>> ReserveThumbnail(Guid memoryId, ReserveThumbnailRequest request, CancellationToken cancellationToken)
+    {
+        var (memory, error) = await OwnReadyMemoryAsync(memoryId, cancellationToken);
+        if (memory is null) return error!;
+        if (MemoryRules.ThumbnailType(request.ContentType) is not { } type)
+            return UnprocessableEntity(new ApiError(MemoryRequestRules.InvalidThumbnailType.Code, MemoryRequestRules.InvalidThumbnailType.Message));
+        return Ok(ThumbnailSlot(memory, type, clock.UtcNow));
+    }
+
+    [HttpPost("{memoryId:guid}/thumbnail/complete")]
+    public async Task<ActionResult<MemoryDto>> CompleteThumbnail(Guid memoryId, CancellationToken cancellationToken)
+    {
+        var (memory, error) = await OwnReadyMemoryAsync(memoryId, cancellationToken);
+        if (memory is null) return error!;
+        var outcome = await VerifyThumbnailAsync(memory, cancellationToken);
+        if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError("memories.thumbnail_not_uploaded", "The thumbnail has not finished uploading yet."));
+        // Saved either way: a rejected upload overwrote and removed any earlier thumbnail.
+        await db.SaveChangesAsync(cancellationToken);
+        if (outcome == ThumbnailOutcome.Rejected)
+            return UnprocessableEntity(new ApiError("memories.thumbnail_rejected", $"Thumbnails must be JPEG or WebP and at most {MemoryRules.MaxThumbnailBytes / 1024} KB."));
+        var couple = await db.Couples.AsNoTracking().SingleAsync(item => item.Id == memory.CoupleId, cancellationToken);
+        await ChangedAsync(couple, memory.Id, "updated", cancellationToken);
+        return Ok(ToDto(memory, await NamesAsync(couple, cancellationToken)));
+    }
+
+    private ThumbnailUploadDto ThumbnailSlot(Memory memory, string contentType, DateTime now)
+    {
+        var url = storage.PresignUpload(memory.ThumbnailKey, contentType, settings.UploadUrlLifetime);
+        return new ThumbnailUploadDto(url.ToString(), "PUT", new Dictionary<string, string> { ["Content-Type"] = contentType }, MemoryRules.MaxThumbnailBytes, now.Add(settings.UploadUrlLifetime));
+    }
+
+    private enum ThumbnailOutcome { Missing, Attached, Rejected }
+
+    /// <summary>
+    /// Checks the object at the thumbnail key; the caller saves. A good one is attached. A bad one
+    /// is removed from storage, and because it overwrote any earlier thumbnail at the same key, the
+    /// memory is left with none.
+    /// </summary>
+    private async Task<ThumbnailOutcome> VerifyThumbnailAsync(Memory memory, CancellationToken cancellationToken)
+    {
+        var stored = await storage.HeadAsync(memory.ThumbnailKey, cancellationToken);
+        if (stored is null) return ThumbnailOutcome.Missing;
+        var type = MemoryRules.ThumbnailType(stored.ContentType);
+        if (type is null || stored.SizeBytes <= 0 || stored.SizeBytes > MemoryRules.MaxThumbnailBytes)
+        {
+            logger.LogWarning("Rejected thumbnail for memory {MemoryId}: {StoredType}, {StoredBytes} bytes.", memory.Id, stored.ContentType, stored.SizeBytes);
+            await storage.DeleteAsync(memory.ThumbnailKey, cancellationToken);
+            memory.DetachThumbnail(clock.UtcNow);
+            return ThumbnailOutcome.Rejected;
+        }
+        memory.AttachThumbnail(type, stored.SizeBytes, clock.UtcNow);
+        return ThumbnailOutcome.Attached;
+    }
+
+    private async Task<(Memory? Memory, ActionResult? Error)> OwnReadyMemoryAsync(Guid memoryId, CancellationToken cancellationToken)
+    {
+        if (!currentUser.UserId.HasValue) return (null, Unauthorized());
+        var couple = await ActiveCoupleAsync(cancellationToken);
+        if (couple is null) return (null, BadRequest(NoCouple));
+        if (!storage.IsConfigured) return (null, StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable));
+        var memory = await db.Memories.SingleOrDefaultAsync(item => item.Id == memoryId && item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready, cancellationToken);
+        if (memory is null) return (null, NotFound());
+        if (memory.UploadedByUserId != currentUser.UserId.Value) return (null, StatusCode(StatusCodes.Status403Forbidden, NotUploader));
+        return (memory, null);
+    }
+
     /// <summary>Delete one of your own photos from an ended couple's album now, instead of waiting for the window to close.</summary>
     [HttpDelete("archive/{memoryId:guid}")]
     public async Task<IActionResult> DeleteArchived(Guid memoryId, CancellationToken cancellationToken)
@@ -242,6 +323,7 @@ public sealed class MemoriesController(
         try
         {
             await storage.DeleteAsync(memory.ObjectKey, cancellationToken);
+            await storage.DeleteAsync(memory.ThumbnailKey, cancellationToken);
             db.Memories.Remove(memory);
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -267,7 +349,8 @@ public sealed class MemoriesController(
             memory.Source,
             memory.CreatedAtUtc,
             storage.PresignDownload(memory.ObjectKey, lifetime).ToString(),
-            clock.UtcNow.Add(lifetime));
+            clock.UtcNow.Add(lifetime),
+            memory.HasThumbnail ? storage.PresignDownload(memory.ThumbnailKey, lifetime).ToString() : null);
     }
 
     private Task ChangedAsync(Couple couple, Guid memoryId, string change, CancellationToken cancellationToken)

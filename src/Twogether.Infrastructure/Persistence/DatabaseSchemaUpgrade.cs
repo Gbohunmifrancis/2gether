@@ -264,6 +264,8 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_memories" PRIMARY KEY ("Id"),
             CONSTRAINT "CK_memories_SizeBytes" CHECK ("SizeBytes" > 0)
         );
+        ALTER TABLE memories ADD COLUMN IF NOT EXISTS "ThumbnailContentType" character varying(20) NULL;
+        ALTER TABLE memories ADD COLUMN IF NOT EXISTS "ThumbnailBytes" bigint NOT NULL DEFAULT 0;
 
         CREATE TABLE IF NOT EXISTS device_registrations (
             "Id" uuid NOT NULL,

@@ -19,7 +19,9 @@ public sealed record MemoryDto(
     MemorySource Source,
     DateTime CreatedAtUtc,
     string Url,
-    DateTime UrlExpiresAtUtc);
+    DateTime UrlExpiresAtUtc,
+    // Signed like Url; null until the app uploads a thumbnail. Grids should use this.
+    string? ThumbnailUrl = null);
 
 public sealed record MemoryPageDto(IReadOnlyList<MemoryDto> Items, string? NextCursor);
 
@@ -28,11 +30,17 @@ public sealed record ArchivedMemoryDto(MemoryDto Memory, DateTime CoupleEndedAtU
 
 public sealed record MemoryArchivePageDto(IReadOnlyList<ArchivedMemoryDto> Items, string? NextCursor);
 
-public sealed record MemoryUploadDto(Guid MemoryId, string UploadUrl, string Method, IReadOnlyDictionary<string, string> Headers, DateTime ExpiresAtUtc);
+public sealed record MemoryUploadDto(Guid MemoryId, string UploadUrl, string Method, IReadOnlyDictionary<string, string> Headers, DateTime ExpiresAtUtc, ThumbnailUploadDto? Thumbnail = null);
+
+/// <summary>A signed PUT for the memory's thumbnail. Over MaxBytes, or a different type, and it is discarded.</summary>
+public sealed record ThumbnailUploadDto(string UploadUrl, string Method, IReadOnlyDictionary<string, string> Headers, long MaxBytes, DateTime ExpiresAtUtc);
+
+public sealed record ReserveThumbnailRequest(string ContentType);
 
 public sealed record MemoryUsageDto(int Count, long UsedBytes, long LimitBytes);
 
-public sealed record ReserveMemoryRequest(string ContentType, long SizeBytes, string? Caption, DateTime? TakenAtUtc, MemorySource Source = MemorySource.Gallery);
+/// <summary>Set ThumbnailContentType to get a thumbnail slot in the same call; completing the memory picks it up.</summary>
+public sealed record ReserveMemoryRequest(string ContentType, long SizeBytes, string? Caption, DateTime? TakenAtUtc, MemorySource Source = MemorySource.Gallery, string? ThumbnailContentType = null);
 
 public sealed record UpdateMemoryRequest(string? Caption, DateTime? TakenAtUtc);
 
@@ -66,8 +74,11 @@ public static class MemoryRequestRules
         if (request.SizeBytes <= 0) return Error.Validation("memories.invalid_size", "The file is empty.");
         if (request.SizeBytes > kind.MaxBytes) return Error.Validation("memories.too_large", $"{(kind.IsVideo ? "Videos" : "Photos")} must be under {kind.MaxBytes / (1024 * 1024)} MB.");
         if (!Enum.IsDefined(request.Source)) return Error.Validation("memories.invalid_source", "Unknown source.");
+        if (request.ThumbnailContentType is not null && MemoryRules.ThumbnailType(request.ThumbnailContentType) is null) return InvalidThumbnailType;
         return ValidateDescription(request.Caption, request.TakenAtUtc, utcNow) is { IsFailure: true } bad ? Result.Failure<MemoryMediaKind>(bad.Error) : kind;
     }
+
+    public static readonly Error InvalidThumbnailType = Error.Validation("memories.unsupported_thumbnail", "Thumbnails must be JPEG or WebP.");
 
     public static Result ValidateDescription(string? caption, DateTime? takenAtUtc, DateTime utcNow)
     {

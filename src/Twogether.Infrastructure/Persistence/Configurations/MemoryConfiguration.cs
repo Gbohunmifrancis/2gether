@@ -16,6 +16,9 @@ public sealed class MemoryConfiguration : IEntityTypeConfiguration<Memory>
         builder.Property(item => item.Caption).HasMaxLength(MemoryRules.MaxCaptionLength);
         builder.Property(item => item.Source).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(item => item.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(item => item.ThumbnailContentType).HasMaxLength(20);
+        builder.Ignore(item => item.HasThumbnail);
+        builder.Ignore(item => item.ThumbnailKey);
         builder.HasIndex(item => item.ObjectKey).IsUnique();
         // The album page: newest first by (SortAtUtc, Id), keyset-paged.
         builder.HasIndex(item => new { item.CoupleId, item.Status, item.SortAtUtc, item.Id });

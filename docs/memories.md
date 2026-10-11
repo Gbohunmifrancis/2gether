@@ -63,6 +63,26 @@ Runs every 5 minutes, and once at startup. In each run it:
 
 It works in batches of 100 and keeps going while batches come back full. It always deletes the object before the row.
 
-## Not done yet
+## Thumbnails
 
-Thumbnails. There is no server-side image processing; the app can upload a small rendition as its own memory or as a later `thumbnailKey`.
+The server does not process images. The app makes a small rendition (about 512 px on the long side, JPEG or WebP, at most 256 KB) and uploads it straight to storage, the same way it uploads the photo.
+
+**At upload time.** Add `"thumbnailContentType": "image/webp"` to `POST /api/memories/uploads`.
+- The response then carries a second signed PUT in `thumbnail`, with its own headers and a `maxBytes` limit.
+- Upload both files, then call `complete` once. Completing the photo also checks the thumbnail.
+- A missing or invalid thumbnail never fails the photo. The photo simply completes without one.
+
+**Later**, for a video's poster frame or for photos added before thumbnails existed:
+- `POST /api/memories/{id}/thumbnail` with `{ "contentType": "image/jpeg" }` returns a slot.
+- `POST /api/memories/{id}/thumbnail/complete` confirms the upload. It returns `409` if nothing has been uploaded yet, and `422` if the file is too large or the wrong type.
+- Only the person who uploaded the photo can do this. Anyone else gets `403`.
+
+`MemoryDto.thumbnailUrl` is signed like `url` and is `null` until a thumbnail is confirmed. Grids should use the thumbnail and fall back to `url`.
+
+Storage details:
+- Each memory has exactly one thumbnail key, `couples/{couple}/{memory}-thumb`, so a new upload overwrites the old one.
+- A rejected upload is deleted, and because it overwrote the earlier thumbnail, the memory is left with none.
+- Every delete path (deleting one photo, the archive, account deletion, the post-breakup expiry) removes that key as well, including thumbnails that were uploaded but never confirmed.
+- Thumbnail bytes count toward the couple's storage limit.
+
+Known trade-off: until it is confirmed, a newly uploaded thumbnail is served at the existing URL. A signed PUT fixes the content type but not the size, so for that short window the uploader's partner could load an oversized image. Confirming it either attaches it or deletes it.
