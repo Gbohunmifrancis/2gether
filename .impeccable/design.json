@@ -781,7 +781,7 @@
     ],
     "source": "design/heartpact-v3 (styles.css, render.js, mascots.js, screens/*.html, png/00-contact-sheet.png, logo/)",
     "logo": {
-      "mark": "Geometric heart: a square turned 45deg with two round lobes (radius = half the side), split on its vertical centre line. Left half maya-art, right half theo-art; on night grounds left #FFFFFF, right #A9B1F2.",
+      "mark": "Geometric heart: a square turned 45deg with two round lobes (radius = half the side), split on its vertical centre line. Left half maya-art, right half theo-art; on night grounds left #FFFFFF, right #A9B1F2. A tick (path M28 56 L44 72 L74 38, stroke 9.5, round caps) is cut through both halves as a mask: short stroke in Maya's half, long in Theo's. Only the mark carries the tick; in-app stickers never do.",
       "wordmark": "Lowercase \"heartpact\", Sora 600, letter-spacing -0.045em, ink.",
       "clearSpace": "One lobe radius on every side.",
       "assets": [
@@ -791,7 +791,9 @@
         "design/heartpact-v3/logo/ic_launcher_background.svg",
         "design/heartpact-v3/logo/ic_launcher_monochrome.svg",
         "design/heartpact-v3/logo/play-store-icon-512.png",
-        "design/heartpact-v3/logo/brand.png"
+        "design/heartpact-v3/logo/brand.png",
+        "design/heartpact-v3/logo/explore.png",
+        "design/heartpact-v3/logo/distinct.png"
       ],
       "adaptiveIcon": "Background: linear gradient #2C3474 to #1A1F4D. Foreground: night mark at 54% scale. Monochrome: left half solid, right half at 55% opacity."
     }
@@ -944,6 +946,6 @@
       "Don't show a bare point estimate as the primary figure for calories or macros.",
       "Don't replace sticker progress with progress rings or same-size icon cards."
     ],
-    "logo": "The mark is a geometric heart: a square turned 45° with two round lobes (lobe radius half the square's side), split on its vertical centre line. The left half is solid indigo (maya-art) and the right half periwinkle (theo-art). On night grounds the left half turns white (#FFFFFF) and the right half takes night-theo-action. The wordmark is lowercase \"heartpact\" in Sora 600 at -0.045em (the wordmark role), set in ink beside the mark. Clear space is one lobe radius on every side. Assets live in `design/heartpact-v3/logo/`: `heartpact-mark.svg` (light grounds), `heartpact-mark-dark.svg` (night grounds), the Android adaptive icon layers `ic_launcher_foreground.svg` (the night mark at 54% scale), `ic_launcher_background.svg` (an indigo gradient, #2C3474 to #1A1F4D) and `ic_launcher_monochrome.svg` (left half solid, right half at 55% opacity), plus `play-store-icon-512.png` and the `brand.png` board. In-app, the mark leads the welcome screen with the wordmark."
+    "logo": "The mark is a geometric heart: a square turned 45° with two round lobes (lobe radius half the square's side), split on its vertical centre line. The left half is solid indigo (maya-art) and the right half periwinkle (theo-art). A tick is cut clean through both halves (a mask, so whatever is behind shows through): a short stroke in Maya's half and a long one in Theo's, a promise both kept. The cut is what separates the mark from ordinary hearts, and it is reserved for the mark: in-app stickers never carry it. On night grounds the left half turns white (#FFFFFF) and the right half takes night-theo-action. The wordmark is lowercase \"heartpact\" in Sora 600 at -0.045em (the wordmark role), set in ink beside the mark. Clear space is one lobe radius on every side. Assets live in `design/heartpact-v3/logo/`: `heartpact-mark.svg` (light grounds), `heartpact-mark-dark.svg` (night grounds), the Android adaptive icon layers `ic_launcher_foreground.svg` (the night mark at 54% scale), `ic_launcher_background.svg` (an indigo gradient, #2C3474 to #1A1F4D) and `ic_launcher_monochrome.svg` (left half solid, right half at 55% opacity), plus `play-store-icon-512.png` and the `brand.png` board. In-app, the mark leads the welcome screen with the wordmark."
   }
 }
