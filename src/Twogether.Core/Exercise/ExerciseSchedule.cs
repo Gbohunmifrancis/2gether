@@ -35,6 +35,18 @@ public static class ExerciseSchedule
         throw new InvalidOperationException("Could not find the next due time; the time zone data is inconsistent.");
     }
 
+    /// <summary>
+    /// True when <paramref name="dueUtc"/> is still ahead of <paramref name="utcNow"/> and falls on
+    /// the same local date in <paramref name="zone"/>: the day's dare has not rung yet, so it may be
+    /// done early.
+    /// </summary>
+    public static bool IsLaterToday(DateTime dueUtc, TimeZoneInfo zone, DateTime utcNow)
+    {
+        var due = AsUtc(dueUtc);
+        var now = AsUtc(utcNow);
+        return now < due && LocalDate(due, zone) == LocalDate(now, zone);
+    }
+
     /// <summary>The UTC instant for <paramref name="scheduledTime"/> on <paramref name="localDate"/> in <paramref name="zone"/>.</summary>
     public static DateTime ToUtc(DateOnly localDate, TimeOnly scheduledTime, TimeZoneInfo zone)
     {

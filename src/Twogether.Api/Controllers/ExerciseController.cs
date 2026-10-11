@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
@@ -26,6 +27,7 @@ public sealed class ExerciseController(
     private static readonly ApiError AlarmActive = new("exercise.alarm_active", "This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today.");
     private static readonly ApiError NotActive = new("exercise.not_active", "This alarm is no longer active.");
     private static readonly ApiError NotAssignee = new("exercise.not_assignee", "Only the person this alarm is for can do that.");
+    private static readonly ApiError NotDueToday = new("exercise.not_due_today", "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.");
     private static readonly ApiError AlreadyAsked = new("exercise.already_asked", "You already asked to call off today.");
     private static readonly ApiError VersionConflict = new("exercise.version_conflict", "Someone else just changed this. Refresh and try again.");
 
@@ -243,6 +245,40 @@ public sealed class ExerciseController(
         return Ok(dto);
     }
 
+    /// <summary>
+    /// Assigned user only: does today's dare before it rings. Opens the day's occurrence with its
+    /// real due time and starts it at once; the alarm pointer stays, so giving up still lets it ring.
+    /// </summary>
+    [HttpPost("goals/{goalId:guid}/start-early")]
+    public async Task<ActionResult<ExerciseOccurrenceDto>> StartEarly(Guid goalId, CancellationToken cancellationToken)
+    {
+        if (!currentUser.UserId.HasValue) return Unauthorized();
+        var couple = await ActiveCoupleAsync(cancellationToken);
+        if (couple is null) return BadRequest(NoCouple);
+        var goal = await db.ExerciseGoals.AsNoTracking().SingleOrDefaultAsync(item => item.Id == goalId && item.CoupleId == couple.Id && item.IsActive, cancellationToken);
+        if (goal is null) return NotFound();
+        if (goal.AssignedUserId != currentUser.UserId.Value) return StatusCode(StatusCodes.Status403Forbidden, NotAssignee);
+        var now = clock.UtcNow;
+        if (!goal.IsDueLaterToday(now)) return Conflict(NotDueToday);
+
+        var localDate = goal.NextDueLocalDate();
+        var occurrence = await db.ExerciseOccurrences.SingleOrDefaultAsync(item => item.GoalId == goal.Id && item.LocalDate == localDate, cancellationToken);
+        if (occurrence is null)
+        {
+            occurrence = ExerciseOccurrence.OpenEarly(goal, now);
+            db.ExerciseOccurrences.Add(occurrence);
+        }
+        else if (occurrence.IsAlarmActive) occurrence.Start(now);
+        else return Conflict(NotActive);
+
+        var conflict = await TrySaveAsync(cancellationToken);
+        if (conflict is not null) return conflict;
+        var names = await NamesAsync(couple, cancellationToken);
+        var dto = ExerciseMapper.ToDto(occurrence, Name(names, occurrence.UserId));
+        await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Started, dto, cancellationToken);
+        return Ok(dto);
+    }
+
     [HttpPost("occurrences/{occurrenceId:guid}/complete")]
     public async Task<ActionResult<ExerciseOccurrenceDto>> Complete(Guid occurrenceId, CompleteExerciseRequest request, CancellationToken cancellationToken)
     {
@@ -265,6 +301,7 @@ public sealed class ExerciseController(
         }
 
         occurrence.Complete(achieved, confidence, now);
+        var settled = await SettleGoalAsync(occurrence, now, cancellationToken);
         var names = await NamesAsync(couple, cancellationToken);
         var partnerId = PartnerOf(couple, occurrence.UserId);
         Notification? notification = null;
@@ -281,6 +318,7 @@ public sealed class ExerciseController(
         var dto = ExerciseMapper.ToDto(occurrence, Name(names, occurrence.UserId));
         await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Completed, dto, cancellationToken);
         if (notification is not null) await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
+        if (settled) await BroadcastGoalsAsync(couple, names, cancellationToken);
         return Ok(dto);
     }
 
@@ -298,6 +336,7 @@ public sealed class ExerciseController(
 
         var now = clock.UtcNow;
         occurrence.Cancel(now);
+        var settled = await SettleGoalAsync(occurrence, now, cancellationToken);
         var names = await NamesAsync(couple, cancellationToken);
         var notification = CancelledNotification(couple, names, occurrence, now);
         db.Notifications.Add(notification);
@@ -307,6 +346,7 @@ public sealed class ExerciseController(
         var dto = ExerciseMapper.ToDto(occurrence, Name(names, occurrence.UserId));
         await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, dto, cancellationToken);
         await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
+        if (settled) await BroadcastGoalsAsync(couple, names, cancellationToken);
         return Ok(dto);
     }
 
@@ -365,6 +405,18 @@ public sealed class ExerciseController(
         => db.ExerciseOccurrences.SingleOrDefaultAsync(item => item.GoalId == goalId
             && (item.Status == ExerciseOccurrenceStatus.Alarming || item.Status == ExerciseOccurrenceStatus.InProgress), cancellationToken);
 
+    /// <summary>
+    /// Settled before it rang: move the goal's pointer past the occurrence so that day's alarm is
+    /// dropped. The goal is tracked, so its xmin token makes a race with the worker a 409.
+    /// </summary>
+    private async Task<bool> SettleGoalAsync(ExerciseOccurrence occurrence, DateTime now, CancellationToken cancellationToken)
+    {
+        var goal = await db.ExerciseGoals.SingleOrDefaultAsync(item => item.Id == occurrence.GoalId && item.CoupleId == occurrence.CoupleId, cancellationToken);
+        if (goal is null || !goal.SettleOccurrence(occurrence.ScheduledAtUtc, now)) return false;
+        logger.LogInformation("Exercise goal {GoalId} settled before it rang; next alarm {NextDueAtUtc:o}.", goal.Id, goal.NextDueAtUtc);
+        return true;
+    }
+
     private async Task<Dictionary<Guid, string>> NamesAsync(Couple couple, CancellationToken cancellationToken)
     {
         var ids = Members(couple).ToList();
@@ -390,6 +442,12 @@ public sealed class ExerciseController(
         catch (DbUpdateConcurrencyException exception)
         {
             logger.LogInformation(exception, "Exercise write lost a concurrency race for user {UserId}.", currentUser.UserId);
+            return Conflict(VersionConflict);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" })
+        {
+            // The worker (or another device) opened the same day's occurrence first.
+            logger.LogInformation(exception, "Exercise write hit a duplicate occurrence for user {UserId}.", currentUser.UserId);
             return Conflict(VersionConflict);
         }
     }

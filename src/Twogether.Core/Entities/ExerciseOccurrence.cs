@@ -60,6 +60,20 @@ public sealed class ExerciseOccurrence : BaseEntity
     };
 
     /// <summary>
+    /// Opens today's occurrence before its alarm rings because the assigned partner is doing the
+    /// dare early. It keeps the real due time (so the deadline is due + grace) and starts the
+    /// camera session at once. The goal's pointer is not moved: if the partner gives up, the alarm
+    /// still rings at the due time.
+    /// </summary>
+    public static ExerciseOccurrence OpenEarly(ExerciseGoal goal, DateTime utcNow)
+    {
+        if (!goal.IsDueLaterToday(utcNow)) throw new InvalidOperationException("Only an active goal that has not rung yet today can be done early.");
+        var occurrence = Open(goal, goal.NextDueLocalDate(), goal.NextDueAtUtc, utcNow);
+        occurrence.Start(utcNow);
+        return occurrence;
+    }
+
+    /// <summary>
     /// Opens (or re-opens) the camera session. Progress always restarts from zero because the
     /// counter on the device does, and the plausibility check measures from this instant.
     /// </summary>

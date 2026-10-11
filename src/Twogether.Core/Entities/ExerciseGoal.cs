@@ -71,6 +71,28 @@ public sealed class ExerciseGoal : BaseEntity
         UpdatedAtUtc = utcNow;
     }
 
+    /// <summary>Local date, in the goal's own time zone, of the next time it rings.</summary>
+    public DateOnly NextDueLocalDate() => ExerciseSchedule.LocalDate(NextDueAtUtc, ExerciseSchedule.ResolveTimeZone(TimeZoneId));
+
+    /// <summary>
+    /// True while today's dare (in the goal's own time zone) has not rung yet, so it may be done early.
+    /// </summary>
+    public bool IsDueLaterToday(DateTime utcNow)
+        => IsActive && ExerciseSchedule.IsLaterToday(NextDueAtUtc, ExerciseSchedule.ResolveTimeZone(TimeZoneId), utcNow);
+
+    /// <summary>
+    /// An occurrence was completed or called off. If the pointer has not passed it yet (it was
+    /// settled before it rang), move the pointer to the next day so that day's alarm is dropped.
+    /// Returns whether the pointer moved; a pointer already past the occurrence is left alone.
+    /// </summary>
+    public bool SettleOccurrence(DateTime occurrenceScheduledAtUtc, DateTime utcNow)
+    {
+        if (NextDueAtUtc > occurrenceScheduledAtUtc) return false;
+        var zone = ExerciseSchedule.ResolveTimeZone(TimeZoneId);
+        AdvanceNextDue(ExerciseSchedule.NextDueUtc(ScheduledTime, zone, occurrenceScheduledAtUtc.AddMinutes(1)), utcNow);
+        return true;
+    }
+
     private void Apply(Guid assignedUserId, ExerciseType type, string? title, int target, TimeOnly scheduledTime, string timeZoneId, int graceMinutes, DateTime utcNow)
     {
         var definition = ExerciseCatalog.Get(type);

@@ -245,6 +245,121 @@ public sealed class ExerciseTests
     }
 
     [Fact]
+    public void Settling_before_it_rings_moves_the_pointer_to_the_next_day_across_spring_forward()
+    {
+        // London, 07:00 daily. 28 Mar 2026 is still GMT (07:00 UTC); 29 Mar is BST, so 07:00 local is 06:00 UTC.
+        var created = new DateTime(2026, 3, 28, 5, 0, 0, DateTimeKind.Utc);
+        var goal = Goal(created, zone: "Europe/London");
+        var due = new DateTime(2026, 3, 28, 7, 0, 0, DateTimeKind.Utc);
+        Assert.Equal(due, goal.NextDueAtUtc);
+
+        var settledAt = new DateTime(2026, 3, 28, 6, 15, 0, DateTimeKind.Utc);
+        Assert.True(goal.SettleOccurrence(due, settledAt));
+        Assert.Equal(new DateTime(2026, 3, 29, 6, 0, 0, DateTimeKind.Utc), goal.NextDueAtUtc);
+        Assert.Equal(new DateOnly(2026, 3, 29), ExerciseSchedule.LocalDate(goal.NextDueAtUtc, London));
+        Assert.Equal(new TimeOnly(7, 0), TimeOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(goal.NextDueAtUtc, London)));
+        Assert.Equal(settledAt, goal.UpdatedAtUtc);
+
+        // Settling the same occurrence again (or the worker's pass later) never skips another day.
+        Assert.False(goal.SettleOccurrence(due, settledAt.AddMinutes(1)));
+        Assert.Equal(new DateTime(2026, 3, 29, 6, 0, 0, DateTimeKind.Utc), goal.NextDueAtUtc);
+    }
+
+    [Fact]
+    public void Settling_before_it_rings_lands_on_the_next_local_time_across_fall_back()
+    {
+        // 24 Oct 2026 is BST (07:00 local = 06:00 UTC); 25 Oct is GMT (07:00 local = 07:00 UTC).
+        var goal = Goal(new DateTime(2026, 10, 24, 5, 0, 0, DateTimeKind.Utc), zone: "Europe/London");
+        var due = new DateTime(2026, 10, 24, 6, 0, 0, DateTimeKind.Utc);
+        Assert.Equal(due, goal.NextDueAtUtc);
+        Assert.True(goal.SettleOccurrence(due, due.AddMinutes(-20)));
+        Assert.Equal(new DateTime(2026, 10, 25, 7, 0, 0, DateTimeKind.Utc), goal.NextDueAtUtc);
+    }
+
+    [Fact]
+    public void Settling_after_it_rang_leaves_the_pointer_alone()
+    {
+        // The worker opened today's alarm and already moved the pointer to tomorrow.
+        var created = new DateTime(2026, 5, 10, 5, 0, 0, DateTimeKind.Utc); // 06:00 Lagos, before 07:00
+        var goal = Goal(created);
+        var due = goal.NextDueAtUtc;
+        var tomorrow = ExerciseSchedule.NextDueUtc(goal.ScheduledTime, Lagos, due.AddMinutes(1));
+        goal.AdvanceNextDue(tomorrow, due);
+
+        Assert.False(goal.SettleOccurrence(due, due.AddMinutes(5)));
+        Assert.Equal(tomorrow, goal.NextDueAtUtc);
+        Assert.Equal(due, goal.UpdatedAtUtc);
+    }
+
+    [Fact]
+    public void Settling_advances_when_the_pointer_is_before_the_occurrence()
+    {
+        var goal = Goal(new DateTime(2026, 5, 10, 5, 0, 0, DateTimeKind.Utc));
+        var pointer = goal.NextDueAtUtc;           // 10 May 06:00 UTC
+        var occurrenceAt = pointer.AddDays(1);     // 11 May 06:00 UTC
+        Assert.True(goal.SettleOccurrence(occurrenceAt, pointer));
+        Assert.Equal(occurrenceAt.AddDays(1), goal.NextDueAtUtc);
+    }
+
+    [Fact]
+    public void Today_s_dare_is_early_only_before_it_rings_on_the_same_local_date()
+    {
+        var due = new DateTime(2026, 5, 10, 18, 0, 0, DateTimeKind.Utc);
+        Assert.True(ExerciseSchedule.IsLaterToday(due, TimeZoneInfo.Utc, due.AddHours(-17)));
+        Assert.True(ExerciseSchedule.IsLaterToday(due, TimeZoneInfo.Utc, due.AddSeconds(-1)));
+        Assert.False(ExerciseSchedule.IsLaterToday(due, TimeZoneInfo.Utc, due));             // it rings now
+        Assert.False(ExerciseSchedule.IsLaterToday(due, TimeZoneInfo.Utc, due.AddMinutes(1)));
+        Assert.False(ExerciseSchedule.IsLaterToday(due, TimeZoneInfo.Utc, due.AddDays(-1)));  // that is tomorrow's
+
+        // "Today" is the goal's zone: 22:30 UTC on 9 May is already 10 May in Lagos (UTC+1),
+        // so a 07:00 Lagos alarm (06:00 UTC on 10 May) is later today there, but not in UTC.
+        var lagosDue = new DateTime(2026, 5, 10, 6, 0, 0, DateTimeKind.Utc);
+        var lateEvening = new DateTime(2026, 5, 9, 23, 30, 0, DateTimeKind.Utc);
+        Assert.True(ExerciseSchedule.IsLaterToday(lagosDue, Lagos, lateEvening));
+        Assert.False(ExerciseSchedule.IsLaterToday(lagosDue, TimeZoneInfo.Utc, lateEvening));
+    }
+
+    [Fact]
+    public void Opening_early_keeps_the_real_due_time_and_starts_at_once()
+    {
+        var created = new DateTime(2026, 5, 10, 5, 0, 0, DateTimeKind.Utc);
+        var goal = Goal(created, new TimeOnly(19, 0), grace: 30); // 19:00 Lagos = 18:00 UTC
+        var due = goal.NextDueAtUtc;
+        var now = new DateTime(2026, 5, 10, 9, 0, 0, DateTimeKind.Utc);
+        Assert.True(goal.IsDueLaterToday(now));
+
+        var occurrence = ExerciseOccurrence.OpenEarly(goal, now);
+        Assert.Equal(ExerciseOccurrenceStatus.InProgress, occurrence.Status);
+        Assert.Equal(new DateOnly(2026, 5, 10), occurrence.LocalDate);
+        Assert.Equal(due, occurrence.ScheduledAtUtc);
+        Assert.Equal(due.AddMinutes(30), occurrence.DeadlineUtc);
+        Assert.Equal(due.AddMinutes(30), occurrence.CompleteByUtc); // the deadline is later than now + 10 min
+        Assert.Equal(now, occurrence.StartedAtUtc);
+        Assert.Equal(1, occurrence.StateVersion);
+        Assert.Equal(due, goal.NextDueAtUtc); // the alarm still rings if they give up
+
+        // With 5 minutes' grace, starting 2 minutes before the alarm makes the allowance the later bound.
+        var tight = Goal(created, new TimeOnly(19, 0), grace: 5);
+        var close = due.AddMinutes(-2);
+        var early = ExerciseOccurrence.OpenEarly(tight, close);
+        Assert.Equal(due.AddMinutes(5), early.DeadlineUtc);
+        Assert.Equal(close + ExerciseVerification.CompletionAllowance, early.CompleteByUtc);
+    }
+
+    [Fact]
+    public void Opening_early_is_refused_once_it_rang_or_for_an_inactive_goal()
+    {
+        var created = new DateTime(2026, 5, 10, 5, 0, 0, DateTimeKind.Utc);
+        var goal = Goal(created, new TimeOnly(19, 0));
+        Assert.Throws<InvalidOperationException>(() => ExerciseOccurrence.OpenEarly(goal, goal.NextDueAtUtc));
+        Assert.Throws<InvalidOperationException>(() => ExerciseOccurrence.OpenEarly(goal, goal.NextDueAtUtc.AddDays(-1)));
+
+        goal.Deactivate(created);
+        Assert.False(goal.IsDueLaterToday(created.AddHours(1)));
+        Assert.Throws<InvalidOperationException>(() => ExerciseOccurrence.OpenEarly(goal, created.AddHours(1)));
+    }
+
+    [Fact]
     public void Mapper_emits_wire_formats_for_time_and_date()
     {
         var now = new DateTime(2026, 2, 3, 4, 5, 0, DateTimeKind.Utc);

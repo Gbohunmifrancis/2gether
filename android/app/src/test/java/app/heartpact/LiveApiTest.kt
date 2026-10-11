@@ -142,4 +142,36 @@ class LiveApiTest {
         val history = (mayaEx.history(7) as ApiResult.Ok).value
         assertEquals(setOf(OccurrenceStatus.Cancelled, OccurrenceStatus.Completed), history.occurrences.map { it.status }.toSet())
     }
+
+    /** Done before it rings: it counts, and that day's alarm is gone from the server and the phone. */
+    @Test fun `a dare done early cancels that day's alarm`() = runTest(timeout = kotlin.time.Duration.parse("2m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        val maya = (mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val mayaEx = exercises.getValue("maya"); val theoEx = exercises.getValue("theo")
+
+        // Due in 10 minutes (UTC), unless that crosses midnight, where "early today" cannot apply.
+        val due = Instant.now().plusSeconds(600).atOffset(ZoneOffset.UTC)
+        assumeTrue(due.toLocalDate() == Instant.now().atOffset(ZoneOffset.UTC).toLocalDate())
+        val goal = (theoEx.createGoal(CreateGoalRequest(maya.id, ExerciseType.PushUp, null, 1, due.format(DateTimeFormatter.ofPattern("HH:mm")), "UTC", 10)) as ApiResult.Ok).value
+
+        assertEquals("exercise.not_assignee", (theoEx.startEarly(goal.id) as ApiResult.Failure).code)
+        val started = (mayaEx.startEarly(goal.id) as ApiResult.Ok).value
+        assertEquals(OccurrenceStatus.InProgress, started.status)
+        assertEquals(app.heartpact.data.utc(goal.nextDueAtUtc), app.heartpact.data.utc(started.scheduledAtUtc))
+
+        withContext(Dispatchers.IO) { Thread.sleep(ExerciseType.PushUp.minimumMillis(1) + 300) }
+        assertEquals(OccurrenceStatus.Completed, (mayaEx.complete(started.id, 1, 0.9) as ApiResult.Ok).value.status)
+
+        val today = (mayaEx.today() as ApiResult.Ok).value
+        val moved = app.heartpact.data.utc(today.goals.single { it.id == goal.id }.nextDueAtUtc)
+        assertEquals(app.heartpact.data.utc(goal.nextDueAtUtc).plusSeconds(86_400), moved)
+        val plan = AlarmPlan.plan(today, maya.id, "Theo", Instant.now())
+        assertEquals(listOf(moved.toEpochMilli()), plan.filter { it.goalId == goal.id }.map { it.dueAtEpochMs })
+        assertEquals("exercise.not_due_today", (mayaEx.startEarly(goal.id) as ApiResult.Failure).code)
+    }
 }
