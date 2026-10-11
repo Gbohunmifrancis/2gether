@@ -6,6 +6,11 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
+    <!-- The alarm opens on ink so there is no white flash before it draws. -->
+    <style name="Theme.Heartpact.Alarm" parent="Theme.Heartpact">
+        <item name="android:windowBackground">@color/alarm_ink</item>
+    </style>
+
     <!-- The system splash is plain indigo with no icon: the halves walk on in Compose right after,
          so showing the finished mark first would spoil the moment they meet. -->
     <style name="Theme.Heartpact.Starting" parent="Theme.SplashScreen">

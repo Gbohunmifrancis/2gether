@@ -5,3 +5,5 @@ local.properties
 *.iml
 .kotlin/
 captures/
+# Downloaded at build time (see app/build.gradle.kts).
+app/src/main/assets/pose_landmarker_lite.task

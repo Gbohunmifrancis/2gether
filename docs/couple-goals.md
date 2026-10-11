@@ -542,3 +542,13 @@ npm.cmd run build
 ```
 
 Unit tests to add (`tests/Twogether.UnitTests/ExerciseTests.cs`): schedule next-due across midnight; a spring-forward gap advances to the first valid minute; an ambiguous fall-back time resolves to the earlier instant and advancing the pointer from it does not yield the same local date twice; a goal created after today's time fires tomorrow; occurrence state machine (start resets progress, complete requires InProgress, miss/cancel, RecordProgress does not bump StateVersion while Start/Complete/Miss/Cancel do); verification rejects too-fast, low-confidence, under-target and not-started; streak counting ignores Cancelled and ends on an empty day; stats completion rate.
+
+## Android client
+
+The Android app (`android/`) keeps the server in charge of timers and state:
+
+- It schedules exact alarms on the phone at each of the person's own goals' `NextDueAtUtc`, as returned by `GET today`, and re-plans after every refresh, boot, clock change and update. The phone only wakes itself; the server still opens, expires and settles the occurrence.
+- When an alarm fires, the app rings locally and then reads `GET today` to find the occurrence, waiting up to a minute for the worker to open it. It never decides on its own that an occurrence exists. Being offline never stops the ringing early.
+- "Silence on this phone" is local only: the occurrence stays open until its deadline, as Play policy requires a local dismiss.
+- Rep counting runs on the device. The app calls `start`, counts with the pose model, holds the finish until `MinSecondsPerUnit × target` has passed, then calls `complete` with the count and the mean landmark visibility as `confidence`.
+

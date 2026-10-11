@@ -45,15 +45,18 @@ fun HeartButton(
     busy: Boolean = false,
     height: Dp = 56.dp,
     fillWidth: Boolean = true,
+    /** Overrides the label colour, for text buttons on dark grounds such as the alarm. */
+    contentColor: Color? = null,
 ) {
     val colors = Heartpact.colors
     val actor = Heartpact.actor
-    val (background, content) = when (kind) {
+    val (background, defaultContent) = when (kind) {
         ButtonKind.Filled -> actor.action to colors.onAction
         ButtonKind.Tonal -> actor.soft to actor.onSoft
         ButtonKind.Outline -> Color.Transparent to colors.ink
         ButtonKind.Text -> Color.Transparent to actor.action
     }
+    val content = contentColor ?: defaultContent
     val active = enabled && !busy
     var m = modifier.then(if (fillWidth) Modifier.fillMaxWidth() else Modifier).height(if (kind == ButtonKind.Text) 46.dp.coerceAtMost(height) else height)
     if (kind == ButtonKind.Filled && enabled) m = m.shadow(10.dp, Shapes.Pill, ambientColor = actor.action, spotColor = actor.action)

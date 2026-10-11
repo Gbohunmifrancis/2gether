@@ -64,14 +64,12 @@ enum class Tab(val label: String, val icon: ImageVector, val selectedIcon: Image
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
 @Composable
-fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today) {
+fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f).statusBarsPadding()) {
             when (tab) {
-                Tab.Today -> TabPage("Today", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM"))) {
-                    EmptyPage(Who.Both, Pose.Wave, "Your page starts today", "When $partnerName sets you a dare, their half of the heart lands here first. Do the reps and the camera sticks on yours.")
-                }
+                Tab.Today -> today()
                 Tab.Pacts -> TabPage("Pacts", "Your sticker page") { EmptyPage(Who.Right, Pose.Stand, "No dares yet", "Dares you set each other live here, with every heart you've kept.") }
                 Tab.Food -> TabPage("Food", "Photo estimates run about ±30%") { EmptyPage(Who.Left, Pose.Stand, "Nothing logged today", "Snap a meal and you'll get a calorie range, never a single made-up number.") }
                 Tab.Us -> TabPage("Us", "$myName and $partnerName") {

@@ -28,3 +28,15 @@ inline fun <T> ApiResult<T>.alsoOk(block: (T) -> Unit): ApiResult<T> {
     if (this is ApiResult.Ok) block(value)
     return this
 }
+
+/** Dares: today's state, history for the sticker page, and the moves on an occurrence. */
+class ExerciseRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun today(): ApiResult<ExerciseToday> = apiCall(json) { api.exerciseToday() }
+    suspend fun history(days: Int = 7): ApiResult<ExerciseHistory> = apiCall(json) { api.exerciseHistory(days) }
+    suspend fun createGoal(request: CreateGoalRequest): ApiResult<ExerciseGoal> = apiCall(json) { api.createGoal(request) }
+    suspend fun start(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startOccurrence(id) }
+    suspend fun complete(id: String, count: Int, confidence: Double): ApiResult<ExerciseOccurrence> = apiCall(json) { api.completeOccurrence(id, CompleteRequest(count, confidence)) }
+    /** Only the partner may cancel: this is "call it off together", granting the other's request. */
+    suspend fun cancel(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.cancelOccurrence(id) }
+    suspend fun askOff(id: String, note: String?): ApiResult<ExerciseOccurrence> = apiCall(json) { api.askOff(id, AskOffRequest(note?.trim()?.takeIf { it.isNotEmpty() })) }
+}

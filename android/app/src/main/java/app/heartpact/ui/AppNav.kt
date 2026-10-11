@@ -1,6 +1,20 @@
 package app.heartpact.ui
 
 import android.app.Activity
+import android.app.Application
+import android.content.Context
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import app.heartpact.alarm.AlarmActivity
+import app.heartpact.alarm.AlarmNotifier
+import app.heartpact.alarm.AlarmSlot
+import app.heartpact.data.utc
+import app.heartpact.ui.today.MyDare
+import app.heartpact.ui.today.NewDareScreen
+import app.heartpact.ui.today.NewDareViewModel
+import app.heartpact.ui.today.TodayTab
+import app.heartpact.ui.today.TodayViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +59,7 @@ private object Routes {
     const val SIGN_IN = "signin"
     const val PAIR = "pair"
     const val HOME = "home"
+    const val NEW_DARE = "newdare"
 }
 
 private fun Destination.route() = when (this) {
@@ -101,13 +116,52 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                 composable(Routes.HOME) {
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val couple by appModel.couple.collectAsStateWithLifecycle()
-                    val me = session?.user
-                    val partner = couple?.members?.firstOrNull { it.userId != me?.id }?.displayName ?: "your partner"
-                    HomeScreen(myName = me?.displayName ?: "You", partnerName = partner, onSignOut = { appModel.signOut() })
+                    val me = session?.user ?: return@composable
+                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: "your partner"
+                    val application = LocalContext.current.applicationContext as Application
+                    val context = LocalContext.current
+                    val todayModel: TodayViewModel = viewModel(factory = viewModelFactory { initializer { TodayViewModel(application, me.id, partner) } })
+                    val todayUi by todayModel.ui.collectAsStateWithLifecycle()
+                    // Back from Settings (permissions) or from a dare: re-read readiness and today.
+                    LifecycleResumeEffect(Unit) {
+                        todayModel.refresh()
+                        onPauseOrDispose { }
+                    }
+                    HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() }, today = {
+                        TodayTab(
+                            ui = todayUi,
+                            partnerName = partner,
+                            onStartCamera = { dare -> context.startActivity(alarmIntent(context, dare, partner)) },
+                            onCallOff = todayModel::callOffTogether,
+                            onKeep = todayModel::keepIt,
+                            onNewDare = { nav.navigate(Routes.NEW_DARE) },
+                        )
+                    })
+                }
+                composable(Routes.NEW_DARE) {
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id } ?: return@composable
+                    val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId) } })
+                    val state by model.state.collectAsStateWithLifecycle()
+                    NewDareScreen(state, partner.displayName, model::type, model::step, model::time, model::window, { model.send { nav.popBackStack() } }, onBack = { nav.popBackStack() })
                 }
             }
         }
     }
+}
+
+/** Today's "Start on camera" opens the same full-screen flow the alarm uses. */
+private fun alarmIntent(context: Context, dare: MyDare, partnerName: String): Intent {
+    val occurrence = dare.occurrence
+    val slot = AlarmSlot(
+        goalId = dare.goal.id, title = dare.goal.title, exerciseType = dare.goal.exerciseType, target = dare.goal.target,
+        dueAtEpochMs = dare.dueAt.toEpochMilli(),
+        deadlineEpochMs = (occurrence?.let { utc(it.completeByUtc ?: it.deadlineUtc) } ?: dare.dueAt.plusSeconds(dare.goal.graceMinutes * 60L)).toEpochMilli(),
+        setByName = if (dare.setByPartner) partnerName else null,
+        occurrenceId = occurrence?.id,
+    )
+    return Intent(context, AlarmActivity::class.java).putExtra(AlarmNotifier.EXTRA_SLOT, AlarmNotifier.encode(slot))
 }
 
 private fun NavHostController.resetTo(route: String) = navigate(route) {

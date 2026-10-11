@@ -41,6 +41,7 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
 
     val auth = AuthRepository(api, session, json)
     val couple = CoupleRepository(api, session, json)
+    val exercise = ExerciseRepository(api, json)
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */
