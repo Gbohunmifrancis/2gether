@@ -31,6 +31,13 @@ public sealed class Memory : BaseEntity
     public bool HasThumbnail => ThumbnailContentType is not null;
     public string ThumbnailKey => MemoryRules.ThumbnailKey(CoupleId, Id);
 
+    /// <summary>
+    /// When the last upload link handed out for this memory stops working. Until then the
+    /// uploader can still overwrite what was verified, so the cleanup worker checks the stored
+    /// objects again after this time and then clears it.
+    /// </summary>
+    public DateTime? UploadWindowEndsAtUtc { get; private set; }
+
     /// <summary>TakenAtUtc, or the upload time when unknown. Stored so the album can be paged by index.</summary>
     public DateTime SortAtUtc { get; private set; }
 
@@ -60,6 +67,17 @@ public sealed class Memory : BaseEntity
         if (storedBytes <= 0 || storedBytes > MemoryRules.MaxThumbnailBytes) throw new ArgumentOutOfRangeException(nameof(storedBytes));
         ThumbnailContentType = type;
         ThumbnailBytes = storedBytes;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void OpenUploadWindow(DateTime endsAtUtc)
+    {
+        if (UploadWindowEndsAtUtc is null || endsAtUtc > UploadWindowEndsAtUtc) UploadWindowEndsAtUtc = endsAtUtc;
+    }
+
+    public void CloseUploadWindow(DateTime utcNow)
+    {
+        UploadWindowEndsAtUtc = null;
         UpdatedAtUtc = utcNow;
     }
 

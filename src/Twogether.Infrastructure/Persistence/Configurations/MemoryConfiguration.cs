@@ -19,6 +19,7 @@ public sealed class MemoryConfiguration : IEntityTypeConfiguration<Memory>
         builder.Property(item => item.ThumbnailContentType).HasMaxLength(20);
         builder.Ignore(item => item.HasThumbnail);
         builder.Ignore(item => item.ThumbnailKey);
+        builder.HasIndex(item => item.UploadWindowEndsAtUtc).HasDatabaseName("IX_memories_upload_window").HasFilter("\"UploadWindowEndsAtUtc\" IS NOT NULL");
         builder.HasIndex(item => item.ObjectKey).IsUnique();
         // The album page: newest first by (SortAtUtc, Id), keyset-paged.
         builder.HasIndex(item => new { item.CoupleId, item.Status, item.SortAtUtc, item.Id });

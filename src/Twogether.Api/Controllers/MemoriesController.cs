@@ -68,6 +68,7 @@ public sealed class MemoriesController(
                 : "Your shared album is full. Remove some memories to add more."));
 
         var memory = Memory.Reserve(couple.Id, currentUser.UserId.Value, kind.Value, request.SizeBytes, request.Caption, request.TakenAtUtc, request.Source, now);
+        memory.OpenUploadWindow(now.Add(settings.UploadUrlLifetime));
         db.Memories.Add(memory);
         await db.SaveChangesAsync(cancellationToken);
         var url = storage.PresignUpload(memory.ObjectKey, memory.ContentType, settings.UploadUrlLifetime);
@@ -240,7 +241,10 @@ public sealed class MemoriesController(
         if (memory is null) return error!;
         if (MemoryRules.ThumbnailType(request.ContentType) is not { } type)
             return UnprocessableEntity(new ApiError(MemoryRequestRules.InvalidThumbnailType.Code, MemoryRequestRules.InvalidThumbnailType.Message));
-        return Ok(ThumbnailSlot(memory, type, clock.UtcNow));
+        var now = clock.UtcNow;
+        memory.OpenUploadWindow(now.Add(settings.UploadUrlLifetime));
+        await db.SaveChangesAsync(cancellationToken);
+        return Ok(ThumbnailSlot(memory, type, now));
     }
 
     [HttpPost("{memoryId:guid}/thumbnail/complete")]

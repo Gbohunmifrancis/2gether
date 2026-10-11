@@ -266,6 +266,8 @@ public static class DatabaseSchemaUpgrade
         );
         ALTER TABLE memories ADD COLUMN IF NOT EXISTS "ThumbnailContentType" character varying(20) NULL;
         ALTER TABLE memories ADD COLUMN IF NOT EXISTS "ThumbnailBytes" bigint NOT NULL DEFAULT 0;
+        ALTER TABLE memories ADD COLUMN IF NOT EXISTS "UploadWindowEndsAtUtc" timestamp with time zone NULL;
+        CREATE INDEX IF NOT EXISTS "IX_memories_upload_window" ON memories ("UploadWindowEndsAtUtc") WHERE "UploadWindowEndsAtUtc" IS NOT NULL;
 
         CREATE TABLE IF NOT EXISTS device_registrations (
             "Id" uuid NOT NULL,

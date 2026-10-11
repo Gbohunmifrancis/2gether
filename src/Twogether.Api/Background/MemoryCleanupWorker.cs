@@ -32,6 +32,7 @@ public sealed class MemoryCleanupWorker(
         {
             try
             {
+                while (await RecheckClosedUploadWindowsAsync(stoppingToken) == BatchSize) { }
                 // Drain: an ended album can hold thousands of photos.
                 while (await SweepAsync(stoppingToken) == BatchSize) { }
             }
@@ -46,6 +47,67 @@ public sealed class MemoryCleanupWorker(
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));
     }
+
+    /// <summary>
+    /// A signed upload link keeps working until it expires, even after the upload it was for has
+    /// been verified, so the uploader could replace a checked photo with anything (and any size)
+    /// at the same key. Once every link for a memory has expired, compare what is stored with
+    /// what was verified: a replaced photo takes its memory with it, and a thumbnail that does not
+    /// match the confirmed one, or was never confirmed, is removed.
+    /// </summary>
+    public async Task<int> RecheckClosedUploadWindowsAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var now = clock.UtcNow;
+        var due = await db.Memories
+            .Where(item => item.Status == MemoryStatus.Ready && item.UploadWindowEndsAtUtc != null && item.UploadWindowEndsAtUtc <= now)
+            .OrderBy(item => item.UploadWindowEndsAtUtc)
+            .Take(BatchSize)
+            .ToListAsync(cancellationToken);
+        var rechecked = 0;
+        foreach (var memory in due)
+        {
+            try
+            {
+                var original = await storage.HeadAsync(memory.ObjectKey, cancellationToken);
+                if (!Matches(original, memory.ContentType, memory.SizeBytes))
+                {
+                    logger.LogWarning("Memory {MemoryId} changed in storage after it was verified ({Bytes} bytes, {Type}); removing it.",
+                        memory.Id, original?.SizeBytes, original?.ContentType);
+                    memory.Describe(null, null, now);
+                    memory.MarkDeleting(now);
+                }
+                else
+                {
+                    var thumbnail = await storage.HeadAsync(memory.ThumbnailKey, cancellationToken);
+                    if (thumbnail is not null && !(memory.HasThumbnail && Matches(thumbnail, memory.ThumbnailContentType!, memory.ThumbnailBytes)))
+                    {
+                        logger.LogWarning("Thumbnail of memory {MemoryId} does not match the confirmed one; removing it.", memory.Id);
+                        await storage.DeleteAsync(memory.ThumbnailKey, cancellationToken);
+                        memory.DetachThumbnail(now);
+                    }
+                    else if (thumbnail is null && memory.HasThumbnail) memory.DetachThumbnail(now);
+                }
+                memory.CloseUploadWindow(now);
+                rechecked++;
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // Left due: the next sweep tries again.
+                logger.LogWarning(exception, "Could not recheck memory {MemoryId} in storage; will retry.", memory.Id);
+            }
+        }
+        await db.SaveChangesAsync(cancellationToken);
+        // Only what was actually rechecked: if storage is down, the drain loop must stop rather
+        // than spin on the same failing batch.
+        return rechecked;
+    }
+
+    private static bool Matches(StoredObjectInfo? stored, string contentType, long sizeBytes)
+        => stored is not null
+           && stored.SizeBytes == sizeBytes
+           && string.Equals(stored.ContentType?.Split(';')[0].Trim(), contentType, StringComparison.OrdinalIgnoreCase);
 
     public async Task<int> SweepAsync(CancellationToken cancellationToken)
     {

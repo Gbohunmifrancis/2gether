@@ -117,3 +117,23 @@ public sealed class MemoryThumbnailTests
         Assert.Equal("memories.unsupported_thumbnail", MemoryRequestRules.ValidateReserve(new ReserveMemoryRequest("image/jpeg", 5000, null, null, MemorySource.Camera, "image/gif"), Now).Error.Code);
     }
 }
+
+public sealed class MemoryUploadWindowTests
+{
+    [Fact]
+    public void The_window_lasts_until_the_last_link_handed_out_expires()
+    {
+        var now = new DateTime(2026, 10, 11, 9, 0, 0, DateTimeKind.Utc);
+        var memory = Twogether.Core.Entities.Memory.Reserve(Guid.NewGuid(), Guid.NewGuid(), MemoryRules.Kind("image/jpeg")!, 1000, null, null, MemorySource.Camera, now);
+        Assert.Null(memory.UploadWindowEndsAtUtc);
+
+        memory.OpenUploadWindow(now.AddMinutes(15));
+        memory.OpenUploadWindow(now.AddMinutes(5));
+        Assert.Equal(now.AddMinutes(15), memory.UploadWindowEndsAtUtc);
+        memory.OpenUploadWindow(now.AddMinutes(40));
+        Assert.Equal(now.AddMinutes(40), memory.UploadWindowEndsAtUtc);
+
+        memory.CloseUploadWindow(now.AddMinutes(41));
+        Assert.Null(memory.UploadWindowEndsAtUtc);
+    }
+}

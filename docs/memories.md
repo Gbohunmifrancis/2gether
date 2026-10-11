@@ -85,4 +85,15 @@ Storage details:
 - Every delete path (deleting one photo, the archive, account deletion, the post-breakup expiry) removes that key as well, including thumbnails that were uploaded but never confirmed.
 - Thumbnail bytes count toward the couple's storage limit.
 
-Known trade-off: until it is confirmed, a newly uploaded thumbnail is served at the existing URL. A signed PUT fixes the content type but not the size, so for that short window the uploader's partner could load an oversized image. Confirming it either attaches it or deletes it.
+## After the upload links expire
+
+A signed PUT link keeps working until it expires (`Media:UploadUrlLifetime`, 15 minutes), even after the upload it was meant for has been verified. A signed PUT also fixes the content type but not the size. So for that window the uploader could put any file, of any size, at the same key.
+
+To close that gap:
+- Each memory records when the last link handed out for it expires, in `UploadWindowEndsAtUtc`.
+- Once that time has passed, the cleanup worker checks the stored objects against what was verified:
+  - **A photo that no longer matches** (size or type) is deleted together with its memory.
+  - **A thumbnail that does not match the confirmed one,** or was uploaded and never confirmed, is removed. The photo itself stays.
+- Then the worker clears the time.
+
+Both the photo upload and the thumbnail endpoint extend the window. That leaves an exposure of at most the link lifetime plus one sweep, about 20 minutes. During that time the uploader's partner could load a swapped image, and the swapped bytes are not counted toward storage.
