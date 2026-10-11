@@ -33,7 +33,9 @@ public sealed class CoupleController(
         if (!currentUser.CoupleId.HasValue) return NotFound();
         var couple = await db.Couples.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.CoupleId.Value, cancellationToken);
         if (couple is null) return NotFound();
-        var users = await db.Users.AsNoTracking().Where(user => user.CoupleId == couple.Id).Select(user => new CoupleMemberDto(user.Id, user.DisplayName, user.AvatarUrl)).ToListAsync(cancellationToken);
+        var users = await db.Users.AsNoTracking().Where(user => user.CoupleId == couple.Id).Select(user => new CoupleMemberDto(user.Id, user.DisplayName, user.AvatarUrl, user.Id == couple.UserAId ? CoupleSide.Left : CoupleSide.Right))
+            .ToListAsync(cancellationToken);
+        users = users.OrderBy(member => member.Side).ToList();
         return Ok(new CoupleDto(couple.Id, couple.Status, couple.LinkedAtUtc, users));
     }
 
@@ -202,4 +204,10 @@ public sealed class CoupleController(
 public sealed record AcceptPartnerInviteRequest(string? Code, string? Token);
 public sealed record PartnerInviteDto(Guid Id, string Code, string Token, DateTime ExpiresAtUtc, string? AccessToken = null);
 public sealed record CoupleDto(Guid Id, CoupleStatus Status, DateTime? LinkedAtUtc, IReadOnlyList<CoupleMemberDto> Members);
-public sealed record CoupleMemberDto(Guid UserId, string DisplayName, string? AvatarUrl);
+/// <summary>
+/// Side fixes each partner's half of the heart on every phone: the person who started the couple
+/// is the left (indigo) half, the partner who joined is the right (periwinkle) half.
+/// </summary>
+public sealed record CoupleMemberDto(Guid UserId, string DisplayName, string? AvatarUrl, CoupleSide Side);
+
+public enum CoupleSide { Left, Right }
