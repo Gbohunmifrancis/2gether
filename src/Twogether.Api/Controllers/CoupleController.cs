@@ -8,6 +8,8 @@ using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Common.Security;
+using Twogether.Application.Features.Couple;
 using Twogether.Application.Features.Exercise;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
@@ -20,7 +22,10 @@ public sealed class CoupleController(
     ICurrentUser currentUser,
     IDateTimeProvider clock,
     ITokenService tokenService,
-    IHubContext<CoupleHub> hub) : ApiControllerBase
+    IHubContext<CoupleHub> hub,
+    AttemptLimiter limiter,
+    InviteSettings inviteSettings,
+    ILogger<CoupleController> logger) : ApiControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<CoupleDto>> Get(CancellationToken cancellationToken)
@@ -55,9 +60,9 @@ public sealed class CoupleController(
         var existing = await db.PartnerInvites.Where(invite => invite.CoupleId == couple.Id && invite.Status == PartnerInviteStatus.Pending).ToListAsync(cancellationToken);
         foreach (var invite in existing) invite.Revoke(clock.UtcNow);
 
-        var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+        var code = InviteCodes.Generate(inviteSettings.CodeDigits);
         var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
-        var partnerInvite = PartnerInvite.Create(couple.Id, actor.Id, Hash(code), Hash(token), clock.UtcNow.AddDays(7), clock.UtcNow);
+        var partnerInvite = PartnerInvite.Create(couple.Id, actor.Id, Hash(code), Hash(token), clock.UtcNow.Add(inviteSettings.Lifetime), clock.UtcNow);
         db.PartnerInvites.Add(partnerInvite);
         await db.SaveChangesAsync(cancellationToken);
         // Refresh the access token when repairing a legacy account so the new couple
@@ -70,10 +75,36 @@ public sealed class CoupleController(
     public async Task<ActionResult<AuthResponse>> AcceptInvite(AcceptPartnerInviteRequest request, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
-        var codeHash = string.IsNullOrWhiteSpace(request.Code) ? null : Hash(request.Code.Trim());
+        var userKey = currentUser.UserId.Value.ToString();
+        // Any request carrying a code is a code attempt, even with a token beside it; otherwise a
+        // junk token would let guesses through uncounted.
+        var byCode = !string.IsNullOrWhiteSpace(request.Code);
+        // Codes are short enough to guess, so a wrong one costs from three budgets. Links carry
+        // 192 random bits and are never limited, so they keep working while codes are paused.
+        if (byCode && Blocked(limiter,
+                (AttemptRules.InviteCodePerUser, userKey),
+                (AttemptRules.InviteCodePerIp, ClientIp),
+                (AttemptRules.InviteCodeGlobal, "all")) is { } wait)
+            return TooManyAttempts(wait, "Too many wrong codes. Wait a bit, or open the invite link your partner sent instead.");
+
+        var code = InviteCodes.Normalize(request.Code);
+        var codeHash = code is null ? null : Hash(code);
         var tokenHash = string.IsNullOrWhiteSpace(request.Token) ? null : Hash(request.Token.Trim());
-        var invite = await db.PartnerInvites.SingleOrDefaultAsync(item => (codeHash != null && item.CodeHash == codeHash) || (tokenHash != null && item.LinkTokenHash == tokenHash), cancellationToken);
-        if (invite is null || !invite.IsUsable(clock.UtcNow)) return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+        var invite = codeHash is null && tokenHash is null
+            ? null
+            : await db.PartnerInvites.SingleOrDefaultAsync(item => (codeHash != null && item.CodeHash == codeHash) || (tokenHash != null && item.LinkTokenHash == tokenHash), cancellationToken);
+        if (invite is null || !invite.IsUsable(clock.UtcNow))
+        {
+            if (byCode)
+            {
+                limiter.RecordFailure(AttemptRules.InviteCodePerUser, userKey);
+                limiter.RecordFailure(AttemptRules.InviteCodePerIp, ClientIp);
+                limiter.RecordFailure(AttemptRules.InviteCodeGlobal, "all");
+                if (limiter.RetryAfter(AttemptRules.InviteCodeGlobal, "all") is not null)
+                    logger.LogError("Wrong invite codes reached the global budget of {Max} per hour; codes are paused. Possible guessing attack.", AttemptRules.InviteCodeGlobal.MaxFailures);
+            }
+            return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+        }
         if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError("invite.self", "You cannot accept your own invitation."));
 
         var couple = await db.Couples.SingleAsync(item => item.Id == invite.CoupleId, cancellationToken);

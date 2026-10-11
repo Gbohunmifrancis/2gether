@@ -126,7 +126,40 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Twogether API", Version = "v1" });
 });
 
+// On unless turned off for local load or smoke tests; Production refuses to run without it.
+var rateLimitsEnabled = builder.Configuration.GetValue<bool?>("RateLimits:Enabled") ?? true;
+builder.Services.AddSingleton(provider => new Twogether.Application.Common.Security.AttemptLimiter(
+    provider.GetRequiredService<Twogether.Application.Common.Interfaces.IDateTimeProvider>(), rateLimitsEnabled));
+var inviteDigits = builder.Configuration.GetValue<int?>("Invites:CodeDigits") ?? Twogether.Application.Features.Couple.InviteSettings.MinCodeDigits;
+if (inviteDigits is < Twogether.Application.Features.Couple.InviteSettings.MinCodeDigits or > Twogether.Application.Features.Couple.InviteSettings.MaxCodeDigits)
+    throw new InvalidOperationException("Invites:CodeDigits must be between 6 and 10.");
+builder.Services.AddSingleton(new Twogether.Application.Features.Couple.InviteSettings { CodeDigits = inviteDigits });
+
+// Behind Railway (or any proxy) every request arrives from the proxy, which would put all users
+// in one per-address budget. Trust only the nearest hop's X-Forwarded-For: the value that proxy
+// appended, not anything the client sent before it.
+var trustForwardedHeaders = builder.Configuration.GetValue<bool>("ForwardedHeaders:Enabled");
+if (trustForwardedHeaders)
+{
+    builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = 1;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
 var app = builder.Build();
+
+if (app.Environment.IsProduction() && !rateLimitsEnabled)
+{
+    throw new InvalidOperationException("RateLimits:Enabled=false leaves sign-in and invite codes open to guessing and is refused in Production.");
+}
+
+if (trustForwardedHeaders) app.UseForwardedHeaders();
+else if (app.Environment.IsProduction())
+    app.Logger.LogWarning("ForwardedHeaders:Enabled is off. Behind a proxy, per-address sign-in and invite limits treat all users as one address.");
 
 if (app.Environment.IsProduction() && string.Equals(app.Configuration["Billing:Provider"]?.Trim(), "fake", StringComparison.OrdinalIgnoreCase))
 {

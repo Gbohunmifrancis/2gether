@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Common;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Common.Security;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 
@@ -13,12 +14,16 @@ public sealed class AuthController(
     IPasswordHasher passwordHasher,
     ITokenService tokenService,
     ICurrentUser currentUser,
-    IDateTimeProvider clock) : ApiControllerBase
+    IDateTimeProvider clock,
+    AttemptLimiter limiter) : ApiControllerBase
 {
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
+        if (Blocked(limiter, (AttemptRules.RegisterPerIp, ClientIp)) is { } wait)
+            return TooManyAttempts(wait, "Too many sign-ups from this network. Try again later.");
+        limiter.RecordFailure(AttemptRules.RegisterPerIp, ClientIp);
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
             return UnprocessableEntity(new ApiError("auth.invalid_registration", "Email and a password of at least 8 characters are required."));
         if (await db.Users.AnyAsync(user => user.Email == request.Email.Trim().ToLower(), cancellationToken))
@@ -48,9 +53,18 @@ public sealed class AuthController(
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        var user = await db.Users.SingleOrDefaultAsync(candidate => candidate.Email == request.Email.Trim().ToLower(), cancellationToken);
-        if (user is null || user.PasswordHash is null || !passwordHasher.Verify(request.Password, user.PasswordHash))
+        var email = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
+        if (Blocked(limiter, (AttemptRules.LoginPerEmail, email), (AttemptRules.LoginPerIp, ClientIp)) is { } wait)
+            return TooManyAttempts(wait, "Too many sign-in attempts. Wait a few minutes and try again.");
+        var user = await db.Users.SingleOrDefaultAsync(candidate => candidate.Email == email, cancellationToken);
+        if (user is null || user.PasswordHash is null || !passwordHasher.Verify(request.Password ?? string.Empty, user.PasswordHash))
+        {
+            // Counted for unknown emails too, so the limit does not reveal which accounts exist.
+            limiter.RecordFailure(AttemptRules.LoginPerEmail, email);
+            limiter.RecordFailure(AttemptRules.LoginPerIp, ClientIp);
             return Unauthorized(new ApiError("auth.invalid_credentials", "Email or password is incorrect."));
+        }
+        limiter.Reset(AttemptRules.LoginPerEmail, email);
         await EnsureFemaleCycleOwnerAsync(user, cancellationToken);
         var token = tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(ToResponse(user, token));

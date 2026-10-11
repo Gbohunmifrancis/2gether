@@ -6,6 +6,7 @@ using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Exercise;
 
@@ -19,7 +20,8 @@ public sealed class AccountController(
     ICurrentUser currentUser,
     IAccountEraser eraser,
     AccountExportService exporter,
-    IHubContext<CoupleHub> hub) : ApiControllerBase
+    IHubContext<CoupleHub> hub,
+    AttemptLimiter limiter) : ApiControllerBase
 {
     [HttpGet("export")]
     public async Task<IActionResult> Export(CancellationToken cancellationToken)
@@ -38,8 +40,15 @@ public sealed class AccountController(
         var userId = currentUser.UserId.Value;
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == userId, cancellationToken);
         if (user is null) return NotFound();
+        if (Blocked(limiter, (AttemptRules.AccountDeletePerUser, userId.ToString())) is { } wait)
+            return TooManyAttempts(wait, "Too many wrong passwords. Wait a few minutes and try again.");
         var confirmed = AccountDeletionRules.Confirm(user, request, passwordHasher);
-        if (confirmed.IsFailure) return HandleNoContent(confirmed);
+        if (confirmed.IsFailure)
+        {
+            // A stolen session must not become a free password oracle.
+            limiter.RecordFailure(AttemptRules.AccountDeletePerUser, userId.ToString());
+            return HandleNoContent(confirmed);
+        }
 
         var subscriptions = await db.StoreSubscriptions.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken);
         if (!request.AcknowledgeActiveSubscription && subscriptions.Any(AccountDeletionRules.WillRenew))
