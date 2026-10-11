@@ -21,8 +21,13 @@ public sealed class Couple : BaseEntity
         UpdatedAtUtc = utcNow
     };
 
+    /// <summary>Only a couple still waiting for its second person can take one; an ended couple never comes back.</summary>
+    public bool CanAcceptPartner => Status == CoupleStatus.PendingInvite && UserBId is null;
+
     public void LinkPartner(Guid userBId, DateTime utcNow)
     {
+        if (!CanAcceptPartner) throw new InvalidOperationException("This couple is not waiting for a partner.");
+        if (userBId == UserAId) throw new InvalidOperationException("A person cannot be their own partner.");
         UserBId = userBId;
         Status = CoupleStatus.Active;
         LinkedAtUtc = utcNow;

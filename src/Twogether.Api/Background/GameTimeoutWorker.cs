@@ -55,7 +55,7 @@ public sealed class GameTimeoutWorker(
 
         foreach (var session in sessions)
         {
-            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, "timeout", null, null, now);
+            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now);
             if (next.Completed) session.Complete(next.StateJson, now);
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, now);
         }

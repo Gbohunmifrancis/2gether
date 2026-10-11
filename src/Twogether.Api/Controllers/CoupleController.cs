@@ -108,12 +108,21 @@ public sealed class CoupleController(
         if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError("invite.self", "You cannot accept your own invitation."));
 
         var couple = await db.Couples.SingleAsync(item => item.Id == invite.CoupleId, cancellationToken);
+        if (!couple.CanAcceptPartner)
+        {
+            // A leftover invite from a couple that ended or is already complete must never bring
+            // it back with a stranger in it. Retire it so it fails the same way from now on.
+            invite.Revoke(clock.UtcNow);
+            await db.SaveChangesAsync(cancellationToken);
+            return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+        }
         var user = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user.CoupleId.HasValue && user.CoupleId != couple.Id)
         {
             var previous = await db.Couples.SingleOrDefaultAsync(item => item.Id == user.CoupleId.Value, cancellationToken);
             if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError("couple.already_linked", "You are already linked to a partner."));
             previous.Dissolve(clock.UtcNow);
+            await RevokePendingInvitesAsync(previous.Id, cancellationToken);
         }
 
         couple.LinkPartner(user.Id, clock.UtcNow);
@@ -143,6 +152,7 @@ public sealed class CoupleController(
             .ToListAsync(cancellationToken);
         foreach (var session in endedGames) session.EndBy(actor.Id, clock.UtcNow);
         couple.Dissolve(clock.UtcNow);
+        await RevokePendingInvitesAsync(couple.Id, cancellationToken);
         actor.SetCouple(null, clock.UtcNow);
         if (partnerId is { } linkedPartnerId)
         {
@@ -178,6 +188,12 @@ public sealed class CoupleController(
             .ToListAsync(cancellationToken);
         foreach (var occurrence in ringing) occurrence.Cancel(clock.UtcNow);
         return ringing;
+    }
+
+    private async Task RevokePendingInvitesAsync(Guid coupleId, CancellationToken cancellationToken)
+    {
+        var pending = await db.PartnerInvites.Where(invite => invite.CoupleId == coupleId && invite.Status == PartnerInviteStatus.Pending).ToListAsync(cancellationToken);
+        foreach (var invite in pending) invite.Revoke(clock.UtcNow);
     }
 
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();

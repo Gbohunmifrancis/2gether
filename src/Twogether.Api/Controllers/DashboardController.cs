@@ -53,7 +53,11 @@ public sealed class DashboardController(
                     .FirstOrDefaultAsync(cancellationToken);
                 if (latestMessage is not null)
                 {
-                    latestNote = latestMessage.Body;
+                    // Like the push notification: the home card is glanceable, so a private message
+                    // shows that it arrived, not what it says.
+                    latestNote = !latestMessage.IsPrivate
+                        ? latestMessage.Body
+                        : latestMessage.SenderUserId == user.Id ? "You sent a private message." : $"{partnerName} sent something just for you.";
                     latestNoteAuthor = latestMessage.SenderUserId == user.Id ? currentUserName : partnerName;
                 }
 

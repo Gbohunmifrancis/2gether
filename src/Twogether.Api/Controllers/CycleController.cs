@@ -67,12 +67,20 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         return Ok(logs.Select(ToLog).ToList());
     }
 
+    private const int MaxNotesLength = 2000;
+    private const int MaxSymptoms = 30;
+    private const int MaxSymptomLength = 50;
+
     [HttpPut("logs/{date}")]
     public async Task<ActionResult<CycleDayLogDto>> UpsertLog(DateOnly date, CycleDayLogRequest request, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
         var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (actor is null || !actor.CycleOwner) return Forbid();
+        if (request.Notes?.Length > MaxNotesLength)
+            return UnprocessableEntity(new ApiError("cycle.invalid_notes", $"Notes are at most {MaxNotesLength} characters."));
+        if (request.Symptoms is { } symptoms && (symptoms.Count > MaxSymptoms || symptoms.Any(symptom => string.IsNullOrWhiteSpace(symptom) || symptom.Length > MaxSymptomLength)))
+            return UnprocessableEntity(new ApiError("cycle.invalid_symptoms", $"Up to {MaxSymptoms} symptoms of at most {MaxSymptomLength} characters each."));
         var log = await db.CycleDayLogs.SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value && item.LogDate == date, cancellationToken);
         if (log is null) { log = CycleDayLog.Create(currentUser.UserId.Value, date, request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow); db.CycleDayLogs.Add(log); }
         else log.Update(request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow);

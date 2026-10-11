@@ -29,6 +29,7 @@ public sealed class PregnancyController(
 {
     private static readonly ApiError NoCouple = new("pregnancy.no_couple", "Link your partner before starting pregnancy mode.");
     private static readonly ApiError NotOwner = new("pregnancy.not_owner", "Only the person who is pregnant can change this.");
+    private static readonly ApiError NotAppointmentAuthor = new("pregnancy.not_appointment_author", "Only the person who is pregnant, or whoever added this appointment, can change it.");
     private static readonly ApiError Ended = new("pregnancy.ended", "This pregnancy has ended.");
     public const string ChangedEvent = "PregnancyChanged";
 
@@ -171,6 +172,7 @@ public sealed class PregnancyController(
         if (appointment is null) return NotFound();
         var access = await AccessAsync(appointment.PregnancyId, track: false, cancellationToken);
         if (access is null) return NotFound();
+        if (!CanManage(access, appointment)) return StatusCode(StatusCodes.Status403Forbidden, NotAppointmentAuthor);
         if (access.Pregnancy.Status != PregnancyStatus.Active) return Conflict(Ended);
         var now = clock.UtcNow;
         var rules = PregnancyRules.ValidateAppointment(request.Title, request.AtUtc, request.Location, request.Notes, now);
@@ -188,6 +190,7 @@ public sealed class PregnancyController(
         if (appointment is null) return NotFound();
         var access = await AccessAsync(appointment.PregnancyId, track: false, cancellationToken);
         if (access is null) return NotFound();
+        if (!CanManage(access, appointment)) return StatusCode(StatusCodes.Status403Forbidden, NotAppointmentAuthor);
         db.PregnancyAppointments.Remove(appointment);
         await db.SaveChangesAsync(cancellationToken);
         await ChangedAsync(access.Couple, access.Pregnancy, "appointments", partnerMaySee: access.Pregnancy.ShareWithPartner, cancellationToken);
@@ -298,4 +301,8 @@ public sealed class PregnancyController(
     private static Guid? PartnerOf(Couple couple, Guid userId) => couple.UserAId == userId ? couple.UserBId : couple.UserAId;
 
     private sealed record PregnancyAccess(Pregnancy Pregnancy, bool IsOwner, Couple? Couple);
+
+    /// <summary>The pregnancy is the owner's record: a partner it is shared with changes only what they added.</summary>
+    private bool CanManage(PregnancyAccess access, PregnancyAppointment appointment)
+        => access.IsOwner || appointment.CreatedByUserId == currentUser.UserId;
 }

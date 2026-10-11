@@ -187,6 +187,21 @@ public sealed class GameEngine : IGameEngine
         return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[state.TurnIndex], completed ? null : utcNow.AddMinutes(2), completed);
     }
 
+    /// <summary>
+    /// Ends a round when its time is up. Only the server sends it: the timeout worker, or a
+    /// player's action that arrives after the deadline. A client choosing it early could close
+    /// the round on a partner still answering, or score answers nobody has judged.
+    /// </summary>
+    public const string TimeoutAction = "timeout";
+
+    /// <summary>Longest action payload: a full set of answers or a verdict fits easily.</summary>
+    public const int MaxActionValueLength = 4000;
+
+    /// <summary>A requested starting letter: one of A to Z, or none to let the game pick.</summary>
+    public static bool IsValidLetter(string? letter) => letter is null || letter.Length == 1 && char.IsAsciiLetter(letter[0]);
+
+    public static bool IsServerOnlyAction(string? action) => string.Equals(action?.Trim(), TimeoutAction, StringComparison.OrdinalIgnoreCase);
+
     private static GameEngineResult ApplyICallOn(string stateJson, Guid actorUserId, string action, string? value, DateTime utcNow, IReadOnlyDictionary<string, bool?>? validations, IReadOnlyDictionary<Guid, CoSubmission>? coSubmissions)
     {
         var state = Deserialize<ICallOnState>(stateJson);

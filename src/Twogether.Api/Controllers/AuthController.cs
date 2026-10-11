@@ -87,12 +87,18 @@ public sealed class AuthController(
         if (!currentUser.UserId.HasValue) return Unauthorized();
         if (string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Trim().Length > 100)
             return UnprocessableEntity(new ApiError("profile.invalid_name", "Nickname must be between 1 and 100 characters."));
+        // The partner's app loads this image, so only an https address is accepted: no tracking
+        // over plain http, no javascript: or data: tricks, nothing the database would cut off.
+        var avatar = string.IsNullOrWhiteSpace(request.AvatarUrl) ? null : request.AvatarUrl.Trim();
         var mapColor = string.IsNullOrWhiteSpace(request.MapColor) ? "#f45c91" : request.MapColor.Trim();
         if (!System.Text.RegularExpressions.Regex.IsMatch(mapColor, "^#[0-9a-fA-F]{6}$"))
             return UnprocessableEntity(new ApiError("profile.invalid_color", "Map color must be a six-digit hex color."));
         var user = await db.Users.SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user is null) return NotFound();
-        user.UpdateProfile(request.DisplayName.Trim(), request.AvatarUrl, mapColor, clock.UtcNow);
+        // An unchanged avatar is let through: the profile screen sends it back with every edit.
+        if (avatar is not null && avatar != user.AvatarUrl && (avatar.Length > 500 || !Uri.TryCreate(avatar, UriKind.Absolute, out var avatarUri) || avatarUri.Scheme != Uri.UriSchemeHttps))
+            return UnprocessableEntity(new ApiError("profile.invalid_avatar", "The avatar must be an https link of at most 500 characters."));
+        user.UpdateProfile(request.DisplayName.Trim(), avatar, mapColor, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
         var token = tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(new AuthResponse(token, ToUser(user)));

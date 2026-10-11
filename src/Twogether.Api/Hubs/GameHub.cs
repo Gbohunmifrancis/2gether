@@ -32,7 +32,9 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         GameEngineResult next;
         var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
         if (expired && session.GameType != GameType.ICallOn) throw new HubException("This round expired. Start another game.");
-        action = expired && session.GameType == GameType.ICallOn ? "timeout" : action;
+        if (GameEngine.IsServerOnlyAction(action) || string.IsNullOrWhiteSpace(action) || action.Length > 40 || value?.Length > GameEngine.MaxActionValueLength)
+            throw new HubException("That action is not available.");
+        action = expired && session.GameType == GameType.ICallOn ? GameEngine.TimeoutAction : action;
         IReadOnlyDictionary<string, bool?>? validations = null;
         if (session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
             validations = await wordValidator.ValidateAsync(session.StateJson, value, Context.ConnectionAborted);

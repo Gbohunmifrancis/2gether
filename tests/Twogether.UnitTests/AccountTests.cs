@@ -67,3 +67,54 @@ public sealed class CoupleDissolutionTests
         Assert.Equal(start.AddDays(3), couple.DissolvedAtUtc);
     }
 }
+
+public sealed class CoupleLinkingTests
+{
+    private static readonly DateTime Now = new(2026, 10, 11, 9, 0, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public void Only_a_couple_waiting_for_its_second_person_can_take_one()
+    {
+        var owner = Guid.NewGuid();
+        var couple = Couple.Create(owner, Now);
+        Assert.True(couple.CanAcceptPartner);
+        Assert.Throws<InvalidOperationException>(() => couple.LinkPartner(owner, Now));
+
+        couple.LinkPartner(Guid.NewGuid(), Now);
+        Assert.False(couple.CanAcceptPartner);
+        Assert.Throws<InvalidOperationException>(() => couple.LinkPartner(Guid.NewGuid(), Now));
+    }
+
+    [Fact]
+    public void An_ended_couple_never_comes_back()
+    {
+        var solo = Couple.Create(Guid.NewGuid(), Now);
+        solo.Dissolve(Now);
+
+        Assert.False(solo.CanAcceptPartner);
+        Assert.Throws<InvalidOperationException>(() => solo.LinkPartner(Guid.NewGuid(), Now));
+        Assert.Equal(CoupleStatus.Dissolved, solo.Status);
+    }
+}
+
+public sealed class GameInputTests
+{
+    [Theory]
+    [InlineData("timeout", true)]
+    [InlineData(" TimeOut ", true)]
+    [InlineData("submit", false)]
+    [InlineData(null, false)]
+    public void Timeout_is_reserved_for_the_server(string? action, bool serverOnly)
+        => Assert.Equal(serverOnly, Twogether.Application.Features.Games.GameEngine.IsServerOnlyAction(action));
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("B", true)]
+    [InlineData("z", true)]
+    [InlineData("AB", false)]
+    [InlineData("", false)]
+    [InlineData("é", false)]
+    [InlineData("<script>", false)]
+    public void A_requested_letter_is_one_of_A_to_Z(string? letter, bool valid)
+        => Assert.Equal(valid, Twogether.Application.Features.Games.GameEngine.IsValidLetter(letter));
+}
