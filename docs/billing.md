@@ -18,12 +18,33 @@ One partner pays; both get Plus. Google Play is the source of truth for every su
 
 | Method | Route | Auth | Notes |
 |---|---|---|---|
-| GET | `entitlement` | user | `{ plan, limits, subscription, canPurchase }`; `canPurchase` is false when the partner already pays |
+| GET | `entitlement` | user | `{ plan, limits, subscription, canPurchase, complimentary, complimentaryUntilUtc, freeLimits, plusLimits, productIds }`; `canPurchase` is false when the partner already pays. The app builds the comparison from `freeLimits`/`plusLimits` and asks Play only for `productIds` |
 | POST | `google/verify` | user | `{ productId, purchaseToken }` after a purchase and on app start for unacknowledged purchases |
 | POST | `google/rtdn?secret=` | Pub/Sub push | real-time developer notifications; the payload only names a token and the state is re-fetched from Google; 503 makes Pub/Sub retry |
 
 Error codes: `billing.unknown_product`, `billing.account_missing`, `billing.not_your_purchase` (403),
 `billing.unknown_purchase` (404), `billing.store_unavailable` (502 or 503).
+
+## The Android app
+
+The Plus screen (Us → Heartpact Plus, or "Get more with Plus" when the food scan limit or a nearly full album is
+reached) follows mockup 18:
+
+- It asks the server for the entitlement and Google Play for the prices of `productIds` (Play Billing 8, behind
+  `billing/PlayStore.kt`). Each plan uses the cheapest offer Play says this person may take, such as a free trial,
+  and shows it as "1 week free, then £23.99 a year". Yearly comes first, with its saving over monthly.
+- Checkout sets the obfuscated account id to the user id without dashes, then sends the purchase to `google/verify`.
+  Plus shows only once the server has checked it with Google. A pending payment (cash, bank transfer) shows as
+  waiting until Google confirms it.
+- On every app start, the app sends purchases Play hasn't acknowledged yet to `google/verify`, in case it closed
+  mid-purchase. "Restore a purchase" sends every purchase made for this account. Purchases made for another
+  Heartpact account on the same Google account are left alone.
+- When the partner pays, nothing is offered. The buyer gets "Manage in Google Play", which opens Play's
+  subscription page, the only place a subscription is cancelled or its payment fixed.
+
+Testing: create `heartpact_plus_monthly` and `heartpact_plus_yearly` (each with one base plan, optionally a trial
+offer) in Play Console, add license testers, and install from an internal testing track. Play only sells to an app it knows: a build with
+another package name or an unknown signing key gets "Google Play isn't available".
 
 ## Plan limits
 

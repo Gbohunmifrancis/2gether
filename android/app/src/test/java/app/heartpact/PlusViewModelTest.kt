@@ -1,0 +1,174 @@
+package app.heartpact
+
+import android.app.Activity
+import app.heartpact.billing.PlayStore
+import app.heartpact.billing.PlusRestore
+import app.heartpact.billing.ProductsResult
+import app.heartpact.billing.PurchaseState
+import app.heartpact.billing.PurchaseUpdate
+import app.heartpact.billing.RestoreResult
+import app.heartpact.billing.StoreOffer
+import app.heartpact.billing.StorePhase
+import app.heartpact.billing.StoreProduct
+import app.heartpact.billing.StorePurchase
+import app.heartpact.data.HeartpactApi
+import app.heartpact.data.Plan
+import app.heartpact.data.PlusRepository
+import app.heartpact.ui.plus.PlusUi
+import app.heartpact.ui.plus.PlusViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
+
+/** A Play that sells what it's told to and reports what the test says happened. */
+class FakePlayStore(var products: ProductsResult = ProductsResult.Ok(emptyList()), var ownedList: List<StorePurchase>? = emptyList()) : PlayStore {
+    override val updates = MutableSharedFlow<PurchaseUpdate>(extraBufferCapacity = 8)
+    val launched = mutableListOf<Triple<String, String, String>>()
+    var buyError: String? = null
+    override suspend fun products(ids: List<String>) = products
+    override suspend fun owned() = ownedList
+    override suspend fun buy(activity: Activity, productId: String, offerToken: String, accountId: String): String? {
+        launched += Triple(productId, offerToken, accountId)
+        return buyError
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class PlusViewModelTest {
+    private val server = MockWebServer()
+    private val json = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefaults = true; coerceInputValues = true }
+    private lateinit var plus: PlusRepository
+    private val userId = "0a1b2c3d-4e5f-6071-8293-a4b5c6d7e8f9"
+    private val account = "0a1b2c3d4e5f60718293a4b5c6d7e8f9"
+    private val limits = """"freeLimits":{"foodScansPerDay":3,"memoriesBytes":524288000,"questionHistoryDays":7},"plusLimits":{"foodScansPerDay":20,"memoriesBytes":2147483648,"questionHistoryDays":90},"productIds":["heartpact_plus_monthly","heartpact_plus_yearly"]"""
+    private val free = """{"plan":"free","limits":{"foodScansPerDay":3,"memoriesBytes":524288000,"questionHistoryDays":7},"subscription":null,"canPurchase":true,"complimentary":false,$limits}"""
+    private val plusMine = """{"plan":"plus","limits":{"foodScansPerDay":20,"memoriesBytes":2147483648,"questionHistoryDays":90},"subscription":{"store":"googlePlay","productId":"heartpact_plus_yearly","status":"active","expiresAtUtc":"2027-10-11T10:00:00Z","autoRenewing":true,"purchasedByUserId":"$userId","purchasedByMe":true},"canPurchase":true,$limits}"""
+    private val products = ProductsResult.Ok(listOf(
+        StoreProduct("heartpact_plus_monthly", listOf(StoreOffer("m", "monthly", null, listOf(StorePhase(2_990_000, "£2.99", "GBP", "P1M"))))),
+        StoreProduct("heartpact_plus_yearly", listOf(StoreOffer("y", "yearly", null, listOf(StorePhase(23_990_000, "£23.99", "GBP", "P1Y"))))),
+    ))
+    private fun bought(state: PurchaseState = PurchaseState.Purchased, accountId: String? = account, acknowledged: Boolean = false, token: String = "tok") =
+        StorePurchase(listOf("heartpact_plus_yearly"), token, state, acknowledged, accountId)
+
+    /** The HTTP calls finish on OkHttp's threads, outside the test scheduler: wait for the state itself. */
+    private suspend fun PlusViewModel.awaitUi(condition: (PlusUi) -> Boolean): PlusUi =
+        withContext(Dispatchers.IO) { withTimeout(5_000) { ui.first(condition) } }
+
+    @Before fun setUp() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        server.start()
+        val api = Retrofit.Builder().baseUrl(server.url("/")).client(OkHttpClient())
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType())).build().create(HeartpactApi::class.java)
+        plus = PlusRepository(api, json)
+    }
+
+    @After fun tearDown() {
+        server.shutdown()
+        Dispatchers.resetMain()
+    }
+
+    @Test fun `free couple sees yearly first and buys it for their own account, then Plus is verified with the server`() = runTest {
+        server.enqueue(MockResponse().setBody(free))
+        val store = FakePlayStore(products)
+        val model = PlusViewModel(plus, store, userId)
+        model.awaitUi { it.options.isNotEmpty() }
+        assertEquals(listOf("heartpact_plus_yearly", "heartpact_plus_monthly"), model.ui.value.options.map { it.productId })
+        assertEquals("heartpact_plus_yearly", model.ui.value.selected)
+
+        model.buy(Activity())
+        assertEquals(Triple("heartpact_plus_yearly", "y", account), store.launched.single())
+        assertTrue(model.ui.value.busy)
+
+        server.enqueue(MockResponse().setBody(plusMine))
+        store.updates.emit(PurchaseUpdate.Bought(listOf(bought())))
+        model.awaitUi { it.entitlement?.plan == Plan.Plus && !it.busy }
+        server.takeRequest()
+        val verify = server.takeRequest()
+        assertEquals("/api/billing/google/verify", verify.path)
+        assertEquals("""{"productId":"heartpact_plus_yearly","purchaseToken":"tok"}""", verify.body.readUtf8())
+        assertEquals(Plan.Plus, model.ui.value.entitlement?.plan)
+        assertTrue(model.ui.value.welcomed)
+        assertFalse(model.ui.value.busy)
+    }
+
+    @Test fun `a pending payment waits, a cancelled sheet just closes, a failed one says why`() = runTest {
+        server.enqueue(MockResponse().setBody(free))
+        val store = FakePlayStore(products)
+        val model = PlusViewModel(plus, store, userId)
+        model.awaitUi { it.options.isNotEmpty() }
+        store.updates.emit(PurchaseUpdate.Bought(listOf(bought(PurchaseState.Pending))))
+        assertTrue(model.ui.value.pending)
+        assertEquals(1, server.requestCount)
+
+        store.updates.emit(PurchaseUpdate.Cancelled)
+        assertFalse(model.ui.value.busy)
+        assertNull(model.ui.value.note)
+
+        store.updates.emit(PurchaseUpdate.Failed("Can't reach Google Play."))
+        assertEquals("Can't reach Google Play.", model.ui.value.note)
+    }
+
+    @Test fun `without Play the screen explains instead of offering plans`() = runTest {
+        server.enqueue(MockResponse().setBody(free))
+        val model = PlusViewModel(plus, FakePlayStore(ProductsResult.Unavailable("Google Play isn't available on this phone.")), userId)
+        model.awaitUi { it.storeMessage != null }
+        assertTrue(model.ui.value.options.isEmpty())
+        assertEquals("Google Play isn't available on this phone.", model.ui.value.storeMessage)
+    }
+
+    @Test fun `when the partner pays, nothing is offered and Play is never asked`() = runTest {
+        server.enqueue(MockResponse().setBody(plusMine.replace("\"purchasedByMe\":true", "\"purchasedByMe\":false").replace("\"canPurchase\":true", "\"canPurchase\":false")))
+        val store = object : PlayStore by FakePlayStore() {
+            override suspend fun products(ids: List<String>): ProductsResult = error("Play must not be asked")
+        }
+        val model = PlusViewModel(plus, store, userId)
+        model.awaitUi { !it.loading }
+        assertTrue(model.ui.value.isPlus)
+        assertTrue(model.ui.value.options.isEmpty())
+    }
+
+    @Test fun `restore verifies only this person's finished purchases`() = runTest {
+        val store = FakePlayStore(ownedList = listOf(
+            bought(token = "mine", acknowledged = true),
+            bought(token = "someone-else", accountId = "ffffffffffffffffffffffffffffffff"),
+            bought(PurchaseState.Pending, token = "pending"),
+        ))
+        server.enqueue(MockResponse().setBody(plusMine))
+        val result = PlusRestore.run(store, plus, userId, onlyUnacknowledged = false)
+        assertTrue(result is RestoreResult.Restored)
+        assertEquals(1, server.requestCount)
+        assertTrue(server.takeRequest().body.readUtf8().contains("\"mine\""))
+
+        // At start-up only what the server hasn't acknowledged is sent.
+        assertEquals(RestoreResult.NothingToRestore(pending = true), PlusRestore.run(store, plus, userId, onlyUnacknowledged = true))
+        assertEquals(1, server.requestCount)
+        assertEquals(RestoreResult.StoreUnavailable, PlusRestore.run(FakePlayStore(ownedList = null), plus, userId, onlyUnacknowledged = true))
+    }
+
+    @Test fun `a refused purchase keeps the server's words`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(403).setBody("""{"code":"billing.not_your_purchase","message":"This purchase belongs to another account."}"""))
+        val result = PlusRestore.run(FakePlayStore(ownedList = listOf(bought())), plus, userId, onlyUnacknowledged = true)
+        assertEquals(RestoreResult.Refused("This purchase belongs to another account."), result)
+    }
+}

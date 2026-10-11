@@ -104,6 +104,8 @@ fun AlbumTab(
     onDismissResult: () -> Unit,
     unmetered: () -> Boolean,
     image: PhotoSlot = CoilPhoto,
+    /** Set when the couple is on Free: a nearly full album then offers Plus's extra space. */
+    onGetPlus: (() -> Unit)? = null,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var openLocal by remember { mutableStateOf<LocalPhoto?>(null) }
@@ -121,6 +123,10 @@ fun AlbumTab(
             if (ui.storageMissing) full("storage") { NoteCard("Photo storage isn't set up on this server yet. Photos you add stay safe on this phone until it is.", Modifier.padding(bottom = 10.dp)) }
             ui.note?.let { note -> full("note") { NoteCard(note, Modifier.padding(bottom = 10.dp)) } }
             ui.result?.let { result -> full("result") { ResultCard(result, onDismissResult) } }
+            val usage = ui.usage
+            val nearlyFull = usage != null && usage.limitBytes > 0 && usage.usedBytes >= usage.limitBytes * 9 / 10
+            val refusedFull = ui.refused.any { it.errorCode == "memories.quota_exceeded" }
+            if (onGetPlus != null && (nearlyFull || refusedFull)) full("plus") { PlusPrompt(refusedFull || (usage != null && usage.usedBytes >= usage.limitBytes), onGetPlus) }
             if (ui.waiting.isNotEmpty() || ui.sync != SyncState.Idle) full("banner") { SyncBanner(ui, onSync = { sheetOpen = true }) }
             if (ui.onThisDay.isNotEmpty()) full("onthisday") { OnThisDay(ui.onThisDay, image) { openShared = it } }
 
@@ -183,6 +189,17 @@ private fun Header(ui: AlbumUi) {
             ui.usage?.let { "Shared: " + AlbumText.usage(it) } ?: "Photos stay on your phone until you sync",
             style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 6.dp),
         )
+    }
+}
+
+/** The album is nearly full on Free: Plus has more room for both of you. */
+@Composable
+private fun PlusPrompt(full: Boolean, onGetPlus: () -> Unit) {
+    val colors = Heartpact.colors
+    Column(Modifier.padding(bottom = 10.dp).fillMaxWidth().clip(Shapes.Well).background(colors.left.tint).padding(14.dp)) {
+        Text(if (full) "Your shared album is full" else "Your shared album is nearly full", style = Heartpact.type.label, color = colors.ink)
+        Text("Plus gives you both more space. Or delete a few shared photos to make room.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+        HeartButton("See Plus", onGetPlus, Modifier.padding(top = 10.dp), kind = ButtonKind.Tonal, height = 44.dp, fillWidth = false)
     }
 }
 

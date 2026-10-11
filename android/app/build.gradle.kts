@@ -116,6 +116,7 @@ dependencies {
     // SignalR hands hub payloads over as Gson elements; it only declares Gson at runtime.
     implementation(libs.gson)
     implementation(libs.maps.compose)
+    implementation(libs.billing.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.credentials)
     implementation(libs.credentials.play)

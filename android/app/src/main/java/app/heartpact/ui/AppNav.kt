@@ -10,6 +10,7 @@ import app.heartpact.alarm.AlarmActivity
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmSlot
 import app.heartpact.data.utc
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,6 +18,7 @@ import app.heartpact.data.CoupleSide
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavType
@@ -25,6 +27,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChildCare
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.SportsEsports
+import androidx.compose.material.icons.outlined.WorkspacePremium
+import app.heartpact.billing.PlusOffers
+import app.heartpact.ui.plus.PlusScreen
+import app.heartpact.ui.plus.PlusSummaryViewModel
+import app.heartpact.ui.plus.PlusText
+import app.heartpact.ui.plus.PlusViewModel
 import app.heartpact.ui.games.GameActions
 import app.heartpact.ui.games.GamesScreen
 import app.heartpact.ui.games.GamesViewModel
@@ -126,6 +134,7 @@ private object Routes {
     const val CYCLE = "cycle"
     const val MAP = "map"
     const val GAMES = "games"
+    const val PLUS = "plus"
     const val PREGNANCY = "pregnancy"
     const val NOTIFICATIONS = "notifications"
     const val FOOD_SCAN = "foodscan?uri={uri}"
@@ -245,8 +254,11 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val cycleSummaryUi by cycleSummary.ui.collectAsStateWithLifecycle()
                     val pregnancySummary: PregnancyViewModel = viewModel(key = "pregnancy-summary", factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
                     val pregnancySummaryUi by pregnancySummary.ui.collectAsStateWithLifecycle()
+                    val plusSummary: PlusSummaryViewModel = viewModel(key = "plus-summary", factory = viewModelFactory { initializer { PlusSummaryViewModel(container.plus) } })
+                    val plusUi by plusSummary.ui.collectAsStateWithLifecycle()
                     // Back from logging a meal, answering, or settings: what they show may have moved.
                     LifecycleResumeEffect(Unit) {
+                        plusSummary.load()
                         foodModel.refresh()
                         usModel.refresh()
                         cycleSummary.load()
@@ -298,6 +310,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                             subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner, partnerDay),
                                             icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
+                                    CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),
+                                        icon = Icons.Outlined.WorkspacePremium, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
                                     CardRow("Play together", subtitle = "Same answer, memory match, I call on",
                                         icon = Icons.Outlined.SportsEsports, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
                                     CardRow("Pregnancy mode", subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
@@ -324,6 +338,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 onAdd = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                 onSync = albumModel::sync, onRemove = { albumModel.remove(it) }, onRetry = { albumModel.retry(it) },
                                 onLoadMore = albumModel::loadMore, onDismissResult = albumModel::dismissResult, unmetered = albumModel::onUnmetered,
+                                onGetPlus = if (plusUi.offersPlus) ({ nav.navigate(Routes.PLUS) }) else null,
                             )
                         },
                         pacts = { PactsTab(pactsUi, partner, onStop = pactsModel::stop, onNewDare = { nav.navigate(Routes.NEW_DARE) }) },
@@ -338,6 +353,17 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
                         )
                     })
+                }
+                composable(Routes.PLUS) {
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val me = session?.user ?: return@composable
+                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: "your partner"
+                    val activity = LocalActivity.current ?: return@composable
+                    val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id) } })
+                    val ui by model.ui.collectAsStateWithLifecycle()
+                    PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
+                        onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) })
                 }
                 composable(Routes.QUESTION) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
@@ -409,9 +435,13 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val application = LocalContext.current.applicationContext as Application
                     val model: FoodScanViewModel = viewModel(factory = viewModelFactory { initializer { FoodScanViewModel(application, uri) } })
                     val state by model.ui.collectAsStateWithLifecycle()
+                    val plusSummary: PlusSummaryViewModel = viewModel(key = "plus-summary", factory = viewModelFactory { initializer { PlusSummaryViewModel(container.plus) } })
+                    val plusUi by plusSummary.ui.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { plusSummary.load() }
                     FoodScanScreen(state, scansLeft = null, onPortion = model::portion, onMeal = model::meal,
                         onLog = { model.log { nav.popBackStack() } }, onRetry = { model.scan() },
-                        onLogByHand = { nav.navigate(Routes.foodEntry(null)) { popUpTo(Routes.HOME) } }, onBack = { nav.popBackStack() })
+                        onLogByHand = { nav.navigate(Routes.foodEntry(null)) { popUpTo(Routes.HOME) } }, onBack = { nav.popBackStack() },
+                        onGetPlus = if (plusUi.offersPlus) ({ nav.navigate(Routes.PLUS) }) else null)
                 }
                 composable(Routes.FOOD_ENTRY, arguments = listOf(navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null })) { entry ->
                     val id = entry.arguments?.getString("id")

@@ -6,6 +6,8 @@ import app.heartpact.live.LiveHub
 import kotlinx.coroutines.flow.MutableSharedFlow
 import app.heartpact.album.AlbumQueue
 import app.heartpact.album.SyncEngine
+import app.heartpact.billing.GooglePlayStore
+import app.heartpact.billing.PlayStore
 import java.io.File
 import app.heartpact.BuildConfig
 import kotlinx.serialization.json.Json
@@ -76,6 +78,10 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val pregnancy = PregnancyRepository(api, json)
     val location = LocationRepository(api, json)
     val games = GameRepository(api, json)
+    val plus = PlusRepository(api, json)
+
+    /** Google Play, connected on first use. */
+    val playStore: PlayStore by lazy { GooglePlayStore(appContext) }
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */

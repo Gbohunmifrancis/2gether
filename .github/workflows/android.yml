@@ -91,6 +91,8 @@ jobs:
           Database__EnsureCreated: "true"
           # Every live test signs up two people from one address.
           RateLimits__Enabled: "false"
+          # Plus purchases with Google's answers faked by the token (docs/billing.md); refused in Production.
+          Billing__Provider: fake
           # Reset codes go to the log, where the live test reads them.
           Email__Provider: log
           Media__ServiceUrl: http://127.0.0.1:9000

@@ -76,6 +76,12 @@ interface HeartpactApi {
     @POST("api/memories/sync/complete")
     suspend fun completeSync(@Body request: CompleteSyncRequest): Response<CompleteSyncResponse>
 
+    @GET("api/billing/entitlement")
+    suspend fun entitlement(): Response<Entitlement>
+
+    @POST("api/billing/google/verify")
+    suspend fun verifyPurchase(@Body request: VerifyPurchaseRequest): Response<Entitlement>
+
     @PUT("api/devices")
     suspend fun registerDevice(@Body request: RegisterDeviceRequest): Response<Unit>
 

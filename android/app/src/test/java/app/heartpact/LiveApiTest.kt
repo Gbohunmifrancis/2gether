@@ -459,4 +459,38 @@ class LiveApiTest {
         assertTrue(mayaGames.sessions().let { it is ApiResult.Ok && it.value.none { s -> s.open } })
         assertTrue(theo.id.isNotEmpty())
     }
+
+    @Test fun `one partner buys Plus and both have it, and nobody else can claim the purchase`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        val mayaUser = (mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val maya = app.heartpact.data.PlusRepository(apis.getValue("maya"), json)
+        val theo = app.heartpact.data.PlusRepository(apis.getValue("theo"), json)
+
+        val before = (maya.entitlement() as ApiResult.Ok).value
+        assertEquals(app.heartpact.data.Plan.Free, before.plan)
+        assertTrue(before.canPurchase)
+        assertTrue("the plans on sale come from the server", before.productIds.containsAll(listOf("heartpact_plus_monthly", "heartpact_plus_yearly")))
+        assertTrue(before.plusLimits!!.foodScansPerDay > before.freeLimits!!.foodScansPerDay)
+
+        // Billing__Provider=fake understands tokens shaped fake.{state}.{days}.{accountId}.{productId}.
+        val token = "fake.active.30.${app.heartpact.billing.PlusOffers.accountId(mayaUser.id)}.heartpact_plus_monthly"
+        val bought = maya.verify("heartpact_plus_monthly", token)
+        assumeTrue("fake billing is not on for this API", !(bought is ApiResult.Failure && bought.code == "billing.unavailable"))
+        val mine = (bought as ApiResult.Ok).value
+        assertEquals(app.heartpact.data.Plan.Plus, mine.plan)
+        assertTrue(mine.subscription!!.purchasedByMe)
+
+        val partner = (theo.entitlement() as ApiResult.Ok).value
+        assertEquals(app.heartpact.data.Plan.Plus, partner.plan)
+        assertEquals("one plan covers both: the partner isn't offered another", false, partner.canPurchase)
+        assertEquals(false, partner.subscription!!.purchasedByMe)
+
+        assertEquals("billing.not_your_purchase", (theo.verify("heartpact_plus_monthly", token) as ApiResult.Failure).code)
+        assertEquals("billing.unknown_product", (maya.verify("cheap_test_item", token) as ApiResult.Failure).code)
+    }
 }

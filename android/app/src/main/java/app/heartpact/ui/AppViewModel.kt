@@ -2,6 +2,7 @@ package app.heartpact.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.heartpact.billing.PlusRestore
 import app.heartpact.data.ApiResult
 import app.heartpact.data.AppContainer
 import app.heartpact.data.Couple
@@ -99,6 +100,9 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         viewModelScope.launch { Push.register(app) }
         // The hub joins the couple's group on connect: reconnect now that sign-in or linking changed it.
         app.live.restart()
+        // A purchase the server never heard about (the app closed mid-purchase, a payment that cleared
+        // later) is verified now; Play refunds anything unacknowledged after three days.
+        viewModelScope.launch { runCatching { PlusRestore.run(app.playStore, app.plus, session.user.id, onlyUnacknowledged = true) } }
         val status = couple?.status ?: session.coupleStatus
         if (status != CoupleStatus.Active) stopAlarms()
         return if (status == CoupleStatus.Active) Destination.Home else Destination.Pair

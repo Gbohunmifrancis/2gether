@@ -63,6 +63,8 @@ fun FoodScanScreen(
     onLogByHand: () -> Unit,
     onBack: () -> Unit,
     image: PhotoSlot = CoilPhoto,
+    /** Set when the couple is on Free: the daily limit then offers Plus. */
+    onGetPlus: (() -> Unit)? = null,
 ) {
     val colors = Heartpact.colors
     Box(Modifier.fillMaxSize().background(colors.page2)) {
@@ -93,7 +95,7 @@ fun FoodScanScreen(
                             Text("A few seconds. The photo isn't kept.", style = Heartpact.type.body, color = colors.ink2)
                         }
                     }
-                    is ScanPhase.Failed -> Failed(phase, onRetry, onLogByHand)
+                    is ScanPhase.Failed -> Failed(phase, onRetry, onLogByHand, onGetPlus)
                     is ScanPhase.Ready -> Estimate(phase.scan, ui, onPortion, onMeal)
                 }
                 ui.note?.let { NoteCard(it, Modifier.padding(top = 12.dp)) }
@@ -141,7 +143,7 @@ private fun Estimate(scan: FoodScanResult, ui: FoodScanUi, onPortion: (Portion) 
 }
 
 @Composable
-private fun Failed(phase: ScanPhase.Failed, onRetry: () -> Unit, onLogByHand: () -> Unit) {
+private fun Failed(phase: ScanPhase.Failed, onRetry: () -> Unit, onLogByHand: () -> Unit, onGetPlus: (() -> Unit)?) {
     val colors = Heartpact.colors
     val title = when (phase.code) {
         "food.not_food" -> "That doesn't look like food"
@@ -153,8 +155,10 @@ private fun Failed(phase: ScanPhase.Failed, onRetry: () -> Unit, onLogByHand: ()
     Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
     Text(phase.message, style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
     val canRetry = phase.code !in setOf("food.scan_limit", "food.estimation_unavailable", "food.not_food", "photo")
+    val offerPlus = phase.code == "food.scan_limit" && onGetPlus != null
     if (canRetry) HeartButton("Try again", onRetry, Modifier.padding(top = 18.dp), kind = ButtonKind.Tonal)
-    HeartButton("Log it by hand", onLogByHand, Modifier.padding(top = 8.dp), kind = if (canRetry) ButtonKind.Text else ButtonKind.Filled)
+    if (offerPlus) HeartButton("Get more a day with Plus", { onGetPlus?.invoke() }, Modifier.padding(top = 18.dp))
+    HeartButton("Log it by hand", onLogByHand, Modifier.padding(top = 8.dp), kind = if (canRetry || offerPlus) ButtonKind.Text else ButtonKind.Filled)
 }
 
 /** Log a meal by hand, or change or delete one already logged. */

@@ -113,3 +113,9 @@ class GameRepository(private val api: HeartpactApi, private val json: Json) {
         apiCall(json) { api.gameAction(id, GameActionRequest(version, action, value, index)) }
     suspend fun abandon(id: String): ApiResult<GameSession> = apiCall(json) { api.abandonGame(id) }
 }
+
+/** Plus: what the couple has, and telling the server about a Play purchase so it can check it with Google. */
+class PlusRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun entitlement(): ApiResult<Entitlement> = apiCall(json) { api.entitlement() }
+    suspend fun verify(productId: String, purchaseToken: String): ApiResult<Entitlement> = apiCall(json) { api.verifyPurchase(VerifyPurchaseRequest(productId, purchaseToken)) }
+}

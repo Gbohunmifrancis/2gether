@@ -30,14 +30,20 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
             .ToListAsync(cancellationToken);
         var granting = candidates.Where(item => item.GrantsAccess(now)).MaxBy(item => item.ExpiresAtUtc);
         // No paid plan: a complimentary grant on the current couple still gives Plus.
-        var complimentary = granting is null && coupleId is { } current
-            && await db.PlusGrants.AsNoTracking().AnyAsync(item => item.CoupleId == current && item.RevokedAtUtc == null && item.ExpiresAtUtc > now, cancellationToken);
+        var complimentaryUntil = granting is not null || coupleId is not { } current ? null
+            : await db.PlusGrants.AsNoTracking().Where(item => item.CoupleId == current && item.RevokedAtUtc == null && item.ExpiresAtUtc > now)
+                .MaxAsync(item => (DateTime?)item.ExpiresAtUtc, cancellationToken);
+        var complimentary = complimentaryUntil is not null;
         var plan = granting is null && !complimentary ? Plan.Free : Plan.Plus;
         return new EntitlementDto(
             plan,
             settings.Limits(plan),
             granting is null ? null : new SubscriptionSummaryDto(granting.Store, granting.ProductId, granting.Status, granting.ExpiresAtUtc, granting.AutoRenewing, granting.UserId, granting.UserId == userId),
             CanPurchase: granting is null || granting.UserId == userId,
-            Complimentary: complimentary);
+            Complimentary: complimentary,
+            ComplimentaryUntilUtc: complimentaryUntil,
+            FreeLimits: settings.Free,
+            PlusLimits: settings.Plus,
+            ProductIds: settings.ProductIds);
     }
 }

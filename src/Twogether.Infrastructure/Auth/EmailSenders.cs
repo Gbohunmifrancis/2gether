@@ -13,14 +13,16 @@ public sealed class SmtpEmailSender(EmailSettings settings, ILogger<SmtpEmailSen
 
     public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
     {
+        if (settings.Host is not { Length: > 0 } host || settings.From is not { Length: > 0 } from)
+            throw new InvalidOperationException("SMTP is not configured; check IsConfigured before sending.");
         var mime = new MimeMessage();
-        mime.From.Add(new MailboxAddress(settings.FromName, settings.From));
+        mime.From.Add(new MailboxAddress(settings.FromName, from));
         mime.To.Add(MailboxAddress.Parse(message.To));
         mime.Subject = message.Subject;
         mime.Body = new TextPart("plain") { Text = message.TextBody };
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(settings.Host, settings.Port, settings.StartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect, cancellationToken);
+        await client.ConnectAsync(host, settings.Port, settings.StartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect, cancellationToken);
         if (!string.IsNullOrWhiteSpace(settings.User)) await client.AuthenticateAsync(settings.User, settings.Password ?? string.Empty, cancellationToken);
         await client.SendAsync(mime, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);

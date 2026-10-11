@@ -152,7 +152,7 @@ public sealed class FoodTests
         Assert.Equal(typeof(string), entries.FindProperty(nameof(FoodEntry.MealType))!.GetProviderClrType());
 
         var targets = model.FindEntityType(typeof(NutritionTarget))!;
-        Assert.Single(targets.GetIndexes().Where(index => index.IsUnique));
+        Assert.Single(targets.GetIndexes(), index => index.IsUnique);
         Assert.Contains(targets.GetCheckConstraints(), check => check.Name == "CK_nutrition_targets_DailyCalories");
 
         var scans = model.FindEntityType(typeof(FoodScan))!;

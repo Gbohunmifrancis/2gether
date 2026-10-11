@@ -48,9 +48,21 @@ public interface IGooglePlayBilling
 
 public sealed record SubscriptionSummaryDto(string Store, string ProductId, StoreSubscriptionStatus Status, DateTime ExpiresAtUtc, bool AutoRenewing, Guid PurchasedByUserId, bool PurchasedByMe);
 
-/// <summary>CanPurchase is false when my partner already pays: one plan covers both of us.</summary>
-/// <summary>Complimentary: Plus comes from a grant by Heartpact (support), not a purchase.</summary>
-public sealed record EntitlementDto(Plan Plan, PlanLimits Limits, SubscriptionSummaryDto? Subscription, bool CanPurchase, bool Complimentary = false);
+/// <summary>
+/// CanPurchase is false when my partner already pays: one plan covers both of us. Complimentary: Plus
+/// comes from a grant by Heartpact (support), not a purchase, until ComplimentaryUntilUtc. FreeLimits,
+/// PlusLimits and ProductIds let the app show the comparison and the plans without hard-coding them.
+/// </summary>
+public sealed record EntitlementDto(
+    Plan Plan,
+    PlanLimits Limits,
+    SubscriptionSummaryDto? Subscription,
+    bool CanPurchase,
+    bool Complimentary = false,
+    DateTime? ComplimentaryUntilUtc = null,
+    PlanLimits? FreeLimits = null,
+    PlanLimits? PlusLimits = null,
+    IReadOnlyList<string>? ProductIds = null);
 
 public sealed record VerifyGooglePurchaseRequest(string ProductId, string PurchaseToken);
 

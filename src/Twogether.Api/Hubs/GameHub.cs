@@ -51,7 +51,7 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         IReadOnlyDictionary<string, bool?>? validations = null;
         if (session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
             validations = await wordValidator.ValidateAsync(session.StateJson, value, Context.ConnectionAborted);
-        try { next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, value, index, clock.UtcNow, validations); }
+        try { next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId!.Value, action, value, index, clock.UtcNow, validations); }
         catch (InvalidOperationException exception) { throw new HubException(exception.Message); }
         if (next.Completed) session.Complete(next.StateJson, clock.UtcNow);
         else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, clock.UtcNow);
