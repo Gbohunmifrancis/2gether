@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import app.heartpact.album.AlbumNotices
 import app.heartpact.ui.AppViewModel
 import app.heartpact.ui.HeartpactApp
 
@@ -21,12 +22,17 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (savedInstanceState == null) handleInvite(intent)
+        if (savedInstanceState == null) handleIntent(intent)
         setContent { HeartpactApp(container, appModel) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        intent?.getStringExtra(AlbumNotices.EXTRA_OPEN_TAB)?.let { appModel.openTab(it) }
         handleInvite(intent)
     }
 

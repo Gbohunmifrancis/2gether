@@ -87,6 +87,10 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
     implementation(libs.mediapipe.tasks.vision)
+    implementation(libs.work.runtime)
+    implementation(libs.exifinterface)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
@@ -94,6 +98,7 @@ dependencies {
     testImplementation(libs.androidx.test.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.work.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)

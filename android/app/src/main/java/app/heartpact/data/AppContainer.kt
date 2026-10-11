@@ -1,6 +1,9 @@
 package app.heartpact.data
 
 import android.content.Context
+import app.heartpact.album.AlbumQueue
+import app.heartpact.album.SyncEngine
+import java.io.File
 import app.heartpact.BuildConfig
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
@@ -38,6 +41,16 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
         .create(HeartpactApi::class.java)
+
+    /** For signed storage links only: no sign-in token, generous timeouts for large photos. */
+    private val uploads = OkHttpClient.Builder()
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .build()
+
+    val albumQueue = AlbumQueue(File(context.filesDir, "album"))
+    val albumSync = SyncEngine(api, uploads, albumQueue, json)
 
     val auth = AuthRepository(api, session, json)
     val couple = CoupleRepository(api, session, json)

@@ -10,6 +10,14 @@ import app.heartpact.alarm.AlarmActivity
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmSlot
 import app.heartpact.data.utc
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import app.heartpact.data.CoupleSide
+import app.heartpact.ui.album.AlbumTab
+import app.heartpact.ui.album.AlbumViewModel
+import app.heartpact.ui.home.Tab
+import app.heartpact.ui.theme.Side
 import app.heartpact.ui.pacts.PactsTab
 import app.heartpact.ui.pacts.PactsViewModel
 import app.heartpact.ui.today.MyDare
@@ -131,8 +139,29 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     }
                     val pactsModel: PactsViewModel = viewModel(factory = viewModelFactory { initializer { PactsViewModel(application, me.id) } })
                     val pactsUi by pactsModel.ui.collectAsStateWithLifecycle()
+                    val albumModel: AlbumViewModel = viewModel(factory = viewModelFactory { initializer { AlbumViewModel(application) } })
+                    val albumUi by albumModel.ui.collectAsStateWithLifecycle()
+                    val pickPhotos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(50)) { albumModel.add(it) }
+                    val sides = couple?.members.orEmpty().associate { it.userId to if (it.side == CoupleSide.Right) Side.Right else Side.Left }
+                    val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
                     HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() },
-                        onTab = { if (it == app.heartpact.ui.home.Tab.Pacts) pactsModel.refresh() },
+                        requestedTab = requestedTab?.let { name -> Tab.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } },
+                        onRequestedTab = appModel::tabOpened,
+                        onTab = {
+                            when (it) {
+                                Tab.Pacts -> pactsModel.refresh()
+                                Tab.Album -> albumModel.refresh()
+                                else -> Unit
+                            }
+                        },
+                        album = {
+                            AlbumTab(
+                                ui = albumUi, sides = sides, localModel = albumModel::localModel,
+                                onAdd = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                                onSync = albumModel::sync, onRemove = { albumModel.remove(it) }, onRetry = { albumModel.retry(it) },
+                                onLoadMore = albumModel::loadMore, onDismissResult = albumModel::dismissResult, unmetered = albumModel::onUnmetered,
+                            )
+                        },
                         pacts = { PactsTab(pactsUi, partner, onStop = pactsModel::stop, onNewDare = { nav.navigate(Routes.NEW_DARE) }) },
                         today = {
                         TodayTab(

@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -56,4 +57,22 @@ interface HeartpactApi {
 
     @POST("api/exercise/occurrences/{id}/ask-off")
     suspend fun askOff(@Path("id") id: String, @Body request: AskOffRequest): Response<ExerciseOccurrence>
+
+    @GET("api/memories")
+    suspend fun memories(@Query("cursor") cursor: String?, @Query("limit") limit: Int = 30): Response<MemoryPage>
+
+    @GET("api/memories/on-this-day")
+    suspend fun onThisDay(@Query("date") date: String): Response<List<Memory>>
+
+    @GET("api/memories/sync")
+    suspend fun albumSync(): Response<AlbumSyncStatus>
+
+    @PUT("api/memories/sync/pending")
+    suspend fun reportPending(@Body request: ReportPendingRequest): Response<Unit>
+
+    @POST("api/memories/sync")
+    suspend fun sync(@Body request: SyncRequest): Response<SyncResponse>
+
+    @POST("api/memories/sync/complete")
+    suspend fun completeSync(@Body request: CompleteSyncRequest): Response<CompleteSyncResponse>
 }

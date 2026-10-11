@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.Today
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -64,8 +65,12 @@ enum class Tab(val label: String, val icon: ImageVector, val selectedIcon: Image
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
 @Composable
-fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}) {
+fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
+    // A notification can ask for a tab (the album nudge opens Album).
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) { tab = requestedTab; onTab(requestedTab); onRequestedTab() }
+    }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f).statusBarsPadding()) {
             when (tab) {
@@ -80,7 +85,7 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
                         }
                     }
                 }
-                Tab.Album -> TabPage("Album", "Photos stay on your phone until you sync") { EmptyPage(Who.Left, Pose.Rest, "No photos yet", "Add photos and they stay on this phone. When you tap Sync, they join your shared album.", Mood.Sleep) }
+                Tab.Album -> album?.invoke() ?: TabPage("Album", "Photos stay on your phone until you sync") { EmptyPage(Who.Left, Pose.Rest, "No photos yet", "Add photos and they stay on this phone. When you tap Sync, they join your shared album.", Mood.Sleep) }
             }
         }
         NavBar(tab) { tab = it; onTab(it) }

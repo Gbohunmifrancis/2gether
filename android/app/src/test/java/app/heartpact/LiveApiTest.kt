@@ -45,6 +45,7 @@ class LiveApiTest {
     private val json = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefaults = true; coerceInputValues = true }
 
     private val exercises = mutableMapOf<String, ExerciseRepository>()
+    private val apis = mutableMapOf<String, HeartpactApi>()
 
     private fun client(name: String): Triple<SessionStore, AuthRepository, CoupleRepository> {
         val session = SessionStore(PreferenceDataStoreFactory.create { folder.newFile("$name.preferences_pb") }, json)
@@ -53,6 +54,7 @@ class LiveApiTest {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build().create(HeartpactApi::class.java)
         exercises[name] = ExerciseRepository(api, json)
+        apis[name] = api
         return Triple(session, AuthRepository(api, session, json), CoupleRepository(api, session, json))
     }
 
@@ -173,5 +175,44 @@ class LiveApiTest {
         val plan = AlarmPlan.plan(today, maya.id, "Theo", Instant.now())
         assertEquals(listOf(moved.toEpochMilli()), plan.filter { it.goalId == goal.id }.map { it.dueAtEpochMs })
         assertEquals("exercise.not_due_today", (mayaEx.startEarly(goal.id) as ApiResult.Failure).code)
+    }
+
+    /** Needs the API started with S3-compatible storage (Media__ServiceUrl etc.), e.g. MinIO or moto. */
+    @Test fun `photos wait on the phone, then one sync puts them in the shared album`() = runTest(timeout = kotlin.time.Duration.parse("2m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        val maya = (mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val mayaApi = apis.getValue("maya"); val theoApi = apis.getValue("theo")
+        val storage = app.heartpact.data.apiCall(json) { mayaApi.memories(null) }
+        assumeTrue("storage is not configured on this API", storage is ApiResult.Ok)
+
+        val queue = app.heartpact.album.AlbumQueue(folder.newFolder("album"))
+        val engine = app.heartpact.album.SyncEngine(mayaApi, OkHttpClient(), queue, json)
+        repeat(3) { n ->
+            val id = UUID.randomUUID().toString()
+            queue.photosDir.resolve("$id.jpg").writeBytes(ByteArray(2048 + n) { (it % 251).toByte() })
+            queue.thumbsDir.resolve("$id.jpg").writeBytes(ByteArray(300) { 1 })
+            queue.add(app.heartpact.album.LocalPhoto(id, "$id.jpg", "$id.jpg", "image/jpeg", 2048L + n, "2025-10-11T09:00:00Z", 0))
+        }
+        engine.reportPending()
+        assertEquals(3, (app.heartpact.data.apiCall(json) { mayaApi.albumSync() } as ApiResult.Ok).value.pendingCount)
+        // Nothing is shared until Maya syncs.
+        assertEquals(0, (app.heartpact.data.apiCall(json) { theoApi.memories(null) } as ApiResult.Ok).value.items.size)
+
+        val outcome = withContext(Dispatchers.IO) { engine.run() }
+        assertEquals(3, outcome.synced)
+        assertTrue(queue.photos.value.isEmpty())
+
+        val seen = (app.heartpact.data.apiCall(json) { theoApi.memories(null) } as ApiResult.Ok).value.items
+        assertEquals(3, seen.size)
+        assertTrue(seen.all { it.uploadedByUserId == maya.id && it.thumbnailUrl != null })
+        val status = (app.heartpact.data.apiCall(json) { mayaApi.albumSync() } as ApiResult.Ok).value
+        assertEquals(0, status.pendingCount)
+        assertEquals(3, status.usage.count)
+        assertEquals("taken a year ago today", 3, (app.heartpact.data.apiCall(json) { theoApi.onThisDay("2026-10-11") } as ApiResult.Ok).value.size)
     }
 }

@@ -33,6 +33,12 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     val side: StateFlow<Side> = app.session.session.map { if (it?.side == CoupleSide.Right) Side.Right else Side.Left }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Side.Left)
 
+    private val _openTab = MutableStateFlow<String?>(null)
+    /** A tab a notification asked for (the album nudge); Home switches to it and consumes it. */
+    val openTab: StateFlow<String?> = _openTab.asStateFlow()
+    fun openTab(name: String) { _openTab.value = name }
+    fun tabOpened() { _openTab.value = null }
+
     /** An invite link that opened the app; consumed by the pair screen. */
     var pendingInviteToken: String? = null
 
@@ -57,6 +63,8 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
 
     fun signOut() = viewModelScope.launch {
         app.auth.signOut()
+        // Photos waiting on this phone belong to this account's album: never sync them into another's.
+        app.albumQueue.clear()
         _couple.value = null
         _destination.value = Destination.Welcome
     }
@@ -69,6 +77,7 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         if (couple != null) _couple.value = couple
         if (fresh is ApiResult.Failure && fresh.status == 401) {
             app.auth.signOut()
+            app.albumQueue.clear()
             return Destination.Welcome
         }
         val status = couple?.status ?: session.coupleStatus
