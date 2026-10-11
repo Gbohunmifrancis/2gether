@@ -29,6 +29,9 @@ android {
         for (name in listOf("FIREBASE_PROJECT_ID", "FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_SENDER_ID")) {
             buildConfigField("String", name, "\"${setting(name)}\"")
         }
+        // Google Maps for the location map. Without a key the app draws its own map of the two of you.
+        manifestPlaceholders["mapsApiKey"] = setting("MAPS_API_KEY")
+        buildConfigField("boolean", "HAS_MAPS_KEY", setting("MAPS_API_KEY").isNotBlank().toString())
     }
 
     signingConfigs {
@@ -71,6 +74,8 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            // Plain JVM tests (the live hub client) may call android.util.Log; let the stubs return defaults.
+            isReturnDefaultValues = true
             all {
                 it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
                 // Robolectric fetches its Android runtime jars itself; use the same Central mirror as the build.
@@ -105,6 +110,11 @@ dependencies {
     implementation(libs.retrofit)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.signalr)
+    // SignalR hands hub payloads over as Gson elements; it only declares Gson at runtime.
+    implementation(libs.gson)
+    implementation(libs.maps.compose)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.retrofit.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)

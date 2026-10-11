@@ -10,6 +10,8 @@ import app.heartpact.data.OccurrenceStatus
 import app.heartpact.alarm.AlarmPlan
 import app.heartpact.exercise.ExerciseType
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import java.time.Instant
@@ -47,6 +49,8 @@ class LiveApiTest {
     private val exercises = mutableMapOf<String, ExerciseRepository>()
     private val apis = mutableMapOf<String, HeartpactApi>()
 
+    private val sessions = mutableMapOf<String, SessionStore>()
+
     private fun client(name: String): Triple<SessionStore, AuthRepository, CoupleRepository> {
         val session = SessionStore(PreferenceDataStoreFactory.create { folder.newFile("$name.preferences_pb") }, json)
         val api = Retrofit.Builder().baseUrl(System.getenv("HEARTPACT_API_URL")!!)
@@ -55,6 +59,7 @@ class LiveApiTest {
             .build().create(HeartpactApi::class.java)
         exercises[name] = ExerciseRepository(api, json)
         apis[name] = api
+        sessions[name] = session
         return Triple(session, AuthRepository(api, session, json), CoupleRepository(api, session, json))
     }
 
@@ -315,5 +320,45 @@ class LiveApiTest {
         val session = (mayaP.startKicks(p.id) as ApiResult.Ok).value
         assertEquals(7, (mayaP.recordKicks(session.id, 7, end = true) as ApiResult.Ok).value.count)
         assertTrue("only she counts kicks", theoP.startKicks(p.id) is ApiResult.Failure)
+    }
+
+    @Test fun `location goes through the live hub only while both share, and pausing hides it`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val url = System.getenv("HEARTPACT_API_URL")!!
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        // Linking issues new tokens with the couple in them: the hub reads the stored one.
+        val mayaHub = app.heartpact.live.LiveHub(url, sessions.getValue("maya"))
+        val theoHub = app.heartpact.live.LiveHub(url, sessions.getValue("theo"))
+        val theoEvents = java.util.concurrent.CopyOnWriteArrayList<app.heartpact.live.LiveEvent>()
+        val collector = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch { theoHub.events.collect { theoEvents += it } }
+        try {
+            mayaHub.hold("test"); theoHub.hold("test")
+            withContext(Dispatchers.IO) {
+                kotlinx.coroutines.withTimeout(20_000) { mayaHub.connected.first { it }; theoHub.connected.first { it } }
+            }
+            val mayaLoc = app.heartpact.data.LocationRepository(apis.getValue("maya"), json)
+            val theoLoc = app.heartpact.data.LocationRepository(apis.getValue("theo"), json)
+
+            mayaHub.updateLocation(6.4300, 3.4200, 12.0)
+            withContext(Dispatchers.IO) { Thread.sleep(800) }
+            assertEquals("not mutual yet: Theo sees only himself", emptyList<String>(), (theoLoc.points() as ApiResult.Ok).value.map { it.displayName })
+
+            theoHub.updateLocation(6.4400, 3.4350, 15.0)
+            withContext(Dispatchers.IO) { kotlinx.coroutines.withTimeout(10_000) { while (theoEvents.none { it.name == "LocationUpdated" && "Maya" in it.json }) delay(100) } }
+            assertTrue((mayaLoc.status() as ApiResult.Ok).value.mutual)
+            assertEquals(2, (theoLoc.points() as ApiResult.Ok).value.size)
+
+            assertEquals(app.heartpact.data.SharingStatus.Paused, (mayaLoc.pause(60) as ApiResult.Ok).value.me.status)
+            assertEquals("paused: nothing of Maya", 1, (theoLoc.points() as ApiResult.Ok).value.size)
+            assertTrue(theoEvents.any { it.name == "LocationSharingChanged" })
+        } finally {
+            collector.cancel()
+            mayaHub.stopAll(); theoHub.stopAll()
+        }
     }
 }

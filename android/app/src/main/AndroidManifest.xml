@@ -15,6 +15,10 @@
     <!-- Album sync the person started keeps going, with a progress notification, after they leave. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Location sharing: only while the person shares, with a notification; no background location. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <application
         android:name=".HeartpactApplication"
@@ -64,6 +68,15 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${mapsApiKey}" />
+
+        <service
+            android:name=".location.LocationShareService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

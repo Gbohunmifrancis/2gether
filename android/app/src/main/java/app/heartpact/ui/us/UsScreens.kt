@@ -86,6 +86,7 @@ fun UsTab(
     onDeleteAccount: (String) -> Unit,
     onClearDeleteError: () -> Unit,
     extraRows: @Composable () -> Unit = {},
+    location: @Composable () -> Unit = {},
 ) {
     val colors = Heartpact.colors
     var confirmEnd by remember { mutableStateOf(false) }
@@ -99,6 +100,7 @@ fun UsTab(
             Character(Who.Both, Pose.Hug, 96.dp)
         }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
+        location()
         StickerCard(Modifier.padding(horizontal = 12.dp)) {
             CardRow("Today's question", subtitle = UsText.questionStatus(ui.question, partnerName), icon = Icons.Outlined.Forum, onClick = onQuestion) { Chevron() }
             extraRows()

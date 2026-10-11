@@ -88,3 +88,10 @@ class PregnancyRepository(private val api: HeartpactApi, private val json: Json)
     suspend fun startKicks(id: String): ApiResult<KickSession> = apiCall(json) { api.startKicks(id) }
     suspend fun recordKicks(id: String, count: Int, end: Boolean): ApiResult<KickSession> = apiCall(json) { api.recordKicks(id, KickUpdate(count, end)) }
 }
+
+class LocationRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun points(): ApiResult<List<LocationPoint>> = apiCall(json) { api.locations() }
+    suspend fun status(): ApiResult<SharingStatusView> = apiCall(json) { api.locationStatus() }
+    suspend fun pause(minutes: Int): ApiResult<SharingStatusView> = apiCall(json) { api.pauseLocation(PauseRequest(minutes)) }
+    suspend fun resume(): ApiResult<SharingStatusView> = apiCall(json) { api.resumeLocation() }
+}

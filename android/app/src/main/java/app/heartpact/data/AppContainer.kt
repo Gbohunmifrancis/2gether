@@ -2,6 +2,7 @@ package app.heartpact.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import app.heartpact.live.LiveHub
 import kotlinx.coroutines.flow.MutableSharedFlow
 import app.heartpact.album.AlbumQueue
 import app.heartpact.album.SyncEngine
@@ -63,6 +64,9 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     /** A push that changes what an open screen shows ("exerciseCompleted", "memoriesSynced"...). */
     val pushEvents = MutableSharedFlow<String>(extraBufferCapacity = 16)
 
+    /** The couple hub. Its "something changed" events join [pushEvents], so screens refresh either way. */
+    val live = LiveHub(baseUrl, session) { event -> pushEvents.tryEmit(LiveHub.appName(event.name)) }
+
     val auth = AuthRepository(api, session, json)
     val couple = CoupleRepository(api, session, json)
     val exercise = ExerciseRepository(api, json)
@@ -70,6 +74,7 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val us = UsRepository(api, json)
     val cycle = CycleRepository(api, json)
     val pregnancy = PregnancyRepository(api, json)
+    val location = LocationRepository(api, json)
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */

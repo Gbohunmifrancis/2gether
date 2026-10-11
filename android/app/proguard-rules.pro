@@ -8,3 +8,8 @@
 -dontwarn com.google.protobuf.**
 -dontwarn javax.annotation.**
 -dontwarn com.google.auto.value.**
+
+# SignalR parses hub messages with Gson by reflection; event payloads stay JsonElement and go to kotlinx.
+-keep class com.microsoft.signalr.** { *; }
+-dontwarn com.microsoft.signalr.**
+-dontwarn org.slf4j.**

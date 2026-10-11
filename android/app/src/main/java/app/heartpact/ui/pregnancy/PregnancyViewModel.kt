@@ -14,7 +14,9 @@ import app.heartpact.data.StartPregnancyRequest
 import app.heartpact.data.UpdatePregnancyRequest
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -40,9 +42,11 @@ private fun <T> ApiResult<T>.note(): String? = when (this) {
     is ApiResult.Failure -> message
 }
 
-class PregnancyViewModel(private val repo: PregnancyRepository, private val today: () -> LocalDate = { LocalDate.now() }) : ViewModel() {
+class PregnancyViewModel(private val repo: PregnancyRepository, events: Flow<String> = emptyFlow(), private val today: () -> LocalDate = { LocalDate.now() }) : ViewModel() {
     private val _ui = MutableStateFlow(PregnancyUi())
     val ui: StateFlow<PregnancyUi> = _ui.asStateFlow()
+
+    init { viewModelScope.launch { events.collect { if (it == "pregnancyChanged") load() } } }
     private var recording: Job? = null
 
     fun load() = viewModelScope.launch {

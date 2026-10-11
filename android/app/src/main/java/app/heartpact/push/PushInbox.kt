@@ -19,5 +19,5 @@ object PushInbox {
     }
 
     /** Kinds that change what Today shows, so an open Today refreshes at once. */
-    fun refreshesToday(type: String?) = type != null && type.startsWith("exercise")
+    fun refreshesToday(type: String?) = type != null && type.startsWith("exercise") && type != "exerciseProgress"
 }

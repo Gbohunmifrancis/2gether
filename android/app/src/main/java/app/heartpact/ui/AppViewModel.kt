@@ -8,6 +8,7 @@ import app.heartpact.data.Couple
 import app.heartpact.data.CoupleSide
 import app.heartpact.data.CoupleStatus
 import app.heartpact.alarm.AlarmScheduler
+import app.heartpact.location.LocationShareService
 import app.heartpact.push.Push
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +47,8 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
 
     init {
         viewModelScope.launch { _destination.value = decide() }
+        // The partner ended the pact, or this account was deleted on another phone: decide again.
+        viewModelScope.launch { app.pushEvents.collect { if (it in setOf("coupleEnded", "accountDeleted", "breakup")) refresh() } }
     }
 
     fun openedInvite(token: String) {
@@ -65,6 +68,7 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
 
     fun signOut() = viewModelScope.launch {
         withTimeoutOrNull(5_000) { Push.unregister(app) }
+        app.live.stopAll()
         app.auth.signOut()
         stopAlarms()
         // Photos waiting on this phone belong to this account's album: never sync them into another's.
@@ -74,7 +78,10 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     }
 
     /** Signed out or no longer linked: nothing may ring for a pact that no longer applies here. */
-    private fun stopAlarms() = AlarmScheduler.apply(app.appContext, emptyList())
+    private fun stopAlarms() {
+        AlarmScheduler.apply(app.appContext, emptyList())
+        if (LocationShareService.running) LocationShareService.stop(app.appContext)
+    }
 
     private suspend fun decide(): Destination {
         val session = app.session.load() ?: return if (app.session.onboardingSeen.first()) Destination.Welcome else Destination.Onboarding
@@ -90,6 +97,8 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         }
         // Re-register on every start: tokens rotate, and the server keeps only the newest installs.
         viewModelScope.launch { Push.register(app) }
+        // The hub joins the couple's group on connect: reconnect now that sign-in or linking changed it.
+        app.live.restart()
         val status = couple?.status ?: session.coupleStatus
         if (status != CoupleStatus.Active) stopAlarms()
         return if (status == CoupleStatus.Active) Destination.Home else Destination.Pair

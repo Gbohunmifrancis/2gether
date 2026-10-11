@@ -151,7 +151,7 @@ private fun RailPanel(ui: CameraUi, onStop: () -> Unit, modifier: Modifier) {
  * [onReached] once with the count and confidence.
  */
 @Composable
-fun CameraRepScreen(type: ExerciseType, target: Int, minutesLeft: Int?, note: String?, onReached: (Int, Double) -> Unit, onStop: () -> Unit) {
+fun CameraRepScreen(type: ExerciseType, target: Int, minutesLeft: Int?, note: String?, onReached: (Int, Double) -> Unit, onStop: () -> Unit, onProgress: (Int, Double) -> Unit = { _, _ -> }) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current
     var granted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
@@ -178,6 +178,9 @@ fun CameraRepScreen(type: ExerciseType, target: Int, minutesLeft: Int?, note: St
         sent = true
         reached(counted.count, counted.confidence)
     }
+    // Each new rep goes to the partner live (advisory: the server's completion check is what counts).
+    val progress by rememberUpdatedState(onProgress)
+    LaunchedEffect(counted.count) { if (counted.count > 0) progress(counted.count, counted.confidence) }
     // A rejected completion comes back as a note: let the person keep going and try again.
     LaunchedEffect(note) { if (note != null) { sent = false; sealing = false } }
 

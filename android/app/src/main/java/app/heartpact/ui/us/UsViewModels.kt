@@ -10,7 +10,9 @@ import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.UsRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -33,9 +35,11 @@ data class UsUi(
     val deleteError: String? = null,
 )
 
-class UsViewModel(private val us: UsRepository) : ViewModel() {
+class UsViewModel(private val us: UsRepository, events: Flow<String> = emptyFlow()) : ViewModel() {
     private val _ui = MutableStateFlow(UsUi())
     val ui: StateFlow<UsUi> = _ui.asStateFlow()
+
+    init { viewModelScope.launch { events.collect { if (it == "dailyQuestionAnswered") refresh() } } }
 
     fun refresh() = viewModelScope.launch {
         val question = us.question(LocalDate.now().toString())
@@ -74,11 +78,15 @@ data class QuestionUi(
     val note: String? = null,
 )
 
-class QuestionViewModel(private val us: UsRepository) : ViewModel() {
+class QuestionViewModel(private val us: UsRepository, events: Flow<String> = emptyFlow()) : ViewModel() {
     private val _ui = MutableStateFlow(QuestionUi())
     val ui: StateFlow<QuestionUi> = _ui.asStateFlow()
 
-    init { refresh() }
+    init {
+        refresh()
+        // The partner answered while this was open: their answer may now show.
+        viewModelScope.launch { events.collect { if (it == "dailyQuestionAnswered") refresh() } }
+    }
 
     fun refresh() = viewModelScope.launch {
         val today = us.question(LocalDate.now().toString())

@@ -34,6 +34,11 @@ import app.heartpact.ui.pregnancy.PregnancyActions
 import app.heartpact.ui.pregnancy.PregnancyScreen
 import app.heartpact.ui.pregnancy.PregnancyText
 import app.heartpact.ui.pregnancy.PregnancyViewModel
+import app.heartpact.ui.map.LocationCard
+import app.heartpact.ui.map.LocationViewModel
+import app.heartpact.ui.map.MapActions
+import app.heartpact.ui.map.MapScreen
+import app.heartpact.ui.map.rememberShareLocation
 import app.heartpact.ui.us.Chevron
 import app.heartpact.ui.us.NotificationsScreen
 import app.heartpact.ui.us.NotificationsViewModel
@@ -107,6 +112,7 @@ private object Routes {
     const val NEW_DARE = "newdare"
     const val QUESTION = "question"
     const val CYCLE = "cycle"
+    const val MAP = "map"
     const val PREGNANCY = "pregnancy"
     const val NOTIFICATIONS = "notifications"
     const val FOOD_SCAN = "foodscan?uri={uri}"
@@ -187,20 +193,24 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val pickPhotos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(50)) { albumModel.add(it) }
                     val sides = couple?.members.orEmpty().associate { it.userId to if (it.side == CoupleSide.Right) Side.Right else Side.Left }
                     val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
-                    val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food) } })
+                    val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food, container.pushEvents) } })
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
-                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us) } })
+                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents) } })
                     val usUi by usModel.ui.collectAsStateWithLifecycle()
+                    val locationModel: LocationViewModel = viewModel(key = "location", factory = viewModelFactory { initializer { LocationViewModel(application) } })
+                    val locationUi by locationModel.ui.collectAsStateWithLifecycle()
+                    val shareLocation = rememberShareLocation { locationModel.share(partner) }
                     // Summaries for the Us rows; the full screens load their own.
                     val cycleSummary: CycleViewModel = viewModel(key = "cycle-summary", factory = viewModelFactory { initializer { CycleViewModel(container.cycle) } })
                     val cycleSummaryUi by cycleSummary.ui.collectAsStateWithLifecycle()
-                    val pregnancySummary: PregnancyViewModel = viewModel(key = "pregnancy-summary", factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy) } })
+                    val pregnancySummary: PregnancyViewModel = viewModel(key = "pregnancy-summary", factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
                     val pregnancySummaryUi by pregnancySummary.ui.collectAsStateWithLifecycle()
                     // Back from logging a meal, answering, or settings: what they show may have moved.
                     LifecycleResumeEffect(Unit) {
                         foodModel.refresh()
                         usModel.refresh()
                         cycleSummary.load()
+                        locationModel.refresh()
                         pregnancySummary.load()
                         onPauseOrDispose { }
                     }
@@ -236,6 +246,10 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 onEndPact = { usModel.endPact { appModel.refresh() } },
                                 onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
                                 onClearDeleteError = usModel::clearDeleteError,
+                                location = {
+                                    LocationCard(locationUi, partner, onOpen = { nav.navigate(Routes.MAP) }, onShare = shareLocation,
+                                        onPause = { locationModel.pause(60) }, onResume = locationModel::resume)
+                                },
                                 extraRows = {
                                     val cycleMode = cycleSummaryUi.mode
                                     if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
@@ -287,9 +301,21 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
-                    val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us) } })
+                    val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us, container.pushEvents) } })
                     val state by model.ui.collectAsStateWithLifecycle()
                     QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
+                }
+                composable(Routes.MAP) {
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val application = LocalContext.current.applicationContext as Application
+                    val model: LocationViewModel = viewModel(factory = viewModelFactory { initializer { LocationViewModel(application) } })
+                    LaunchedEffect(Unit) { model.refresh() }
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    val share = rememberShareLocation { model.share(partner) }
+                    MapScreen(state, partner, MapActions(onShare = share, onPause = model::pause, onResume = model::resume, onStop = model::stop, onBack = { nav.popBackStack() }),
+                        myName = session?.user?.displayName ?: "You")
                 }
                 composable(Routes.CYCLE) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
@@ -307,7 +333,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
-                    val model: PregnancyViewModel = viewModel(factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy) } })
+                    val model: PregnancyViewModel = viewModel(factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
                     LaunchedEffect(Unit) { model.load() }
                     val state by model.ui.collectAsStateWithLifecycle()
                     PregnancyScreen(state, session?.user?.id.orEmpty(), partner, PregnancyActions(

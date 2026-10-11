@@ -54,6 +54,8 @@ Push (Firebase), release signing and the release API URL come from environment v
   - The shared grid pages through `api/memories`, badges each photo with the half of the heart that added it, and shows "On this day" from earlier years. If the server has no photo storage, photos still wait safely on the phone.
   - Once a day, if photos are waiting, a quiet notification says so and opens the Album. Signing out clears the waiting photos so they can never sync into another account's album.
 - **Push** (`push/`): Firebase Cloud Messaging set up from build settings, not `google-services.json`. The token is registered with `PUT api/devices` on every start and on rotation, and unregistered on sign-out. Every server notification arrives as data: an `exerciseDue` push rings the alarm if the phone's own exact alarm didn't (for example after a lost alarm or a wrong clock); the album nudge waits for Wi-Fi; everything else shows on the `general` channel, or silently on `quiet` during quiet hours. Repeats are dropped by `notificationId`, and an open Today or Album refreshes at once. With push on, Today's safety-net check slows from 15 seconds to a minute.
+- **Live** (`live/LiveHub`): the couple hub (SignalR) is open while the app is on screen or a location share runs, and reconnects with backoff. Its events refresh the screens they concern (dares, food, today's question, pregnancy, album, the pact ending) and carry the partner's live rep count onto Today while their dare rings; the camera reports each rep as it counts.
+- **Location** (`location/`, `ui/map`): mutual and always visible, as `docs/location-sharing.md` requires. Sharing starts only when the person taps Share: a foreground service with a "Sharing your location" notification and a Stop button sends a fix about every 30 s or 25 m through the hub, with no background location permission and no history on the phone. Us shows a map card (distance and age, Pause or Resume); the map screen (mockup 13) offers 1 hour, until tomorrow, or stop. With `MAPS_API_KEY` it is a Google map; without, the app draws both of you by real distance and direction.
 - Each partner's side of the heart comes from the API (`members[].side`), so colours stay fixed on both phones.
 
 ## Layout
@@ -67,6 +69,6 @@ Push (Firebase), release signing and the release API URL come from environment v
 
 ## Not yet
 
-In Us: location sharing and the map, and games (location and games need the SignalR hub); SignalR live updates, including live rep progress for the partner; videos, captions and deleting shared photos in the album; password reset and Google sign-in (the API has neither yet).
+Games; videos, captions and deleting shared photos in the album; password reset and Google sign-in (the API has neither yet).
 
 The rep counter is tuned on synthetic poses; thresholds need checking on real phones and bodies before release. Release APKs are large (about 55 MB) because MediaPipe ships native code for every ABI: publish an App Bundle so Play delivers one ABI per phone.

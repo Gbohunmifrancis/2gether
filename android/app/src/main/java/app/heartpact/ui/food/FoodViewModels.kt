@@ -21,7 +21,9 @@ import app.heartpact.data.UpdateFoodEntryRequest
 import app.heartpact.data.UpsertTargetRequest
 import app.heartpact.media.Jpeg
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -39,9 +41,11 @@ private fun <T> ApiResult<T>.note(): String? = when (this) {
 
 data class FoodUi(val day: FoodDay? = null, val note: String? = null, val busy: Boolean = false)
 
-class FoodViewModel(private val food: FoodRepository, private val today: () -> LocalDate = { LocalDate.now() }) : ViewModel() {
+class FoodViewModel(private val food: FoodRepository, events: Flow<String> = emptyFlow(), private val today: () -> LocalDate = { LocalDate.now() }) : ViewModel() {
     private val _ui = MutableStateFlow(FoodUi())
     val ui: StateFlow<FoodUi> = _ui.asStateFlow()
+
+    init { viewModelScope.launch { events.collect { if (it == "foodDayUpdated") refresh() } } }
 
     fun refresh() = viewModelScope.launch {
         when (val day = food.day(today().toString())) {

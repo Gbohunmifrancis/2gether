@@ -12,6 +12,7 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `FIREBASE_APP_ID` | push | Project settings → Your apps → the Android app (`app.heartpact`): App ID, `1:…:android:…` |
 | `FIREBASE_API_KEY` | push | Project settings → the Android app: Web API key (also `current_key` in `google-services.json`) |
 | `FIREBASE_SENDER_ID` | push | Project settings → Cloud Messaging: Sender ID (`project_number`) |
+| `MAPS_API_KEY` | the location map | Google Cloud console → APIs & Services → Credentials: an API key with "Maps SDK for Android" enabled, restricted to the app's package and signing certificate. Without it the app draws its own map of the two of you |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | signed release bundle | chosen when the keystore was made |
 | `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to `https://api.heartpact.app/` |

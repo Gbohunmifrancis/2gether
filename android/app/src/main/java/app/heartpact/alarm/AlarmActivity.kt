@@ -70,6 +70,7 @@ class AlarmActivity : ComponentActivity() {
                             note = ui.note,
                             onReached = { count, confidence -> model.complete(count, confidence) { message -> model.showNote(message) } },
                             onStop = leave,
+                            onProgress = model::progress,
                         )
                     }
                     is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::finish)

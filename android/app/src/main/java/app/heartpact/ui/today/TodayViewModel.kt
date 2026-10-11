@@ -48,6 +48,18 @@ class TodayViewModel(application: Application, private val me: String, private v
             }
         }
         viewModelScope.launch { app.pushEvents.collect { if (PushInbox.refreshesToday(it)) refreshNow() } }
+        // The partner's live count: patch the ringing card in place rather than refetch per rep.
+        viewModelScope.launch {
+            app.live.events.collect { event ->
+                if (event.name != "ExerciseProgress") return@collect
+                val progress = runCatching { app.json.decodeFromString(LiveProgress.serializer(), event.json) }.getOrNull() ?: return@collect
+                _ui.update { state ->
+                    val view = state.view ?: return@update state
+                    val ringing = view.partnerRinging?.takeIf { it.id == progress.occurrenceId } ?: return@update state
+                    state.copy(view = view.copy(partnerRinging = ringing.copy(achievedCount = progress.achievedCount)))
+                }
+            }
+        }
     }
 
     fun refresh() = viewModelScope.launch { refreshNow() }
@@ -84,3 +96,6 @@ class TodayViewModel(application: Application, private val me: String, private v
 
     fun keepIt(occurrenceId: String) = _ui.update { it.copy(kept = it.kept + occurrenceId) }
 }
+
+@kotlinx.serialization.Serializable
+private data class LiveProgress(val occurrenceId: String, val userId: String = "", val achievedCount: Int, val target: Int = 0, val confidence: Double = 0.0)

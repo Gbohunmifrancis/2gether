@@ -171,4 +171,16 @@ interface HeartpactApi {
 
     @PUT("api/pregnancy/kicks/{id}")
     suspend fun recordKicks(@Path("id") id: String, @Body request: KickUpdate): Response<KickSession>
+
+    @GET("api/location")
+    suspend fun locations(): Response<List<LocationPoint>>
+
+    @GET("api/location/status")
+    suspend fun locationStatus(): Response<SharingStatusView>
+
+    @POST("api/location/pause")
+    suspend fun pauseLocation(@Body request: PauseRequest): Response<SharingStatusView>
+
+    @POST("api/location/resume")
+    suspend fun resumeLocation(): Response<SharingStatusView>
 }

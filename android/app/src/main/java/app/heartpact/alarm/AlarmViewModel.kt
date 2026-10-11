@@ -140,6 +140,12 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
         }
     }
 
+    /** Live count for the partner's Today; the hub drops it unless the dare is in progress. */
+    fun progress(count: Int, confidence: Double) {
+        val occurrence = currentOccurrence() ?: return
+        app.live.reportExerciseProgress(occurrence.id, count, confidence)
+    }
+
     /** The camera counted the target; the server re-checks the count, the confidence and the time taken. */
     fun complete(count: Int, confidence: Double, onRejected: (String) -> Unit) {
         val occurrence = currentOccurrence() ?: return
