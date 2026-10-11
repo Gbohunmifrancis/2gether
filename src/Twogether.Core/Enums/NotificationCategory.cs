@@ -13,5 +13,7 @@ public enum NotificationCategory
     Exercise,
     Cycle,
     Pregnancy,
-    DailyQuestions
+    DailyQuestions,
+    /// <summary>Photos the partner synced, and the reminder to sync your own.</summary>
+    Album
 }

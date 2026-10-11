@@ -45,6 +45,9 @@ public static class PushPolicy
         var remaining = TimeToLive(notification.Type) - (utcNow - notification.CreatedAtUtc);
         if (remaining < TimeSpan.FromSeconds(1)) remaining = TimeSpan.FromSeconds(1);
         var alarm = notification.Type == NotificationType.ExerciseDue;
+        // The sync reminder prefers Wi-Fi: the app holds it until the phone is on an unmetered
+        // network (or the day ends) and shows it then, so it must not be shown by the system.
+        var dataOnly = alarm || notification.Type == NotificationType.AlbumSyncReminder;
         var quiet = route == PushRoute.Quiet && !alarm;
         if (quiet) data["quiet"] = "true";
         return new PushMessage(
@@ -56,7 +59,7 @@ public static class PushPolicy
             alarm ? PushPriority.High : PushPriority.Normal,
             alarm ? AlarmChannel : quiet ? QuietChannel : GeneralChannel,
             remaining,
-            DataOnly: alarm);
+            DataOnly: dataOnly);
     }
 
     /// <summary>

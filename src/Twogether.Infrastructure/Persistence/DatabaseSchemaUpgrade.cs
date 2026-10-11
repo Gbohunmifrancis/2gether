@@ -268,6 +268,9 @@ public static class DatabaseSchemaUpgrade
         ALTER TABLE memories ADD COLUMN IF NOT EXISTS "ThumbnailBytes" bigint NOT NULL DEFAULT 0;
         ALTER TABLE memories ADD COLUMN IF NOT EXISTS "UploadWindowEndsAtUtc" timestamp with time zone NULL;
         CREATE INDEX IF NOT EXISTS "IX_memories_upload_window" ON memories ("UploadWindowEndsAtUtc") WHERE "UploadWindowEndsAtUtc" IS NOT NULL;
+        -- Offline-first sync: the phone's own id for each photo. Older rows keep null.
+        ALTER TABLE memories ADD COLUMN IF NOT EXISTS "ClientId" uuid NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_memories_UploadedByUserId_ClientId" ON memories ("UploadedByUserId", "ClientId") WHERE "ClientId" IS NOT NULL;
 
         CREATE TABLE IF NOT EXISTS device_registrations (
             "Id" uuid NOT NULL,
@@ -293,6 +296,7 @@ public static class DatabaseSchemaUpgrade
             "CycleEnabled" boolean NOT NULL,
             "PregnancyEnabled" boolean NOT NULL,
             "DailyQuestionsEnabled" boolean NOT NULL,
+            "AlbumEnabled" boolean NOT NULL DEFAULT true,
             "QuietHoursEnabled" boolean NOT NULL,
             "QuietStartLocal" time without time zone NOT NULL,
             "QuietEndLocal" time without time zone NOT NULL,
@@ -301,6 +305,23 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_notification_preferences" PRIMARY KEY ("Id"),
             CONSTRAINT "CK_notification_preferences_quiet_window" CHECK ("QuietStartLocal" <> "QuietEndLocal")
         );
+        ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS "AlbumEnabled" boolean NOT NULL DEFAULT true;
+
+        CREATE TABLE IF NOT EXISTS album_sync_states (
+            "UserId" uuid NOT NULL,
+            "PendingCount" integer NOT NULL,
+            "PendingBytes" bigint NOT NULL,
+            "PendingSinceUtc" timestamp with time zone NULL,
+            "ReportedAtUtc" timestamp with time zone NOT NULL,
+            "LastPromptedAtUtc" timestamp with time zone NULL,
+            "LastSyncedAtUtc" timestamp with time zone NULL,
+            "SyncStartedAtUtc" timestamp with time zone NULL,
+            CONSTRAINT "PK_album_sync_states" PRIMARY KEY ("UserId"),
+            CONSTRAINT "FK_album_sync_states_users_UserId" FOREIGN KEY ("UserId") REFERENCES users ("Id") ON DELETE CASCADE,
+            CONSTRAINT "CK_album_sync_states_PendingCount" CHECK ("PendingCount" BETWEEN 0 AND 100000),
+            CONSTRAINT "CK_album_sync_states_PendingBytes" CHECK ("PendingBytes" >= 0)
+        );
+        CREATE INDEX IF NOT EXISTS "IX_album_sync_states_pending" ON album_sync_states ("PendingSinceUtc") WHERE "PendingCount" > 0;
 
         CREATE TABLE IF NOT EXISTS store_subscriptions (
             "Id" uuid NOT NULL,

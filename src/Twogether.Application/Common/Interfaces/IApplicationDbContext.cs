@@ -29,5 +29,6 @@ public interface IApplicationDbContext
     DbSet<DeviceRegistration> DeviceRegistrations { get; }
     DbSet<StoreSubscription> StoreSubscriptions { get; }
     DbSet<NotificationPreference> NotificationPreferences { get; }
+    DbSet<AlbumSyncState> AlbumSyncStates { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

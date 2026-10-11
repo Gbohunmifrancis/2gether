@@ -19,6 +19,7 @@ public sealed class NotificationPreference : BaseEntity
     public bool CycleEnabled { get; private set; } = true;
     public bool PregnancyEnabled { get; private set; } = true;
     public bool DailyQuestionsEnabled { get; private set; } = true;
+    public bool AlbumEnabled { get; private set; } = true;
     public bool QuietHoursEnabled { get; private set; }
     public TimeOnly QuietStartLocal { get; private set; } = DefaultQuietStart;
     public TimeOnly QuietEndLocal { get; private set; } = DefaultQuietEnd;
@@ -31,7 +32,7 @@ public sealed class NotificationPreference : BaseEntity
     };
 
     public void Update(
-        bool messages, bool games, bool exercise, bool cycle, bool pregnancy, bool dailyQuestions,
+        bool messages, bool games, bool exercise, bool cycle, bool pregnancy, bool dailyQuestions, bool album,
         bool quietHoursEnabled, TimeOnly quietStartLocal, TimeOnly quietEndLocal, DateTime utcNow)
     {
         if (quietStartLocal == quietEndLocal) throw new ArgumentException("Quiet hours must start and end at different times.");
@@ -41,6 +42,7 @@ public sealed class NotificationPreference : BaseEntity
         CycleEnabled = cycle;
         PregnancyEnabled = pregnancy;
         DailyQuestionsEnabled = dailyQuestions;
+        AlbumEnabled = album;
         QuietHoursEnabled = quietHoursEnabled;
         QuietStartLocal = quietStartLocal;
         QuietEndLocal = quietEndLocal;
@@ -55,6 +57,7 @@ public sealed class NotificationPreference : BaseEntity
         NotificationCategory.Cycle => CycleEnabled,
         NotificationCategory.Pregnancy => PregnancyEnabled,
         NotificationCategory.DailyQuestions => DailyQuestionsEnabled,
+        NotificationCategory.Album => AlbumEnabled,
         _ => true
     };
 

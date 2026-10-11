@@ -41,13 +41,22 @@ public sealed class Memory : BaseEntity
     /// <summary>TakenAtUtc, or the upload time when unknown. Stored so the album can be paged by index.</summary>
     public DateTime SortAtUtc { get; private set; }
 
-    public static Memory Reserve(Guid coupleId, Guid uploadedByUserId, MemoryMediaKind kind, long declaredBytes, string? caption, DateTime? takenAtUtc, MemorySource source, DateTime utcNow)
+    /// <summary>
+    /// The phone's own id for the photo, sent by offline-first sync so a retried batch finds the
+    /// memory it already made instead of adding it twice. Unique per uploader; null for uploads
+    /// made through the single-photo flow.
+    /// </summary>
+    public Guid? ClientId { get; private set; }
+
+    public static Memory Reserve(Guid coupleId, Guid uploadedByUserId, MemoryMediaKind kind, long declaredBytes, string? caption, DateTime? takenAtUtc, MemorySource source, DateTime utcNow, Guid? clientId = null)
     {
         if (declaredBytes <= 0 || declaredBytes > kind.MaxBytes) throw new ArgumentOutOfRangeException(nameof(declaredBytes));
+        if (clientId == Guid.Empty) throw new ArgumentException("A client id cannot be empty.", nameof(clientId));
         var memory = new Memory
         {
             CoupleId = coupleId,
             UploadedByUserId = uploadedByUserId,
+            ClientId = clientId,
             ContentType = kind.ContentType,
             IsVideo = kind.IsVideo,
             SizeBytes = declaredBytes,

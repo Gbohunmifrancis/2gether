@@ -31,6 +31,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<DeviceRegistration> DeviceRegistrations => Set<DeviceRegistration>();
     public DbSet<StoreSubscription> StoreSubscriptions => Set<StoreSubscription>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<AlbumSyncState> AlbumSyncStates => Set<AlbumSyncState>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

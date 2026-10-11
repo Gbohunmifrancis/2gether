@@ -15,7 +15,7 @@ public sealed class NotificationPreferenceTests
     private static NotificationPreference Preference(bool messages = true, bool quiet = true, string start = "22:00", string end = "07:00")
     {
         var preference = NotificationPreference.Create(Guid.NewGuid(), LagosNoon);
-        preference.Update(messages, true, true, true, true, true, quiet, TimeOnly.Parse(start), TimeOnly.Parse(end), LagosNoon);
+        preference.Update(messages, true, true, true, true, true, true, quiet, TimeOnly.Parse(start), TimeOnly.Parse(end), LagosNoon);
         return preference;
     }
 
@@ -59,7 +59,7 @@ public sealed class NotificationPreferenceTests
     public void The_exercise_alarm_ignores_every_setting()
     {
         var preference = Preference(messages: false);
-        preference.Update(false, false, false, false, false, false, true, new TimeOnly(0, 0), new TimeOnly(23, 59), LagosNoon);
+        preference.Update(false, false, false, false, false, false, false, true, new TimeOnly(0, 0), new TimeOnly(23, 59), LagosNoon);
 
         Assert.Equal(PushRoute.Normal, NotificationRouting.Route(NotificationType.ExerciseDue, preference, "Africa/Lagos", LagosNight));
         Assert.Equal(PushRoute.Muted, NotificationRouting.Route(NotificationType.ExerciseMissed, preference, "Africa/Lagos", LagosNight));
@@ -69,7 +69,7 @@ public sealed class NotificationPreferenceTests
     public void Couple_changes_cannot_be_muted_but_arrive_quietly_at_night()
     {
         var preference = Preference();
-        preference.Update(false, false, false, false, false, false, true, new TimeOnly(22, 0), new TimeOnly(7, 0), LagosNoon);
+        preference.Update(false, false, false, false, false, false, false, true, new TimeOnly(22, 0), new TimeOnly(7, 0), LagosNoon);
 
         Assert.Equal(PushRoute.Quiet, NotificationRouting.Route(NotificationType.Breakup, preference, "Africa/Lagos", LagosNight));
         Assert.Equal(PushRoute.Normal, NotificationRouting.Route(NotificationType.CoupleConnected, preference, "Africa/Lagos", LagosNoon));

@@ -126,9 +126,12 @@ public sealed class MemoryCleanupWorker(
                 .SetProperty(item => item.UpdatedAtUtc, clock.UtcNow), cancellationToken);
         if (expired > 0) logger.LogInformation("Queued {Count} memory object(s) from albums past their post-breakup window.", expired);
 
-        var abandonedBefore = clock.UtcNow - settings.PendingLifetime;
+        var now = clock.UtcNow;
+        var abandonedBefore = now - settings.PendingLifetime;
+        // A sync retry can hand out fresh links for an old slot: it is not abandoned while one still works.
         var batch = await db.Memories
-            .Where(item => item.Status == MemoryStatus.Deleting || (item.Status == MemoryStatus.Pending && item.CreatedAtUtc < abandonedBefore))
+            .Where(item => item.Status == MemoryStatus.Deleting
+                || (item.Status == MemoryStatus.Pending && item.CreatedAtUtc < abandonedBefore && (item.UploadWindowEndsAtUtc == null || item.UploadWindowEndsAtUtc < now)))
             .OrderBy(item => item.CreatedAtUtc)
             .Take(BatchSize)
             .ToListAsync(cancellationToken);

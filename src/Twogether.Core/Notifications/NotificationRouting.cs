@@ -17,6 +17,7 @@ public static class NotificationRouting
         NotificationType.CycleUpdated => NotificationCategory.Cycle,
         NotificationType.PregnancyUpdated => NotificationCategory.Pregnancy,
         NotificationType.DailyQuestionAnswered => NotificationCategory.DailyQuestions,
+        NotificationType.MemoriesSynced or NotificationType.AlbumSyncReminder => NotificationCategory.Album,
         // A new type must be placed deliberately; a test walks every value.
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Notification type has no category.")
     };

@@ -16,6 +16,7 @@ public sealed record NotificationPreferencesDto(
     bool Cycle,
     bool Pregnancy,
     bool DailyQuestions,
+    bool Album,
     bool QuietHoursEnabled,
     string QuietStart,
     string QuietEnd,
@@ -32,7 +33,9 @@ public sealed record UpdateNotificationPreferencesRequest(
     bool QuietHoursEnabled,
     string? QuietStart,
     string? QuietEnd,
-    string? TimeZoneId);
+    string? TimeZoneId,
+    // Optional so apps built before the album category keep it as it was instead of switching it off.
+    bool? Album = null);
 
 public sealed record ValidNotificationPreferences(TimeOnly QuietStart, TimeOnly QuietEnd, string? TimeZoneId);
 
@@ -66,6 +69,7 @@ public static class NotificationPreferenceRules
             effective.CycleEnabled,
             effective.PregnancyEnabled,
             effective.DailyQuestionsEnabled,
+            effective.AlbumEnabled,
             effective.QuietHoursEnabled,
             Format(effective.QuietStartLocal),
             Format(effective.QuietEndLocal),

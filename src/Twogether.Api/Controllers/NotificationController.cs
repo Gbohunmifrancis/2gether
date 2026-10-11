@@ -78,7 +78,7 @@ public sealed class NotificationController(IApplicationDbContext db, ICurrentUse
                 db.NotificationPreferences.Add(preference);
             }
             preference.Update(request.Messages, request.Games, request.Exercise, request.Cycle, request.Pregnancy, request.DailyQuestions,
-                request.QuietHoursEnabled, valid.Value.QuietStart, valid.Value.QuietEnd, now);
+                request.Album ?? preference.AlbumEnabled, request.QuietHoursEnabled, valid.Value.QuietStart, valid.Value.QuietEnd, now);
             try
             {
                 await db.SaveChangesAsync(cancellationToken);

@@ -15,5 +15,9 @@ public enum NotificationType
     ExerciseCancelled,
     ExerciseGoalChanged,
     PregnancyUpdated,
-    DailyQuestionAnswered
+    DailyQuestionAnswered,
+    /// <summary>To the partner, once per finished sync: "Maya added 12 photos to your album".</summary>
+    MemoriesSynced,
+    /// <summary>To the person with photos waiting on their phone; at most once a day.</summary>
+    AlbumSyncReminder
 }

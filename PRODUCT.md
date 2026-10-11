@@ -27,7 +27,7 @@ One partner sets an exercise goal for the other. At the set time the phone rings
 - **The goal alarm:** a full-screen alarm at the scheduled time. The person opens the camera, does the reps on screen, sees a live count, and the partner can watch progress live. A local dismiss is always available (Play policy). Ending early otherwise needs both partners to agree.
 - **Shared goals:** fitness and diet goals; a food log with photo calorie estimates shown as ranges, not medical facts.
 - **Health tracking:** period tracking with per-person share levels, and a pregnancy mode with appointments and kick counts.
-- **Couple features:** a map both partners see only while both share (one-tap pause, visible indicator), daily questions where a partner's answer unlocks only after you answer, couple games (quiz, memory match, "I call on"), streaks, and a shared album with an on-this-day view.
+- **Couple features:** a map both partners see only while both share (one-tap pause, visible indicator), daily questions where a partner's answer unlocks only after you answer, couple games (quiz, memory match, "I call on"), streaks, and a shared album with an on-this-day view. The album is offline-first: photos stay on the phone until the person taps Sync, and only then reach the partner. The app reminds at most once a day while photos are waiting, preferring Wi-Fi.
 - **Notifications:** push with per-category settings and quiet hours; the exercise alarm ignores both.
 - **Lifecycle:** invite by code or link, breakup, account export and deletion.
 
