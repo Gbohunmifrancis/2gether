@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Controllers;
 using Twogether.Api.Hubs;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Games;
 using Twogether.Core.Enums;
@@ -28,6 +29,11 @@ public sealed class GameTimeoutWorker(
             try
             {
                 await AdvanceExpiredRounds(stoppingToken);
+                if (clock.UtcNow >= nextStaleSweep)
+                {
+                    nextStaleSweep = clock.UtcNow.AddMinutes(10);
+                    await EndStaleGames(stoppingToken);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -38,6 +44,35 @@ public sealed class GameTimeoutWorker(
                 logger.LogError(exception, "Failed to advance expired game rounds.");
             }
         }
+    }
+
+    private DateTime nextStaleSweep = DateTime.MinValue;
+
+    /// <summary>An unanswered invite lasts a day; a turn-by-turn game left alone for a week ends. Either would block new games.</summary>
+    public static readonly TimeSpan InviteLifetime = TimeSpan.FromDays(1);
+    public static readonly TimeSpan IdleGameLifetime = TimeSpan.FromDays(7);
+
+    private async Task EndStaleGames(CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var now = clock.UtcNow;
+        var inviteCutoff = now - InviteLifetime;
+        var idleCutoff = now - IdleGameLifetime;
+        var stale = await db.GameSessions
+            .Where(session => (session.Status == GameSessionStatus.WaitingForPartner && session.UpdatedAtUtc < inviteCutoff)
+                || ((session.Status == GameSessionStatus.InProgress || session.Status == GameSessionStatus.Paused) && session.UpdatedAtUtc < idleCutoff))
+            .Take(100)
+            .ToListAsync(cancellationToken);
+        if (stale.Count == 0) return;
+        foreach (var session in stale) session.Abandon(now);
+        await db.SaveChangesAsync(cancellationToken);
+        foreach (var session in stale)
+        {
+            await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId))
+                .SendAsync("GameEnded", new GameEndedDto(session.Id, Guid.Empty, "Heartpact", now), cancellationToken);
+        }
+        logger.LogInformation("Ended {Count} stale games.", stale.Count);
     }
 
     private async Task AdvanceExpiredRounds(CancellationToken cancellationToken)

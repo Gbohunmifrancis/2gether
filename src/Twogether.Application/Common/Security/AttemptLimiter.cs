@@ -23,6 +23,14 @@ public static class AttemptRules
     /// </summary>
     public static readonly AttemptRule InviteCodeGlobal = new("invite-global", 200, TimeSpan.FromHours(1));
     public static readonly AttemptRule AccountDeletePerUser = new("delete-user", 5, TimeSpan.FromMinutes(15));
+    /// <summary>Reset emails per address asked about, existing or not: no inbox gets flooded.</summary>
+    public static readonly AttemptRule ResetRequestPerEmail = new("reset-email", 3, TimeSpan.FromHours(1));
+    public static readonly AttemptRule ResetRequestPerIp = new("reset-ip", 10, TimeSpan.FromHours(1));
+    /// <summary>Wrong reset codes. Each code also allows only five tries of its own.</summary>
+    public static readonly AttemptRule ResetCodePerEmail = new("reset-code-email", 10, TimeSpan.FromMinutes(15));
+    public static readonly AttemptRule ResetCodePerIp = new("reset-code-ip", 30, TimeSpan.FromMinutes(15));
+    /// <summary>Google sign-ins that fail verification, per address.</summary>
+    public static readonly AttemptRule GooglePerIp = new("google-ip", 30, TimeSpan.FromMinutes(15));
 }
 
 /// <summary>

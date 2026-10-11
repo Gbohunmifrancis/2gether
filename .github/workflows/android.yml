@@ -20,6 +20,7 @@ env:
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
   FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
   MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+  GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
 
 jobs:
   check:
@@ -90,6 +91,8 @@ jobs:
           Database__EnsureCreated: "true"
           # Every live test signs up two people from one address.
           RateLimits__Enabled: "false"
+          # Reset codes go to the log, where the live test reads them.
+          Email__Provider: log
           Media__ServiceUrl: http://127.0.0.1:9000
           Media__Bucket: heartpact
           Media__AccessKey: test
@@ -104,6 +107,7 @@ jobs:
         working-directory: android
         env:
           HEARTPACT_API_URL: http://localhost:5135/
+          HEARTPACT_API_LOG: ${{ runner.temp }}/api.log
         run: ./gradlew testDebugUnitTest --tests '*LiveApiTest*'
       - name: API log
         if: failure()

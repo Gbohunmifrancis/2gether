@@ -33,6 +33,7 @@ Push (Firebase), release signing and the release API URL come from environment v
 
 - Walk-together splash (`ui/splash`): the halves walk in, meet and become the mark. A pure function of time, so frames are tested; tap to skip; with animations off it shows the last frame.
 - Onboarding (three pages), welcome, sign up and sign in against `api/auth`.
+- Forgot password (an emailed six-digit code, then a new password; it signs out every other session) and "Continue with Google" through Credential Manager when the build has `GOOGLE_WEB_CLIENT_ID`; a new Google account is asked only for a birthday and gender.
 - Pairing against `api/couple`: invite code and link, share and copy, enter a partner's code, accept an invite link (`https://heartpact.app/invite/{token}`), and moving on when the partner joins.
 - The five-tab home shell: Today, Pacts, Food, Us and Album.
 - **Dares** (`ui/today`, `alarm`, `exercise`, `ui/camera`):
@@ -56,6 +57,7 @@ Push (Firebase), release signing and the release API URL come from environment v
 - **Push** (`push/`): Firebase Cloud Messaging set up from build settings, not `google-services.json`. The token is registered with `PUT api/devices` on every start and on rotation, and unregistered on sign-out. Every server notification arrives as data: an `exerciseDue` push rings the alarm if the phone's own exact alarm didn't (for example after a lost alarm or a wrong clock); the album nudge waits for Wi-Fi; everything else shows on the `general` channel, or silently on `quiet` during quiet hours. Repeats are dropped by `notificationId`, and an open Today or Album refreshes at once. With push on, Today's safety-net check slows from 15 seconds to a minute.
 - **Live** (`live/LiveHub`): the couple hub (SignalR) is open while the app is on screen or a location share runs, and reconnects with backoff. Its events refresh the screens they concern (dares, food, today's question, pregnancy, album, the pact ending) and carry the partner's live rep count onto Today while their dare rings; the camera reports each rep as it counts.
 - **Location** (`location/`, `ui/map`): mutual and always visible, as `docs/location-sharing.md` requires. Sharing starts only when the person taps Share: a foreground service with a "Sharing your location" notification and a Stop button sends a fix about every 30 s or 25 m through the hub, with no background location permission and no history on the phone. Us shows a map card (distance and age, Pause or Resume); the map screen (mockup 13) offers 1 hour, until tomorrow, or stop. With `MAPS_API_KEY` it is a Google map; without, the app draws both of you by real distance and direction.
+- **Play together** (`ui/games`, `docs/games.md`): invite your partner to Same answer, Memory match or I call on (with an optional first letter); they accept or decline from the invite, a shared countdown starts both phones, and every move goes through REST while the couple hub keeps both boards in step (a stale move is reloaded, never applied twice). Memory match shows both cards of a miss; I call on has the round timer and a judging step for answers the server can't confirm. The last result and recent games show on the picker.
 - Each partner's side of the heart comes from the API (`members[].side`), so colours stay fixed on both phones.
 
 ## Layout
@@ -69,6 +71,6 @@ Push (Firebase), release signing and the release API URL come from environment v
 
 ## Not yet
 
-Games; videos, captions and deleting shared photos in the album; password reset and Google sign-in (the API has neither yet).
+Videos, captions and deleting shared photos in the album.
 
 The rep counter is tuned on synthetic poses; thresholds need checking on real phones and bodies before release. Release APKs are large (about 55 MB) because MediaPipe ships native code for every ABI: publish an App Bundle so Play delivers one ABI per phone.

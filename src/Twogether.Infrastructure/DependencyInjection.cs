@@ -10,6 +10,8 @@ using Twogether.Infrastructure.Games;
 using Twogether.Infrastructure.Food;
 using Twogether.Infrastructure.Media;
 using Twogether.Infrastructure.Push;
+using Twogether.Infrastructure.Auth;
+using Twogether.Application.Features.Auth;
 using Twogether.Infrastructure.Billing;
 using Twogether.Infrastructure.Account;
 using Twogether.Application.Features.Account;
@@ -54,6 +56,20 @@ public static class DependencyInjection
             default: services.AddSingleton<IPushSender, DisabledPushSender>(); break;
         }
         services.AddScoped<IPushOutbox, PushOutbox>();
+
+        var email = BuildEmailSettings(configuration);
+        services.AddSingleton(email);
+        switch (email.Provider?.Trim().ToLowerInvariant())
+        {
+            case "smtp": services.AddSingleton<IEmailSender, SmtpEmailSender>(); break;
+            case "log": services.AddSingleton<IEmailSender, LogEmailSender>(); break;
+            default: services.AddSingleton<IEmailSender, DisabledEmailSender>(); break;
+        }
+        services.AddSingleton(new GoogleAuthSettings
+        {
+            ClientIds = (configuration["Auth:GoogleClientIds"] ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+        });
+        services.AddSingleton<IGoogleTokenVerifier, GoogleTokenVerifier>();
         services.AddScoped<IAccountEraser, AccountEraser>();
         var billing = BuildBillingSettings(configuration);
         services.AddSingleton(billing);
@@ -82,6 +98,18 @@ public static class DependencyInjection
             Plus = new PlanLimits(Int("Billing:Plus:FoodScansPerDay", defaults.Plus.FoodScansPerDay), Long("Billing:Plus:MemoriesBytes", defaults.Plus.MemoriesBytes), Int("Billing:Plus:QuestionHistoryDays", defaults.Plus.QuestionHistoryDays))
         };
     }
+
+    private static EmailSettings BuildEmailSettings(IConfiguration configuration) => new()
+    {
+        Provider = configuration["Email:Provider"],
+        Host = configuration["Email:Host"],
+        Port = int.TryParse(configuration["Email:Port"], out var port) && port > 0 ? port : 587,
+        User = configuration["Email:User"],
+        Password = configuration["Email:Password"],
+        From = configuration["Email:From"],
+        FromName = string.IsNullOrWhiteSpace(configuration["Email:FromName"]) ? "Heartpact" : configuration["Email:FromName"]!,
+        StartTls = !bool.TryParse(configuration["Email:StartTls"], out var startTls) || startTls,
+    };
 
     private static PushSettings BuildPushSettings(IConfiguration configuration) => new()
     {

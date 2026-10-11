@@ -183,4 +183,31 @@ interface HeartpactApi {
 
     @POST("api/location/resume")
     suspend fun resumeLocation(): Response<SharingStatusView>
+
+    @POST("api/auth/password/forgot")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
+
+    @POST("api/auth/password/reset")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<AuthResponse>
+
+    @POST("api/auth/google")
+    suspend fun googleSignIn(@Body request: GoogleSignInRequest): Response<AuthResponse>
+
+    @GET("api/game/sessions")
+    suspend fun gameSessions(): Response<List<GameSession>>
+
+    @POST("api/game/sessions")
+    suspend fun createGame(@Body request: CreateGameRequest): Response<GameSession>
+
+    @POST("api/game/sessions/{id}/accept")
+    suspend fun acceptGame(@Path("id") id: String, @Body body: Map<String, String> = emptyMap()): Response<GameSession>
+
+    @POST("api/game/sessions/{id}/actions")
+    suspend fun gameAction(@Path("id") id: String, @Body request: GameActionRequest): Response<GameSession>
+
+    @POST("api/game/sessions/{id}/abandon")
+    suspend fun abandonGame(@Path("id") id: String, @Body body: Map<String, String> = emptyMap()): Response<GameSession>
+
+    @GET("api/game/sessions/{id}")
+    suspend fun gameSession(@Path("id") id: String): Response<GameSession>
 }

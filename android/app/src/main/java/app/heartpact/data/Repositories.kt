@@ -10,6 +10,14 @@ class AuthRepository(private val api: HeartpactApi, private val session: Session
     suspend fun login(email: String, password: String): ApiResult<AuthResponse> =
         apiCall(json) { api.login(LoginRequest(email.trim(), password)) }.alsoOk { session.save(it.accessToken, it.user) }
 
+    suspend fun forgot(email: String): ApiResult<Unit> = apiCall(json) { api.forgotPassword(ForgotPasswordRequest(email.trim())) }
+
+    suspend fun reset(email: String, code: String, newPassword: String): ApiResult<AuthResponse> =
+        apiCall(json) { api.resetPassword(ResetPasswordRequest(email.trim(), code.trim(), newPassword)) }.alsoOk { session.save(it.accessToken, it.user) }
+
+    suspend fun google(request: GoogleSignInRequest): ApiResult<AuthResponse> =
+        apiCall(json) { api.googleSignIn(request) }.alsoOk { session.save(it.accessToken, it.user) }
+
     suspend fun signOut() = session.clear()
 }
 
@@ -94,4 +102,14 @@ class LocationRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun status(): ApiResult<SharingStatusView> = apiCall(json) { api.locationStatus() }
     suspend fun pause(minutes: Int): ApiResult<SharingStatusView> = apiCall(json) { api.pauseLocation(PauseRequest(minutes)) }
     suspend fun resume(): ApiResult<SharingStatusView> = apiCall(json) { api.resumeLocation() }
+}
+
+class GameRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun sessions(): ApiResult<List<GameSession>> = apiCall(json) { api.gameSessions() }
+    suspend fun session(id: String): ApiResult<GameSession> = apiCall(json) { api.gameSession(id) }
+    suspend fun create(type: GameType, letter: String? = null): ApiResult<GameSession> = apiCall(json) { api.createGame(CreateGameRequest(type, letter)) }
+    suspend fun accept(id: String): ApiResult<GameSession> = apiCall(json) { api.acceptGame(id) }
+    suspend fun act(id: String, version: Long, action: String, value: String? = null, index: Int? = null): ApiResult<GameSession> =
+        apiCall(json) { api.gameAction(id, GameActionRequest(version, action, value, index)) }
+    suspend fun abandon(id: String): ApiResult<GameSession> = apiCall(json) { api.abandonGame(id) }
 }

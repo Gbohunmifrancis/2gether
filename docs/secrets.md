@@ -13,6 +13,7 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `FIREBASE_API_KEY` | push | Project settings → the Android app: Web API key (also `current_key` in `google-services.json`) |
 | `FIREBASE_SENDER_ID` | push | Project settings → Cloud Messaging: Sender ID (`project_number`) |
 | `MAPS_API_KEY` | the location map | Google Cloud console → APIs & Services → Credentials: an API key with "Maps SDK for Android" enabled, restricted to the app's package and signing certificate. Without it the app draws its own map of the two of you |
+| `GOOGLE_WEB_CLIENT_ID` | "Continue with Google" | Google Cloud console → APIs & Services → Credentials: the **Web application** OAuth client id (`…apps.googleusercontent.com`). Also create an **Android** OAuth client for package `app.heartpact` with your signing certificate's SHA-1, or Google refuses the sign-in. Without it the button is hidden |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | signed release bundle | chosen when the keystore was made |
 | `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to `https://api.heartpact.app/` |
@@ -34,6 +35,8 @@ App Bundle uploaded as a build artifact.
 | `Frontend__Origin` | the web app | CORS, comma-separated |
 | `Push__Provider` = `fcm`, `Push__FcmProjectId`, `Push__FcmCredentialsJson` | push | the service account JSON itself (Firebase → Project settings → Service accounts → Generate new private key) |
 | `Media__ServiceUrl`, `Media__Bucket`, `Media__AccessKey`, `Media__SecretKey`, `Media__Region` | shared album | any S3-compatible store: Cloudflare R2 (`Region=auto`), AWS S3, MinIO |
+| `Email__Provider` = `smtp`, `Email__Host`, `Email__Port` (587), `Email__User`, `Email__Password`, `Email__From` (`Email__FromName`, `Email__StartTls` optional) | password reset codes | any SMTP service: Amazon SES, Postmark, Mailgun, Resend, SendGrid, Google Workspace. `Email__StartTls=false` for implicit TLS on 465. Without it "Forgot password?" says reset isn't set up |
+| `Auth__GoogleClientIds` | Google sign-in | the same web client id as `GOOGLE_WEB_CLIENT_ID` (comma-separate several). Without it the server answers 503 to Google sign-in |
 | `Food__AnthropicApiKey` (or `ANTHROPIC_API_KEY`) | food photo estimates | without it the app logs meals by hand |
 | `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
 | `ForwardedHeaders__Enabled` = `true` | behind a proxy (Railway) | |

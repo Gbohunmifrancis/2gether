@@ -112,11 +112,11 @@ public sealed class GameController(
         if (session.GameType != GameType.ICallOn && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
         try
         {
-            var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
-            if (expired && session.GameType != GameType.ICallOn) return Conflict(new ApiError("game.expired", "This round expired. Start another game."));
+            // Only I call on has a clock; turn-by-turn games wait for the player whose turn it is.
+            var expired = session.GameType == GameType.ICallOn && session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
             if (GameEngine.IsServerOnlyAction(request.Action))
                 return UnprocessableEntity(new ApiError("game.invalid_action", "That action is not available."));
-            var action = expired && session.GameType == GameType.ICallOn ? GameEngine.TimeoutAction : request.Action;
+            var action = expired ? GameEngine.TimeoutAction : request.Action;
             var validations = session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && request.Value is not null
                 ? await wordValidator.ValidateAsync(session.StateJson, request.Value, cancellationToken)
                 : null;

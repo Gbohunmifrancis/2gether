@@ -29,6 +29,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<DailyAnswer> DailyAnswers => Set<DailyAnswer>();
     public DbSet<Memory> Memories => Set<Memory>();
     public DbSet<DeviceRegistration> DeviceRegistrations => Set<DeviceRegistration>();
+    public DbSet<PasswordResetCode> PasswordResetCodes => Set<PasswordResetCode>();
     public DbSet<StoreSubscription> StoreSubscriptions => Set<StoreSubscription>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
     public DbSet<AlbumSyncState> AlbumSyncStates => Set<AlbumSyncState>();

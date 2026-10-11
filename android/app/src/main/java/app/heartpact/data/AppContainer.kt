@@ -75,6 +75,7 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val cycle = CycleRepository(api, json)
     val pregnancy = PregnancyRepository(api, json)
     val location = LocationRepository(api, json)
+    val games = GameRepository(api, json)
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */

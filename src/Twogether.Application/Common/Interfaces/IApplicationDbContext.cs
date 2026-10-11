@@ -6,6 +6,7 @@ namespace Twogether.Application.Common.Interfaces;
 public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
+    DbSet<PasswordResetCode> PasswordResetCodes { get; }
     DbSet<Couple> Couples { get; }
     DbSet<PartnerInvite> PartnerInvites { get; }
     DbSet<CycleProfile> CycleProfiles { get; }

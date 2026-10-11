@@ -126,6 +126,7 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
             "LocationUpdated", "LocationStopped", "LocationSharingChanged",
             "FoodDayUpdated", "DailyQuestionAnswered", "PregnancyChanged", "MemoriesChanged",
             "CoupleEnded", "AccountDeleted", "NotificationCreated",
+            "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded",
         )
 
         /** Hub names to the app's event names: "ExerciseCompleted" becomes "exerciseCompleted", as pushes use. */

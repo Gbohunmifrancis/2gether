@@ -22,6 +22,20 @@ public static class DatabaseSchemaUpgrade
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "MapColor" character varying(20) NOT NULL DEFAULT '#f45c91';
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "CycleOwner" boolean NOT NULL DEFAULT false;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "Gender" character varying(32) NOT NULL DEFAULT 'PreferNotToSay';
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "SessionsValidFromUtc" timestamp with time zone NULL;
+        CREATE TABLE IF NOT EXISTS password_reset_codes (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "CodeHash" character varying(64) NOT NULL,
+            "ExpiresAtUtc" timestamp with time zone NOT NULL,
+            "Attempts" integer NOT NULL DEFAULT 0,
+            "UsedAtUtc" timestamp with time zone NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_password_reset_codes" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_password_reset_codes_users_UserId" FOREIGN KEY ("UserId") REFERENCES users ("Id") ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS "IX_password_reset_codes_UserId_CreatedAtUtc" ON password_reset_codes ("UserId", "CreatedAtUtc");
         ALTER TABLE IF EXISTS couple_locations ADD COLUMN IF NOT EXISTS "PausedUntilUtc" timestamp with time zone NULL;
         -- Push outbox columns. Rows that existed before push delivery are marked skipped so a
         -- deploy never sends a backlog of old notifications to phones.

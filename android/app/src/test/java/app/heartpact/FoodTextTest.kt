@@ -59,3 +59,13 @@ class UsTextTest {
         org.junit.Assert.assertEquals("together since 2 March 2025", app.heartpact.ui.us.UsText.togetherSince("2025-03-02T10:00:00Z", java.time.LocalDate.of(2026, 10, 11), java.time.ZoneOffset.UTC))
     }
 }
+
+class GamePlayTest {
+    @org.junit.Test fun `outcomes read from the holder's side`() {
+        val s = app.heartpact.data.GameSession("g", gameType = app.heartpact.data.GameType.MemoryMatch, status = app.heartpact.data.GameStatus.Completed,
+            stateJson = """{"players":["maya","theo"],"scores":{"maya":4,"theo":2},"cards":[]}""")
+        org.junit.Assert.assertEquals("You won, 4 to 2", app.heartpact.ui.games.GamePlay.outcome(s, "maya", "Theo"))
+        org.junit.Assert.assertEquals("Maya won, 4 to 2", app.heartpact.ui.games.GamePlay.outcome(s, "theo", "Maya"))
+        org.junit.Assert.assertEquals("Ended early", app.heartpact.ui.games.GamePlay.outcome(s.copy(status = app.heartpact.data.GameStatus.Abandoned), "maya", "Theo"))
+    }
+}

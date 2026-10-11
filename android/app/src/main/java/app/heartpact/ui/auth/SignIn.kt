@@ -43,6 +43,8 @@ fun SignInScreen(
     onForgot: () -> Unit,
     onCreateAccount: () -> Unit,
     onBack: () -> Unit,
+    onGoogle: (() -> Unit)? = null,
+    googleBusy: Boolean = false,
 ) {
     val colors = Heartpact.colors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
@@ -61,6 +63,7 @@ fun SignInScreen(
             }
             state.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             HeartButton("Sign in", onSubmit, Modifier.padding(top = 6.dp), busy = state.busy)
+            onGoogle?.let { HeartButton("Continue with Google", it, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline, busy = googleBusy) }
         }
         Row(Modifier.fillMaxWidth().padding(bottom = 24.dp, top = 8.dp), horizontalArrangement = Arrangement.Center) {
             Text(

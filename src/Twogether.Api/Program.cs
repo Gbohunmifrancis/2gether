@@ -33,6 +33,7 @@ var jwtSettings = builder.Configuration.GetSection("Jwt").Get<Twogether.Api.Auth
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<Twogether.Application.Common.Interfaces.ITokenService, Twogether.Api.Auth.JwtTokenService>();
 builder.Services.AddSingleton<CouplePresenceTracker>();
+builder.Services.AddSingleton<HubConnectionRegistry>();
 builder.Services.AddSingleton<GameLiveState>();
 builder.Services.AddHostedService<GameTimeoutWorker>();
 builder.Services.AddHostedService<ExerciseAlarmWorker>();
@@ -85,11 +86,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ?? context.Principal?.FindFirst("sub")?.Value;
                 var database = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IApplicationDbContext>();
                 var current = Guid.TryParse(subject, out var userId)
-                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
+                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId, user.SessionsValidFromUtc }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
                     : null;
                 if (current is null)
                 {
                     context.Fail("The account no longer exists.");
+                    return;
+                }
+                // A password reset ends every session that started before it.
+                if (current.SessionsValidFromUtc is { } validFrom && context.SecurityToken.ValidFrom < validFrom)
+                {
+                    context.Fail("This session ended when the password was reset.");
                     return;
                 }
                 if (context.Principal?.Identity is not System.Security.Claims.ClaimsIdentity identity) return;

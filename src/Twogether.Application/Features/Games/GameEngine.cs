@@ -36,9 +36,11 @@ public sealed class GameEngine : IGameEngine
         var stateJson = gameType == GameType.MemoryMatch
             ? JsonSerializer.Serialize(CreateMemoryState(playerIds))
             : gameType == GameType.ICallOn
-                ? JsonSerializer.Serialize(CreateICallOnState(playerIds))
+                ? JsonSerializer.Serialize(CreateICallOnState(playerIds, setupJson))
                 : JsonSerializer.Serialize(CreateQuizState(playerIds, setupJson));
-        return new GameEngineResult(stateJson, playerIds[0], gameType == GameType.ICallOn ? utcNow.AddSeconds(AnsweringSeconds) : utcNow.AddMinutes(2), false);
+        // Only I call on is played against the clock. Quiz and memory match are turn by turn: a couple
+        // may take their turns hours apart, so those turns have no deadline.
+        return new GameEngineResult(stateJson, playerIds[0], gameType == GameType.ICallOn ? utcNow.AddSeconds(AnsweringSeconds) : null, false);
     }
 
     public GameEngineResult Apply(GameType gameType, string stateJson, Guid actorUserId, string action, string? value, int? index, DateTime utcNow, IReadOnlyDictionary<string, bool?>? validations = null, IReadOnlyDictionary<Guid, CoSubmission>? coSubmissions = null)
@@ -95,7 +97,8 @@ public sealed class GameEngine : IGameEngine
             state.Scores,
             cards = state.Cards.Select((card, index) => new { index, value = card.Matched || state.Revealed.Contains(index) ? (int?)card.Value : null, card.Matched }),
             state.Revealed,
-            state.LastResult
+            state.LastResult,
+            state.LastPair
         };
         return JsonSerializer.Serialize(publicState, PublicJsonOptions);
     }
@@ -136,7 +139,7 @@ public sealed class GameEngine : IGameEngine
         if (state.Answers.Count < state.Players.Count)
         {
             state.TurnIndex = (state.TurnIndex + 1) % state.Players.Count;
-            return new GameEngineResult(JsonSerializer.Serialize(state), state.Players[state.TurnIndex], utcNow.AddMinutes(2), false);
+            return new GameEngineResult(JsonSerializer.Serialize(state), state.Players[state.TurnIndex], null, false);
         }
 
         var match = state.Answers.Values.Distinct(StringComparer.OrdinalIgnoreCase).Count() == 1;
@@ -150,7 +153,7 @@ public sealed class GameEngine : IGameEngine
             state.Prompt = state.Questions[state.Round];
             state.TurnIndex = state.Round % state.Players.Count;
         }
-        return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[state.TurnIndex], completed ? null : utcNow.AddMinutes(2), completed);
+        return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[state.TurnIndex], null, completed);
     }
 
     private static GameEngineResult ApplyMemory(string stateJson, Guid actorUserId, string action, int? index, DateTime utcNow)
@@ -163,6 +166,7 @@ public sealed class GameEngine : IGameEngine
             throw new InvalidOperationException("This card cannot be flipped.");
         state.Revealed.Add(index.Value);
         state.LastResult = null;
+        state.LastPair = null;
 
         if (state.Revealed.Count == 2)
         {
@@ -178,13 +182,15 @@ public sealed class GameEngine : IGameEngine
             else
             {
                 state.LastResult = "different";
+                // Both players saw both cards turn over: keep the pair visible until the next flip.
+                state.LastPair = [new MemoryFlip(state.Revealed[0], first.Value), new MemoryFlip(state.Revealed[1], second.Value)];
                 state.TurnIndex = (state.TurnIndex + 1) % state.Players.Count;
             }
             state.Revealed.Clear();
         }
 
         var completed = state.Cards.All(card => card.Matched);
-        return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[state.TurnIndex], completed ? null : utcNow.AddMinutes(2), completed);
+        return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[state.TurnIndex], null, completed);
     }
 
     /// <summary>
@@ -394,8 +400,25 @@ public sealed class GameEngine : IGameEngine
         return new MemoryState { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Cards = cards };
     }
 
-    private static ICallOnState CreateICallOnState(IReadOnlyList<Guid> players)
-        => new() { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Letter = RandomLetter(), Categories = ["Name", "Place", "Thing", "Food"] };
+    /// <summary>The first round uses the letter the inviter chose, if any; later rounds draw at random.</summary>
+    private static ICallOnState CreateICallOnState(IReadOnlyList<Guid> players, string? setupJson)
+        => new() { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Letter = ChosenLetter(setupJson) ?? RandomLetter(), Categories = ["Name", "Place", "Thing", "Food"] };
+
+    private static string? ChosenLetter(string? setupJson)
+    {
+        if (string.IsNullOrWhiteSpace(setupJson)) return null;
+        try
+        {
+            using var document = JsonDocument.Parse(setupJson);
+            return document.RootElement.TryGetProperty("letter", out var letter) && letter.ValueKind == JsonValueKind.String && IsValidLetter(letter.GetString())
+                ? letter.GetString()!.ToUpperInvariant()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
 
     private static string RandomLetter()
     {
@@ -453,7 +476,11 @@ public sealed class GameEngine : IGameEngine
         public List<MemoryCard> Cards { get; set; } = [];
         public List<int> Revealed { get; set; } = [];
         public string? LastResult { get; set; }
+        /// <summary>The two cards of the last miss, face up for both players until the next flip.</summary>
+        public List<MemoryFlip>? LastPair { get; set; }
     }
+
+    private sealed record MemoryFlip(int Index, int Value);
 
     private sealed class MemoryCard { public int Value { get; set; } public bool Matched { get; set; } }
 

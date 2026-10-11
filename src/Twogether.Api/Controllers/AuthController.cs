@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Common;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Common.Security;
+using Twogether.Application.Features.Auth;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 
@@ -15,8 +16,141 @@ public sealed class AuthController(
     ITokenService tokenService,
     ICurrentUser currentUser,
     IDateTimeProvider clock,
-    AttemptLimiter limiter) : ApiControllerBase
+    AttemptLimiter limiter,
+    IEmailSender email,
+    IGoogleTokenVerifier google,
+    Twogether.Api.Presence.HubConnectionRegistry hubConnections,
+    ILogger<AuthController> logger) : ApiControllerBase
 {
+    private static readonly ApiError ResetSent = new("auth.reset_sent", "If an account uses that email, a code is on its way. It works for 15 minutes.");
+    private static readonly ApiError BadResetCode = new("auth.invalid_reset_code", "That code is wrong or has expired. Ask for a new one.");
+
+    /// <summary>
+    /// Emails a six-digit code. The answer is the same whether or not the account exists, so the
+    /// endpoint cannot be used to find out who has an account.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("password/forgot")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!email.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("auth.email_unavailable", "Password reset isn't set up on this server yet."));
+        var address = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
+        if (address.Length is 0 or > 320 || !address.Contains('@')) return UnprocessableEntity(new ApiError("auth.invalid_email", "Enter the email you signed up with."));
+        if (Blocked(limiter, (AttemptRules.ResetRequestPerEmail, address), (AttemptRules.ResetRequestPerIp, ClientIp)) is { } wait)
+            return TooManyAttempts(wait, "Too many codes asked for. Wait a little and try again.");
+        limiter.RecordFailure(AttemptRules.ResetRequestPerEmail, address);
+        limiter.RecordFailure(AttemptRules.ResetRequestPerIp, ClientIp);
+
+        var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(candidate => candidate.Email == address, cancellationToken);
+        if (user is null) return Accepted(ResetSent);
+        var now = clock.UtcNow;
+        foreach (var old in await db.PasswordResetCodes.Where(item => item.UserId == user.Id && item.UsedAtUtc == null).ToListAsync(cancellationToken)) old.Retire(now);
+        var code = PasswordResetRules.NewCode();
+        db.PasswordResetCodes.Add(PasswordResetCode.Issue(user.Id, PasswordResetRules.Hash(user.Id, code), now));
+        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await email.SendAsync(PasswordResetRules.Email(user.Email, code), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // The same answer either way: a failure here must not reveal that the account exists.
+            logger.LogError(exception, "Sending a password reset code failed.");
+        }
+        return Accepted(ResetSent);
+    }
+
+    /// <summary>The code from the email plus a new password: signs in, and every other session ends.</summary>
+    [AllowAnonymous]
+    [HttpPost("password/reset")]
+    public async Task<ActionResult<AuthResponse>> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var address = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
+        if (Blocked(limiter, (AttemptRules.ResetCodePerEmail, address), (AttemptRules.ResetCodePerIp, ClientIp)) is { } wait)
+            return TooManyAttempts(wait, "Too many wrong codes. Wait a few minutes and try again.");
+        if (string.IsNullOrEmpty(request.NewPassword) || request.NewPassword.Length < PasswordResetRules.MinPasswordLength)
+            return UnprocessableEntity(new ApiError("auth.invalid_password", $"Use at least {PasswordResetRules.MinPasswordLength} characters."));
+
+        var now = clock.UtcNow;
+        var user = await db.Users.SingleOrDefaultAsync(candidate => candidate.Email == address, cancellationToken);
+        var reset = user is null ? null : await db.PasswordResetCodes
+            .Where(item => item.UserId == user.Id && item.UsedAtUtc == null)
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (user is null || reset is null || !reset.IsLive(now))
+        {
+            limiter.RecordFailure(AttemptRules.ResetCodePerEmail, address);
+            limiter.RecordFailure(AttemptRules.ResetCodePerIp, ClientIp);
+            return BadRequest(BadResetCode);
+        }
+        reset.RecordAttempt(now);
+        if (!PasswordResetRules.Matches(user.Id, request.Code ?? string.Empty, reset.CodeHash))
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            limiter.RecordFailure(AttemptRules.ResetCodePerEmail, address);
+            limiter.RecordFailure(AttemptRules.ResetCodePerIp, ClientIp);
+            return BadRequest(BadResetCode);
+        }
+        reset.Retire(now);
+        user.ResetPassword(passwordHasher.Hash(request.NewPassword), now);
+        await db.SaveChangesAsync(cancellationToken);
+        limiter.Reset(AttemptRules.ResetCodePerEmail, address);
+        limiter.Reset(AttemptRules.LoginPerEmail, address);
+        var closed = hubConnections.AbortAll(user.Id);
+        logger.LogInformation("Password reset for user {UserId}; older sessions end ({Closed} live connections closed).", user.Id, closed);
+        return Ok(ToResponse(user, tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, now)));
+    }
+
+    /// <summary>
+    /// Sign in (or up) with a Google ID token from the app. An existing account with the same,
+    /// Google-verified email is linked. A new account needs a date of birth: the first call then
+    /// answers 422 auth.profile_required, and the app asks and calls again with it.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("google")]
+    public async Task<ActionResult<AuthResponse>> Google(GoogleSignInRequest request, CancellationToken cancellationToken)
+    {
+        if (!google.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("auth.google_unavailable", "Google sign-in isn't set up on this server yet."));
+        if (Blocked(limiter, (AttemptRules.GooglePerIp, ClientIp)) is { } wait)
+            return TooManyAttempts(wait, "Too many sign-in attempts. Wait a few minutes and try again.");
+        var identity = string.IsNullOrWhiteSpace(request.IdToken) ? null : await google.VerifyAsync(request.IdToken, cancellationToken);
+        if (identity is null || !identity.EmailVerified)
+        {
+            limiter.RecordFailure(AttemptRules.GooglePerIp, ClientIp);
+            return Unauthorized(new ApiError("auth.invalid_google_token", "Google sign-in didn't work. Try again."));
+        }
+
+        var now = clock.UtcNow;
+        var address = identity.Email.Trim().ToLowerInvariant();
+        var user = await db.Users.SingleOrDefaultAsync(candidate => candidate.GoogleId == identity.Subject, cancellationToken)
+            ?? await db.Users.SingleOrDefaultAsync(candidate => candidate.Email == address, cancellationToken);
+        if (user is not null)
+        {
+            if (user.GoogleId is null) user.LinkGoogle(identity.Subject, now);
+            else if (user.GoogleId != identity.Subject) return Conflict(new ApiError("auth.google_mismatch", "This email is linked to a different Google account."));
+            await db.SaveChangesAsync(cancellationToken);
+            await EnsureFemaleCycleOwnerAsync(user, cancellationToken);
+            return Ok(ToResponse(user, tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, now)));
+        }
+
+        if (request.DateOfBirth is null)
+            return UnprocessableEntity(new GoogleProfileRequired("auth.profile_required", "Tell us your birthday to finish signing up.", identity.Email, identity.Name));
+        if (!Enum.IsDefined(request.Gender))
+            return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
+        var name = (string.IsNullOrWhiteSpace(request.DisplayName) ? identity.Name : request.DisplayName)?.Trim();
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 100) name = address.Split('@')[0];
+        var created = Twogether.Core.Entities.User.Create(address, name, request.DateOfBirth.Value, now, passwordHash: null, googleId: identity.Subject,
+            cycleOwner: request.Gender == Gender.Female, gender: request.Gender);
+        created.LinkGoogle(identity.Subject, now);
+        var couple = Twogether.Core.Entities.Couple.Create(created.Id, now);
+        created.SetCouple(couple.Id, now);
+        db.Users.Add(created);
+        db.Couples.Add(couple);
+        db.CycleProfiles.Add(CycleProfile.Create(created.Id, now));
+        await db.SaveChangesAsync(cancellationToken);
+        return Ok(ToResponse(created, tokenService.CreateAccessToken(created.Id, created.CoupleId, created.Email, created.DisplayName, now)));
+    }
+
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
@@ -124,6 +258,11 @@ public sealed class AuthController(
 
 public sealed record RegisterRequest(string Email, string Password, string DisplayName, DateOnly DateOfBirth, Gender Gender = Gender.PreferNotToSay);
 public sealed record LoginRequest(string Email, string Password);
+public sealed record ForgotPasswordRequest(string Email);
+public sealed record ResetPasswordRequest(string Email, string Code, string NewPassword);
+public sealed record GoogleSignInRequest(string IdToken, DateOnly? DateOfBirth = null, Gender Gender = Gender.PreferNotToSay, string? DisplayName = null);
+/// <summary>An ApiError plus what Google told us, so the app can prefill the last step.</summary>
+public sealed record GoogleProfileRequired(string Code, string Message, string Email, string? Name);
 public sealed record AuthResponse(string AccessToken, AuthUserDto User);
 public sealed record UpdateProfileRequest(string DisplayName, string? AvatarUrl, string? MapColor);
 public sealed record AuthUserDto(Guid Id, string Email, string DisplayName, Guid? CoupleId, string TimeZoneId, string? AvatarUrl, string MapColor, bool CycleOwner, Gender Gender);

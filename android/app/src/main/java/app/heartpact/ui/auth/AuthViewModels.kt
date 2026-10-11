@@ -60,7 +60,6 @@ class SignInViewModel(private val auth: AuthRepository) : ViewModel() {
 
     fun email(value: String) = _state.update { it.copy(email = value, error = null, note = null) }
     fun password(value: String) = _state.update { it.copy(password = value, error = null, note = null) }
-    fun forgotPassword() = _state.update { it.copy(note = "Resetting a password by email isn't available yet.") }
 
     fun submit(onDone: () -> Unit) {
         val s = _state.value

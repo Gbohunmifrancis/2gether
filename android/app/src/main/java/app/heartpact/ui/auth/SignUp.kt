@@ -49,7 +49,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-private val GENDERS = listOf(Gender.Female to "Woman", Gender.Male to "Man", Gender.NonBinary to "Non-binary", Gender.PreferNotToSay to "Prefer not to say")
+internal val GENDERS = listOf(Gender.Female to "Woman", Gender.Male to "Man", Gender.NonBinary to "Non-binary", Gender.PreferNotToSay to "Prefer not to say")
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -96,7 +96,7 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BirthDatePicker(current: LocalDate?, onPicked: (LocalDate) -> Unit, onDismiss: () -> Unit) {
+internal fun BirthDatePicker(current: LocalDate?, onPicked: (LocalDate) -> Unit, onDismiss: () -> Unit) {
     val today = LocalDate.now()
     val state = rememberDatePickerState(
         initialSelectedDateMillis = current?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli(),

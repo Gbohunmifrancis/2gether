@@ -1,3 +1,4 @@
+using Twogether.Api.Presence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,20 @@ using Twogether.Core.Enums;
 namespace Twogether.Api.Hubs;
 
 [Authorize]
-public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IGameEngine engine, IGameWordValidator wordValidator) : Hub
+public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IGameEngine engine, IGameWordValidator wordValidator, HubConnectionRegistry connections) : Hub
 {
+    public override Task OnConnectedAsync()
+    {
+        if (currentUser.UserId.HasValue) connections.Add(currentUser.UserId.Value, Context);
+        return base.OnConnectedAsync();
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (currentUser.UserId.HasValue) connections.Remove(currentUser.UserId.Value, Context.ConnectionId);
+        return base.OnDisconnectedAsync(exception);
+    }
+
     public static string GroupName(Guid sessionId) => $"game-{sessionId:N}";
 
     public async Task JoinSession(Guid sessionId)

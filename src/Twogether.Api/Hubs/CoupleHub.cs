@@ -14,13 +14,14 @@ using Twogether.Core.Enums;
 namespace Twogether.Api.Hubs;
 
 [Authorize]
-public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState) : Hub
+public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections) : Hub
 {
     public static string GroupName(Guid coupleId) => $"couple-{coupleId:N}";
     public static string UserGroupName(Guid userId) => $"user-{userId:N}";
 
     public override async Task OnConnectedAsync()
     {
+        if (currentUser.UserId.HasValue) connections.Add(currentUser.UserId.Value, Context);
         if (currentUser.CoupleId.HasValue && currentUser.UserId.HasValue)
         {
             var coupleId = currentUser.CoupleId.Value;
@@ -42,6 +43,7 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        if (currentUser.UserId.HasValue) connections.Remove(currentUser.UserId.Value, Context.ConnectionId);
         if (currentUser.CoupleId.HasValue && currentUser.UserId.HasValue)
         {
             var coupleId = currentUser.CoupleId.Value;

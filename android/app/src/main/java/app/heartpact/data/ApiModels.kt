@@ -70,3 +70,13 @@ data class RegisterDeviceRequest(val token: String, val platform: String = "andr
 
 @Serializable
 data class UnregisterDeviceRequest(val token: String)
+
+@Serializable
+data class ForgotPasswordRequest(val email: String)
+
+@Serializable
+data class ResetPasswordRequest(val email: String, val code: String, val newPassword: String)
+
+/** First call with just the token; a new account answers auth.profile_required and the app sends it again with a birthday. */
+@Serializable
+data class GoogleSignInRequest(val idToken: String, val dateOfBirth: String? = null, val gender: Gender = Gender.PreferNotToSay, val displayName: String? = null)

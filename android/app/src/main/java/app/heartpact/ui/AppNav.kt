@@ -24,6 +24,10 @@ import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChildCare
 import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material.icons.outlined.SportsEsports
+import app.heartpact.ui.games.GameActions
+import app.heartpact.ui.games.GamesScreen
+import app.heartpact.ui.games.GamesViewModel
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.cycle.CycleActions
 import app.heartpact.ui.cycle.CycleMode
@@ -47,6 +51,12 @@ import app.heartpact.ui.us.QuestionViewModel
 import app.heartpact.ui.us.UsTab
 import app.heartpact.ui.us.UsText
 import app.heartpact.ui.us.UsViewModel
+import androidx.activity.compose.BackHandler
+import app.heartpact.ui.auth.ForgotPasswordScreen
+import app.heartpact.ui.auth.ForgotViewModel
+import app.heartpact.ui.auth.GoogleFinishScreen
+import app.heartpact.ui.auth.GoogleSignIn
+import app.heartpact.ui.auth.GoogleViewModel
 import app.heartpact.ui.food.FoodEntryScreen
 import app.heartpact.ui.food.FoodEntryViewModel
 import app.heartpact.ui.food.FoodScanScreen
@@ -110,9 +120,12 @@ private object Routes {
     const val PAIR = "pair"
     const val HOME = "home"
     const val NEW_DARE = "newdare"
+    const val FORGOT = "forgot?email={email}"
+    fun forgot(email: String) = "forgot?email=" + Uri.encode(email)
     const val QUESTION = "question"
     const val CYCLE = "cycle"
     const val MAP = "map"
+    const val GAMES = "games"
     const val PREGNANCY = "pregnancy"
     const val NOTIFICATIONS = "notifications"
     const val FOOD_SCAN = "foodscan?uri={uri}"
@@ -151,7 +164,26 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
             NavHost(nav, startDestination = Routes.SPLASH) {
                 composable(Routes.SPLASH) { AnimatedSplash(onFinished = { splashDone = true }) }
                 composable(Routes.ONBOARDING) { OnboardingScreen(onDone = { appModel.finishOnboarding() }) }
-                composable(Routes.WELCOME) { WelcomeScreen(onCreateAccount = { nav.navigate(Routes.SIGN_UP) }, onSignIn = { nav.navigate(Routes.SIGN_IN) }) }
+                composable(Routes.WELCOME) {
+                    val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
+                    val googleState by google.state.collectAsStateWithLifecycle()
+                    val context = LocalContext.current
+                    if (googleState.finishing) {
+                        BackHandler { google.cancel() }
+                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                    } else WelcomeScreen(
+                        onCreateAccount = { nav.navigate(Routes.SIGN_UP) }, onSignIn = { nav.navigate(Routes.SIGN_IN) },
+                        onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
+                        googleBusy = googleState.busy, note = googleState.note,
+                    )
+                }
+                composable(Routes.FORGOT, arguments = listOf(navArgument("email") { type = NavType.StringType; defaultValue = "" })) { entry ->
+                    val email = entry.arguments?.getString("email").orEmpty()
+                    val model: ForgotViewModel = viewModel(factory = viewModelFactory { initializer { ForgotViewModel(container.auth, email) } })
+                    val state by model.state.collectAsStateWithLifecycle()
+                    ForgotPasswordScreen(state, model::email, model::code, model::password, model::send, { model.reset { appModel.refresh() } },
+                        onBack = { if (state.sent) model.back() else nav.popBackStack() })
+                }
                 composable(Routes.SIGN_UP) {
                     val model: SignUpViewModel = viewModel(factory = viewModelFactory { initializer { SignUpViewModel(container.auth) } })
                     val state by model.state.collectAsStateWithLifecycle()
@@ -160,8 +192,16 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                 composable(Routes.SIGN_IN) {
                     val model: SignInViewModel = viewModel(factory = viewModelFactory { initializer { SignInViewModel(container.auth) } })
                     val state by model.state.collectAsStateWithLifecycle()
-                    SignInScreen(state, model::email, model::password, { model.submit { appModel.refresh() } }, model::forgotPassword,
-                        onCreateAccount = { nav.navigate(Routes.SIGN_UP) { popUpTo(Routes.WELCOME) } }, onBack = { nav.popBackStack() })
+                    val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
+                    val googleState by google.state.collectAsStateWithLifecycle()
+                    val context = LocalContext.current
+                    if (googleState.finishing) {
+                        BackHandler { google.cancel() }
+                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                    } else SignInScreen(state.copy(note = state.note ?: googleState.note), model::email, model::password, { model.submit { appModel.refresh() } },
+                        onForgot = { nav.navigate(Routes.forgot(state.email)) },
+                        onCreateAccount = { nav.navigate(Routes.SIGN_UP) { popUpTo(Routes.WELCOME) } }, onBack = { nav.popBackStack() },
+                        onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null, googleBusy = googleState.busy)
                 }
                 composable(Routes.PAIR) {
                     val session by appModel.session.collectAsStateWithLifecycle()
@@ -258,6 +298,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                             subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner, partnerDay),
                                             icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
+                                    CardRow("Play together", subtitle = "Same answer, memory match, I call on",
+                                        icon = Icons.Outlined.SportsEsports, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
                                     CardRow("Pregnancy mode", subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
                                         icon = Icons.Outlined.ChildCare, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
                                 },
@@ -304,6 +346,20 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us, container.pushEvents) } })
                     val state by model.ui.collectAsStateWithLifecycle()
                     QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
+                }
+                composable(Routes.GAMES) {
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val me = session?.user?.id ?: return@composable
+                    val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: "your partner"
+                    val application = LocalContext.current.applicationContext as Application
+                    val model: GamesViewModel = viewModel(factory = viewModelFactory { initializer { GamesViewModel(application) } })
+                    LaunchedEffect(Unit) { model.refresh() }
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    GamesScreen(state, me, partner, GameActions(
+                        onInvite = { type, letter -> model.invite(type, letter) }, onAccept = { model.accept(it) }, onAbandon = { model.abandon(it) },
+                        onAct = { s, action, value, index -> model.act(s, action, value, index) }, onBack = { nav.popBackStack() },
+                    ))
                 }
                 composable(Routes.MAP) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()

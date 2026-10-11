@@ -361,4 +361,102 @@ class LiveApiTest {
             mayaHub.stopAll(); theoHub.stopAll()
         }
     }
+
+    /** Needs the API started with Email__Provider=log, and HEARTPACT_API_LOG pointing at its log, to read the code. */
+    @Test fun `a forgotten password resets with an emailed code and ends the old session`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null && System.getenv("HEARTPACT_API_LOG") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val email = "maya.$run@example.com"
+        val (oldSession, mayaAuth, mayaCouple) = client("maya")
+        val maya = (mayaAuth.register(RegisterRequest(email, "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        assertTrue((mayaCouple.current(maya.id) is ApiResult.Ok))
+        val (_, phoneAuth, _) = client("phone")
+        // A live connection from the old session, only listening: the reset must close it too.
+        val oldHub = app.heartpact.live.LiveHub(System.getenv("HEARTPACT_API_URL")!!, oldSession)
+        oldHub.hold("test")
+        withContext(Dispatchers.IO) { kotlinx.coroutines.withTimeout(20_000) { oldHub.connected.first { it } } }
+
+        assertTrue("no account, same answer", phoneAuth.forgot("nobody.$run@example.com") is ApiResult.Ok)
+        assertTrue(phoneAuth.forgot(email) is ApiResult.Ok)
+        val code = withContext(Dispatchers.IO) {
+            var found: String? = null
+            repeat(50) {
+                if (found == null) {
+                    found = Regex("""reset your Heartpact password is (\d{6})""").findAll(java.io.File(System.getenv("HEARTPACT_API_LOG")!!).readText())
+                        .lastOrNull { true }?.groupValues?.get(1)
+                    if (found == null) Thread.sleep(100)
+                }
+            }
+            found!!
+        }
+        // Token times have whole seconds: make sure the old session is from an earlier second than the reset.
+        withContext(Dispatchers.IO) { Thread.sleep(1100) }
+        val wrong = if (code == "000000") "111111" else "000000"
+        assertEquals("auth.invalid_reset_code", (phoneAuth.reset(email, wrong, "brandnewpass") as ApiResult.Failure).code)
+        val reset = (phoneAuth.reset(email, code, "brandnewpass") as ApiResult.Ok).value
+        assertEquals(maya.id, reset.user.id)
+        withContext(Dispatchers.IO) { kotlinx.coroutines.withTimeout(5_000) { oldHub.connected.first { !it } } }
+        oldHub.stopAll()
+        assertEquals("a code works once", "auth.invalid_reset_code", (phoneAuth.reset(email, code, "another1pass") as ApiResult.Failure).code)
+
+        // The session from before the reset no longer works; the new password does.
+        assertTrue(oldSession.token != reset.accessToken)
+        assertEquals(401, (mayaCouple.current(maya.id) as ApiResult.Failure).status)
+        assertTrue(mayaAuth.login(email, "brandnewpass") is ApiResult.Ok)
+        assertTrue(mayaAuth.login(email, "longenough") is ApiResult.Failure)
+    }
+
+    @Test fun `an invite becomes a game both phones play, turn by turn, with no clock on memory match`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        val maya = (mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok).value.user
+        val theo = (theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok).value.user
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val mayaGames = app.heartpact.data.GameRepository(apis.getValue("maya"), json)
+        val theoGames = app.heartpact.data.GameRepository(apis.getValue("theo"), json)
+
+        // I call on keeps the chosen letter for the first round.
+        val call = (mayaGames.create(app.heartpact.data.GameType.ICallOn, "Q") as ApiResult.Ok).value
+        val callStarted = (theoGames.accept(call.id) as ApiResult.Ok).value
+        assertEquals("Q", app.heartpact.ui.games.GamePlay.iCallOn(callStarted).letter)
+        mayaGames.abandon(call.id) as ApiResult.Ok
+
+        val invite = (mayaGames.create(app.heartpact.data.GameType.MemoryMatch) as ApiResult.Ok).value
+        assertEquals(app.heartpact.data.GameStatus.Waiting, invite.status)
+        assertEquals("one open game at a time", "game.active_session", (theoGames.create(app.heartpact.data.GameType.CoupleQuiz) as ApiResult.Failure).code)
+        var game = (theoGames.accept(invite.id) as ApiResult.Ok).value
+        assertEquals(null, game.deadlineUtc)
+        withContext(Dispatchers.IO) { Thread.sleep(5_300) } // the shared countdown
+
+        // Whoever moves first flips two cards; on a miss both cards stay visible and the turn passes.
+        val first = game.currentTurnUserId!!
+        val mover = if (first == maya.id) mayaGames else theoGames
+        game = (mover.act(game.id, game.stateVersion, "flip", index = 0) as ApiResult.Ok).value
+        var firstIndex = 0
+        var firstValue = app.heartpact.ui.games.GamePlay.memory(game).cards[0].value!!
+        var index = 1
+        while (true) {
+            val next = (mover.act(game.id, game.stateVersion, "flip", index = index) as ApiResult.Ok).value
+            val state = app.heartpact.ui.games.GamePlay.memory(next)
+            game = next
+            if (state.lastResult == "different") {
+                assertEquals(listOf(firstIndex, index), state.lastPair!!.map { it.index })
+                assertEquals(firstValue, state.lastPair.first().value)
+                assertTrue(next.currentTurnUserId != first)
+                break
+            }
+            // A lucky match: the same player goes again with a fresh first card.
+            firstIndex = index + 1
+            game = (mover.act(game.id, game.stateVersion, "flip", index = firstIndex) as ApiResult.Ok).value
+            firstValue = app.heartpact.ui.games.GamePlay.memory(game).cards[firstIndex].value!!
+            index = firstIndex + 1
+        }
+        val stale = mover.act(game.id, game.stateVersion - 1, "flip", index = 11)
+        assertEquals("game.version_conflict", (stale as ApiResult.Failure).code)
+        assertTrue((if (first == maya.id) theoGames else mayaGames).abandon(game.id) is ApiResult.Ok)
+        assertTrue(mayaGames.sessions().let { it is ApiResult.Ok && it.value.none { s -> s.open } })
+        assertTrue(theo.id.isNotEmpty())
+    }
 }
