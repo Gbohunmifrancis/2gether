@@ -8,7 +8,7 @@
       <b class="p"></b><b class="p"></b><b class="p"></b><b class="p"></b><b class="p"></b><b></b><b></b><b></b><b></b><b></b><b class="f"></b><b class="f now"></b><b class="f"></b><b class="f"></b><b class="f"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b class="pp"></b><b class="pp"></b><b class="pp"></b>
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:8px" class="body-s faint"><span>30 Sep</span><span>Today</span><span>27 Oct</span></div>
-    <div style="display:flex;gap:14px;margin-top:10px" class="body-s muted"><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--theo)"></i>period</span><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--maya-soft);border:1px solid var(--maya)"></i>fertile window, estimated</span><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;border:1.5px dashed var(--theo)"></i>predicted</span></div>
+    <div style="display:flex;gap:14px;margin-top:10px" class="body-s muted"><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--maya)"></i>period</span><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--maya-soft);border:1px solid var(--maya)"></i>fertile window, estimated</span><span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;border:1.5px dashed var(--maya)"></i>predicted</span></div>
   </div>
   <div class="sect"><h2>Today</h2><a>More</a></div>
   <div class="pad">
@@ -22,8 +22,8 @@
 <style>
 .cal{display:grid;grid-template-columns:repeat(28,1fr);gap:3px;align-items:end;height:44px;border-bottom:1px solid var(--rule)}
 .cal b{height:14px;border-radius:3px;background:var(--ground-2)}
-.cal b.p{height:36px;background:var(--theo)}
-.cal b.f{height:24px;background:var(--maya-soft)}
-.cal b.now{background:var(--maya);height:44px}
-.cal b.pp{height:36px;background:none;border:1.5px dashed var(--theo)}
+.cal b.p{height:36px;background:var(--maya)}
+.cal b.f{height:24px;background:var(--maya-soft);box-shadow:inset 0 0 0 1px rgba(28,103,100,.35)}
+.cal b.now{background:var(--maya-soft);height:44px;box-shadow:inset 0 0 0 2px var(--maya)}
+.cal b.pp{height:36px;background:none;border:1.5px dashed var(--maya)}
 </style>

@@ -20,7 +20,6 @@
   --lift-1:0 1px 1px rgba(24,32,43,.04),0 10px 24px -16px rgba(24,32,43,.24);
   --lift-2:0 1px 1px rgba(24,32,43,.04),0 18px 40px -18px rgba(24,32,43,.30);
   --lift-3:0 2px 4px rgba(24,32,43,.06),0 28px 60px -20px rgba(24,32,43,.38);
-  --press:inset 0 2px 3px rgba(0,0,0,.28),inset 0 -1px 0 rgba(255,255,255,.22);
   --well:inset 0 2px 4px rgba(24,32,43,.09);
   --ease:cubic-bezier(.2,.8,.2,1);
 }
@@ -52,8 +51,8 @@ body{background:var(--ground);color:var(--ink);font:400 15px/1.45 'Hanken Grotes
 .ms.s16{font-size:16px}.ms.s18{font-size:18px}.ms.s20{font-size:20px}.ms.s28{font-size:28px}
 
 /* Type roles (Material scale, brand faces) */
-.display-l{font:500 76px/.86 'Bricolage Grotesque';letter-spacing:-.045em;font-variation-settings:'opsz' 96}
-.display-m{font:500 56px/.9 'Bricolage Grotesque';letter-spacing:-.035em;font-variation-settings:'opsz' 96}
+.display-l{font:500 76px/.86 'Bricolage Grotesque';letter-spacing:-.04em;font-variation-settings:'opsz' 96}
+.display-m{font:500 56px/.92 'Bricolage Grotesque';letter-spacing:-.03em;font-variation-settings:'opsz' 96}
 .headline-l{font:600 32px/1.05 'Bricolage Grotesque';letter-spacing:-.02em;font-variation-settings:'opsz' 72}
 .headline-m{font:600 26px/1.12 'Bricolage Grotesque';letter-spacing:-.015em;font-variation-settings:'opsz' 48}
 .title-l{font:600 20px/1.2 'Bricolage Grotesque';letter-spacing:-.01em;font-variation-settings:'opsz' 32}
@@ -106,8 +105,9 @@ body{background:var(--ground);color:var(--ink);font:400 15px/1.45 'Hanken Grotes
 
 /* Seals: pressed solid when signed, dashed when pending, struck when ended */
 .seal{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative}
-.seal.signed{color:#fff;box-shadow:var(--press)}
-.seal.signed.maya{background:var(--maya)}.seal.signed.theo{background:var(--theo)}
+/* Signed: a flat fill in the signer's stock inside a tonal ring. The deboss lives in the press motion, not a painted bevel. */
+.seal.signed{color:#fff;box-shadow:0 0 0 3px var(--ring,transparent)}
+.seal.signed.maya{background:var(--maya);--ring:var(--maya-soft)}.seal.signed.theo{background:var(--theo);--ring:var(--theo-soft)}
 .seal.pending{background:var(--ground);box-shadow:var(--well);border:1.5px dashed currentColor}
 .seal.pending.maya{color:var(--maya)}.seal.pending.theo{color:var(--theo)}
 .seal.struck{background:var(--paper-2);color:var(--ink-3);border:1.5px solid var(--rule-2)}
@@ -117,7 +117,20 @@ body{background:var(--ground);color:var(--ink);font:400 15px/1.45 'Hanken Grotes
 .seals{display:flex;gap:14px}
 .sealrow{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 .sealrow .l{font:600 13.5px/1.25 'Hanken Grotesk'}.sealrow small{display:block;font-size:12px;color:var(--ink-3);line-height:1.3}
-.pair{display:flex}.pair .seal+.seal{margin-left:-7px}
+.pair{display:flex}.pair .seal+.seal{margin-left:-5px}
+/* History strip: one mark per day on one baseline at one scale, in every history view */
+.days{display:flex;justify-content:space-between;align-items:flex-end;height:30px;border-bottom:1px solid var(--rule)}
+.days i{width:5px;height:26px;border-radius:2.5px;display:block;position:relative}
+.days i.sealed{background:var(--doer,var(--maya))}
+.days i.missed{border:1.5px solid var(--ink-3)}
+.days i.ended{border:1.5px solid var(--ink-4)}
+.days i.ended::after{content:"";position:absolute;left:-4px;right:-4px;top:11px;height:1.5px;background:var(--ink-3);transform:rotate(-30deg)}
+.days i.planned{border:1.5px dashed var(--doer,var(--maya))}
+.days i.off{width:5px;height:5px;border-radius:50%;background:var(--ink-4);opacity:.5}
+.days i.today{box-shadow:0 0 0 3px var(--maya-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:5px;height:14px;border-radius:2.5px;display:block;position:relative}
 
 /* Buttons (Material 3 roles, pill shape, actor's stock) */
 .btn{height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 24px;font:600 16px 'Hanken Grotesk';white-space:nowrap}
@@ -189,7 +202,7 @@ body{background:var(--ground);color:var(--ink);font:400 15px/1.45 'Hanken Grotes
 
 /* Misc */
 .hair{height:1px;background:var(--rule)}
-.tag{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px;border-radius:12px;font:600 12px 'Hanken Grotesk';background:var(--ground);color:var(--ink-2)}
+.tag{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex:none;height:24px;padding:0 9px;border-radius:12px;font:600 12px 'Hanken Grotesk';background:var(--ground);color:var(--ink-2)}
 .tag.maya{background:var(--maya-tint);color:var(--maya-ink)}.tag.theo{background:var(--theo-tint);color:var(--theo-ink)}
 .dot{width:8px;height:8px;border-radius:50%;flex:none}
 .photo{background-size:cover;background-position:center;border-radius:16px}

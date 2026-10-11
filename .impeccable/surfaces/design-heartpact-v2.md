@@ -21,7 +21,7 @@ Unresolved: the app stack; real photography for the album (stock photos are labe
 
 THESIS: Every promise between the two of you is a pact card pressed from two layers of coloured stock, one per partner, closed by two seals. Refuses the category default of pink hearts, progress rings and same-size icon cards.
 
-OWN-WORLD: Duplexed cotton stock. Cool fog ground #E4E9E6, near-white paper cards, ink #18202B. Each partner owns one stock colour everywhere: Maya teal #1C6764, Theo persimmon #CF5A33. A two-layer top edge marks pact cards only. Debossed seal discs: pressed solid when signed, dashed outline when pending, struck when ended. Soft, long, low-opacity shadows. Bricolage Grotesque for display and numerals, Hanken Grotesk for UI text, Material Symbols Rounded at weight 300.
+OWN-WORLD: Duplexed cotton stock. Cool fog ground #E4E9E6, near-white paper cards, ink #18202B. Each partner owns one stock colour everywhere: Maya teal #1C6764, Theo persimmon #C2532E. The planned #CF5A33 gives white text only 4.07:1; #C2532E reaches 4.59:1. The alarm field uses the deeper #A9441F so its white body text reaches 5.94:1. A two-layer top edge marks pact cards only. Debossed seal discs: pressed solid when signed, dashed outline when pending, struck when ended. Soft, long, low-opacity shadows. Bricolage Grotesque for display and numerals, Hanken Grotesk for UI text, Material Symbols Rounded at weight 300.
 
 STORY: You see what is due today, who set it, and how long until it rings. You do it on camera, your seal presses, and the pact closes. Ending early needs both seals. Privacy and sharing are always one tap from where the data shows.
 
