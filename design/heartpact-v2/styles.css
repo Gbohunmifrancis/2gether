@@ -1,0 +1,195 @@
+/* Heartpact: Duplex Pact. Material 3 structure, themed with duplexed cotton stock.
+   Two stock colours, one per partner, used everywhere their data appears. */
+@font-face{font-family:'Bricolage Grotesque';src:url(fonts/bricolage-grotesque-latin.woff2) format('woff2');font-weight:200 800;font-display:block}
+@font-face{font-family:'Hanken Grotesk';src:url(fonts/hanken-grotesk-latin.woff2) format('woff2');font-weight:100 900;font-display:block}
+
+:root{
+  /* Stock */
+  --ground:#E4E9E6;         /* fog cotton: the app background */
+  --ground-2:#DCE2DE;       /* one tonal step down: nav bar, wells */
+  --paper:#FBFCFA;          /* card stock */
+  --paper-2:#F3F6F4;        /* recessed fields on paper */
+  --ink:#18202B; --ink-2:#4B5361; --ink-3:#6E7582; --ink-4:#9AA0AA;
+  --rule:rgba(24,32,43,.09); --rule-2:rgba(24,32,43,.16);
+  /* Partners: each owns one stock colour */
+  --maya:#1C6764; --maya-ink:#0F4744; --maya-soft:#D3E6E2; --maya-tint:#EAF3F1;
+  --theo:#C2532E; --theo-ink:#8E3416; --theo-soft:#F7DED3; --theo-tint:#FCF0EA;
+  /* Semantic */
+  --error:#B3261E; --error-soft:#F9DEDC;
+  /* Depth: long, soft, low */
+  --lift-1:0 1px 1px rgba(24,32,43,.04),0 10px 24px -16px rgba(24,32,43,.24);
+  --lift-2:0 1px 1px rgba(24,32,43,.04),0 18px 40px -18px rgba(24,32,43,.30);
+  --lift-3:0 2px 4px rgba(24,32,43,.06),0 28px 60px -20px rgba(24,32,43,.38);
+  --press:inset 0 2px 3px rgba(0,0,0,.28),inset 0 -1px 0 rgba(255,255,255,.22);
+  --well:inset 0 2px 4px rgba(24,32,43,.09);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+/* Night: the same two stocks printed on charcoal. Partner hues lift a step for contrast. */
+body.dark{
+  --ground:#12171D; --ground-2:#1A2027; --paper:#1D242C; --paper-2:#242C35;
+  --ink:#ECEFEC; --ink-2:#B4BCC2; --ink-3:#8C949C; --ink-4:#5E666F;
+  --rule:rgba(236,239,236,.08); --rule-2:rgba(236,239,236,.16);
+  --maya:#58B3AC; --maya-ink:#BFE6E1; --maya-soft:#1F3C3B; --maya-tint:#18302F;
+  --theo:#EE8A64; --theo-ink:#FFD3C2; --theo-soft:#4A2A1F; --theo-tint:#3A231B;
+  --lift-1:0 1px 0 rgba(255,255,255,.04) inset,0 10px 24px -16px rgba(0,0,0,.6);
+  --lift-2:0 1px 0 rgba(255,255,255,.05) inset,0 18px 40px -18px rgba(0,0,0,.7);
+  --lift-3:0 1px 0 rgba(255,255,255,.05) inset,0 28px 60px -20px rgba(0,0,0,.8);
+  --well:inset 0 2px 4px rgba(0,0,0,.4);
+}
+body.dark .btn.filled{color:#0E1418}
+body.dark .disc{color:#0E1418}
+body.dark .duo .disc{border-color:var(--ground)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%}
+body{background:var(--ground);color:var(--ink);font:400 15px/1.45 'Hanken Grotesk',sans-serif;font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;position:relative;overflow:hidden}
+::selection{background:var(--maya-soft);color:var(--maya-ink)}
+
+/* Icons: Material Symbols Rounded, light */
+.ms{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:22px;line-height:1;letter-spacing:normal;
+  display:inline-block;white-space:nowrap;font-variation-settings:'FILL' 0,'wght' 300,'opsz' 24,'GRAD' 0;flex:none}
+.ms.fill{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24,'GRAD' 0}
+.ms.s16{font-size:16px}.ms.s18{font-size:18px}.ms.s20{font-size:20px}.ms.s28{font-size:28px}
+
+/* Type roles (Material scale, brand faces) */
+.display-l{font:500 76px/.86 'Bricolage Grotesque';letter-spacing:-.045em;font-variation-settings:'opsz' 96}
+.display-m{font:500 56px/.9 'Bricolage Grotesque';letter-spacing:-.035em;font-variation-settings:'opsz' 96}
+.headline-l{font:600 32px/1.05 'Bricolage Grotesque';letter-spacing:-.02em;font-variation-settings:'opsz' 72}
+.headline-m{font:600 26px/1.12 'Bricolage Grotesque';letter-spacing:-.015em;font-variation-settings:'opsz' 48}
+.title-l{font:600 20px/1.2 'Bricolage Grotesque';letter-spacing:-.01em;font-variation-settings:'opsz' 32}
+.title-m{font:600 16px/1.3 'Hanken Grotesk'}
+.body-l{font:400 16px/1.5 'Hanken Grotesk'}
+.body-m{font:400 14px/1.45 'Hanken Grotesk'}
+.body-s{font:400 12.5px/1.4 'Hanken Grotesk'}
+.label-l{font:600 14px/1.25 'Hanken Grotesk'}
+.label-m{font:600 12.5px/1.25 'Hanken Grotesk'}
+.muted{color:var(--ink-2)}.faint{color:var(--ink-3)}
+.c-maya{color:var(--maya)}.c-theo{color:var(--theo)}
+
+/* Android system chrome */
+.status{height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font:600 13.5px 'Hanken Grotesk';position:relative;z-index:5}
+.status .r{display:flex;gap:5px;align-items:center}.status .ms{font-size:17px}
+.status.light{color:#fff}
+.handle{position:absolute;bottom:9px;left:50%;width:108px;height:4px;margin-left:-54px;border-radius:2px;background:var(--ink);opacity:.38;z-index:20}
+.handle.light{background:#fff;opacity:.6}
+
+/* Screen scaffolding */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.scroll{flex:1;overflow:hidden;padding-bottom:16px}
+.pad{padding:0 20px}
+.appbar{display:flex;align-items:center;gap:4px;height:64px;padding:0 4px}
+.appbar .t{flex:1;font:600 20px/1.2 'Bricolage Grotesque';letter-spacing:-.01em;padding-left:4px}
+.iconbtn{width:48px;height:48px;border-radius:24px;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.largebar{display:flex;align-items:flex-end;justify-content:space-between;padding:14px 16px 16px 20px}
+.largebar .sub{margin-top:8px;color:var(--ink-2);font-size:13.5px}
+.sect{display:flex;align-items:baseline;justify-content:space-between;padding:22px 20px 10px}
+.sect h2{font:600 15px/1.2 'Hanken Grotesk'}
+.sect a{font:600 13.5px 'Hanken Grotesk';color:var(--maya);text-decoration:none}
+
+/* Partner discs */
+.duo{display:flex;align-items:center;height:48px}
+.disc{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:600 14px 'Hanken Grotesk';color:#fff;flex:none}
+.disc.maya{background:var(--maya)}.disc.theo{background:var(--theo)}
+.duo .disc{border:2.5px solid var(--ground)}.duo .disc+.disc{margin-left:-10px}
+.disc.sm{width:24px;height:24px;font-size:11px}.disc.lg{width:56px;height:56px;font-size:20px}
+
+/* Pact cards: two pressed layers, the setter's stock on top */
+.pact{background:var(--paper);border-radius:28px;position:relative;overflow:hidden;box-shadow:var(--lift-2)}
+.pact::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:linear-gradient(var(--top) 0 50%,var(--bottom) 50% 100%)}
+.pact.by-theo{--top:var(--theo);--bottom:var(--maya)}
+.pact.by-maya{--top:var(--maya);--bottom:var(--theo)}
+.pact.slim::before{height:4px}
+.pact .in{padding:24px 22px 20px}
+.pact.slim{border-radius:22px;box-shadow:var(--lift-1)}
+.pact.slim .in{padding:16px 18px 14px}
+.pact.sealed::after{content:"";position:absolute;inset:auto 0 0 0;height:6px;background:linear-gradient(var(--bottom) 0 50%,var(--top) 50% 100%)}
+
+/* Seals: pressed solid when signed, dashed when pending, struck when ended */
+.seal{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative}
+.seal.signed{color:#fff;box-shadow:var(--press)}
+.seal.signed.maya{background:var(--maya)}.seal.signed.theo{background:var(--theo)}
+.seal.pending{background:var(--ground);box-shadow:var(--well);border:1.5px dashed currentColor}
+.seal.pending.maya{color:var(--maya)}.seal.pending.theo{color:var(--theo)}
+.seal.struck{background:var(--paper-2);color:var(--ink-3);border:1.5px solid var(--rule-2)}
+.seal.struck::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:1.5px;background:currentColor;transform:rotate(-35deg)}
+.seal.sm{width:28px;height:28px}.seal.sm .ms{font-size:15px}
+.seal.lg{width:64px;height:64px}.seal.lg .ms{font-size:28px}
+.seals{display:flex;gap:14px}
+.sealrow{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.sealrow .l{font:600 13.5px/1.25 'Hanken Grotesk'}.sealrow small{display:block;font-size:12px;color:var(--ink-3);line-height:1.3}
+.pair{display:flex}.pair .seal+.seal{margin-left:-7px}
+
+/* Buttons (Material 3 roles, pill shape, actor's stock) */
+.btn{height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 24px;font:600 16px 'Hanken Grotesk';white-space:nowrap}
+.btn.filled{background:var(--act,var(--ink));color:#fff;box-shadow:0 1px 1px rgba(24,32,43,.08),0 10px 20px -12px var(--act,var(--ink))}
+.btn.tonal{background:var(--act-soft,var(--ground-2));color:var(--act-ink,var(--ink))}
+.btn.outline{border:1.25px solid var(--rule-2);color:var(--ink)}
+.btn.text{height:48px;color:var(--act,var(--ink));padding:0 14px}
+.btn.trail{justify-content:space-between;padding:0 8px 0 24px}
+.btn .knob{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center}
+.btn.sm{height:40px;border-radius:20px;font-size:14px;padding:0 18px}
+.act-maya{--act:var(--maya);--act-soft:var(--maya-soft);--act-ink:var(--maya-ink)}
+.act-theo{--act:var(--theo);--act-soft:var(--theo-soft);--act-ink:var(--theo-ink)}
+.stack{display:flex;flex-direction:column;gap:6px}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:36px;border-radius:18px;padding:0 14px;display:flex;align-items:center;gap:6px;font:600 13.5px 'Hanken Grotesk';border:1.25px solid var(--rule-2);color:var(--ink-2);background:var(--paper)}
+.chip.on{background:var(--act-soft,var(--maya-soft));border-color:transparent;color:var(--act-ink,var(--maya-ink))}
+.chip .ms{font-size:18px}
+
+/* Segmented button */
+.seg{display:flex;height:44px;border:1.25px solid var(--rule-2);border-radius:22px;overflow:hidden;background:var(--paper)}
+.seg div{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font:600 13.5px 'Hanken Grotesk';color:var(--ink-2)}
+.seg div+div{border-left:1.25px solid var(--rule-2)}
+.seg .on{background:var(--act-soft,var(--maya-soft));color:var(--act-ink,var(--maya-ink))}
+
+/* Switch (M3) */
+.switch{width:52px;height:32px;border-radius:16px;background:var(--ground-2);border:2px solid var(--ink-4);position:relative;flex:none}
+.switch::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--ink-3);top:6px;left:6px}
+.switch.on{background:var(--act,var(--maya));border-color:var(--act,var(--maya))}
+.switch.on::after{width:24px;height:24px;top:2px;left:22px;background:#fff}
+
+/* Sheets and lists on paper */
+.card{background:var(--paper);border-radius:22px;box-shadow:var(--lift-1)}
+.row{display:flex;align-items:center;gap:14px;min-height:56px;padding:10px 18px}
+.row+.row{border-top:1px solid var(--rule)}
+.row>.ms{color:var(--ink-2)}
+.row .k{font:600 14.5px/1.3 'Hanken Grotesk'}
+.row .s{font-size:12.5px;color:var(--ink-2);line-height:1.35}
+.row .v{margin-left:auto;font-size:13.5px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.row .v b{color:var(--ink);font-weight:600}
+.grow{flex:1;min-width:0}
+
+/* Text field (M3 outlined) */
+.field{position:relative;border:1.25px solid var(--rule-2);border-radius:14px;padding:18px 16px 14px;background:var(--paper)}
+.field label{position:absolute;top:-9px;left:12px;padding:0 4px;background:var(--paper);font:600 12px 'Hanken Grotesk';color:var(--ink-2)}
+.field.focus{border:2px solid var(--act,var(--maya))}.field.focus label{color:var(--act,var(--maya))}
+.caret{display:inline-block;width:2px;height:20px;background:var(--act,var(--maya));vertical-align:-4px;margin-left:1px}
+
+/* Navigation bar (M3) */
+.nav{height:84px;background:var(--ground-2);display:flex;padding:12px 8px 0;flex:none;position:relative;z-index:10}
+.nav div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font:500 12px 'Hanken Grotesk';color:var(--ink-2)}
+.nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;font-style:normal}
+.nav .on{color:var(--ink);font-weight:700}.nav .on i{background:var(--maya-soft);color:var(--maya)}
+.nav .on .ms{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24}
+.navgap{height:24px;background:var(--ground-2);flex:none}
+
+/* FAB (extended) */
+.fab{position:absolute;right:16px;height:56px;border-radius:18px;background:var(--act,var(--maya));color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px 0 16px;font:600 15px 'Hanken Grotesk';box-shadow:var(--lift-3);z-index:8}
+
+/* Bottom sheet and scrim */
+.scrim{position:absolute;inset:0;background:rgba(14,19,27,.42);z-index:30}
+.bsheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:28px 28px 0 0;z-index:31;padding:10px 20px 40px;box-shadow:var(--lift-3)}
+.bsheet .grip{width:32px;height:4px;border-radius:2px;background:var(--ink-4);margin:4px auto 18px}
+
+/* Snackbar */
+.snack{position:absolute;left:12px;right:12px;min-height:52px;border-radius:14px;background:var(--ink);color:#F1F4F2;display:flex;align-items:center;gap:12px;padding:0 8px 0 18px;font-size:14px;z-index:25;box-shadow:var(--lift-2)}
+.snack b{margin-left:auto;color:#A9D8D2;font-weight:600;padding:0 10px}
+
+/* Misc */
+.hair{height:1px;background:var(--rule)}
+.tag{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px;border-radius:12px;font:600 12px 'Hanken Grotesk';background:var(--ground);color:var(--ink-2)}
+.tag.maya{background:var(--maya-tint);color:var(--maya-ink)}.tag.theo{background:var(--theo-tint);color:var(--theo-ink)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.photo{background-size:cover;background-position:center;border-radius:16px}

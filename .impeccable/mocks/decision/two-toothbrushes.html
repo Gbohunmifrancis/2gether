@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..24,300,0..1,0&display=block" rel="stylesheet">
+<style>
+:root{--ground:#F2F3F5;--paper:#FFFFFF;--ink:#161A22;--ink2:#545B68;--ink3:#8A909B;--maya:#2E6A4E;--maya-soft:#DCEBE2;--theo:#3446C2;--theo-soft:#DFE3FA;--rule:rgba(22,26,34,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:390px;height:844px;overflow:hidden;background:var(--ground);font:400 14px/1.4 'Onest',sans-serif;color:var(--ink);position:relative;font-variant-numeric:tabular-nums}
+.ms{font-family:'Material Symbols Rounded';font-size:22px;line-height:1;font-variation-settings:'FILL' 0,'wght' 300,'opsz' 24;display:inline-block}
+.status{height:32px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600}
+.status .ms{font-size:16px;margin-left:4px}
+.bar{padding:10px 20px 6px}
+.bar h1{font:600 28px/1.1 'Onest';letter-spacing:-.02em}
+.bar p{font-size:13px;color:var(--ink2);margin-top:4px}
+.board{position:relative;margin:14px 12px 0;background:var(--paper);border-radius:28px;box-shadow:0 1px 1px rgba(22,26,34,.04),0 18px 40px -20px rgba(22,26,34,.25);overflow:hidden}
+.board::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--rule)}
+.names{display:grid;grid-template-columns:1fr 1fr;padding:18px 0 8px}
+.names div{display:flex;align-items:center;gap:8px;padding:0 18px;font-weight:600;font-size:15px}
+.names div:last-child{justify-content:flex-end}
+.dot{width:10px;height:10px;border-radius:50%}
+.grid{display:grid;grid-template-columns:1fr 1fr}
+.cell{padding:14px 18px;border-top:1px solid var(--rule);min-height:84px}
+.cell.r{text-align:right}
+.cell .k{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:5px}
+.cell.r .k{justify-content:flex-end}
+.cell .k .ms{font-size:16px}
+.cell .v{font:600 20px/1.2 'Onest';letter-spacing:-.01em;margin-top:6px}
+.cell .s{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.live{background:var(--maya-soft)}
+.live .v{color:var(--maya)}
+.big{font:600 44px/.95 'Onest';letter-spacing:-.04em;color:var(--maya);margin-top:8px}
+.go{margin-top:12px;height:48px;border-radius:24px;background:var(--maya);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14.5px}
+.later .v{color:var(--theo)}
+.seam{position:relative;z-index:2;display:flex;justify-content:center;margin:-17px 0}
+.seam span{height:34px;padding:0 14px;border-radius:17px;background:var(--ink);color:#fff;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600}
+.seam .ms{font-size:16px}
+.ok{color:var(--maya)}
+.share{margin:12px 12px 0;height:56px;background:var(--paper);border-radius:20px;display:flex;align-items:center;gap:12px;padding:0 18px;box-shadow:0 10px 24px -18px rgba(22,26,34,.25)}
+.share .k{font-weight:600}
+.share .v{margin-left:auto;color:var(--ink2);font-size:13px}
+.share b{color:var(--ink)}
+.nav{position:absolute;left:0;right:0;bottom:0;height:96px;background:#ECEEF1;display:flex;padding:12px 8px 0;box-shadow:0 -1px 0 var(--rule)}
+.nav div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--ink2)}
+.nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;font-style:normal}
+.nav .on{color:var(--ink);font-weight:700}.nav .on i{background:var(--ink);color:#fff}
+.nav .on .ms{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24}
+.handle{position:absolute;bottom:8px;left:50%;width:108px;height:4px;margin-left:-54px;border-radius:2px;background:var(--ink);opacity:.35}
+</style></head><body>
+<div class="status"><span>7:48</span><span><span class="ms">signal_cellular_alt</span><span class="ms">wifi</span><span class="ms">battery_5_bar</span></span></div>
+<div class="bar"><h1>Today</h1><p>Saturday, 11 October</p></div>
+<div class="board">
+ <div class="names"><div><span class="dot" style="background:var(--maya)"></span>You</div><div>Theo<span class="dot" style="background:var(--theo)"></span></div></div>
+ <div class="grid">
+  <div class="cell live" style="padding-bottom:30px"><div class="k"><span class="ms">alarm</span>Set by Theo</div><div class="v">20 squats</div><div class="big">12 min</div><div class="s">rings at 8:00 · 0 of 20</div><div class="go"><span class="ms" style="font-size:20px">photo_camera</span>Start</div></div>
+  <div class="cell r later"><div class="k">Set by you<span class="ms">alarm</span></div><div class="v">30 push-ups</div><div class="s">due 18:30</div><div class="s">not started</div></div>
+ </div>
+ <div class="seam"><span><span class="ms">local_fire_department</span>Together 14 days</span></div>
+ <div class="grid">
+  <div class="cell" style="padding-top:26px"><div class="k"><span class="ms">restaurant</span>Food</div><div class="v">1,240</div><div class="s">of ~1,900 kcal</div></div>
+  <div class="cell r" style="padding-top:26px"><div class="k">Food<span class="ms">restaurant</span></div><div class="v">1,610</div><div class="s">totals only</div></div>
+  <div class="cell"><div class="k"><span class="ms">forum</span>Question</div><div class="v" style="font-size:16px">Not answered</div><div class="s">answer to read Theo's</div></div>
+  <div class="cell r"><div class="k">Question<span class="ms">forum</span></div><div class="v ok" style="font-size:16px;color:var(--theo)">Answered</div><div class="s">hidden until you answer</div></div>
+ </div>
+</div>
+<div class="share"><span class="ms">location_on</span><span class="k">Location</span><span class="v">Both sharing · <b>Pause</b></span></div>
+<div class="nav">
+ <div class="on"><i><span class="ms">today</span></i>Today</div>
+ <div><i><span class="ms">handshake</span></i>Pacts</div>
+ <div><i><span class="ms">restaurant</span></i>Food</div>
+ <div><i><span class="ms">favorite</span></i>Us</div>
+ <div><i><span class="ms">photo_library</span></i>Album</div>
+</div><div class="handle"></div>
+</body></html>

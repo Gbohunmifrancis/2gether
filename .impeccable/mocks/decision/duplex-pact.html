@@ -1,0 +1,97 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Hanken+Grotesk:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..24,300,0..1,0&display=block" rel="stylesheet">
+<style>
+:root{--ground:#E4E9E6;--paper:#FBFCFA;--ink:#18202B;--ink2:#4B5361;--ink3:#79808C;--maya:#1C6764;--maya-soft:#D3E6E2;--theo:#CF5A33;--theo-soft:#F7DED3;--rule:rgba(24,32,43,.09)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:390px;height:844px;overflow:hidden;background:var(--ground);font:400 14px/1.4 'Hanken Grotesk',sans-serif;color:var(--ink);position:relative;font-variant-numeric:tabular-nums}
+.ms{font-family:'Material Symbols Rounded';font-size:22px;line-height:1;font-variation-settings:'FILL' 0,'wght' 300,'opsz' 24;display:inline-block}
+.status{height:32px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink)}
+.status .ms{font-size:16px;margin-left:4px}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 14px 20px}
+.bar h1{font:600 30px/1 'Bricolage Grotesque';letter-spacing:-.02em;font-variation-settings:'opsz' 72}
+.bar p{font-size:13px;color:var(--ink2);margin-top:6px}
+.duo{display:flex;align-items:center;height:48px}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:600 14px 'Hanken Grotesk';color:#fff;border:2px solid var(--ground)}
+.av.m{background:var(--maya)}.av.t{background:var(--theo);margin-left:-10px}
+.pact{margin:0 12px;background:var(--paper);border-radius:28px;position:relative;overflow:hidden;
+ box-shadow:0 1px 1px rgba(24,32,43,.04),0 18px 40px -18px rgba(24,32,43,.28)}
+.pact::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:linear-gradient(var(--theo) 0 50%,var(--maya) 50% 100%)}
+.pact .in{padding:26px 22px 20px}
+.from{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.from b{color:var(--theo);font-weight:600}
+.title{font:600 25px/1.15 'Bricolage Grotesque';letter-spacing:-.015em;margin-top:8px;font-variation-settings:'opsz' 48}
+.clock{display:flex;align-items:flex-end;gap:10px;margin-top:18px}
+.clock .n{font:500 68px/.85 'Bricolage Grotesque';letter-spacing:-.04em;font-variation-settings:'opsz' 96}
+.clock .u{font-size:14px;color:var(--ink2);padding-bottom:4px;line-height:1.3}
+.seals{display:flex;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)}
+.seal{display:flex;align-items:center;gap:10px;flex:1}
+.disc{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
+.disc.done{background:var(--theo);color:#fff;box-shadow:inset 0 2px 3px rgba(0,0,0,.25),inset 0 -1px 0 rgba(255,255,255,.25)}
+.disc.open{border:1.5px dashed var(--maya);color:var(--maya);background:var(--ground);box-shadow:inset 0 2px 4px rgba(24,32,43,.08)}
+.seal small{display:block;font-size:12px;color:var(--ink3);line-height:1.25}
+.seal span.l{font-size:13px;font-weight:600;line-height:1.25}
+.acts{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-top:20px}
+.btn{height:56px;border-radius:28px;background:var(--maya);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 24px;font-weight:600;font-size:16px;white-space:nowrap}
+.btn .ic{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center}
+.txt{height:48px;display:flex;align-items:center;justify-content:center;color:var(--maya);font-weight:600;font-size:14px;white-space:nowrap}
+.mini{margin:12px 12px 0;background:var(--paper);border-radius:22px;position:relative;overflow:hidden;padding:16px 18px 14px;display:flex;align-items:center;gap:14px;
+ box-shadow:0 1px 1px rgba(24,32,43,.04),0 10px 24px -16px rgba(24,32,43,.22)}
+.mini::before{content:"";position:absolute;inset:0 auto 0 0;width:0}
+.mini .t{font:600 16px/1.2 'Bricolage Grotesque'}
+.mini .s{font-size:12.5px;color:var(--ink2);margin-top:3px}
+.mini .duplex{position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(var(--maya) 0 50%,var(--theo) 50% 100%)}
+.pair{display:flex;margin-left:auto}
+.pair .disc{width:28px;height:28px;font-size:11px}
+.pair .disc+.disc{margin-left:-6px}
+.disc.mfill{background:var(--maya);color:#fff;box-shadow:inset 0 2px 3px rgba(0,0,0,.25)}
+.disc.topen{border:1.5px dashed var(--theo);background:var(--paper)}
+.sheet{margin:12px 12px 0;background:var(--paper);border-radius:22px;box-shadow:0 1px 1px rgba(24,32,43,.04),0 10px 24px -16px rgba(24,32,43,.22)}
+.row{display:flex;align-items:center;gap:14px;height:54px;padding:0 18px}
+.row+.row{border-top:1px solid var(--rule)}
+.row .ms{color:var(--ink2)}
+.row .k{font-weight:600;font-size:14px}
+.row .v{margin-left:auto;font-size:13px;color:var(--ink2);text-align:right}
+.row .v b{color:var(--ink);font-weight:600}
+.lock{display:inline-flex;align-items:center;gap:4px}
+.lock .ms{font-size:16px}
+.nav{position:absolute;left:0;right:0;bottom:0;height:96px;background:#F2F5F3;display:flex;padding:12px 8px 0;box-shadow:0 -1px 0 var(--rule)}
+.nav div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--ink2)}
+.nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;font-style:normal}
+.nav .on{color:var(--ink);font-weight:700}.nav .on i{background:var(--maya-soft);color:var(--maya)}
+.nav .on .ms{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24}
+.handle{position:absolute;bottom:8px;left:50%;width:108px;height:4px;margin-left:-54px;border-radius:2px;background:var(--ink);opacity:.35}
+</style></head><body>
+<div class="status"><span>7:48</span><span><span class="ms">signal_cellular_alt</span><span class="ms">wifi</span><span class="ms">battery_5_bar</span></span></div>
+<div class="bar"><div><h1>Today</h1><p>Saturday, 11 October · together 14 days</p></div>
+ <div class="duo"><div class="av m">M</div><div class="av t">T</div></div></div>
+
+<div class="pact"><div class="in">
+ <div class="from"><span class="ms" style="font-size:18px;color:var(--theo)">alarm</span><span><b>Theo</b> set this for you · rings at 8:00</span></div>
+ <div class="title">20 squats, on camera</div>
+ <div class="clock"><span class="n">12</span><span class="u">minutes left<br>0 of 20 counted</span></div>
+ <div class="seals">
+  <div class="seal"><div class="disc done"><span class="ms" style="font-size:20px">draw</span></div><div><span class="l">Theo signed</span><small>set it Thursday</small></div></div>
+  <div class="seal"><div class="disc open"><span class="ms" style="font-size:20px">photo_camera</span></div><div><span class="l">Your seal</span><small>the camera signs it</small></div></div>
+ </div>
+ <div class="acts"><div class="btn">Start on camera<span class="ic"><span class="ms">arrow_forward</span></span></div><div class="txt">Ask Theo to end it</div></div>
+</div></div>
+
+<div class="mini"><span class="duplex"></span>
+ <div><div class="t">30 push-ups for Theo</div><div class="s">You set it · due 18:30 · not started</div></div>
+ <div class="pair"><div class="disc mfill">M</div><div class="disc topen"></div></div>
+</div>
+
+<div class="sheet">
+ <div class="row"><span class="ms">restaurant</span><span class="k">Food</span><span class="v"><b>1,240</b> of ~1,900 kcal</span></div>
+ <div class="row"><span class="ms">forum</span><span class="k">Today's question</span><span class="v lock"><span class="ms">lock</span>Answer to read Theo's</span></div>
+ <div class="row"><span class="ms">location_on</span><span class="k">Location</span><span class="v">Both sharing · <b style="color:var(--maya)">Pause</b></span></div>
+</div>
+
+<div class="nav">
+ <div class="on"><i><span class="ms">today</span></i>Today</div>
+ <div><i><span class="ms">handshake</span></i>Pacts</div>
+ <div><i><span class="ms">restaurant</span></i>Food</div>
+ <div><i><span class="ms">favorite</span></i>Us</div>
+ <div><i><span class="ms">photo_library</span></i>Album</div>
+</div><div class="handle"></div>
+</body></html>
