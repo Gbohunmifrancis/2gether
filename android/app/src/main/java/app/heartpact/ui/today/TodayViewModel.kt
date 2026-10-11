@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import app.heartpact.push.Push
+import app.heartpact.push.PushInbox
 import java.time.Instant
 
 data class TodayUi(
@@ -39,12 +41,13 @@ class TodayViewModel(application: Application, private val me: String, private v
 
     init {
         viewModelScope.launch {
-            // Until push arrives, check in every 15 seconds while Today is open.
+            // With push, a check-in a minute is a safety net; without it, every 15 seconds while Today is open.
             while (isActive) {
                 refreshNow()
-                delay(15_000)
+                delay(if (Push.enabled) 60_000 else 15_000)
             }
         }
+        viewModelScope.launch { app.pushEvents.collect { if (PushInbox.refreshesToday(it)) refreshNow() } }
     }
 
     fun refresh() = viewModelScope.launch { refreshNow() }

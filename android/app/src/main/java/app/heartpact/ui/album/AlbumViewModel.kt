@@ -35,6 +35,7 @@ class AlbumViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch { queue.photos.collect { photos -> _ui.update { it.copy(local = photos) } } }
+        viewModelScope.launch { app.pushEvents.collect { if (it == "memoriesSynced") refresh() } }
         viewModelScope.launch { work.getWorkInfosForUniqueWorkFlow(AlbumSyncWorker.NAME).collect { onWork(it.lastOrNull()) } }
     }
 

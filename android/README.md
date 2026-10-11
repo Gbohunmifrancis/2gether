@@ -25,6 +25,8 @@ The album test needs the API started with S3-compatible storage (`Media__Service
 
 ## Configuration
 
+Push (Firebase), release signing and the release API URL come from environment variables or `~/.gradle/gradle.properties`; see `docs/secrets.md`. CI is `.github/workflows/android.yml`.
+
 `gradle.properties` sets the API base URL per build type: debug uses `http://10.0.2.2:5135/` (the host machine from the emulator), release `https://api.heartpact.app/`. Debug builds allow plain HTTP to the emulator host and localhost only.
 
 ## What is wired
@@ -47,6 +49,7 @@ The album test needs the API started with S3-compatible storage (`Media__Service
   - The sync runs in batches of 50 (`POST sync`), PUTs bytes and thumbnails straight to the signed storage links on a client without the sign-in token, then confirms (`POST sync/complete`), marking the last batch `finished` so the partner hears once. Each photo carries its own id, so a retried batch never adds it twice. Refused photos (too large, album full) stay on the phone with the reason and a "Try again".
   - The shared grid pages through `api/memories`, badges each photo with the half of the heart that added it, and shows "On this day" from earlier years. If the server has no photo storage, photos still wait safely on the phone.
   - Once a day, if photos are waiting, a quiet notification says so and opens the Album. Signing out clears the waiting photos so they can never sync into another account's album.
+- **Push** (`push/`): Firebase Cloud Messaging set up from build settings, not `google-services.json`. The token is registered with `PUT api/devices` on every start and on rotation, and unregistered on sign-out. Every server notification arrives as data: an `exerciseDue` push rings the alarm if the phone's own exact alarm didn't (for example after a lost alarm or a wrong clock); the album nudge waits for Wi-Fi; everything else shows on the `general` channel, or silently on `quiet` during quiet hours. Repeats are dropped by `notificationId`, and an open Today or Album refreshes at once. With push on, Today's safety-net check slows from 15 seconds to a minute.
 - Each partner's side of the heart comes from the API (`members[].side`), so colours stay fixed on both phones.
 
 ## Layout
@@ -60,6 +63,6 @@ The album test needs the API started with S3-compatible storage (`Media__Service
 
 ## Not yet
 
-The Food and Us tabs; push (FCM: until it arrives, Today checks in every 15 seconds and the partner sees a call-off request when they open the app); SignalR live updates, including live rep progress for the partner; videos, captions and deleting shared photos in the album; password reset and Google sign-in (the API has neither yet).
+The Food and Us tabs; SignalR live updates, including live rep progress for the partner; videos, captions and deleting shared photos in the album; password reset and Google sign-in (the API has neither yet).
 
 The rep counter is tuned on synthetic poses; thresholds need checking on real phones and bodies before release. Release APKs are large (about 55 MB) because MediaPipe ships native code for every ABI: publish an App Bundle so Play delivers one ABI per phone.

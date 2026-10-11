@@ -75,4 +75,10 @@ interface HeartpactApi {
 
     @POST("api/memories/sync/complete")
     suspend fun completeSync(@Body request: CompleteSyncRequest): Response<CompleteSyncResponse>
+
+    @PUT("api/devices")
+    suspend fun registerDevice(@Body request: RegisterDeviceRequest): Response<Unit>
+
+    @POST("api/devices/unregister")
+    suspend fun unregisterDevice(@Body request: UnregisterDeviceRequest): Response<Unit>
 }

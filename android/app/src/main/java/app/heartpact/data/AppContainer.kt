@@ -1,6 +1,8 @@
 package app.heartpact.data
 
 import android.content.Context
+import android.content.SharedPreferences
+import kotlinx.coroutines.flow.MutableSharedFlow
 import app.heartpact.album.AlbumQueue
 import app.heartpact.album.SyncEngine
 import java.io.File
@@ -51,6 +53,12 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
 
     val albumQueue = AlbumQueue(File(context.filesDir, "album"))
     val albumSync = SyncEngine(api, uploads, albumQueue, json)
+
+    /** Push token bookkeeping and the ids already shown; plain prefs so the messaging service reads them at once. */
+    val pushPrefs: SharedPreferences = context.getSharedPreferences("push", Context.MODE_PRIVATE)
+
+    /** A push that changes what an open screen shows ("exerciseCompleted", "memoriesSynced"...). */
+    val pushEvents = MutableSharedFlow<String>(extraBufferCapacity = 16)
 
     val auth = AuthRepository(api, session, json)
     val couple = CoupleRepository(api, session, json)

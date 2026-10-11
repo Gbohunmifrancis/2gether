@@ -2,6 +2,7 @@ package app.heartpact
 
 import android.app.Application
 import app.heartpact.data.AppContainer
+import app.heartpact.push.Push
 
 class HeartpactApplication : Application() {
     lateinit var container: AppContainer
@@ -10,5 +11,6 @@ class HeartpactApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        Push.init(this)
     }
 }

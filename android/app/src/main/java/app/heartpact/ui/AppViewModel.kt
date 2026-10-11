@@ -7,6 +7,7 @@ import app.heartpact.data.AppContainer
 import app.heartpact.data.Couple
 import app.heartpact.data.CoupleSide
 import app.heartpact.data.CoupleStatus
+import app.heartpact.push.Push
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,6 +63,7 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     }
 
     fun signOut() = viewModelScope.launch {
+        withTimeoutOrNull(5_000) { Push.unregister(app) }
         app.auth.signOut()
         // Photos waiting on this phone belong to this account's album: never sync them into another's.
         app.albumQueue.clear()
@@ -80,6 +82,8 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
             app.albumQueue.clear()
             return Destination.Welcome
         }
+        // Re-register on every start: tokens rotate, and the server keeps only the newest installs.
+        viewModelScope.launch { Push.register(app) }
         val status = couple?.status ?: session.coupleStatus
         return if (status == CoupleStatus.Active) Destination.Home else Destination.Pair
     }

@@ -63,3 +63,10 @@ data class AcceptInviteRequest(val code: String? = null, val token: String? = nu
 /** Every expected failure from the API: a stable code and a sentence fit to show. */
 @Serializable
 data class ApiErrorBody(val code: String = "unknown", val message: String = "")
+
+/** api/devices: this install's push token (docs/push-notifications.md). */
+@Serializable
+data class RegisterDeviceRequest(val token: String, val platform: String = "android", val appVersion: String? = null, val tokenKind: String = "registrationToken")
+
+@Serializable
+data class UnregisterDeviceRequest(val token: String)

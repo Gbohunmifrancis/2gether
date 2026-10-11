@@ -1,5 +1,12 @@
 import java.net.URI
 
+/**
+ * Build-time settings that must not live in git: from environment variables (CI fills them from
+ * GitHub secrets) or, locally, from ~/.gradle/gradle.properties as heartpact.NAME. Empty when unset.
+ */
+fun setting(name: String): String =
+    providers.environmentVariable(name).orElse(providers.gradleProperty("heartpact.$name")).getOrElse("")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,6 +25,23 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+        // Firebase Cloud Messaging. Without these the app runs without push and polls instead.
+        for (name in listOf("FIREBASE_PROJECT_ID", "FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_SENDER_ID")) {
+            buildConfigField("String", name, "\"${setting(name)}\"")
+        }
+    }
+
+    signingConfigs {
+        // Release signing from CI secrets: the keystore file (decoded from base64), its passwords and alias.
+        val keystore = setting("ANDROID_KEYSTORE_PATH")
+        if (keystore.isNotBlank() && file(keystore).exists()) {
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = setting("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = setting("ANDROID_KEY_ALIAS")
+                keyPassword = setting("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -27,7 +51,9 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            buildConfigField("String", "API_BASE_URL", "\"${property("heartpact.apiBaseUrl.release")}\"")
+            val apiUrl = setting("HEARTPACT_RELEASE_API_URL").ifBlank { property("heartpact.apiBaseUrl.release").toString() }
+            buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
     compileOptions {
@@ -77,6 +103,8 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
     implementation(libs.retrofit)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     implementation(libs.retrofit.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)

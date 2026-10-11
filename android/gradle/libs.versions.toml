@@ -19,6 +19,7 @@ mediapipe = "0.10.35"
 work = "2.10.5"
 exif = "1.4.1"
 coil = "3.3.0"
+firebaseBom = "34.19.0"
 junit = "4.13.2"
 androidxJunit = "1.3.0"
 
@@ -62,6 +63,8 @@ work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work"
 work-testing = { module = "androidx.work:work-testing", version.ref = "work" }
 exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exif" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 [plugins]

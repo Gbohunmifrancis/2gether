@@ -22,6 +22,7 @@ object AlbumNotices {
     const val REMINDER_ID = 4101
     /** Extra on the launch intent: open the app on the Album tab. */
     const val EXTRA_OPEN_TAB = "app.heartpact.OPEN_TAB"
+    private const val LAST_REMINDED = "last_reminded_ms"
 
     fun ensureChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
@@ -55,6 +56,11 @@ object AlbumNotices {
     fun remind(context: Context, waiting: Int) {
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
+        // The server's nudge and the phone's own daily check can both fire: say it once a day.
+        val prefs = context.getSharedPreferences("album", Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        if (now - prefs.getLong(LAST_REMINDED, 0) < 20 * 60 * 60 * 1000L) return
+        prefs.edit().putLong(LAST_REMINDED, now).apply()
         ensureChannel(context)
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_heart)
