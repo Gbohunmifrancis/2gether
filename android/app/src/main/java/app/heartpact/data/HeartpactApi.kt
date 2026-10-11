@@ -2,6 +2,7 @@ package app.heartpact.data
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -31,6 +32,12 @@ interface HeartpactApi {
 
     @GET("api/exercise/history")
     suspend fun exerciseHistory(@Query("days") days: Int): Response<ExerciseHistory>
+
+    @GET("api/exercise/goals")
+    suspend fun goals(): Response<List<ExerciseGoal>>
+
+    @DELETE("api/exercise/goals/{goalId}")
+    suspend fun deleteGoal(@Path("goalId") goalId: String): Response<Unit>
 
     @POST("api/exercise/goals")
     suspend fun createGoal(@Body request: CreateGoalRequest): Response<ExerciseGoal>

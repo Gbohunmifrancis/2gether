@@ -65,6 +65,13 @@ class ExerciseShotsTest {
         shot("today-upcoming") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false, readiness = AlarmReadiness(true, false, false)), "Theo", {}, onCallOff = {}, onKeep = {}, onNewDare = {}, now = now) }) }
     }
 
+    @Test fun pacts() {
+        val goals = listOf(goal, hisGoal)
+        val view = app.heartpact.ui.pacts.PactsBuilder.build(goals, history.copy(occurrences = history.occurrences + ringing.copy(id = "t", localDate = "2026-10-11", status = OccurrenceStatus.Completed)), "maya", now, java.time.ZoneOffset.UTC)
+        shot("pacts") { HomeScreen("Maya", "Theo", {}, initialTab = app.heartpact.ui.home.Tab.Pacts, pacts = { app.heartpact.ui.pacts.PactsTab(app.heartpact.ui.pacts.PactsUi(view), "Theo", {}, {}) }) }
+        shot("pacts-set") { HomeScreen("Maya", "Theo", {}, initialTab = app.heartpact.ui.home.Tab.Pacts, pacts = { app.heartpact.ui.pacts.PactsTab(app.heartpact.ui.pacts.PactsUi(view), "Theo", {}, {}, initialForMe = false) }) }
+    }
+
     @Test fun newDare() = shot("new-dare") { NewDareScreen(NewDareState(type = ExerciseType.PushUp, target = 30), "Theo", {}, {}, {}, {}, {}, {}) }
 
     @Test fun alarm() {

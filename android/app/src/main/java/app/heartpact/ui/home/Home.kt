@@ -64,13 +64,13 @@ enum class Tab(val label: String, val icon: ImageVector, val selectedIcon: Image
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
 @Composable
-fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}) {
+fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f).statusBarsPadding()) {
             when (tab) {
                 Tab.Today -> today()
-                Tab.Pacts -> TabPage("Pacts", "Your sticker page") { EmptyPage(Who.Right, Pose.Stand, "No dares yet", "Dares you set each other live here, with every heart you've kept.") }
+                Tab.Pacts -> pacts?.invoke() ?: TabPage("Pacts", "Your sticker page") { EmptyPage(Who.Right, Pose.Stand, "No dares yet", "Dares you set each other live here, with every heart you've kept.") }
                 Tab.Food -> TabPage("Food", "Photo estimates run about ±30%") { EmptyPage(Who.Left, Pose.Stand, "Nothing logged today", "Snap a meal and you'll get a calorie range, never a single made-up number.") }
                 Tab.Us -> TabPage("Us", "$myName and $partnerName") {
                     Column(Modifier.padding(horizontal = 12.dp)) {
@@ -83,7 +83,7 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
                 Tab.Album -> TabPage("Album", "Photos stay on your phone until you sync") { EmptyPage(Who.Left, Pose.Rest, "No photos yet", "Add photos and they stay on this phone. When you tap Sync, they join your shared album.", Mood.Sleep) }
             }
         }
-        NavBar(tab) { tab = it }
+        NavBar(tab) { tab = it; onTab(it) }
     }
 }
 

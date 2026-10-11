@@ -34,6 +34,9 @@ class ExerciseRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun today(): ApiResult<ExerciseToday> = apiCall(json) { api.exerciseToday() }
     suspend fun history(days: Int = 7): ApiResult<ExerciseHistory> = apiCall(json) { api.exerciseHistory(days) }
     suspend fun createGoal(request: CreateGoalRequest): ApiResult<ExerciseGoal> = apiCall(json) { api.createGoal(request) }
+    suspend fun goals(): ApiResult<List<ExerciseGoal>> = apiCall(json) { api.goals() }
+    /** Stops a dare: it no longer rings. Its history stays on both pages. */
+    suspend fun stopGoal(id: String): ApiResult<Unit> = apiCall(json) { api.deleteGoal(id) }
     suspend fun start(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startOccurrence(id) }
     /** Today's dare before it rings: opens the day's occurrence now. Completing it cancels today's alarm. */
     suspend fun startEarly(goalId: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startEarly(goalId) }

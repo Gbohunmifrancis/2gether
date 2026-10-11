@@ -10,6 +10,8 @@ import app.heartpact.alarm.AlarmActivity
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmSlot
 import app.heartpact.data.utc
+import app.heartpact.ui.pacts.PactsTab
+import app.heartpact.ui.pacts.PactsViewModel
 import app.heartpact.ui.today.MyDare
 import app.heartpact.ui.today.NewDareScreen
 import app.heartpact.ui.today.NewDareViewModel
@@ -127,7 +129,12 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         todayModel.refresh()
                         onPauseOrDispose { }
                     }
-                    HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() }, today = {
+                    val pactsModel: PactsViewModel = viewModel(factory = viewModelFactory { initializer { PactsViewModel(application, me.id) } })
+                    val pactsUi by pactsModel.ui.collectAsStateWithLifecycle()
+                    HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() },
+                        onTab = { if (it == app.heartpact.ui.home.Tab.Pacts) pactsModel.refresh() },
+                        pacts = { PactsTab(pactsUi, partner, onStop = pactsModel::stop, onNewDare = { nav.navigate(Routes.NEW_DARE) }) },
+                        today = {
                         TodayTab(
                             ui = todayUi,
                             partnerName = partner,
