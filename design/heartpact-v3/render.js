@@ -8,21 +8,30 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
 const { svg } = require('./mascots.js');
 const dir = __dirname;
 const TABS = [['today', 'today', 'Today'], ['pacts', 'favorite', 'Pacts'], ['food', 'restaurant', 'Food'], ['us', 'diversity_1', 'Us'], ['album', 'photo_library', 'Album']];
-const LEFT = 'M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 Z';
-const RIGHT = 'M50 20 C 54 10 62 4 71 4 C 86 4 96 16 96 33 C 96 58 74 78 50 104 Z';
-const WHOLE = 'M50 20 C 46 10 38 4 29 4 C 14 4 4 16 4 33 C 4 58 26 78 50 104 C 74 78 96 58 96 33 C 96 16 86 4 71 4 C 62 4 54 10 50 20 Z';
-const box = (s, inner, vb = '-8 -6 116 120') => `<svg viewBox="${vb}" width="${s}" height="${Math.round(s * 1.04)}">${inner}</svg>`;
-const keyline = d => `<path d="${d}" fill="#fff" stroke="#fff" stroke-width="13" stroke-linejoin="round" style="filter:drop-shadow(0 3px 3px rgba(52,58,120,.25))"/>`;
+// The geometric heart from the logo: a square turned 45deg with two round lobes, split on its centre line.
+const GS = 60 / Math.SQRT2, GR = 30, TX = 50, TY = 100, g = n => +n.toFixed(2);
+const LEFT = `M${TX} ${TY} L${g(TX - GS)} ${g(TY - GS)} A${GR} ${GR} 0 0 1 ${TX} ${g(TY - 2 * GS)} Z`;
+const RIGHT = `M${TX} ${TY} L${g(TX + GS)} ${g(TY - GS)} A${GR} ${GR} 0 0 0 ${TX} ${g(TY - 2 * GS)} Z`;
+const WHOLE = `M${TX} ${TY} L${g(TX - GS)} ${g(TY - GS)} A${GR} ${GR} 0 0 1 ${TX} ${g(TY - 2 * GS)} A${GR} ${GR} 0 0 1 ${g(TX + GS)} ${g(TY - GS)} Z`;
+const LOBE = { cx: g(TX + GS / 2), cy: g(TY - 1.5 * GS), top: g(TY - 1.5 * GS - GR), right: g(TX + GS / 2 + GR) };
+const MAYA = '#1F2557', THEO = '#7480D4';
+const box = (s, inner, vb = '-8 -2 116 112') => `<svg viewBox="${vb}" width="${s}" height="${Math.round(s * 112 / 116)}">${inner}</svg>`;
+const keyline = d => `<path d="${d}" fill="#fff" stroke="#fff" stroke-width="13" stroke-linejoin="round" style="filter:drop-shadow(0 3px 3px rgba(31,37,87,.25))"/>`;
 const STICKERS = {
-  heart: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="#2C8C85"/><path d="${RIGHT}" fill="#E2683C"/>`),
-  half: (side, s) => box(s, keyline(side === 'l' ? LEFT : RIGHT) + `<path d="${side === 'l' ? LEFT : RIGHT}" fill="${side === 'l' ? '#2C8C85' : '#E2683C'}"/>`),
+  heart: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="${MAYA}"/><path d="${RIGHT}" fill="${THEO}"/>`),
+  half: (side, s) => box(s, keyline(side === 'l' ? LEFT : RIGHT) + `<path d="${side === 'l' ? LEFT : RIGHT}" fill="${side === 'l' ? MAYA : THEO}"/>`),
   slot: (side, s) => box(s, `<path d="${side === 'l' ? LEFT : RIGHT}" fill="none" style="stroke:var(${side === 'l' ? '--maya' : '--theo'})" stroke-width="5" stroke-dasharray="9 8" stroke-linejoin="round" stroke-linecap="round"/>`),
-  peeled: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="#2C8C85" opacity=".55"/><path d="${RIGHT}" fill="#E2683C" opacity=".55"/><path d="M70 4 C 86 4 96 16 96 33 L 70 33 Z" fill="#F3F4FC"/><path d="M70 4 L70 33 L96 33" fill="none" stroke="#C9CEE8" stroke-width="3" stroke-linejoin="round"/>`),
+  peeled: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="${MAYA}" opacity=".5"/><path d="${RIGHT}" fill="${THEO}" opacity=".5"/>
+    <path d="M${LOBE.cx} ${LOBE.top} A${GR} ${GR} 0 0 1 ${LOBE.right} ${LOBE.cy} L${LOBE.cx} ${LOBE.cy} Z" fill="#F2F3FA"/>
+    <path d="M${LOBE.cx} ${LOBE.top} L${LOBE.cx} ${LOBE.cy} L${LOBE.right} ${LOBE.cy}" fill="none" stroke="#C8CBE3" stroke-width="3" stroke-linejoin="round"/>`),
+  // The mark itself: the flat fold, no keyline. On dark grounds Maya's half turns white.
+  logo: (s, dark) => box(s, `<path d="${LEFT}" fill="${dark ? '#FFFFFF' : MAYA}"/><path d="${RIGHT}" fill="${dark ? '#A9B1F2' : THEO}"/>`),
 };
 function expand(html) {
   return html
     .replace(/\{\{m:(\w+):(\w+):(\d+)(?::(sticker|flat))?(?::(\w+))?\}\}/g, (_, who, pose, size, st, mood) => svg({ who, pose, size: +size, sticker: st === 'sticker', mood: mood || (pose === 'cheer' ? 'cheer' : 'smile') }))
     .replace(/\{\{heart:(\d+)\}\}/g, (_, s) => STICKERS.heart(+s))
+    .replace(/\{\{logo:(\d+)(:dark)?\}\}/g, (_, s, d) => STICKERS.logo(+s, !!d))
     .replace(/\{\{peeled:(\d+)\}\}/g, (_, s) => STICKERS.peeled(+s))
     .replace(/\{\{half:(l|r):(\d+)\}\}/g, (_, side, s) => STICKERS.half(side, +s))
     .replace(/\{\{slot:(l|r):(\d+)\}\}/g, (_, side, s) => STICKERS.slot(side, +s));
@@ -60,7 +69,7 @@ function page(file) {
     const p = await ctx.newPage();
     await p.goto('file://' + tmp, { waitUntil: 'networkidle' });
     await p.evaluate(() => document.fonts.ready);
-    const fonts = await p.evaluate(() => ['Fredoka', 'Figtree', 'Material Symbols Rounded']
+    const fonts = await p.evaluate(() => ['Sora', 'Figtree', 'Material Symbols Rounded']
       .filter(f => !document.fonts.check(`16px "${f}"`)));
     const overflow = await p.evaluate(() => [...document.querySelectorAll('.screen *')].filter(el => {
       const r = el.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 0.5 || r.left < -0.5) && getComputedStyle(el).position !== 'absolute';

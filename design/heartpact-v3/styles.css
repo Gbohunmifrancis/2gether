@@ -1,32 +1,33 @@
-/* Heartpact: Sticker Book. Material 3 structure on a periwinkle album page.
-   Kept pacts become heart stickers: your partner's half, then yours, then the whole heart. */
-@font-face{font-family:'Fredoka';src:url(fonts/fredoka-latin.woff2) format('woff2');font-weight:300 700;font-display:block}
+/* Heartpact: Sticker Book, Indigo Fold. Material 3 structure on a quiet periwinkle album page.
+   One ink, folded in two: Maya is the solid indigo half, Theo the periwinkle half. */
+@font-face{font-family:'Sora';src:url(fonts/sora-latin.woff2) format('woff2');font-weight:400 700;font-display:block}
 @font-face{font-family:'Figtree';src:url(fonts/figtree-latin.woff2) format('woff2');font-weight:300 900;font-display:block}
 
 :root{
-  --page:#DFE3FB;           /* album page: the app background */
-  --page-2:#D3D8F5;         /* one step deeper: nav bar, wells */
-  --page-3:#C7CDF0;
+  --page:#E3E5F6;           /* album page: the app background */
+  --page-2:#D7DAEF;         /* one step deeper: nav bar, wells */
+  --page-3:#CBCFE8;
   --sticker:#FFFFFF;        /* card and sticker stock */
-  --sticker-2:#F3F4FC;      /* recessed areas inside a card */
-  --ink:#1B2230; --ink-2:#4B5370; --ink-3:#6D7492; --ink-4:#A3A9C6;
-  --rule:#E3E6F4; --rule-2:#C9CEE8;
-  /* Characters: art colours for stickers and illustration */
-  --maya-art:#2C8C85; --theo-art:#E2683C;
-  /* Action and text colours (white text passes 4.5:1 on these) */
-  --maya:#23746E; --maya-soft:#D3ECE8; --maya-tint:#EAF6F4;
-  --theo:#C4532C; --theo-soft:#FCDCCD; --theo-tint:#FFF0E9; --maya-ink:#1D6862; --theo-ink:#A8401C;
+  --sticker-2:#F2F3FA;      /* recessed areas inside a card */
+  --ink:#161A3D; --ink-2:#474C72; --ink-3:#6A6F92; --ink-4:#A4A8C6;
+  --rule:#E4E6F3; --rule-2:#C8CBE3;
+  /* The fold: art colours for stickers, characters and the mark */
+  --maya-art:#1F2557; --theo-art:#7480D4;
+  /* Action colours carry white labels; on-soft inks carry text on soft and tint fills */
+  --maya:#1F2557; --maya-soft:#D5D8F6; --maya-tint:#ECEEFC; --maya-ink:#1F2557;
+  --theo:#4D58BE; --theo-soft:#DFE2FA; --theo-tint:#EEF0FD; --theo-ink:#3F49A8;
   --error:#B3261E;
-  /* Depth: soft lilac-tinted lift, like a sticker lifting off the page */
-  --lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);
-  --lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);
-  --lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55);
+  /* Depth: soft indigo-tinted lift, like a sticker lifting off the page */
+  --lift-1:0 1px 0 rgba(22,26,61,.04),0 12px 24px -16px rgba(31,37,87,.38);
+  --lift-2:0 2px 0 rgba(22,26,61,.04),0 22px 40px -22px rgba(31,37,87,.46);
+  --lift-3:0 2px 4px rgba(22,26,61,.06),0 30px 60px -22px rgba(31,37,87,.52);
 }
-/* Night: the album page after lights out. Sticker colours stay; surfaces go deep indigo. */
+/* Night: the fold turns over. Maya's half goes near-white, Theo's stays periwinkle; labels go dark. */
 body.dark{
-  --page:#151933; --page-2:#1C2142; --page-3:#252B52; --sticker:#232951; --sticker-2:#2B3260;
-  --ink:#EEF0FB; --ink-2:#B7BCDA; --ink-3:#8E94B8; --ink-4:#5E6590; --rule:#2F3664; --rule-2:#3C4475;
-  --maya:#6CCFC4; --maya-soft:#1E4A4B; --maya-tint:#1B3B40; --theo:#FF9B73; --theo-soft:#4D2C25; --theo-tint:#3B2421; --maya-ink:#6CCFC4; --theo-ink:#FF9B73;
+  --page:#10132B; --page-2:#161A38; --page-3:#1F2446; --sticker:#1E2347; --sticker-2:#262C55;
+  --ink:#EEF0FB; --ink-2:#B5B9D8; --ink-3:#8C91B6; --ink-4:#5B618C; --rule:#2B3160; --rule-2:#383F72;
+  --maya:#E6E8FF; --maya-soft:#2C3263; --maya-tint:#232853; --maya-ink:#E6E8FF;
+  --theo:#A9B1F2; --theo-soft:#2F3670; --theo-tint:#262C5C; --theo-ink:#A9B1F2;
   --lift-1:0 1px 0 rgba(255,255,255,.04) inset,0 12px 24px -16px rgba(0,0,0,.7);
   --lift-2:0 1px 0 rgba(255,255,255,.05) inset,0 22px 40px -22px rgba(0,0,0,.8);
   --lift-3:0 1px 0 rgba(255,255,255,.05) inset,0 30px 60px -22px rgba(0,0,0,.85);
@@ -43,12 +44,13 @@ svg{display:block;overflow:visible}
 .ms.fill{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24,'GRAD' 0}
 .ms.s16{font-size:16px}.ms.s18{font-size:18px}.ms.s20{font-size:20px}
 
-/* One type ramp: Fredoka for display and numbers, Figtree for everything you read or tap */
-.display{font:600 66px/.9 'Fredoka';letter-spacing:-.02em}
-.display-s{font:600 48px/.95 'Fredoka';letter-spacing:-.015em}
-.headline{font:600 30px/1.05 'Fredoka';letter-spacing:-.01em}
-.title{font:600 21px/1.18 'Fredoka'}
-.title-s{font:600 17px/1.22 'Fredoka'}
+/* One type ramp: Sora for display and numbers, Figtree for everything you read or tap */
+.display{font:600 60px/.92 'Sora';letter-spacing:-.04em}
+.display-s{font:600 42px/.98 'Sora';letter-spacing:-.035em}
+.headline{font:600 28px/1.08 'Sora';letter-spacing:-.03em}
+.title{font:600 19px/1.22 'Sora';letter-spacing:-.02em}
+.title-s{font:600 16px/1.25 'Sora';letter-spacing:-.015em}
+.wordmark{font:600 22px/1 'Sora';letter-spacing:-.045em;color:var(--ink)}
 .body-l{font:500 16px/1.5 'Figtree'}
 .body{font:500 14px/1.45 'Figtree'}
 .small{font:500 12.5px/1.4 'Figtree'}
@@ -67,12 +69,12 @@ svg{display:block;overflow:visible}
 .scroll{flex:1;overflow:hidden;padding-bottom:16px;position:relative}
 .pad{padding:0 20px}
 .appbar{display:flex;align-items:center;gap:4px;height:64px;padding:0 4px}
-.appbar .t{flex:1;font:600 21px/1.2 'Fredoka';padding-left:4px}
+.appbar .t{flex:1;font:600 19px/1.2 'Sora';letter-spacing:-.02em;padding-left:4px}
 .iconbtn{width:48px;height:48px;border-radius:24px;display:grid;place-items:center;color:var(--ink-2);flex:none}
 .largebar{display:flex;align-items:flex-end;justify-content:space-between;padding:10px 16px 14px 20px}
 .largebar .sub{margin-top:6px;color:var(--ink-2);font-size:13.5px}
 .sect{display:flex;align-items:baseline;justify-content:space-between;padding:20px 20px 10px}
-.sect h2{font:600 17px/1.2 'Fredoka'}
+.sect h2{font:600 16px/1.2 'Sora';letter-spacing:-.015em}
 .sect a{font:700 13.5px 'Figtree';color:var(--maya);text-decoration:none}
 
 /* Cards are sticker stock: white, big radius, lifting off the page */
@@ -136,7 +138,7 @@ svg{display:block;overflow:visible}
 .navgap{height:24px;background:var(--page-2);flex:none}
 
 .fab{position:absolute;right:16px;height:56px;border-radius:20px;background:var(--act,var(--maya));color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px 0 16px;font:700 15px 'Figtree';box-shadow:var(--lift-3);z-index:8}
-.scrim{position:absolute;inset:0;background:rgba(27,34,48,.42);z-index:30}
+.scrim{position:absolute;inset:0;background:rgba(22,26,61,.42);z-index:30}
 .bsheet{position:absolute;left:0;right:0;bottom:0;background:var(--sticker);border-radius:30px 30px 0 0;z-index:31;padding:10px 20px 40px;box-shadow:var(--lift-3)}
 .bsheet .grip{width:32px;height:4px;border-radius:2px;background:var(--ink-4);margin:4px auto 18px}
 
