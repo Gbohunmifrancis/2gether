@@ -1,4 +1,4 @@
-// Heartpact brand: Indigo Fold. Writes the mark (light/dark SVG), the Android adaptive icon layers,
+// Heartpact brand: Indigo Fold with the Kept Promise tick. Writes the mark (light/dark SVG), the Android adaptive icon layers,
 // a 512px Play Store icon and brand.png. Usage: node final.js
 const fs = require('fs'), path = require('path');
 const { chromium } = require('/opt/node-tools/node_modules/playwright');
@@ -10,14 +10,20 @@ const LEFT = `M${TX} ${TY} L${g(TX - S)} ${g(TY - S)} A${R} ${R} 0 0 1 ${TX} ${g
 const RIGHT = `M${TX} ${TY} L${g(TX + S)} ${g(TY - S)} A${R} ${R} 0 0 0 ${TX} ${g(TY - 2 * S)} Z`;
 const C = { indigo: '#1F2557', peri: '#7480D4', periNight: '#A9B1F2', white: '#FFFFFF', ink: '#161A3D', page: '#E3E5F6', iconTop: '#2C3474', iconBottom: '#1A1F4D' };
 const VB = '-2 4.4 104 97.6'; // tight box around the heart
-const mark = (l, r, attrs = '') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB}" ${attrs}><path d="${LEFT}" fill="${l}"/><path d="${RIGHT}" fill="${r}"/></svg>`;
+// The tick is cut out of the heart (a mask, so it works on any ground): a short stroke in Maya's half,
+// a long one in Theo's. A promise both of you kept.
+const TICK = 'M28 56 L44 72 L74 38', TICK_W = 9.5;
+let mid = 0;
+const cut = (l, r, dx = 0, dy = 0) => { const id = 'tick' + (++mid);
+  return `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="130" height="130"><rect x="-10" y="-10" width="130" height="130" fill="#fff"/><path d="${TICK}" fill="none" stroke="#000" stroke-width="${TICK_W}" stroke-linecap="round" stroke-linejoin="round" transform="translate(${dx} ${dy})"/></mask></defs><g mask="url(#${id})"><path d="${LEFT}" fill="${l}" transform="translate(${dx} ${dy})"/><path d="${RIGHT}" fill="${r}" transform="translate(${dx} ${dy})"/></g>`; };
+const mark = (l, r, attrs = '') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB}" ${attrs}>${cut(l, r)}</svg>`;
 
 fs.writeFileSync(out('heartpact-mark.svg'), mark(C.indigo, C.peri) + '\n');
 fs.writeFileSync(out('heartpact-mark-dark.svg'), mark(C.white, C.periNight) + '\n');
 // Android adaptive icon: 108dp canvas, mark inside the 66dp safe zone (about 56dp wide here).
-const fg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><g transform="translate(26 27.5) scale(.54)"><path d="${LEFT}" fill="${C.white}" transform="translate(0 -4.4)"/><path d="${RIGHT}" fill="${C.periNight}" transform="translate(0 -4.4)"/></g></svg>\n`;
+const fg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><g transform="translate(26 27.5) scale(.54)">${cut(C.white, C.periNight, 0, -4.4)}</g></svg>\n`;
 const bg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><defs><linearGradient id="b" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="${C.iconTop}"/><stop offset="1" stop-color="${C.iconBottom}"/></linearGradient></defs><rect width="108" height="108" fill="url(#b)"/></svg>\n`;
-const mono = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><g transform="translate(26 27.5) scale(.54)"><path d="${LEFT}" fill="#000" transform="translate(0 -4.4)"/><path d="${RIGHT}" fill="#000" fill-opacity=".55" transform="translate(0 -4.4)"/></g></svg>\n`;
+const mono = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><g transform="translate(26 27.5) scale(.54)">${cut('#000', 'rgba(0,0,0,.55)', 0, -4.4)}</g></svg>\n`;
 fs.writeFileSync(out('ic_launcher_foreground.svg'), fg);
 fs.writeFileSync(out('ic_launcher_background.svg'), bg);
 fs.writeFileSync(out('ic_launcher_monochrome.svg'), mono);
@@ -43,7 +49,7 @@ h1{font:600 30px Sora;letter-spacing:-.03em}h1+p{color:#474C72;margin-top:6px;fo
 .sw{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.sw div{border-radius:18px;padding:16px;height:118px;display:flex;flex-direction:column;justify-content:flex-end;font-size:13px}
 .sw b{font-size:15px}.cs{position:relative;display:inline-block;outline:1.5px dashed #8E93B8;outline-offset:30px}
 </style></head><body>
-<h1>heartpact · Indigo Fold</h1><p>One ink, folded in two. Maya is the solid indigo half and Theo the periwinkle half, and the fold line is where they meet. The mark is a geometric heart: a square turned 45° with two round lobes, split on its centre line.</p>
+<h1>heartpact · Kept Promise</h1><p>One ink, folded in two: Maya is the solid indigo half and Theo the periwinkle half. A tick is cut through both, a short stroke in Maya's half and a long one in Theo's: a promise you both kept. That cut is what sets our heart apart from every other heart on the phone.</p>
 <div class="grid">
  <div class="panel light"><small>Primary lockup on light</small>${lock(C.indigo, C.peri, C.ink, 92)}</div>
  <div class="panel night"><small>Primary lockup on night</small>${lock(C.white, C.periNight, '#F4F5FF', 92)}</div>

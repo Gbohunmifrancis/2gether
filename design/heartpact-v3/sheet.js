@@ -11,7 +11,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
     const wide = /camera/.test(f);
     return `<figure style="${wide ? 'grid-column:span 2' : ''}"><img src="data:image/png;base64,${b64}" style="width:${wide ? 844 : 390}px"><figcaption>${f.replace('.png', '')}</figcaption></figure>`;
   }).join('');
-  await p.setContent(`<body style="margin:0;padding:36px;background:#CDD3CF;font:600 16px system-ui;color:#18202B;width:max-content">
+  await p.setContent(`<body style="margin:0;padding:36px;background:#D9DBE8;font:600 16px system-ui;color:#161A3D;width:max-content">
     <div style="display:grid;grid-template-columns:repeat(5,390px);gap:28px 28px;align-items:start">${cards}</div>
     <style>figure{margin:0}img{display:block;border-radius:30px;box-shadow:0 26px 50px -26px rgba(0,0,0,.45)}figcaption{margin-top:10px}</style></body>`);
   await p.screenshot({ path: out, fullPage: true }); await browser.close();

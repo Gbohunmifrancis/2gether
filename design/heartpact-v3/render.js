@@ -15,6 +15,8 @@ const RIGHT = `M${TX} ${TY} L${g(TX + GS)} ${g(TY - GS)} A${GR} ${GR} 0 0 0 ${TX
 const WHOLE = `M${TX} ${TY} L${g(TX - GS)} ${g(TY - GS)} A${GR} ${GR} 0 0 1 ${TX} ${g(TY - 2 * GS)} A${GR} ${GR} 0 0 1 ${g(TX + GS)} ${g(TY - GS)} Z`;
 const LOBE = { cx: g(TX + GS / 2), cy: g(TY - 1.5 * GS), top: g(TY - 1.5 * GS - GR), right: g(TX + GS / 2 + GR) };
 const MAYA = '#1F2557', THEO = '#7480D4';
+const TICK = 'M28 56 L44 72 L74 38';
+let markId = 0;
 const box = (s, inner, vb = '-8 -2 116 112') => `<svg viewBox="${vb}" width="${s}" height="${Math.round(s * 112 / 116)}">${inner}</svg>`;
 const keyline = d => `<path d="${d}" fill="#fff" stroke="#fff" stroke-width="13" stroke-linejoin="round" style="filter:drop-shadow(0 3px 3px rgba(31,37,87,.25))"/>`;
 const STICKERS = {
@@ -24,8 +26,10 @@ const STICKERS = {
   peeled: s => box(s, keyline(WHOLE) + `<path d="${LEFT}" fill="${MAYA}" opacity=".5"/><path d="${RIGHT}" fill="${THEO}" opacity=".5"/>
     <path d="M${LOBE.cx} ${LOBE.top} A${GR} ${GR} 0 0 1 ${LOBE.right} ${LOBE.cy} L${LOBE.cx} ${LOBE.cy} Z" fill="#F2F3FA"/>
     <path d="M${LOBE.cx} ${LOBE.top} L${LOBE.cx} ${LOBE.cy} L${LOBE.right} ${LOBE.cy}" fill="none" stroke="#C8CBE3" stroke-width="3" stroke-linejoin="round"/>`),
-  // The mark itself: the flat fold, no keyline. On dark grounds Maya's half turns white.
-  logo: (s, dark) => box(s, `<path d="${LEFT}" fill="${dark ? '#FFFFFF' : MAYA}"/><path d="${RIGHT}" fill="${dark ? '#A9B1F2' : THEO}"/>`),
+  // The mark: the fold with the Kept Promise tick cut through it (a mask, so any ground shows through).
+  // On dark grounds Maya's half turns white.
+  logo: (s, dark) => { const id = 'tick' + (++markId);
+    return box(s, `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="130" height="130"><rect x="-10" y="-10" width="130" height="130" fill="#fff"/><path d="${TICK}" fill="none" stroke="#000" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><g mask="url(#${id})"><path d="${LEFT}" fill="${dark ? '#FFFFFF' : MAYA}"/><path d="${RIGHT}" fill="${dark ? '#A9B1F2' : THEO}"/></g>`); },
 };
 function expand(html) {
   return html
