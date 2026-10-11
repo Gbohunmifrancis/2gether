@@ -1,0 +1,150 @@
+/* Heartpact: Sticker Book. Material 3 structure on a periwinkle album page.
+   Kept pacts become heart stickers: your partner's half, then yours, then the whole heart. */
+@font-face{font-family:'Fredoka';src:url(fonts/fredoka-latin.woff2) format('woff2');font-weight:300 700;font-display:block}
+@font-face{font-family:'Figtree';src:url(fonts/figtree-latin.woff2) format('woff2');font-weight:300 900;font-display:block}
+
+:root{
+  --page:#DFE3FB;           /* album page: the app background */
+  --page-2:#D3D8F5;         /* one step deeper: nav bar, wells */
+  --page-3:#C7CDF0;
+  --sticker:#FFFFFF;        /* card and sticker stock */
+  --sticker-2:#F3F4FC;      /* recessed areas inside a card */
+  --ink:#1B2230; --ink-2:#4B5370; --ink-3:#6D7492; --ink-4:#A3A9C6;
+  --rule:#E3E6F4; --rule-2:#C9CEE8;
+  /* Characters: art colours for stickers and illustration */
+  --maya-art:#2C8C85; --theo-art:#E2683C;
+  /* Action and text colours (white text passes 4.5:1 on these) */
+  --maya:#23746E; --maya-soft:#D3ECE8; --maya-tint:#EAF6F4;
+  --theo:#C4532C; --theo-soft:#FCDCCD; --theo-tint:#FFF0E9;
+  --error:#B3261E;
+  /* Depth: soft lilac-tinted lift, like a sticker lifting off the page */
+  --lift-1:0 1px 0 rgba(27,34,48,.04),0 12px 24px -16px rgba(52,58,120,.40);
+  --lift-2:0 2px 0 rgba(27,34,48,.04),0 22px 40px -22px rgba(52,58,120,.48);
+  --lift-3:0 2px 4px rgba(27,34,48,.06),0 30px 60px -22px rgba(52,58,120,.55);
+}
+/* Night: the album page after lights out. Sticker colours stay; surfaces go deep indigo. */
+body.dark{
+  --page:#151933; --page-2:#1C2142; --page-3:#252B52; --sticker:#232951; --sticker-2:#2B3260;
+  --ink:#EEF0FB; --ink-2:#B7BCDA; --ink-3:#8E94B8; --ink-4:#5E6590; --rule:#2F3664; --rule-2:#3C4475;
+  --maya:#6CCFC4; --maya-soft:#1E4A4B; --maya-tint:#1B3B40; --theo:#FF9B73; --theo-soft:#4D2C25; --theo-tint:#3B2421;
+  --lift-1:0 1px 0 rgba(255,255,255,.04) inset,0 12px 24px -16px rgba(0,0,0,.7);
+  --lift-2:0 1px 0 rgba(255,255,255,.05) inset,0 22px 40px -22px rgba(0,0,0,.8);
+  --lift-3:0 1px 0 rgba(255,255,255,.05) inset,0 30px 60px -22px rgba(0,0,0,.85);
+}
+body.dark .btn.filled{color:#10142A}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%}
+body{background:var(--page);color:var(--ink);font:500 15px/1.45 'Figtree',sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;position:relative;overflow:hidden}
+::selection{background:var(--maya-soft);color:var(--maya)}
+svg{display:block;overflow:visible}
+
+.ms{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap;
+  font-variation-settings:'FILL' 0,'wght' 300,'opsz' 24,'GRAD' 0;flex:none}
+.ms.fill{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24,'GRAD' 0}
+.ms.s16{font-size:16px}.ms.s18{font-size:18px}.ms.s20{font-size:20px}
+
+/* One type ramp: Fredoka for display and numbers, Figtree for everything you read or tap */
+.display{font:600 66px/.9 'Fredoka';letter-spacing:-.02em}
+.display-s{font:600 48px/.95 'Fredoka';letter-spacing:-.015em}
+.headline{font:600 30px/1.05 'Fredoka';letter-spacing:-.01em}
+.title{font:600 21px/1.18 'Fredoka'}
+.title-s{font:600 17px/1.22 'Fredoka'}
+.body-l{font:500 16px/1.5 'Figtree'}
+.body{font:500 14px/1.45 'Figtree'}
+.small{font:500 12.5px/1.4 'Figtree'}
+.label{font:700 14px/1.25 'Figtree'}
+.label-s{font:700 12.5px/1.25 'Figtree'}
+.muted{color:var(--ink-2)}.faint{color:var(--ink-3)}
+
+/* Android system chrome */
+.status{height:36px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;font:700 13.5px 'Figtree';position:relative;z-index:5}
+.status .r{display:flex;gap:5px;align-items:center}.status .ms{font-size:17px}
+.status.light{color:#fff}
+.handle{position:absolute;bottom:9px;left:50%;width:108px;height:4px;margin-left:-54px;border-radius:2px;background:var(--ink);opacity:.38;z-index:20}
+.handle.light{background:#fff;opacity:.6}
+
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.scroll{flex:1;overflow:hidden;padding-bottom:16px;position:relative}
+.pad{padding:0 20px}
+.appbar{display:flex;align-items:center;gap:4px;height:64px;padding:0 4px}
+.appbar .t{flex:1;font:600 21px/1.2 'Fredoka';padding-left:4px}
+.iconbtn{width:48px;height:48px;border-radius:24px;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.largebar{display:flex;align-items:flex-end;justify-content:space-between;padding:10px 16px 14px 20px}
+.largebar .sub{margin-top:6px;color:var(--ink-2);font-size:13.5px}
+.sect{display:flex;align-items:baseline;justify-content:space-between;padding:20px 20px 10px}
+.sect h2{font:600 17px/1.2 'Fredoka'}
+.sect a{font:700 13.5px 'Figtree';color:var(--maya);text-decoration:none}
+
+/* Cards are sticker stock: white, big radius, lifting off the page */
+.card{background:var(--sticker);border-radius:26px;box-shadow:var(--lift-1)}
+.dare{background:var(--sticker);border-radius:30px;box-shadow:var(--lift-2);position:relative}
+.dare .in{padding:22px 20px 14px}
+.peg{position:absolute;z-index:3}
+
+/* Sticker slot: your partner's half beside yours */
+.slotrow{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--sticker-2)}
+.slotrow .pair{display:flex;align-items:center;flex:none}
+.slotrow .txt{font-size:13px;line-height:1.35}
+
+/* Days as stickers: whole heart sealed, half heart one side, dashed slot scheduled, empty slot missed */
+.days{display:flex;align-items:center;justify-content:space-between}
+.slot{width:24px;height:26px;border-radius:9px;flex:none}
+.slot.next{border:2px dashed var(--ink-4)}
+.slot.missed{border:2px solid var(--rule-2);background:var(--sticker-2)}
+
+/* Buttons: pills, the action colour only on what you can press */
+.btn{height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 24px;font:700 16px 'Figtree';white-space:nowrap}
+.btn.filled{background:var(--act,var(--ink));color:#fff;box-shadow:0 12px 22px -14px var(--act,var(--ink))}
+.btn.tonal{background:var(--act-soft,var(--page-2));color:var(--act,var(--ink))}
+.btn.outline{border:2px solid var(--rule-2);color:var(--ink)}
+.btn.text{height:46px;color:var(--act,var(--ink));padding:0 14px}
+.btn.sm{height:40px;border-radius:20px;font-size:14px;padding:0 18px}
+.act-maya{--act:var(--maya);--act-soft:var(--maya-soft)}
+.act-theo{--act:var(--theo);--act-soft:var(--theo-soft)}
+.stack{display:flex;flex-direction:column;gap:4px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:38px;border-radius:19px;padding:0 15px;display:flex;align-items:center;gap:6px;font:700 13.5px 'Figtree';background:var(--sticker);color:var(--ink-2);box-shadow:inset 0 0 0 2px var(--rule)}
+.chip.on{background:var(--act-soft,var(--maya-soft));color:var(--act,var(--maya));box-shadow:none}
+.chip .ms{font-size:18px}
+.seg{display:flex;height:46px;border-radius:23px;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule);padding:4px;gap:4px}
+.seg div{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:19px;font:700 13.5px 'Figtree';color:var(--ink-2)}
+.seg .on{background:var(--act-soft,var(--maya-soft));color:var(--act,var(--maya))}
+.switch{width:52px;height:32px;border-radius:16px;background:var(--page-2);box-shadow:inset 0 0 0 2px var(--ink-4);position:relative;flex:none}
+.switch::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--ink-3);top:8px;left:8px}
+.switch.on{background:var(--act,var(--maya));box-shadow:none}.switch.on::after{width:24px;height:24px;top:4px;left:24px;background:#fff}
+
+.row{display:flex;align-items:center;gap:14px;min-height:54px;padding:8px 18px}
+.row+.row{border-top:2px dashed var(--rule)}
+.row>.ms{color:var(--ink-2)}
+.row .k{font:700 14.5px/1.3 'Figtree'}
+.row .s{font-size:12.5px;color:var(--ink-2);line-height:1.35}
+.row .v{margin-left:auto;font-size:13.5px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.row .v b{color:var(--ink);font-weight:700}
+.grow{flex:1;min-width:0}
+
+.field{position:relative;border-radius:18px;padding:18px 16px 14px;background:var(--sticker);box-shadow:inset 0 0 0 2px var(--rule-2)}
+.field label{position:absolute;top:-10px;left:12px;padding:0 6px;border-radius:8px;background:var(--sticker);font:700 12px 'Figtree';color:var(--ink-2)}
+.field.focus{box-shadow:inset 0 0 0 2.5px var(--act,var(--maya))}.field.focus label{color:var(--act,var(--maya))}
+.caret{display:inline-block;width:2px;height:20px;background:var(--act,var(--maya));vertical-align:-4px;margin-left:1px}
+
+.nav{height:84px;background:var(--page-2);display:flex;padding:12px 8px 0;flex:none;position:relative;z-index:10}
+.nav div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 12px 'Figtree';color:var(--ink-2)}
+.nav i{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;font-style:normal}
+.nav .on{color:var(--ink);font-weight:800}.nav .on i{background:var(--sticker);color:var(--maya)}
+.nav .on .ms{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 24}
+.navgap{height:24px;background:var(--page-2);flex:none}
+
+.fab{position:absolute;right:16px;height:56px;border-radius:20px;background:var(--act,var(--maya));color:#fff;display:flex;align-items:center;gap:10px;padding:0 20px 0 16px;font:700 15px 'Figtree';box-shadow:var(--lift-3);z-index:8}
+.scrim{position:absolute;inset:0;background:rgba(27,34,48,.42);z-index:30}
+.bsheet{position:absolute;left:0;right:0;bottom:0;background:var(--sticker);border-radius:30px 30px 0 0;z-index:31;padding:10px 20px 40px;box-shadow:var(--lift-3)}
+.bsheet .grip{width:32px;height:4px;border-radius:2px;background:var(--ink-4);margin:4px auto 18px}
+
+.tag{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:13px;font:700 12px 'Figtree';background:var(--sticker-2);color:var(--ink-2);white-space:nowrap;flex:none}
+.tag.maya{background:var(--maya-tint);color:var(--maya)}.tag.theo{background:var(--theo-tint);color:var(--theo)}
+.disc{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:700 14px 'Figtree';color:#fff;flex:none}
+.disc.maya{background:var(--maya-art)}.disc.theo{background:var(--theo-art)}
+.disc.sm{width:24px;height:24px;font-size:11px}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.photo{background-size:cover;background-position:center;border-radius:16px}
+.hair{height:2px;background:var(--rule)}

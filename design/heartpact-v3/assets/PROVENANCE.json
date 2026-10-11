@@ -1,0 +1,79 @@
+{
+  "food-salmon-bowl.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1546069901-ba9599a7e63c",
+    "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+    "license": "Unsplash License",
+    "use": "stand-in for the user's scanned meal photo"
+  },
+  "food-french-toast.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1484723091739-30a097e8f929",
+    "image": "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
+    "license": "Unsplash License",
+    "use": "stand-in food log thumbnail"
+  },
+  "food-salad.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1512621776951-a57141f2eefd",
+    "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+    "license": "Unsplash License",
+    "use": "stand-in food log thumbnail"
+  },
+  "album-boat.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1476514525535-07fb3b4ae5f1",
+    "image": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "album-coffee.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1495474472287-4d71bcdd2085",
+    "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "album-chairs.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1522673607200-164d1b6ce486",
+    "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "album-beach.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1507525428034-b723cf961d3e",
+    "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "album-hike.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1469474968028-56623f02e42e",
+    "image": "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "album-dinner.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1504674900247-0877df9cc836",
+    "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "album-lake.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1501785888041-af3ef285b470",
+    "image": "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+    "license": "Unsplash License",
+    "use": "stand-in couple album photo"
+  },
+  "camera-situps.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1571019613454-1cb2f99b2d8b",
+    "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b",
+    "license": "Unsplash License",
+    "use": "stand-in camera feed for the rep counter"
+  }
+}
