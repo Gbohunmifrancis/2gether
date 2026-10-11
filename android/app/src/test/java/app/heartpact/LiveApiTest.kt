@@ -203,22 +203,39 @@ class LiveApiTest {
             queue.thumbsDir.resolve("$id.jpg").writeBytes(ByteArray(300) { 1 })
             queue.add(app.heartpact.album.LocalPhoto(id, "$id.jpg", "$id.jpg", "image/jpeg", 2048L + n, "2025-10-11T09:00:00Z", 0))
         }
+        // And a video, with its poster frame as the thumbnail.
+        val clip = UUID.randomUUID().toString()
+        queue.photosDir.resolve("$clip.mp4").writeBytes(ByteArray(4096) { (it % 241).toByte() })
+        queue.thumbsDir.resolve("$clip.jpg").writeBytes(ByteArray(300) { 2 })
+        queue.add(app.heartpact.album.LocalPhoto(clip, "$clip.mp4", "$clip.jpg", "video/mp4", 4096L, null, 0))
         engine.reportPending()
-        assertEquals(3, (app.heartpact.data.apiCall(json) { mayaApi.albumSync() } as ApiResult.Ok).value.pendingCount)
+        assertEquals(4, (app.heartpact.data.apiCall(json) { mayaApi.albumSync() } as ApiResult.Ok).value.pendingCount)
         // Nothing is shared until Maya syncs.
         assertEquals(0, (app.heartpact.data.apiCall(json) { theoApi.memories(null) } as ApiResult.Ok).value.items.size)
 
         val outcome = withContext(Dispatchers.IO) { engine.run() }
-        assertEquals(3, outcome.synced)
+        assertEquals(4, outcome.synced)
         assertTrue(queue.photos.value.isEmpty())
 
         val seen = (app.heartpact.data.apiCall(json) { theoApi.memories(null) } as ApiResult.Ok).value.items
-        assertEquals(3, seen.size)
+        assertEquals(4, seen.size)
         assertTrue(seen.all { it.uploadedByUserId == maya.id && it.thumbnailUrl != null })
+        assertEquals(1, seen.count { it.isVideo && it.contentType == "video/mp4" })
         val status = (app.heartpact.data.apiCall(json) { mayaApi.albumSync() } as ApiResult.Ok).value
         assertEquals(0, status.pendingCount)
-        assertEquals(3, status.usage.count)
+        assertEquals(4, status.usage.count)
         assertEquals("taken a year ago today", 3, (app.heartpact.data.apiCall(json) { theoApi.onThisDay("2026-10-11") } as ApiResult.Ok).value.size)
+
+        // Only the uploader captions or deletes; the partner sees the caption and loses the photo too.
+        val photo = seen.first { !it.isVideo }
+        val captioned = (app.heartpact.data.apiCall(json) { mayaApi.updateMemory(photo.id, app.heartpact.data.UpdateMemoryRequest("The lake, before the rain", photo.takenAtUtc)) } as ApiResult.Ok).value
+        assertEquals("The lake, before the rain", captioned.caption)
+        assertEquals("the date is kept", photo.takenAtUtc?.take(19), captioned.takenAtUtc?.take(19))
+        assertEquals("The lake, before the rain", (app.heartpact.data.apiCall(json) { theoApi.memories(null) } as ApiResult.Ok).value.items.first { it.id == photo.id }.caption)
+        assertEquals(403, (app.heartpact.data.apiCall(json) { theoApi.deleteMemory(photo.id) } as ApiResult.Failure).status)
+        assertTrue(app.heartpact.data.apiCall(json) { mayaApi.deleteMemory(photo.id) } is ApiResult.Ok)
+        assertTrue((app.heartpact.data.apiCall(json) { theoApi.memories(null) } as ApiResult.Ok).value.items.none { it.id == photo.id })
+        assertEquals(3, (app.heartpact.data.apiCall(json) { mayaApi.albumSync() } as ApiResult.Ok).value.usage.count)
     }
 
     @Test fun `meals logged by hand add up, the partner sees totals only, and estimates say when they're not set up`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {

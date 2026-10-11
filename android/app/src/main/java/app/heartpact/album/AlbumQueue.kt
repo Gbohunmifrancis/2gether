@@ -10,7 +10,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
 
-/** A photo that is only on this phone until it syncs. */
+/** A photo or video that is only on this phone until it syncs. */
 @Serializable
 data class LocalPhoto(
     /** The phone's own id; the server uses it to make a retried sync safe. */
@@ -24,7 +24,9 @@ data class LocalPhoto(
     /** Set when the server refused it (too large, album full): it stays here with the reason. */
     val errorCode: String? = null,
     val errorMessage: String? = null,
-)
+) {
+    val isVideo: Boolean get() = contentType.startsWith("video/")
+}
 
 /**
  * The offline-first album's local side: photos copied into app-private storage, with a small

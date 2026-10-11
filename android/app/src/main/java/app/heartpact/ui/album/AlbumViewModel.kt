@@ -13,6 +13,9 @@ import app.heartpact.album.AlbumReminderWorker
 import app.heartpact.album.AlbumSyncWorker
 import app.heartpact.album.PhotoImporter
 import app.heartpact.data.ApiResult
+import app.heartpact.data.Memory
+import app.heartpact.data.OFFLINE_MESSAGE
+import app.heartpact.data.UpdateMemoryRequest
 import app.heartpact.data.apiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -117,6 +120,33 @@ class AlbumViewModel(application: Application) : AndroidViewModel(application) {
         watchedRunning = true
         _ui.update { it.copy(result = null) }
         AlbumSyncWorker.enqueue(getApplication())
+    }
+
+    /** The uploader's caption for a shared photo or video; blank removes it. Calls back with an error to show, or null. */
+    fun saveCaption(memory: Memory, caption: String, done: (String?) -> Unit) = viewModelScope.launch {
+        val clean = caption.trim().takeIf { it.isNotEmpty() }
+        when (val result = apiCall(app.json) { app.api.updateMemory(memory.id, UpdateMemoryRequest(clean, memory.takenAtUtc)) }) {
+            is ApiResult.Ok -> {
+                val updated = result.value
+                _ui.update { state -> state.copy(shared = state.shared.map { if (it.id == updated.id) updated else it }, onThisDay = state.onThisDay.map { if (it.id == updated.id) updated else it }) }
+                done(null)
+            }
+            is ApiResult.Failure -> done(result.message)
+            ApiResult.Offline -> done(OFFLINE_MESSAGE)
+        }
+    }
+
+    /** Deletes a shared photo or video the person added, for both partners. The original in their gallery stays. */
+    fun deleteShared(memory: Memory, done: (String?) -> Unit) = viewModelScope.launch {
+        when (val result = apiCall(app.json) { app.api.deleteMemory(memory.id) }) {
+            is ApiResult.Ok -> {
+                _ui.update { state -> state.copy(shared = state.shared.filterNot { it.id == memory.id }, onThisDay = state.onThisDay.filterNot { it.id == memory.id }) }
+                (apiCall(app.json) { app.api.albumSync() } as? ApiResult.Ok)?.let { status -> _ui.update { it.copy(usage = status.value.usage) } }
+                done(null)
+            }
+            is ApiResult.Failure -> done(result.message)
+            ApiResult.Offline -> done(OFFLINE_MESSAGE)
+        }
     }
 
     /** What a phone-only tile draws: the small thumbnail when there is one. */

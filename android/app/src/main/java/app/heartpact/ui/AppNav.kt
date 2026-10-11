@@ -335,10 +335,11 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         album = {
                             AlbumTab(
                                 ui = albumUi, sides = sides, localModel = albumModel::localModel,
-                                onAdd = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                                onAdd = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) },
                                 onSync = albumModel::sync, onRemove = { albumModel.remove(it) }, onRetry = { albumModel.retry(it) },
                                 onLoadMore = albumModel::loadMore, onDismissResult = albumModel::dismissResult, unmetered = albumModel::onUnmetered,
                                 onGetPlus = if (plusUi.offersPlus) ({ nav.navigate(Routes.PLUS) }) else null,
+                                myId = me.id, onCaption = albumModel::saveCaption, onDeleteShared = albumModel::deleteShared,
                             )
                         },
                         pacts = { PactsTab(pactsUi, partner, onStop = pactsModel::stop, onNewDare = { nav.navigate(Routes.NEW_DARE) }) },

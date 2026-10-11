@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -60,6 +61,12 @@ interface HeartpactApi {
 
     @GET("api/memories")
     suspend fun memories(@Query("cursor") cursor: String?, @Query("limit") limit: Int = 30): Response<MemoryPage>
+
+    @PATCH("api/memories/{id}")
+    suspend fun updateMemory(@Path("id") id: String, @Body request: UpdateMemoryRequest): Response<Memory>
+
+    @DELETE("api/memories/{id}")
+    suspend fun deleteMemory(@Path("id") id: String): Response<Unit>
 
     @GET("api/memories/on-this-day")
     suspend fun onThisDay(@Query("date") date: String): Response<List<Memory>>

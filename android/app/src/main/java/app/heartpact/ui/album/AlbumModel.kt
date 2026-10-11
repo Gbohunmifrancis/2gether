@@ -78,7 +78,7 @@ object AlbumText {
     /** The server's refusal codes in the couple's words. */
     fun reason(photo: LocalPhoto): String = when (photo.errorCode) {
         "memories.quota_exceeded" -> "Your shared album is full. Delete a few shared photos, then try again."
-        "memories.too_large" -> "This photo is too large for the album."
+        "memories.too_large" -> if (photo.isVideo) "This video is too large for the album (100 MB at most)." else "This photo is too large for the album."
         "memories.unsupported_type" -> "This kind of file can't go in the album."
         else -> photo.errorMessage ?: "This photo couldn't be added."
     }

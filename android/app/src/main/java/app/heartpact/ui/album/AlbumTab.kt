@@ -1,5 +1,13 @@
 package app.heartpact.ui.album
 
+import android.widget.MediaController
+import android.widget.VideoView
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Delete
+import app.heartpact.ui.components.HeartField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -106,6 +114,12 @@ fun AlbumTab(
     image: PhotoSlot = CoilPhoto,
     /** Set when the couple is on Free: a nearly full album then offers Plus's extra space. */
     onGetPlus: (() -> Unit)? = null,
+    /** Who is looking: only the uploader may caption or delete a shared photo. */
+    myId: String? = null,
+    onCaption: (Memory, String, (String?) -> Unit) -> Unit = { _, _, _ -> },
+    onDeleteShared: (Memory, (String?) -> Unit) -> Unit = { _, _ -> },
+    /** Plays a video in the viewer; screenshots pass a still. */
+    video: VideoSlot = PlatformVideo,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var openLocal by remember { mutableStateOf<LocalPhoto?>(null) }
@@ -175,7 +189,12 @@ fun AlbumTab(
             dismissButton = { TextButton(onClick = { onRemove(photo.clientId); openLocal = null }) { Text("Remove from Heartpact") } },
         )
     }
-    openShared?.let { memory -> PhotoViewer(memory, image) { openShared = null } }
+    openShared?.let { open ->
+        // Show the latest copy (a caption just saved) of the open memory.
+        val memory = ui.shared.firstOrNull { it.id == open.id } ?: ui.onThisDay.firstOrNull { it.id == open.id } ?: open
+        PhotoViewer(memory, image, video, mine = myId != null && memory.uploadedByUserId == myId, onCaption = onCaption,
+            onDelete = { done -> onDeleteShared(memory) { error -> done(error); if (error == null) openShared = null } }, onClose = { openShared = null })
+    }
 }
 
 private fun LazyGridScope.full(key: String, content: @Composable () -> Unit) =
@@ -331,9 +350,10 @@ private fun LocalTile(photo: LocalPhoto, model: Any?, image: PhotoSlot, onClick:
     val refused = photo.errorCode != null
     Box(
         Modifier.aspectRatio(1f).clip(Shapes.Tile).background(colors.sticker2).clickable(onClick = onClick)
-            .semantics { contentDescription = if (refused) "Photo not added: ${AlbumText.reason(photo)}" else "Photo only on this phone" },
+            .semantics { contentDescription = (if (photo.isVideo) "Video" else "Photo") + if (refused) " not added: ${AlbumText.reason(photo)}" else " only on this phone" },
     ) {
         image(model, null, Modifier.fillMaxSize(), true)
+        if (photo.isVideo) PlayMark(Modifier.align(Alignment.Center))
         if (refused) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)))
         Badge(Modifier.align(Alignment.BottomStart).padding(6.dp), if (refused) colors.error else colors.sticker) {
             Icon(if (refused) Icons.Rounded.PriorityHigh else Icons.Rounded.PhoneAndroid, null, Modifier.size(14.dp), tint = if (refused) Color.White else colors.ink)
@@ -346,9 +366,11 @@ private fun SharedTile(memory: Memory, side: Side?, image: PhotoSlot, onClick: (
     val colors = Heartpact.colors
     Box(
         Modifier.aspectRatio(1f).clip(Shapes.Tile).background(colors.sticker2).clickable(onClick = onClick)
-            .semantics { contentDescription = memory.caption ?: "Photo added by ${memory.uploadedByName}" },
+            .semantics { contentDescription = memory.caption ?: "${if (memory.isVideo) "Video" else "Photo"} added by ${memory.uploadedByName}" },
     ) {
-        image(memory.thumbnailUrl ?: memory.url, null, Modifier.fillMaxSize(), true)
+        // A video without a poster frame yet has nothing an image loader can draw: show the play mark alone.
+        if (!memory.isVideo || memory.thumbnailUrl != null) image(memory.thumbnailUrl ?: memory.url, null, Modifier.fillMaxSize(), true)
+        if (memory.isVideo) PlayMark(Modifier.align(Alignment.Center))
         if (side != null) Badge(Modifier.align(Alignment.BottomStart).padding(6.dp), colors.sticker) {
             HeartSticker(if (side == Side.Left) HalfState.Stuck else HalfState.Empty, if (side == Side.Right) HalfState.Stuck else HalfState.Empty, 15.dp)
         }
@@ -375,22 +397,106 @@ private fun Empty() {
     }
 }
 
+/** Plays a video from [url]; [poster] shows until it starts. */
+typealias VideoSlot = @Composable (url: String, modifier: Modifier) -> Unit
+
+/** The platform player with its own controls: no extra library for a few clips a week. */
+val PlatformVideo: VideoSlot = { url, modifier ->
+    AndroidView(
+        factory = { context ->
+            VideoView(context).apply {
+                setMediaController(MediaController(context).also { it.setAnchorView(this) })
+                setOnPreparedListener { start() }
+                setVideoURI(url.toUri())
+            }
+        },
+        onRelease = { it.stopPlayback() },
+        modifier = modifier,
+    )
+}
+
 @Composable
-private fun PhotoViewer(memory: Memory, image: PhotoSlot, onClose: () -> Unit) {
+private fun PlayMark(modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 30.dp) {
+    Box(modifier.size(size).clip(Shapes.Pill).background(Color.Black.copy(alpha = 0.5f)), contentAlignment = Alignment.Center) {
+        Icon(Icons.Rounded.PlayArrow, "Video", Modifier.size(size * 0.66f), tint = Color.White)
+    }
+}
+
+/**
+ * A shared photo or video, full screen. A video shows its poster with a play button and starts only
+ * when tapped, so nobody spends mobile data by opening one. The uploader can caption or delete it.
+ */
+@Composable
+private fun PhotoViewer(
+    memory: Memory,
+    image: PhotoSlot,
+    video: VideoSlot,
+    mine: Boolean,
+    onCaption: (Memory, String, (String?) -> Unit) -> Unit,
+    onDelete: ((String?) -> Unit) -> Unit,
+    onClose: () -> Unit,
+) {
     val date = utc(memory.takenAtUtc ?: memory.sortAtUtc).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    var playing by remember(memory.id) { mutableStateOf(false) }
+    var editing by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val kind = if (memory.isVideo) "video" else "photo"
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
-            image(memory.url, memory.caption ?: "Photo added by ${memory.uploadedByName}", Modifier.fillMaxSize(), false)
+            when {
+                memory.isVideo && playing -> video(memory.url, Modifier.fillMaxSize())
+                memory.isVideo -> {
+                    memory.thumbnailUrl?.let { image(it, null, Modifier.fillMaxSize(), false) }
+                    Box(Modifier.align(Alignment.Center).clickable(role = androidx.compose.ui.semantics.Role.Button) { playing = true }) { PlayMark(size = 72.dp) }
+                }
+                else -> image(memory.url, memory.caption ?: "Photo added by ${memory.uploadedByName}", Modifier.fillMaxSize(), false)
+            }
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, "Close", tint = Color.White) }
-                Column(Modifier.padding(start = 4.dp)) {
-                    Text(memory.uploadedByName.ifBlank { "Shared photo" }, style = Heartpact.type.label, color = Color.White)
+                Column(Modifier.padding(start = 4.dp).weight(1f)) {
+                    Text(memory.uploadedByName.ifBlank { "Shared $kind" }, style = Heartpact.type.label, color = Color.White)
                     Text(date, style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f))
                 }
+                if (mine) {
+                    IconButton(onClick = { error = null; editing = true }) { Icon(Icons.Rounded.Edit, "Caption", tint = Color.White) }
+                    IconButton(onClick = { error = null; deleting = true }) { Icon(Icons.Rounded.Delete, "Delete", tint = Color.White) }
+                }
             }
-            memory.caption?.let {
-                Text(it, style = Heartpact.type.body, color = Color.White, modifier = Modifier.align(Alignment.BottomStart).navigationBarsPadding().padding(20.dp))
+            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color.Black.copy(alpha = 0.35f)).navigationBarsPadding().padding(20.dp)) {
+                memory.caption?.let { Text(it, style = Heartpact.type.body, color = Color.White) }
+                error?.let { Text(it, style = Heartpact.type.small, color = Color(0xFFFFB4AB), modifier = Modifier.padding(top = 6.dp)) }
             }
         }
     }
+    if (editing) {
+        var text by remember { mutableStateOf(memory.caption.orEmpty()) }
+        AlertDialog(
+            onDismissRequest = { if (!busy) editing = false },
+            title = { Text(if (memory.caption == null) "Add a caption" else "Change the caption") },
+            text = { HeartField("Caption", text, { if (it.length <= MAX_CAPTION) text = it }, minLines = 2, maxLength = MAX_CAPTION) },
+            confirmButton = {
+                TextButton(enabled = !busy, onClick = {
+                    busy = true
+                    onCaption(memory, text) { failure -> busy = false; error = failure; if (failure == null) editing = false }
+                }) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { editing = false }, enabled = !busy) { Text("Cancel") } },
+        )
+    }
+    if (deleting) AlertDialog(
+        onDismissRequest = { if (!busy) deleting = false },
+        title = { Text("Delete this $kind?") },
+        text = { Text("It's removed from your shared album for both of you. The original stays in your phone's gallery.") },
+        confirmButton = {
+            TextButton(enabled = !busy, onClick = {
+                busy = true
+                onDelete { failure -> busy = false; deleting = false; error = failure }
+            }) { Text("Delete") }
+        },
+        dismissButton = { TextButton(onClick = { deleting = false }, enabled = !busy) { Text("Keep it") } },
+    )
 }
+
+private const val MAX_CAPTION = 500

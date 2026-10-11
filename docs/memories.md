@@ -101,6 +101,15 @@ reads like "12 photos are waiting on this phone. Sync them to share with Theo." 
 5. On an `albumSyncReminder` push with `preferWifi`, hold it until the phone is on an unmetered network, or until the
    end of the day, and only then show it. The reminder only asks; it never starts an upload.
 
+The Android app also:
+
+- Takes photos and videos (MP4, MOV) from the system picker. A video's size is checked before it is copied, its
+  first frame becomes the thumbnail, and its recording time (UTC in the file) becomes `takenAtUtc`.
+- Shows a shared video as its poster with a play button. It streams with the platform player only when tapped,
+  so opening one never spends mobile data on its own.
+- Lets the uploader add or change a caption (`PATCH {id}`, sending the date back unchanged) and delete a shared photo
+  or video (`DELETE {id}`). The partner sees the photo but not these actions; the server refuses them anyway.
+
 ## Configuration
 
 `Media:ServiceUrl`, `Media:Bucket`, `Media:AccessKey`, `Media:SecretKey`, `Media:Region` (default `auto`, right for

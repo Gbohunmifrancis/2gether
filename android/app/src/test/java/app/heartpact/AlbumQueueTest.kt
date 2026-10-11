@@ -67,3 +67,26 @@ class AlbumQueueTest {
         assertEquals("1 photo still waiting: offline", AlbumText.outcome(0, 0, 1, false, "offline"))
     }
 }
+
+class PhotoImporterRulesTest {
+    @org.junit.Test fun `a video's recording time is read as UTC, and clockless cameras are ignored`() {
+        org.junit.Assert.assertEquals("2024-03-05T10:15:00Z", app.heartpact.album.PhotoImporter.videoDate("20240305T101500.000Z"))
+        org.junit.Assert.assertNull(app.heartpact.album.PhotoImporter.videoDate("19040101T000000.000Z"))
+        org.junit.Assert.assertNull(app.heartpact.album.PhotoImporter.videoDate(null))
+        org.junit.Assert.assertNull(app.heartpact.album.PhotoImporter.videoDate("2024"))
+    }
+
+    @org.junit.Test fun `copying stops just past the limit, so a huge file never fills the phone`() {
+        val out = java.io.ByteArrayOutputStream()
+        val copied = app.heartpact.album.PhotoImporter.copyAtMost(java.io.ByteArrayInputStream(ByteArray(300_000)), out, 100_001)
+        org.junit.Assert.assertEquals(100_001L, copied)
+        org.junit.Assert.assertEquals(100_001, out.size())
+        org.junit.Assert.assertEquals(5L, app.heartpact.album.PhotoImporter.copyAtMost(java.io.ByteArrayInputStream(ByteArray(5)), java.io.ByteArrayOutputStream(), 100))
+    }
+
+    @org.junit.Test fun `videos are told apart and get their own size message`() {
+        val clip = app.heartpact.album.LocalPhoto("c", "c.mp4", null, "video/mp4", 1, null, 0, errorCode = "memories.too_large")
+        org.junit.Assert.assertTrue(clip.isVideo)
+        org.junit.Assert.assertEquals("This video is too large for the album (100 MB at most).", app.heartpact.ui.album.AlbumText.reason(clip))
+    }
+}

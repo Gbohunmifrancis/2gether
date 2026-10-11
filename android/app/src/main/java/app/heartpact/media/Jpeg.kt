@@ -3,6 +3,7 @@ package app.heartpact.media
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -21,6 +22,17 @@ object Jpeg {
             postRotate(runCatching { ExifInterface(source).rotationDegrees }.getOrDefault(0).toFloat())
         }
         val upright = Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
+        return compress(upright, maxBytes, startQuality)
+    }
+
+    /** A frame already in memory (a video's first frame), scaled to [edge] and kept under [maxBytes]. */
+    fun fromBitmap(frame: Bitmap, edge: Int, maxBytes: Int, startQuality: Int = 82): ByteArray {
+        val scale = edge.toFloat() / maxOf(frame.width, frame.height)
+        val sized = if (scale < 1f) frame.scale((frame.width * scale).toInt().coerceAtLeast(1), (frame.height * scale).toInt().coerceAtLeast(1)) else frame
+        return compress(sized, maxBytes, startQuality)
+    }
+
+    private fun compress(upright: Bitmap, maxBytes: Int, startQuality: Int): ByteArray {
         var quality = startQuality
         var bytes: ByteArray
         do {

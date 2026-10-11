@@ -23,6 +23,10 @@ data class Memory(
     val thumbnailUrl: String? = null,
 )
 
+/** Only the uploader may change a memory. Both fields are written: send the date back unchanged to keep it. */
+@Serializable
+data class UpdateMemoryRequest(val caption: String?, val takenAtUtc: String?)
+
 @Serializable
 data class MemoryPage(val items: List<Memory> = emptyList(), val nextCursor: String? = null)
 
