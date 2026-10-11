@@ -59,15 +59,17 @@ class AlarmActivity : ComponentActivity() {
                         onSilence = { model.silence(); finish() },
                     )
                     is AlarmPhase.Camera -> {
-                        BackHandler { model.backToAlarm() }
+                        // Early: nothing is ringing, so stopping just closes; otherwise back to the alarm.
+                        val leave = { if (model.early) finish() else model.backToAlarm() }
+                        BackHandler { leave() }
                         val deadline = app.heartpact.data.utc(phase.occurrence.completeByUtc ?: phase.occurrence.deadlineUtc)
                         CameraRepScreen(
                             type = phase.occurrence.exerciseType,
                             target = phase.occurrence.target,
-                            minutesLeft = ((deadline.toEpochMilli() - Instant.now().toEpochMilli()) / 60_000).toInt().coerceAtLeast(0),
+                            minutesLeft = if (model.early) null else ((deadline.toEpochMilli() - Instant.now().toEpochMilli()) / 60_000).toInt().coerceAtLeast(0),
                             note = ui.note,
                             onReached = { count, confidence -> model.complete(count, confidence) { message -> model.showNote(message) } },
-                            onStop = model::backToAlarm,
+                            onStop = leave,
                         )
                     }
                     is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::finish)

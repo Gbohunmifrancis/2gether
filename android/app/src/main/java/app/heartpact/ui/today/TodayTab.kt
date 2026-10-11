@@ -64,6 +64,7 @@ fun TodayTab(
     ui: TodayUi,
     partnerName: String,
     onStartCamera: (MyDare) -> Unit,
+    onDoItNow: (MyDare) -> Unit = {},
     onCallOff: (String) -> Unit,
     onKeep: (String) -> Unit,
     onNewDare: () -> Unit,
@@ -82,7 +83,7 @@ fun TodayTab(
         if (!ui.readiness.ready) Readiness(ui)
         view?.partnerRinging?.takeIf { it.callOffRequestedAtUtc != null && it.id !in ui.kept }?.let { CallOffRequest(it, partnerName, ui.busy, onCallOff, onKeep) }
         when {
-            view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera)
+            view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera, onDoItNow)
             view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
                 Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Character(Who.Both, Pose.Wave, 100.dp)
@@ -109,7 +110,7 @@ fun TodayTab(
 }
 
 @Composable
-private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCamera: (MyDare) -> Unit) {
+private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCamera: (MyDare) -> Unit, onDoItNow: (MyDare) -> Unit) {
     val colors = Heartpact.colors
     val mySide = LocalActor.current
     val occurrence = dare.occurrence
@@ -138,10 +139,14 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
                     if (mySide == Side.Left) HeartSticker(HalfState.Slot, partnerHalf, 46.dp) else HeartSticker(partnerHalf, HalfState.Slot, 46.dp)
                     Text(if (dare.setByPartner) "$partnerName stuck their half on. Do the reps and the camera sticks yours." else "Do the reps and the camera sticks your half.", style = Heartpact.type.body.copy(fontSize = 13.sp), color = colors.ink)
                 }
-                if (dare.ringing) {
-                    HeartButton("Start on camera", { onStartCamera(dare) }, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera)
-                } else {
-                    Text("Once it rings you can do it on camera, or ask $partnerName to call it off.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
+                val dueToday = dare.dueAt.atZone(ZoneId.systemDefault()).toLocalDate() == now.atZone(ZoneId.systemDefault()).toLocalDate()
+                when {
+                    dare.ringing -> HeartButton("Start on camera", { onStartCamera(dare) }, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera)
+                    dueToday && dare.dueAt.isAfter(now) -> {
+                        HeartButton("Do it now", { onDoItNow(dare) }, Modifier.padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.PhotoCamera)
+                        Text("Done before ${time(dare.dueAt)}, it won't ring today.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                    else -> Text("You can do it any time on the day, or ask $partnerName to call it off once it rings.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
                 }
             }
         }

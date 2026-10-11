@@ -61,4 +61,22 @@ class AlarmPlanTest {
         assertEquals(1, plan.size)
         assertTrue(AlarmPlan.ringingNow(plan, emptySet(), now).isEmpty())
     }
+
+    @Test fun `a dare done before it rang does not ring today, even before the server moves it on`() {
+        // Completed early at 07:30; the goal still points at today's 08:00.
+        val today = ExerciseToday("x",
+            listOf(goal("mine", me, theo, "2026-10-11T08:00:00Z")),
+            listOf(occurrence("mine", me, OccurrenceStatus.Completed, "2026-10-11T08:00:00Z", "2026-10-11T08:30:00Z")))
+        assertTrue(AlarmPlan.plan(today, me, "Theo", now).isEmpty())
+    }
+
+    @Test fun `a dare started early and abandoned still rings at its time`() {
+        val today = ExerciseToday("x",
+            listOf(goal("mine", me, theo, "2026-10-11T08:00:00Z")),
+            listOf(occurrence("mine", me, OccurrenceStatus.InProgress, "2026-10-11T08:00:00Z", "2026-10-11T08:30:00Z")))
+        val plan = AlarmPlan.plan(today, me, "Theo", now)
+        assertEquals(1, plan.size)
+        assertEquals(Instant.parse("2026-10-11T08:00:00Z").toEpochMilli(), plan.single().dueAtEpochMs)
+        assertTrue("not before its time", AlarmPlan.ringingNow(plan, emptySet(), now).isEmpty())
+    }
 }

@@ -132,6 +132,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             ui = todayUi,
                             partnerName = partner,
                             onStartCamera = { dare -> context.startActivity(alarmIntent(context, dare, partner)) },
+                            onDoItNow = { dare -> context.startActivity(alarmIntent(context, dare, partner, early = true)) },
                             onCallOff = todayModel::callOffTogether,
                             onKeep = todayModel::keepIt,
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
@@ -152,7 +153,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
 }
 
 /** Today's "Start on camera" opens the same full-screen flow the alarm uses. */
-private fun alarmIntent(context: Context, dare: MyDare, partnerName: String): Intent {
+private fun alarmIntent(context: Context, dare: MyDare, partnerName: String, early: Boolean = false): Intent {
     val occurrence = dare.occurrence
     val slot = AlarmSlot(
         goalId = dare.goal.id, title = dare.goal.title, exerciseType = dare.goal.exerciseType, target = dare.goal.target,
@@ -160,6 +161,7 @@ private fun alarmIntent(context: Context, dare: MyDare, partnerName: String): In
         deadlineEpochMs = (occurrence?.let { utc(it.completeByUtc ?: it.deadlineUtc) } ?: dare.dueAt.plusSeconds(dare.goal.graceMinutes * 60L)).toEpochMilli(),
         setByName = if (dare.setByPartner) partnerName else null,
         occurrenceId = occurrence?.id,
+        early = early,
     )
     return Intent(context, AlarmActivity::class.java).putExtra(AlarmNotifier.EXTRA_SLOT, AlarmNotifier.encode(slot))
 }

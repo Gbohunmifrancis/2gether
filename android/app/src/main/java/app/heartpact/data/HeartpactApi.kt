@@ -35,6 +35,9 @@ interface HeartpactApi {
     @POST("api/exercise/goals")
     suspend fun createGoal(@Body request: CreateGoalRequest): Response<ExerciseGoal>
 
+    @POST("api/exercise/goals/{goalId}/start-early")
+    suspend fun startEarly(@Path("goalId") goalId: String): Response<ExerciseOccurrence>
+
     @POST("api/exercise/occurrences/{id}/start")
     suspend fun startOccurrence(@Path("id") id: String): Response<ExerciseOccurrence>
 

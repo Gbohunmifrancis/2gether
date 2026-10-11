@@ -55,14 +55,14 @@ class ExerciseShotsTest {
 
     @Test fun todayRinging() {
         val view = TodayBuilder.build(ExerciseToday("x", listOf(goal, hisGoal), listOf(ringing)), history, "maya", now, java.time.ZoneOffset.UTC)
-        shot("today-ringing") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false), "Theo", {}, {}, {}, {}, now) }) }
+        shot("today-ringing") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false), "Theo", {}, onCallOff = {}, onKeep = {}, onNewDare = {}, now = now) }) }
     }
 
     @Test fun todayUpcomingWithReadinessAndRequest() {
         val upcoming = goal.copy(nextDueAtUtc = "2026-10-11T08:00:00Z")
         val hisRinging = ringing.copy(id = "o2", goalId = "g2", userId = "theo", title = "Push-ups", callOffRequestedAtUtc = "2026-10-11T07:45:00Z", callOffNote = "Knee's sore after yesterday's run. Can I swap it for a walk tonight?")
         val view = TodayBuilder.build(ExerciseToday("x", listOf(upcoming, hisGoal), listOf(hisRinging)), history, "maya", now, java.time.ZoneOffset.UTC)
-        shot("today-upcoming") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false, readiness = AlarmReadiness(true, false, false)), "Theo", {}, {}, {}, {}, now) }) }
+        shot("today-upcoming") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false, readiness = AlarmReadiness(true, false, false)), "Theo", {}, onCallOff = {}, onKeep = {}, onNewDare = {}, now = now) }) }
     }
 
     @Test fun newDare() = shot("new-dare") { NewDareScreen(NewDareState(type = ExerciseType.PushUp, target = 30), "Theo", {}, {}, {}, {}, {}, {}) }

@@ -37,7 +37,25 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
     private var watcher: Job? = null
 
     init {
-        viewModelScope.launch { load() }
+        viewModelScope.launch { if (slot.early) startEarly() else load() }
+    }
+
+    val early get() = slot.early
+
+    /** Before it rings: the server opens today's occurrence now and the camera starts. */
+    private suspend fun startEarly() {
+        when (val result = app.exercise.startEarly(slot.goalId)) {
+            is ApiResult.Ok -> _ui.update { it.copy(phase = AlarmPhase.Camera(result.value)) }
+            is ApiResult.Failure -> if (result.code == "exercise.not_due_today" || result.code == "exercise.not_active") load() else _ui.update { it.copy(phase = AlarmPhase.Ended(EndReason.Gone), note = result.message) }
+            ApiResult.Offline -> _ui.update { it.copy(phase = AlarmPhase.Ended(EndReason.Gone), note = OFFLINE_MESSAGE) }
+        }
+    }
+
+    /** Once a dare is settled, re-plan this phone's alarms so today's never rings. */
+    private fun replan() = viewModelScope.launch {
+        val me = app.session.load()?.user?.id ?: return@launch
+        val today = app.exercise.today()
+        if (today is ApiResult.Ok) AlarmScheduler.apply(getApplication(), AlarmPlan.plan(today.value, me, slot.setByName, java.time.Instant.now()))
     }
 
     /**
@@ -127,7 +145,7 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
         val occurrence = currentOccurrence() ?: return
         viewModelScope.launch {
             when (val result = app.exercise.complete(occurrence.id, count, confidence)) {
-                is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) } }
+                is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) }; replan() }
                 is ApiResult.Failure -> onRejected(result.message)
                 ApiResult.Offline -> onRejected(OFFLINE_MESSAGE)
             }
@@ -147,6 +165,7 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
 
     private fun end(reason: EndReason) {
         stopRinging()
+        replan()
         watcher?.cancel()
         _ui.update { it.copy(phase = AlarmPhase.Ended(reason)) }
     }

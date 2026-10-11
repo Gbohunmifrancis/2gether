@@ -24,6 +24,8 @@ data class AlarmSlot(
     val setByName: String? = null,
     /** Present once the server has opened the day's occurrence. */
     val occurrenceId: String? = null,
+    /** Opened from Today before it rings: go straight to the camera, nothing is ringing. */
+    val early: Boolean = false,
 ) {
     /** Stable per goal and day, so a re-plan replaces rather than duplicates. */
     val key: String get() = "$goalId@$dueAtEpochMs"
@@ -49,7 +51,9 @@ object AlarmPlan {
                     }
                 }
             val next = utc(goal.nextDueAtUtc)
-            if (next.isAfter(now)) {
+            // Done or called off before it rang: today's alarm is cancelled even if the pointer lags.
+            val settled = today.occurrences.any { it.goalId == goal.id && !it.status.ringing && utc(it.scheduledAtUtc) == next }
+            if (next.isAfter(now) && !settled) {
                 slots += AlarmSlot(goal.id, goal.title, goal.exerciseType, goal.target, next.toEpochMilli(),
                     next.plus(Duration.ofMinutes(goal.graceMinutes.toLong())).toEpochMilli(), setBy)
             }
