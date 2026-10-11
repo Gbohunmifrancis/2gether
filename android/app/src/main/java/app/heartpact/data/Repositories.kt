@@ -45,3 +45,12 @@ class ExerciseRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun cancel(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.cancelOccurrence(id) }
     suspend fun askOff(id: String, note: String?): ApiResult<ExerciseOccurrence> = apiCall(json) { api.askOff(id, AskOffRequest(note?.trim()?.takeIf { it.isNotEmpty() })) }
 }
+
+class FoodRepository(private val api: HeartpactApi, private val json: Json) {
+    suspend fun day(date: String): ApiResult<FoodDay> = apiCall(json) { api.foodDay(date) }
+    suspend fun saveTargets(request: UpsertTargetRequest): ApiResult<NutritionTarget> = apiCall(json) { api.saveFoodTargets(request) }
+    suspend fun create(request: CreateFoodEntryRequest): ApiResult<FoodEntry> = apiCall(json) { api.createFoodEntry(request) }
+    suspend fun update(id: String, request: UpdateFoodEntryRequest): ApiResult<FoodEntry> = apiCall(json) { api.updateFoodEntry(id, request) }
+    suspend fun delete(id: String): ApiResult<Unit> = apiCall(json) { api.deleteFoodEntry(id) }
+    suspend fun scan(request: FoodScanRequest): ApiResult<FoodScanResult> = apiCall(json) { api.scanFood(request) }
+}

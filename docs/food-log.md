@@ -15,6 +15,10 @@ Reads work for an unlinked user (they see their own data and no partner); writes
   success or error code, and the accepted estimate as JSON. Drives the per-user daily quota, which comes from the couple's plan (Free 3, Plus 20 by default; see
   `docs/billing.md`), counted per UTC day, failed calls included because they were billed.
 
+Totals (`FoodTotalsDto`) also carry `caloriesLow` and `caloriesHigh`: each entry's range added up, with an entry that
+has no range counted at its own calories at both ends. A partner who shares totals only therefore still shows an
+honest range, without their meals.
+
 ## Endpoints
 
 | Method | Route | Body | Returns | Notes |
@@ -22,7 +26,7 @@ Reads work for an unlinked user (they see their own data and no partner); writes
 | GET | `targets` | | `NutritionTargetDto` | defaults when nothing saved |
 | PUT | `targets` | `UpsertNutritionTargetRequest` | `NutritionTargetDto` | 422 `food.invalid_target`, `food.invalid_macros`, `food.invalid_share_level` |
 | GET | `day?date=` | | `FoodDayDto` | my entries, totals, remaining; `partner` filtered by their share level; `scansUsedToday` / `scanLimitPerDay` |
-| POST | `entries` | `CreateFoodEntryRequest` | `FoodEntryDto` | optional `scanId` links a successful scan of mine; 422 `food.scan_not_found` otherwise |
+| POST | `entries` | `CreateFoodEntryRequest` | `FoodEntryDto` | optional `scanId` links a successful scan of mine; 422 `food.scan_not_found` otherwise. Optional `portionFactor` (0.25–3, scans only, else 422 `food.invalid_portion`) says the plate was smaller or larger than the photo: the scan's range scales with it (low rounded down, high up) before the accepted calories are checked against it |
 | PUT | `entries/{id}` | `UpdateFoodEntryRequest` | `FoodEntryDto` | own entries only (404 otherwise) |
 | DELETE | `entries/{id}` | | 204 | own entries only |
 | GET | `history?days=14` | | `FoodHistoryDto` | per-day totals for me and, when shared, my partner; days clamped 1..90 |

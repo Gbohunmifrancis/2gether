@@ -114,6 +114,30 @@ public sealed class FoodTests
         var b = FoodEntry.Create(a.CoupleId, a.UserId, a.LocalDate, MealType.Snack, "Latte", 250, null, null, null, now);
         var totals = FoodMapper.Totals([a, b]);
         Assert.Equal((700, 18d, 61d, 14d, 2), (totals.Calories, totals.ProteinGrams, totals.CarbsGrams, totals.FatGrams, totals.EntryCount));
+        Assert.Equal((700, 700), (totals.CaloriesLow, totals.CaloriesHigh));
+    }
+
+    [Fact]
+    public void Totals_add_up_photo_ranges_and_count_exact_entries_at_both_ends()
+    {
+        var now = DateTime.UtcNow;
+        var toast = FoodEntry.Create(Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 1, 1), MealType.Breakfast, "French toast", 640, null, null, null, now, FoodEntrySource.PhotoEstimate, 540, 760, 0.7);
+        var bowl = FoodEntry.Create(toast.CoupleId, toast.UserId, toast.LocalDate, MealType.Lunch, "Salad bowl", 600, null, null, null, now, FoodEntrySource.PhotoEstimate, 480, 700, 0.7);
+        var latte = FoodEntry.Create(toast.CoupleId, toast.UserId, toast.LocalDate, MealType.Snack, "Latte", 120, null, null, null, now);
+        var totals = FoodMapper.Totals([toast, bowl, latte]);
+        Assert.Equal((1360, 1140, 1580), (totals.Calories, totals.CaloriesLow, totals.CaloriesHigh));
+    }
+
+    [Fact]
+    public void Portion_adjusts_only_photo_estimates_within_reason_and_scales_the_range_outward()
+    {
+        Assert.True(FoodRules.ValidatePortion(null, fromScan: false).IsSuccess);
+        Assert.True(FoodRules.ValidatePortion(0.75, fromScan: true).IsSuccess);
+        Assert.Equal("food.invalid_portion", FoodRules.ValidatePortion(0.75, fromScan: false).Error.Code);
+        Assert.Equal("food.invalid_portion", FoodRules.ValidatePortion(0.1, fromScan: true).Error.Code);
+        Assert.Equal("food.invalid_portion", FoodRules.ValidatePortion(double.NaN, fromScan: true).Error.Code);
+        Assert.Equal((390, 525), FoodRules.ScaleRange(520, 700, 0.75));
+        Assert.Equal((676, 910), FoodRules.ScaleRange(520, 700, 1.3));
     }
 
     [Fact]

@@ -81,4 +81,22 @@ interface HeartpactApi {
 
     @POST("api/devices/unregister")
     suspend fun unregisterDevice(@Body request: UnregisterDeviceRequest): Response<Unit>
+
+    @GET("api/food/day")
+    suspend fun foodDay(@Query("date") date: String): Response<FoodDay>
+
+    @PUT("api/food/targets")
+    suspend fun saveFoodTargets(@Body request: UpsertTargetRequest): Response<NutritionTarget>
+
+    @POST("api/food/entries")
+    suspend fun createFoodEntry(@Body request: CreateFoodEntryRequest): Response<FoodEntry>
+
+    @PUT("api/food/entries/{id}")
+    suspend fun updateFoodEntry(@Path("id") id: String, @Body request: UpdateFoodEntryRequest): Response<FoodEntry>
+
+    @DELETE("api/food/entries/{id}")
+    suspend fun deleteFoodEntry(@Path("id") id: String): Response<Unit>
+
+    @POST("api/food/scans")
+    suspend fun scanFood(@Body request: FoodScanRequest): Response<FoodScanResult>
 }

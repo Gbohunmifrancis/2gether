@@ -15,6 +15,23 @@ public static class FoodRules
             ? date
             : Error.Validation("food.invalid_date", "Date must look like yyyy-MM-dd.");
 
+    public const double MinPortionFactor = 0.25;
+    public const double MaxPortionFactor = 3.0;
+
+    /// <summary>A portion adjustment only makes sense on a photo estimate, and within reason.</summary>
+    public static Result ValidatePortion(double? factor, bool fromScan)
+    {
+        if (factor is null) return Result.Success();
+        if (!fromScan) return Error.Validation("food.invalid_portion", "A portion adjustment needs a photo estimate.");
+        if (double.IsNaN(factor.Value) || factor < MinPortionFactor || factor > MaxPortionFactor)
+            return Error.Validation("food.invalid_portion", $"Portion must be between {MinPortionFactor}x and {MaxPortionFactor}x the photo.");
+        return Result.Success();
+    }
+
+    /// <summary>The estimate's range for the portion actually eaten.</summary>
+    public static (int Low, int High) ScaleRange(int low, int high, double factor)
+        => ((int)Math.Floor(low * factor), (int)Math.Ceiling(high * factor));
+
     public static Result ValidateEntry(MealType mealType, string? description, int calories, double? proteinGrams, double? carbsGrams, double? fatGrams)
     {
         if (!Enum.IsDefined(mealType)) return Error.Validation("food.invalid_meal", "Unknown meal type.");

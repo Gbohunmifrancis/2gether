@@ -1,12 +1,9 @@
 package app.heartpact.album
 
 import android.content.ContentResolver
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
-import java.io.ByteArrayOutputStream
+import app.heartpact.media.Jpeg
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -46,24 +43,7 @@ class PhotoImporter(private val resolver: ContentResolver, private val queue: Al
     }
 
     private fun thumbnail(source: File, target: File): File {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(source.path, bounds)
-        var sample = 1
-        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= THUMB_EDGE) sample *= 2
-        val decoded = BitmapFactory.decodeFile(source.path, BitmapFactory.Options().apply { inSampleSize = sample }) ?: error("Not an image")
-        val scale = THUMB_EDGE.toFloat() / maxOf(decoded.width, decoded.height)
-        val matrix = Matrix().apply {
-            if (scale < 1f) postScale(scale, scale)
-            postRotate(ExifInterface(source).rotationDegrees.toFloat())
-        }
-        val upright = Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
-        var quality = 82
-        var bytes: ByteArray
-        do {
-            bytes = ByteArrayOutputStream().also { upright.compress(Bitmap.CompressFormat.JPEG, quality, it) }.toByteArray()
-            quality -= 12
-        } while (bytes.size > MAX_THUMB_BYTES && quality > 20)
-        target.writeBytes(bytes)
+        target.writeBytes(Jpeg.shrink(source, THUMB_EDGE, MAX_THUMB_BYTES))
         return target
     }
 

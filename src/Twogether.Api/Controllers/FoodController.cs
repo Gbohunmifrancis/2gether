@@ -125,14 +125,17 @@ public sealed class FoodController(
             scan = await db.FoodScans.AsNoTracking().SingleOrDefaultAsync(item => item.Id == scanId && item.UserId == currentUser.UserId.Value && item.Succeeded, cancellationToken);
             if (scan is null) return UnprocessableEntity(new ApiError("food.scan_not_found", "That scan does not exist or is not yours."));
         }
+        var portion = FoodRules.ValidatePortion(request.PortionFactor, request.ScanId is not null);
+        if (portion.IsFailure) return Problem(portion.Error);
         var estimate = scan?.ResultJson is null ? null : JsonSerializer.Deserialize<FoodEstimateSnapshot>(scan.ResultJson, ResultJson);
-        var keepRange = estimate is not null && estimate.CaloriesLow <= request.Calories && request.Calories <= estimate.CaloriesHigh;
+        var (low, high) = estimate is null ? (0, 0) : FoodRules.ScaleRange(estimate.CaloriesLow, estimate.CaloriesHigh, request.PortionFactor ?? 1);
+        var keepRange = estimate is not null && low <= request.Calories && request.Calories <= high;
 
         var entry = FoodEntry.Create(couple.Id, currentUser.UserId.Value, date.Value, request.MealType, request.Description.Trim(), request.Calories,
             request.ProteinGrams, request.CarbsGrams, request.FatGrams, clock.UtcNow,
             scan is null ? FoodEntrySource.Manual : FoodEntrySource.PhotoEstimate,
-            keepRange ? estimate!.CaloriesLow : null,
-            keepRange ? estimate!.CaloriesHigh : null,
+            keepRange ? low : null,
+            keepRange ? high : null,
             estimate?.Confidence,
             scan?.Id);
         db.FoodEntries.Add(entry);

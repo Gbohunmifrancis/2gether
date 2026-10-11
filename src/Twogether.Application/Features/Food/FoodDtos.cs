@@ -21,7 +21,11 @@ public sealed record FoodEntryDto(
     Guid? ScanId,
     DateTime LoggedAtUtc);
 
-public sealed record FoodTotalsDto(int Calories, double ProteinGrams, double CarbsGrams, double FatGrams, int EntryCount);
+/// <summary>
+/// CaloriesLow and CaloriesHigh add up each entry's range (an entry without one counts its own calories at both ends),
+/// so a partner who shares totals only still shows an honest range.
+/// </summary>
+public sealed record FoodTotalsDto(int Calories, double ProteinGrams, double CarbsGrams, double FatGrams, int EntryCount, int CaloriesLow, int CaloriesHigh);
 
 /// <summary>The partner's side of the day, filtered by their share level.</summary>
 public sealed record FoodPartnerDayDto(
@@ -67,7 +71,8 @@ public sealed record FoodDayUpdatedDto(Guid UserId, string LocalDate, FoodTotals
 
 public sealed record UpsertNutritionTargetRequest(int DailyCalories, double? ProteinGrams, double? CarbsGrams, double? FatGrams, FoodShareLevel ShareLevel);
 
-public sealed record CreateFoodEntryRequest(string LocalDate, MealType MealType, string Description, int Calories, double? ProteinGrams, double? CarbsGrams, double? FatGrams, Guid? ScanId);
+/// <summary>PortionFactor (with a scan only) says the plate was smaller or larger than the photo suggests; the scan's range scales with it.</summary>
+public sealed record CreateFoodEntryRequest(string LocalDate, MealType MealType, string Description, int Calories, double? ProteinGrams, double? CarbsGrams, double? FatGrams, Guid? ScanId, double? PortionFactor = null);
 
 public sealed record UpdateFoodEntryRequest(string LocalDate, MealType MealType, string Description, int Calories, double? ProteinGrams, double? CarbsGrams, double? FatGrams);
 

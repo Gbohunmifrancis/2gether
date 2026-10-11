@@ -14,6 +14,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import app.heartpact.data.CoupleSide
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import app.heartpact.ui.food.FoodEntryScreen
+import app.heartpact.ui.food.FoodEntryViewModel
+import app.heartpact.ui.food.FoodScanScreen
+import app.heartpact.ui.food.FoodScanViewModel
+import app.heartpact.ui.food.FoodTab
+import app.heartpact.ui.food.FoodViewModel
+import java.io.File
 import app.heartpact.ui.album.AlbumTab
 import app.heartpact.ui.album.AlbumViewModel
 import app.heartpact.ui.home.Tab
@@ -70,6 +84,10 @@ private object Routes {
     const val PAIR = "pair"
     const val HOME = "home"
     const val NEW_DARE = "newdare"
+    const val FOOD_SCAN = "foodscan?uri={uri}"
+    const val FOOD_ENTRY = "foodentry?id={id}"
+    fun foodScan(uri: Uri) = "foodscan?uri=" + Uri.encode(uri.toString())
+    fun foodEntry(id: String?) = if (id == null) "foodentry" else "foodentry?id=$id"
 }
 
 private fun Destination.route() = when (this) {
@@ -144,6 +162,25 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val pickPhotos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(50)) { albumModel.add(it) }
                     val sides = couple?.members.orEmpty().associate { it.userId to if (it.side == CoupleSide.Right) Side.Right else Side.Left }
                     val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
+                    val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food) } })
+                    val foodUi by foodModel.ui.collectAsStateWithLifecycle()
+                    // Back from logging a meal (or from anywhere): the day's numbers may have moved.
+                    LifecycleResumeEffect(Unit) {
+                        foodModel.refresh()
+                        onPauseOrDispose { }
+                    }
+                    var mealPhoto by remember { mutableStateOf<Uri?>(null) }
+                    val takeMeal = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved -> mealPhoto?.takeIf { saved }?.let { nav.navigate(Routes.foodScan(it)) } }
+                    val pickMeal = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { nav.navigate(Routes.foodScan(it)) } }
+                    val pickMealPhoto = { pickMeal.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                    val snapMeal = {
+                        val file = File(File(context.cacheDir, "food").apply { mkdirs() }, "meal-${System.currentTimeMillis()}.jpg")
+                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+                        mealPhoto = uri
+                        takeMeal.launch(uri)
+                    }
+                    // The app declares CAMERA (for rep counting), so the system camera needs it granted too.
+                    val cameraForMeal = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) snapMeal() else pickMealPhoto() }
                     HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() },
                         requestedTab = requestedTab?.let { name -> Tab.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } },
                         onRequestedTab = appModel::tabOpened,
@@ -151,8 +188,22 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             when (it) {
                                 Tab.Pacts -> pactsModel.refresh()
                                 Tab.Album -> albumModel.refresh()
+                                Tab.Food -> foodModel.refresh()
                                 else -> Unit
                             }
+                        },
+                        food = {
+                            FoodTab(
+                                ui = foodUi, partnerName = partner,
+                                onSnap = {
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) snapMeal()
+                                    else cameraForMeal.launch(Manifest.permission.CAMERA)
+                                },
+                                onChoosePhoto = pickMealPhoto,
+                                onLogByHand = { nav.navigate(Routes.foodEntry(null)) },
+                                onOpenEntry = { nav.navigate(Routes.foodEntry(it.id)) },
+                                onSaveTargets = foodModel::saveTargets,
+                            )
                         },
                         album = {
                             AlbumTab(
@@ -174,6 +225,22 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
                         )
                     })
+                }
+                composable(Routes.FOOD_SCAN, arguments = listOf(navArgument("uri") { type = NavType.StringType })) { entry ->
+                    val uri = Uri.parse(entry.arguments?.getString("uri") ?: return@composable)
+                    val application = LocalContext.current.applicationContext as Application
+                    val model: FoodScanViewModel = viewModel(factory = viewModelFactory { initializer { FoodScanViewModel(application, uri) } })
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    FoodScanScreen(state, scansLeft = null, onPortion = model::portion, onMeal = model::meal,
+                        onLog = { model.log { nav.popBackStack() } }, onRetry = { model.scan() },
+                        onLogByHand = { nav.navigate(Routes.foodEntry(null)) { popUpTo(Routes.HOME) } }, onBack = { nav.popBackStack() })
+                }
+                composable(Routes.FOOD_ENTRY, arguments = listOf(navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null })) { entry ->
+                    val id = entry.arguments?.getString("id")
+                    val model: FoodEntryViewModel = viewModel(factory = viewModelFactory { initializer { FoodEntryViewModel(container.food, id) } })
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    FoodEntryScreen(state, model::description, model::meal, model::calories,
+                        onSave = { model.save { nav.popBackStack() } }, onDelete = { model.delete { nav.popBackStack() } }, onBack = { nav.popBackStack() })
                 }
                 composable(Routes.NEW_DARE) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()

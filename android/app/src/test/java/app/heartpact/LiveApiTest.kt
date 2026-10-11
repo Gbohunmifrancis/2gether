@@ -215,4 +215,38 @@ class LiveApiTest {
         assertEquals(3, status.usage.count)
         assertEquals("taken a year ago today", 3, (app.heartpact.data.apiCall(json) { theoApi.onThisDay("2026-10-11") } as ApiResult.Ok).value.size)
     }
+
+    @Test fun `meals logged by hand add up, the partner sees totals only, and estimates say when they're not set up`() = runTest(timeout = kotlin.time.Duration.parse("1m")) {
+        assumeTrue(System.getenv("HEARTPACT_API_URL") != null)
+        val run = UUID.randomUUID().toString().take(8)
+        val (_, mayaAuth, mayaCouple) = client("maya")
+        val (_, theoAuth, theoCouple) = client("theo")
+        mayaAuth.register(RegisterRequest("maya.$run@example.com", "longenough", "Maya", "1996-05-14", Gender.Female)) as ApiResult.Ok
+        theoAuth.register(RegisterRequest("theo.$run@example.com", "longenough", "Theo", "1995-02-03", Gender.Male)) as ApiResult.Ok
+        theoCouple.accept(code = (mayaCouple.createInvite() as ApiResult.Ok).value.code) as ApiResult.Ok
+        val maya = app.heartpact.data.FoodRepository(apis.getValue("maya"), json)
+        val theo = app.heartpact.data.FoodRepository(apis.getValue("theo"), json)
+        val today = java.time.LocalDate.now(ZoneOffset.UTC).toString()
+
+        maya.create(app.heartpact.data.CreateFoodEntryRequest(today, app.heartpact.data.MealType.Breakfast, "Oats", 450)) as ApiResult.Ok
+        val toast = (maya.create(app.heartpact.data.CreateFoodEntryRequest(today, app.heartpact.data.MealType.Lunch, "Toast", 300)) as ApiResult.Ok).value
+        assertEquals("food.invalid_portion", (maya.create(app.heartpact.data.CreateFoodEntryRequest(today, app.heartpact.data.MealType.Snack, "Tea", 40, portionFactor = 0.75)) as ApiResult.Failure).code)
+
+        val mine = (maya.day(today) as ApiResult.Ok).value
+        assertEquals(750, mine.totals.calories)
+        assertEquals(750 to 750, mine.totals.low to mine.totals.high)
+        maya.update(toast.id, app.heartpact.data.UpdateFoodEntryRequest(today, app.heartpact.data.MealType.Lunch, "Toast and egg", 380)) as ApiResult.Ok
+
+        val seen = (theo.day(today) as ApiResult.Ok).value.partner!!
+        assertEquals(app.heartpact.data.FoodShareLevel.TotalsOnly, seen.shareLevel)
+        assertEquals(830, seen.totals!!.calories)
+        assertTrue("totals only: no meals", seen.entries.isEmpty())
+
+        maya.saveTargets(app.heartpact.data.UpsertTargetRequest(1900, shareLevel = app.heartpact.data.FoodShareLevel.None)) as ApiResult.Ok
+        assertEquals(null, (theo.day(today) as ApiResult.Ok).value.partner!!.totals)
+
+        // A tiny JPEG: the server checks the type before asking the estimator.
+        val scan = maya.scan(app.heartpact.data.FoodScanRequest("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q=="))
+        if (scan is ApiResult.Failure) assertTrue(scan.code, scan.code in setOf("food.estimation_unavailable", "food.not_food", "food.image_invalid"))
+    }
 }

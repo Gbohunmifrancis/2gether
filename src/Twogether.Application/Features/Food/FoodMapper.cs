@@ -39,7 +39,9 @@ public static class FoodMapper
             Math.Round(list.Sum(entry => entry.ProteinGrams ?? 0), 1),
             Math.Round(list.Sum(entry => entry.CarbsGrams ?? 0), 1),
             Math.Round(list.Sum(entry => entry.FatGrams ?? 0), 1),
-            list.Count);
+            list.Count,
+            list.Sum(entry => entry.CaloriesLow ?? entry.Calories),
+            list.Sum(entry => entry.CaloriesHigh ?? entry.Calories));
     }
 
     public static FoodScanResultDto ToDto(Guid scanId, FoodEstimate estimate, string model, int scansRemainingToday) => new(

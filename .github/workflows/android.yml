@@ -87,6 +87,8 @@ jobs:
           ASPNETCORE_URLS: http://localhost:5135
           Database__ConnectionString: Host=localhost;Port=5432;Database=twogether;Username=twogether;Password=twogether_dev
           Database__EnsureCreated: "true"
+          # Every live test signs up two people from one address.
+          RateLimits__Enabled: "false"
           Media__ServiceUrl: http://127.0.0.1:9000
           Media__Bucket: heartpact
           Media__AccessKey: test
