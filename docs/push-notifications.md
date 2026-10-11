@@ -37,6 +37,40 @@ token in favour of Firebase Installation IDs; both are sent correctly.
 For FCM: `Push:FcmProjectId` and `Push:FcmCredentialsJson` (the service account JSON, as a secret environment
 variable `Push__FcmCredentialsJson`). `Push:MaxDevicesPerUser` defaults to 10.
 
+## Preferences and quiet hours (`api/notification/preferences`, authorized)
+
+Each person can change two things:
+
+- **Which categories reach the phone:** messages, games, exercise updates, cycle, pregnancy, daily questions.
+- **A quiet-hours window** in their own time zone.
+
+With no saved settings, everything is on and quiet hours are off. The default window is 22:00 to 07:00.
+
+```json
+PUT { "messages": true, "games": false, "exercise": true, "cycle": true, "pregnancy": true,
+      "dailyQuestions": true, "quietHoursEnabled": true, "quietStart": "22:00", "quietEnd": "07:00",
+      "timeZoneId": "Africa/Lagos" }
+```
+
+The response is the same object plus `quietNow`, which says whether quiet hours apply at this moment.
+
+How the fields are handled:
+
+- **Times** are 24-hour `HH:mm`. The window may cross midnight. Start and end must differ.
+- **`timeZoneId`** is an IANA id and is saved on the profile. Leaving it out keeps the current one.
+- **Saving** is a full replace and the last save wins. Two devices saving at once both succeed and leave one row.
+
+How each notification is routed:
+
+- **Switched-off category:** the push is skipped and the row is marked `skipped`. The notification still appears in the in-app list.
+- **During quiet hours:** the push is still sent, but on the `quiet` channel with `data.quiet = "true"`. It waits silently in the shade instead of expiring overnight.
+  - The app must create this channel with `IMPORTANCE_LOW`: no sound, vibration or heads-up.
+- **Never affected:**
+  - The exercise alarm (`exerciseDue`). Both partners agreed to it, and the app always offers a local dismiss.
+  - Couple changes (`coupleConnected`, `breakup`). These cannot be switched off, but they do arrive quietly at night.
+
+Every notification type must be assigned a category in `NotificationRouting.CategoryOf`. A unit test fails when a new type is missing.
+
 ## Not done yet
 
-Per-type preferences and quiet hours, and iOS (APNs through FCM works the same way once an iOS app exists).
+iOS. APNs through FCM works the same way once an iOS app exists.

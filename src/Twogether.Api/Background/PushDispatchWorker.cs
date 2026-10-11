@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Push;
 using Twogether.Core.Entities;
+using Twogether.Core.Enums;
+using Twogether.Core.Notifications;
 
 namespace Twogether.Api.Background;
 
@@ -69,13 +71,30 @@ public sealed class PushDispatchWorker(
             else due.Add(notification);
         }
         var userIds = due.Select(item => item.UserId).Distinct().ToList();
+        var preferences = await db.NotificationPreferences.AsNoTracking()
+            .Where(item => userIds.Contains(item.UserId))
+            .ToDictionaryAsync(item => item.UserId, cancellationToken);
+        var zones = await db.Users.AsNoTracking()
+            .Where(item => userIds.Contains(item.Id))
+            .ToDictionaryAsync(item => item.Id, item => item.TimeZoneId, cancellationToken);
+        var routes = new Dictionary<Guid, PushRoute>();
+        foreach (var notification in due.ToList())
+        {
+            var route = NotificationRouting.Route(notification.Type, preferences.GetValueOrDefault(notification.UserId), zones.GetValueOrDefault(notification.UserId), now);
+            if (route == PushRoute.Muted)
+            {
+                notification.SkipPush(now);
+                due.Remove(notification);
+            }
+            else routes[notification.Id] = route;
+        }
         var devices = await db.DeviceRegistrations
             .Where(item => userIds.Contains(item.UserId) && item.DisabledAtUtc == null)
             .ToListAsync(cancellationToken);
 
         var planned = due
             .SelectMany(notification => devices.Where(device => device.UserId == notification.UserId)
-                .Select(device => (Notification: notification, Device: device, Message: PushPolicy.Build(notification, device.Token, device.TokenKind, now))))
+                .Select(device => (Notification: notification, Device: device, Message: PushPolicy.Build(notification, device.Token, device.TokenKind, now, routes[notification.Id]))))
             .ToList();
         var results = planned.Count == 0 ? [] : await sender.SendAsync(planned.Select(item => item.Message).ToList(), cancellationToken);
         if (results.Count != planned.Count) throw new InvalidOperationException("The push provider returned the wrong number of results.");
@@ -98,8 +117,8 @@ public sealed class PushDispatchWorker(
             }
         }
         await db.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Push batch: {Claimed} claimed, {Sent} sent, {Retried} retrying, {Skipped} skipped, {Failed} failed, {Stale} stale.",
-            ids.Count, sent, retried, skipped, failed, notifications.Count - due.Count);
+        logger.LogInformation("Push batch: {Claimed} claimed, {Sent} sent ({Quiet} quietly), {Retried} retrying, {Skipped} skipped, {Failed} failed, {Dropped} stale or muted.",
+            ids.Count, sent, routes.Count(pair => pair.Value == PushRoute.Quiet), retried, skipped, failed, notifications.Count - due.Count);
         return ids.Count;
     }
 }

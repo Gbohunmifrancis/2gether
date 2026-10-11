@@ -64,6 +64,7 @@ public sealed class AccountExportService(IApplicationDbContext db, IMediaStorage
                 .Select(item => new { item.Id, item.Type, item.Title, item.Body, item.CreatedAtUtc, item.ReadAtUtc }).ToListAsync<object>(cancellationToken),
             await db.DeviceRegistrations.AsNoTracking().Where(item => item.UserId == userId)
                 .Select(item => new { item.Id, item.Platform, item.AppVersion, item.CreatedAtUtc, item.LastSeenAtUtc, item.DisabledAtUtc }).ToListAsync<object>(cancellationToken),
+            await db.NotificationPreferences.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken),
             await db.StoreSubscriptions.AsNoTracking().Where(item => item.UserId == userId)
                 .Select(item => new { item.Store, item.ProductId, item.Status, item.ExpiresAtUtc, item.AutoRenewing, item.CreatedAtUtc }).ToListAsync<object>(cancellationToken),
             media.DownloadUrlLifetime);
@@ -93,5 +94,6 @@ public sealed record AccountExport(
     IReadOnlyList<ExportedMemory> Memories,
     IReadOnlyList<object> Notifications,
     IReadOnlyList<object> Devices,
+    IReadOnlyList<object> NotificationPreferences,
     IReadOnlyList<object> Subscriptions,
     TimeSpan MemoryLinksValidFor);

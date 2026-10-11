@@ -12,6 +12,8 @@ public static class PushPolicy
     public const int MaxAttempts = 5;
     public const string AlarmChannel = "alarms";
     public const string GeneralChannel = "general";
+    /// <summary>The app creates this channel with low importance: no sound, no vibration, no heads-up.</summary>
+    public const string QuietChannel = "quiet";
 
     /// <summary>
     /// How long a push is worth sending. An alarm push after its window closed would ring for
@@ -29,7 +31,7 @@ public static class PushPolicy
     /// <summary>15 s, 30 s, 60 s, 120 s... capped at 10 minutes.</summary>
     public static TimeSpan RetryDelay(int attemptsSoFar) => TimeSpan.FromSeconds(Math.Min(600, 15 * Math.Pow(2, Math.Max(0, attemptsSoFar))));
 
-    public static PushMessage Build(Notification notification, string token, PushTokenKind tokenKind, DateTime utcNow)
+    public static PushMessage Build(Notification notification, string token, PushTokenKind tokenKind, DateTime utcNow, PushRoute route = PushRoute.Normal)
     {
         var data = new Dictionary<string, string>
         {
@@ -43,6 +45,8 @@ public static class PushPolicy
         var remaining = TimeToLive(notification.Type) - (utcNow - notification.CreatedAtUtc);
         if (remaining < TimeSpan.FromSeconds(1)) remaining = TimeSpan.FromSeconds(1);
         var alarm = notification.Type == NotificationType.ExerciseDue;
+        var quiet = route == PushRoute.Quiet && !alarm;
+        if (quiet) data["quiet"] = "true";
         return new PushMessage(
             token,
             tokenKind,
@@ -50,7 +54,7 @@ public static class PushPolicy
             notification.Body,
             data,
             alarm ? PushPriority.High : PushPriority.Normal,
-            alarm ? AlarmChannel : GeneralChannel,
+            alarm ? AlarmChannel : quiet ? QuietChannel : GeneralChannel,
             remaining,
             DataOnly: alarm);
     }

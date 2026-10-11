@@ -28,5 +28,6 @@ public interface IApplicationDbContext
     DbSet<Memory> Memories { get; }
     DbSet<DeviceRegistration> DeviceRegistrations { get; }
     DbSet<StoreSubscription> StoreSubscriptions { get; }
+    DbSet<NotificationPreference> NotificationPreferences { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -277,6 +277,24 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_device_registrations" PRIMARY KEY ("Id")
         );
 
+        CREATE TABLE IF NOT EXISTS notification_preferences (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "MessagesEnabled" boolean NOT NULL,
+            "GamesEnabled" boolean NOT NULL,
+            "ExerciseEnabled" boolean NOT NULL,
+            "CycleEnabled" boolean NOT NULL,
+            "PregnancyEnabled" boolean NOT NULL,
+            "DailyQuestionsEnabled" boolean NOT NULL,
+            "QuietHoursEnabled" boolean NOT NULL,
+            "QuietStartLocal" time without time zone NOT NULL,
+            "QuietEndLocal" time without time zone NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_notification_preferences" PRIMARY KEY ("Id"),
+            CONSTRAINT "CK_notification_preferences_quiet_window" CHECK ("QuietStartLocal" <> "QuietEndLocal")
+        );
+
         CREATE TABLE IF NOT EXISTS store_subscriptions (
             "Id" uuid NOT NULL,
             "Store" character varying(20) NOT NULL,
@@ -299,6 +317,7 @@ public static class DatabaseSchemaUpgrade
         CREATE INDEX IF NOT EXISTS "IX_store_subscriptions_UserId_ExpiresAtUtc" ON store_subscriptions ("UserId", "ExpiresAtUtc");
         CREATE INDEX IF NOT EXISTS "IX_notifications_pending_push" ON notifications ("CreatedAtUtc") WHERE "PushState" = 'Pending';
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_device_registrations_Token" ON device_registrations ("Token");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_notification_preferences_UserId" ON notification_preferences ("UserId");
         CREATE INDEX IF NOT EXISTS "IX_device_registrations_UserId_DisabledAtUtc" ON device_registrations ("UserId", "DisabledAtUtc");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_memories_ObjectKey" ON memories ("ObjectKey");
         CREATE INDEX IF NOT EXISTS "IX_memories_CoupleId_Status_SortAtUtc_Id" ON memories ("CoupleId", "Status", "SortAtUtc", "Id");

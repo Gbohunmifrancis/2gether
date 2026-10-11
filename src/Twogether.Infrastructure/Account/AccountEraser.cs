@@ -60,6 +60,7 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         await db.NutritionTargets.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.CoupleLocations.Where(item => item.UserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.DeviceRegistrations.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
+        await db.NotificationPreferences.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.StoreSubscriptions.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.Notifications.Where(item => item.UserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.Messages.Where(item => item.SenderUserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
