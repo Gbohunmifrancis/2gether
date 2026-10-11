@@ -24,7 +24,9 @@ public sealed class AdminAuthController(
     AttemptLimiter limiter,
     AdminSettings settings,
     JwtSettings jwt,
-    AdminAudit audit) : ApiControllerBase
+    AdminAudit audit,
+    AdminSecretProtector secrets,
+    ILogger<AdminAuthController> logger) : ApiControllerBase
 {
     [AllowAnonymous]
     [HttpPost("login")]
@@ -44,21 +46,40 @@ public sealed class AdminAuthController(
         var account = await db.AdminAccounts.SingleOrDefaultAsync(item => item.UserId == user.Id, cancellationToken);
         if (account is null)
         {
-            account = AdminAccount.Pending(user.Id, Totp.NewSecret(), now);
+            account = AdminAccount.Pending(user.Id, secrets.Protect(Totp.NewSecret()), now);
             db.AdminAccounts.Add(account);
             await db.SaveChangesAsync(cancellationToken);
+        }
+        var (secret, rewrite) = secrets.Unprotect(account.TotpSecret);
+        if (secret is null)
+        {
+            // The admin key changed and no configured key opens this secret.
+            if (account.Enrolled)
+            {
+                // Never let a password alone enroll a new authenticator over an existing one.
+                logger.LogError("Admin {UserId}'s authenticator secret can't be decrypted with the configured keys.", user.Id);
+                audit.Record(user.Id, user.Email, "admin.sign_in_failed", succeeded: false, details: "admin.authenticator_unreadable");
+                await db.SaveChangesAsync(cancellationToken);
+                return Unauthorized(new ApiError("admin.authenticator_unreadable", "Your authenticator can't be checked any more. Ask another admin to reset it."));
+            }
+            secret = Totp.NewSecret();
+            account.Reset(secrets.Protect(secret), now);
+            await db.SaveChangesAsync(cancellationToken);
+            rewrite = false;
         }
         if (string.IsNullOrWhiteSpace(request.Code))
         {
             // Password fine: ask for the code, or for enrollment first.
             return account.Enrolled
                 ? Unauthorized(new ApiError("admin.code_required", "Enter the code from your authenticator app."))
-                : Conflict(new AdminEnrollment("admin.enrollment_required", "Scan this with an authenticator app, then enter its code.", account.TotpSecret, Totp.Uri(account.TotpSecret, user.Email)));
+                : Conflict(new AdminEnrollment("admin.enrollment_required", "Scan this with an authenticator app, then enter its code.", secret, Totp.Uri(secret, user.Email)));
         }
-        if (Totp.Verify(account.TotpSecret, request.Code, now, account.LastUsedStep) is not { } step)
+        if (Totp.Verify(secret, request.Code, now, account.LastUsedStep) is not { } step)
             return await Fail(email, user.Id, "That code didn't work. Codes change every 30 seconds.", cancellationToken, code: "admin.invalid_code");
 
         var enrolling = !account.Enrolled;
+        // Plain text from before encryption, or an older key: store it under the current key.
+        if (rewrite) account.ReplaceStoredSecret(secrets.Protect(secret), now);
         account.Accept(step, now);
         limiter.Reset(AttemptRules.AdminLoginPerEmail, email);
         audit.Record(user.Id, user.Email, enrolling ? "admin.enrolled" : "admin.signed_in");

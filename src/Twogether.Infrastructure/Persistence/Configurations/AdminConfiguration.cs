@@ -10,7 +10,7 @@ public sealed class AdminAccountConfiguration : IEntityTypeConfiguration<AdminAc
     {
         builder.ToTable("admin_accounts");
         builder.HasKey(item => item.Id);
-        builder.Property(item => item.TotpSecret).HasMaxLength(64).IsRequired();
+        builder.Property(item => item.TotpSecret).HasMaxLength(128).IsRequired();
         builder.Ignore(item => item.Enrolled);
         builder.HasOne<User>().WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(item => item.UserId).IsUnique();

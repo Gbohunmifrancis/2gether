@@ -12,6 +12,7 @@ public sealed class AdminAccount : BaseEntity
     private AdminAccount() { }
 
     public Guid UserId { get; private set; }
+    /// <summary>The authenticator secret as stored: encrypted (see AdminSecretProtector), never plain text once rewritten.</summary>
     public string TotpSecret { get; private set; } = string.Empty;
     public DateTime? EnrolledAtUtc { get; private set; }
     /// <summary>The last accepted time step: a code is never accepted twice.</summary>
@@ -25,6 +26,13 @@ public sealed class AdminAccount : BaseEntity
     {
         LastUsedStep = step;
         EnrolledAtUtc ??= utcNow;
+        UpdatedAtUtc = utcNow;
+    }
+
+    /// <summary>The same secret stored again, under the current key. Enrollment is unchanged.</summary>
+    public void ReplaceStoredSecret(string stored, DateTime utcNow)
+    {
+        TotpSecret = stored;
         UpdatedAtUtc = utcNow;
     }
 

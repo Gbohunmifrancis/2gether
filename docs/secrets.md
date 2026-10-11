@@ -42,6 +42,7 @@ App Bundle uploaded as a build artifact.
 | `ForwardedHeaders__Enabled` = `true` | behind a proxy (Railway) | |
 | `Admin__Emails` | the admin dashboard | who may sign in, comma-separated; each signs up in the app first, then enrolls an authenticator. See `docs/admin.md` |
 | `Admin__MonthlyPrices__<productId>`, `Admin__Currency`, `Admin__TokenHours` | the admin dashboard | list prices for the revenue estimate (monthly equivalent), their currency (default `USD`), admin session hours (default 4) |
+| `Admin__SecretKey` (and `Admin__PreviousSecretKey` while changing it) | the admin dashboard | encrypts admins' authenticator secrets; a long random string. See `docs/admin.md` |
 
 ## Admin dashboard build
 

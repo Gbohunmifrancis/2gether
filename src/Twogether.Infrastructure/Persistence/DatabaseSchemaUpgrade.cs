@@ -42,7 +42,7 @@ public static class DatabaseSchemaUpgrade
         CREATE TABLE IF NOT EXISTS admin_accounts (
             "Id" uuid NOT NULL,
             "UserId" uuid NOT NULL,
-            "TotpSecret" character varying(64) NOT NULL,
+            "TotpSecret" character varying(128) NOT NULL,
             "EnrolledAtUtc" timestamp with time zone NULL,
             "LastUsedStep" bigint NOT NULL DEFAULT 0,
             "CreatedAtUtc" timestamp with time zone NOT NULL,
@@ -51,6 +51,8 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "FK_admin_accounts_users_UserId" FOREIGN KEY ("UserId") REFERENCES users ("Id") ON DELETE CASCADE
         );
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_admin_accounts_UserId" ON admin_accounts ("UserId");
+        -- Encrypted secrets are longer than base32 ones. Widening a varchar doesn't rewrite the table.
+        ALTER TABLE admin_accounts ALTER COLUMN "TotpSecret" TYPE character varying(128);
         CREATE TABLE IF NOT EXISTS admin_audit_events (
             "Id" uuid NOT NULL,
             "AdminUserId" uuid NULL,

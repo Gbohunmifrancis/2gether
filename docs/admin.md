@@ -53,6 +53,19 @@ first (the dashboard warns when one is still renewing).
 Revenue is an estimate: renewing subscriptions × the list price in `Admin__MonthlyPrices__<productId>` (a yearly
 plan's price divided by 12). It ignores Google's fee, tax, trials and currency; Play Console is the record.
 
+## Authenticator secrets at rest
+
+Each admin's authenticator secret is encrypted (AES-256-GCM) with a key from the host environment, so a copy
+of the database alone doesn't give away anyone's second factor. The key is `Admin__SecretKey`, or one derived
+from `Jwt__SigningKey` when that isn't set. Secrets from before encryption, or under an older key, are
+re-encrypted at start-up.
+
+To change the key, set the new `Admin__SecretKey` and put the old one in `Admin__PreviousSecretKey` (or leave it
+out if the old key was the JWT-derived one, which is always tried last). Restart, then remove the previous key
+after a start-up. If neither key opens a secret, that admin's sign-in is refused, never re-enrolled on a password
+alone, and another admin resets their authenticator. Changing `Jwt__SigningKey` without setting
+`Admin__SecretKey` has the same effect, so set a dedicated `Admin__SecretKey` in production.
+
 ## Settings (API host)
 
 | Variable | Meaning |
@@ -61,6 +74,8 @@ plan's price divided by 12). It ignores Google's fee, tax, trials and currency; 
 | `Admin__TokenHours` | Admin session length in hours, default 4 |
 | `Admin__MonthlyPrices__heartpact_plus_monthly`, `Admin__MonthlyPrices__heartpact_plus_yearly` | Monthly list price per product, for the revenue estimate |
 | `Admin__Currency` | Currency of those prices, default `USD` |
+| `Admin__SecretKey` | Encrypts admins' authenticator secrets in the database. Any long random string. Without it, a key derived from `Jwt__SigningKey` is used |
+| `Admin__PreviousSecretKey` | The key before the last change, so existing secrets still open; they are re-encrypted under the new key at start-up |
 | `Frontend__Origin` | Add the dashboard's origin (for example `https://admin.heartpact.app`) to this comma-separated CORS list |
 
 Refunds and revocations call Google Play, so they need `Billing__Provider=googleplay` and a service account with
@@ -106,8 +121,6 @@ can reach is stronger.
 
 ## Known limits
 
-- The authenticator secret is stored in the database as is (not encrypted with a separate key), so a database
-  leak would expose admins' second factor. Encrypting it with a key from the host environment is the next step.
 - The first enrollment trusts whoever first signs in with the admin's password. Enroll each new admin promptly
   after adding their email.
 - One role: every admin can do everything. Every action is audited.

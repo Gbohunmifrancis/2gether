@@ -42,6 +42,9 @@ var adminSettings = new Twogether.Application.Features.Admin.AdminSettings
     Currency = builder.Configuration["Admin:Currency"] ?? "USD",
 };
 builder.Services.AddSingleton(adminSettings);
+// Admins' authenticator secrets are encrypted at rest; older keys still read existing ones (docs/admin.md).
+builder.Services.AddSingleton(_ => new Twogether.Application.Features.Admin.AdminSecretProtector(
+    builder.Configuration["Admin:SecretKey"], builder.Configuration["Admin:PreviousSecretKey"], jwtSettings.SigningKey));
 builder.Services.AddScoped<Twogether.Api.Admin.AdminAudit>();
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<HubConnectionRegistry>();
@@ -278,6 +281,8 @@ if (ensureDatabase)
     var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await database.Database.EnsureCreatedAsync();
     await DatabaseSchemaUpgrade.ApplyAsync(database);
+    var rewritten = await Twogether.Infrastructure.Admin.AdminSecretMigration.RunAsync(database, app.Services.GetRequiredService<Twogether.Application.Features.Admin.AdminSecretProtector>());
+    if (rewritten > 0) app.Logger.LogInformation("Stored {Count} admin authenticator secrets under the current key.", rewritten);
 }
 
 app.Run();

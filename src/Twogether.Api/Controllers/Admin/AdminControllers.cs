@@ -330,7 +330,8 @@ public sealed class AdminSystemController(
     IConfiguration configuration,
     IEmailSender email,
     IGoogleTokenVerifier google,
-    IGooglePlayBilling billing) : ApiControllerBase
+    IGooglePlayBilling billing,
+    AdminSecretProtector secrets) : ApiControllerBase
 {
     [HttpGet("system")]
     public async Task<ActionResult<AdminSystem>> System(CancellationToken ct)
@@ -378,7 +379,7 @@ public sealed class AdminSystemController(
             return Conflict(new ApiError("admin.self", "Ask another admin to reset your authenticator."));
         var account = await db.AdminAccounts.SingleOrDefaultAsync(item => item.UserId == userId, ct);
         if (account is null) return NotFound();
-        account.Reset(Totp.NewSecret(), clock.UtcNow);
+        account.Reset(secrets.Protect(Totp.NewSecret()), clock.UtcNow);
         var user = await db.Users.SingleAsync(item => item.Id == userId, ct);
         user.EndSessions(clock.UtcNow);
         audit.Record(User, "admin.authenticator_reset", "user", userId.ToString());

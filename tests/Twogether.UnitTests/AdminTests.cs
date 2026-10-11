@@ -80,3 +80,41 @@ public sealed class AdminTests
         Assert.False(grant.IsActive(now));
     }
 }
+
+public sealed class AdminSecretProtectorTests
+{
+    private const string Secret = "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP";
+
+    [Fact]
+    public void Protected_secrets_round_trip_and_never_repeat()
+    {
+        var protector = new AdminSecretProtector("admin-key");
+        var first = protector.Protect(Secret);
+        var second = protector.Protect(Secret);
+        Assert.StartsWith("v1.", first);
+        Assert.DoesNotContain(Secret, first);
+        Assert.NotEqual(first, second);
+        Assert.True(first.Length <= 128);
+        Assert.Equal(new UnprotectedSecret(Secret, false), protector.Unprotect(first));
+    }
+
+    [Fact]
+    public void Plain_text_from_before_encryption_is_read_once_and_flagged_for_rewrite()
+        => Assert.Equal(new UnprotectedSecret(Secret, true), new AdminSecretProtector("admin-key").Unprotect(Secret));
+
+    [Fact]
+    public void Older_keys_still_read_and_flag_a_rewrite_but_unknown_keys_and_tampering_read_nothing()
+    {
+        var old = new AdminSecretProtector("jwt-key").Protect(Secret);
+        Assert.Equal(new UnprotectedSecret(Secret, true), new AdminSecretProtector("new-admin-key", null, "jwt-key").Unprotect(old));
+        Assert.Null(new AdminSecretProtector("someone-else").Unprotect(old).Secret);
+
+        var tampered = old[..^2] + (old[^2] == 'A' ? "B" : "A") + old[^1];
+        Assert.Null(new AdminSecretProtector("jwt-key").Unprotect(tampered).Secret);
+        Assert.Null(new AdminSecretProtector("jwt-key").Unprotect("v1.not*base64").Secret);
+        Assert.Null(new AdminSecretProtector("jwt-key").Unprotect("v1.AAAA").Secret);
+    }
+
+    [Fact]
+    public void A_key_is_required() => Assert.Throws<ArgumentException>(() => new AdminSecretProtector(null, " ", ""));
+}
