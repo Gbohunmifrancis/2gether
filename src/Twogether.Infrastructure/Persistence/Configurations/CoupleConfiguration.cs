@@ -11,6 +11,7 @@ public sealed class CoupleConfiguration : IEntityTypeConfiguration<Couple>
         builder.ToTable("couples");
         builder.HasKey(couple => couple.Id);
         builder.Property(couple => couple.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
+        builder.Ignore(couple => couple.CanAcceptPartner);
         builder.HasIndex(couple => couple.UserAId);
         builder.HasIndex(couple => couple.UserBId);
     }

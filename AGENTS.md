@@ -8,7 +8,9 @@ Clients talk only to `Twogether.Api`. Dependency direction is:
 
 `Shared <- Core <- Application <- Infrastructure <- Api`
 
-- `frontend/`: Next.js App Router, strict TypeScript, REST and SignalR clients.
+- `android/`: the Heartpact Android app, Kotlin and Jetpack Compose (see `android/README.md`).
+- `admin/`: the admin dashboard, Vite + React with TanStack Router, Query and Table (see `docs/admin.md`).
+- `frontend/`: Next.js App Router, strict TypeScript, REST and SignalR clients (predates the mobile pivot).
 - `src/Twogether.Shared`: result/error primitives and guards.
 - `src/Twogether.Core`: domain entities, enums, invariants, and pure algorithms.
 - `src/Twogether.Application`: feature folders, commands, queries, DTOs, validators, and ports.
@@ -30,6 +32,16 @@ Clients talk only to `Twogether.Api`. Dependency direction is:
 ```powershell
 dotnet build Twogether.slnx
 dotnet test Twogether.slnx
+
+cd android
+./gradlew assembleDebug testDebugUnitTest lintDebug
+
+cd admin
+npm ci
+npm run lint
+npm run typecheck
+npm test
+npm run dev
 
 cd frontend
 npm.cmd install

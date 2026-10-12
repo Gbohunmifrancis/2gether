@@ -21,7 +21,10 @@ completions and misses as notifications, and both partners see streaks and a
 history. Either partner may create goals for either partner. Only the *other*
 partner can let someone off for the day (cancel a ringing occurrence); the
 assigned partner cannot delete, pause or reschedule a goal while its alarm is
-ringing for them.
+ringing for them. The person whose alarm is ringing can *ask* to call it off
+(once, with an optional note), but only the partner can grant it, with cancel.
+A dare can be done any time earlier on its day; completing it, or a call-off, before it
+rings cancels that day's alarm, while starting early and then stopping still lets it ring.
 
 **Scope assumption.** "Rebuild" is read as: goals become the primary experience
 (branding, Home, first tabs) and the existing features (love notes, games, cycle,
@@ -58,7 +61,7 @@ public enum ExerciseMeasure { Reps, Seconds }
 public enum ExerciseOccurrenceStatus { Alarming, InProgress, Completed, Missed, Cancelled }
 ```
 
-`NotificationType` gains: `ExerciseDue, ExerciseCompleted, ExerciseMissed, ExerciseCancelled, ExerciseGoalChanged`.
+`NotificationType` gains: `ExerciseDue, ExerciseCompleted, ExerciseMissed, ExerciseCancelled, ExerciseGoalChanged, ExerciseCallOffAsked`. `ExerciseCallOffAsked` is in the `Exercise` category (can be muted, general channel, 1-hour push TTL); only `ExerciseDue` is an alarm.
 
 Wire form (camelCase strings): `squat, pushUp, jumpingJack, plank, armRaise, highKnees, sitUp`;
 `reps, seconds`; `alarming, inProgress, completed, missed, cancelled`.
@@ -103,6 +106,8 @@ public static class ExerciseSchedule
     public static DateTime NextDueUtc(TimeOnly scheduledTime, TimeZoneInfo zone, DateTime fromUtc);
     // The UTC instant for `scheduledTime` on a given local date.
     public static DateTime ToUtc(DateOnly localDate, TimeOnly scheduledTime, TimeZoneInfo zone);
+    // utcNow < dueUtc and both fall on the same local date in `zone`: the day's dare may be done early.
+    public static bool IsLaterToday(DateTime dueUtc, TimeZoneInfo zone, DateTime utcNow);
 }
 ```
 
@@ -165,6 +170,11 @@ public sealed class ExerciseGoal : BaseEntity
     public void Deactivate(DateTime utcNow);
     public void Reactivate(DateTime utcNow); // recomputes NextDueAtUtc
     public void AdvanceNextDue(DateTime nextDueAtUtc, DateTime utcNow);
+    public DateOnly NextDueLocalDate();               // local date of NextDueAtUtc in the goal's zone
+    public bool IsDueLaterToday(DateTime utcNow);     // IsActive && ExerciseSchedule.IsLaterToday(NextDueAtUtc, zone, utcNow)
+    // If NextDueAtUtc <= occurrenceScheduledAtUtc (settled before it rang), advance the pointer to
+    // NextDueUtc(ScheduledTime, zone, occurrenceScheduledAtUtc + 1 min) and return true; else no-op, false.
+    public bool SettleOccurrence(DateTime occurrenceScheduledAtUtc, DateTime utcNow);
 }
 ```
 
@@ -194,14 +204,18 @@ public sealed class ExerciseOccurrence : BaseEntity
     public int AchievedCount { get; private set; }
     public double Confidence { get; private set; }
     public long StateVersion { get; private set; }      // concurrency token
+    public DateTime? CallOffRequestedAtUtc { get; private set; } // set by RequestCallOff
+    public string? CallOffNote { get; private set; }    // trimmed, empty -> null, max 140
     public bool IsAlarmActive => Status is ExerciseOccurrenceStatus.Alarming or ExerciseOccurrenceStatus.InProgress;
 
     public static ExerciseOccurrence Open(ExerciseGoal goal, DateOnly localDate, DateTime scheduledAtUtc, DateTime utcNow); // Alarming
+    public static ExerciseOccurrence OpenEarly(ExerciseGoal goal, DateTime utcNow); // Open(goal, goal.NextDueLocalDate(), goal.NextDueAtUtc, utcNow) then Start(utcNow); throws unless goal.IsDueLaterToday(utcNow); does not move the goal's pointer
     public void Start(DateTime utcNow);                   // Alarming/InProgress -> InProgress; resets AchievedCount=0, Confidence=0, StartedAtUtc=utcNow, CompleteByUtc; bumps version; throws otherwise
     public void RecordProgress(int achievedCount, double confidence, DateTime utcNow); // InProgress only; achievedCount clamped to >= current; does NOT bump StateVersion
     public void Complete(int achievedCount, double confidence, DateTime utcNow);       // InProgress -> Completed; bumps version
     public void Miss(DateTime utcNow);                    // Alarming/InProgress -> Missed; bumps version
     public void Cancel(DateTime utcNow);                  // Alarming/InProgress -> Cancelled; bumps version
+    public void RequestCallOff(string? note, DateTime utcNow); // Alarming/InProgress only, once; does NOT bump StateVersion; throws otherwise
 }
 ```
 
@@ -215,7 +229,7 @@ latest start).
 
 ```csharp
 public sealed record ExerciseGoalDto(Guid Id, Guid CoupleId, Guid AssignedUserId, string AssignedUserName, Guid CreatedByUserId, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string ScheduledTime /* "HH:mm" */, string TimeZoneId, int GraceMinutes, bool IsActive, DateTime NextDueAtUtc, DateTime CreatedAtUtc);
-public sealed record ExerciseOccurrenceDto(Guid Id, Guid GoalId, Guid CoupleId, Guid UserId, string UserName, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string LocalDate /* yyyy-MM-dd */, DateTime ScheduledAtUtc, DateTime DeadlineUtc, DateTime? CompleteByUtc, ExerciseOccurrenceStatus Status, DateTime AlarmStartedAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, int AchievedCount, double Confidence, long StateVersion);
+public sealed record ExerciseOccurrenceDto(Guid Id, Guid GoalId, Guid CoupleId, Guid UserId, string UserName, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string LocalDate /* yyyy-MM-dd */, DateTime ScheduledAtUtc, DateTime DeadlineUtc, DateTime? CompleteByUtc, ExerciseOccurrenceStatus Status, DateTime AlarmStartedAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, int AchievedCount, double Confidence, long StateVersion, DateTime? CallOffRequestedAtUtc = null, string? CallOffNote = null);
 public sealed record ExerciseTodayDto(DateTime GeneratedAtUtc, IReadOnlyList<ExerciseGoalDto> Goals, IReadOnlyList<ExerciseOccurrenceDto> Occurrences, DateTime? NextDueAtUtc, Guid? NextDueGoalId);
 public sealed record ExercisePartnerStatsDto(Guid UserId, string UserName, int CurrentStreakDays, int CompletedCount, int MissedCount, double CompletionRate);
 public sealed record ExerciseHistoryDto(int Days, IReadOnlyList<ExerciseOccurrenceDto> Occurrences, IReadOnlyList<ExercisePartnerStatsDto> Stats);
@@ -256,8 +270,8 @@ occurrence's goal, else UTC. (`User.TimeZoneId` is never set by the app and stay
 
 ## Infrastructure
 
-- `Persistence/Configurations/ExerciseGoalConfiguration.cs`: table `exercise_goals`; `ExerciseType` string(40); `Title` varchar(80); `TimeZoneId` varchar(100); `ScheduledTime` column type `time`; `builder.UseXminAsConcurrencyToken()` so the worker and the controller cannot silently overwrite each other; indexes `(CoupleId, IsActive)` and `(IsActive, NextDueAtUtc)`.
-- `Persistence/Configurations/ExerciseOccurrenceConfiguration.cs`: table `exercise_occurrences`; `ExerciseType` and `Status` string(40); `Title` varchar(80); `StateVersion` concurrency token; unique index `(GoalId, LocalDate)`; indexes `(CoupleId, LocalDate)`, `(Status, DeadlineUtc)`.
+- `Persistence/Configurations/ExerciseGoalConfiguration.cs`: table `exercise_goals`; `ExerciseType` string(40); `Title` varchar(80); `TimeZoneId` varchar(100); `ScheduledTime` column type `time`; `builder.Property<uint>("xmin").IsRowVersion()` (the Npgsql 10 form of the xmin concurrency token) so the worker and the controller cannot silently overwrite each other; indexes `(CoupleId, IsActive)` and `(IsActive, NextDueAtUtc)`.
+- `Persistence/Configurations/ExerciseOccurrenceConfiguration.cs`: table `exercise_occurrences`; `ExerciseType` and `Status` string(40); `Title` varchar(80); `CallOffNote` varchar(140) null; `CallOffRequestedAtUtc` timestamptz null; `StateVersion` concurrency token; unique index `(GoalId, LocalDate)`; indexes `(CoupleId, LocalDate)`, `(Status, DeadlineUtc)`.
 - `ApplicationDbContext` adds both DbSets.
 - `DatabaseSchemaUpgrade.Sql` appends `CREATE TABLE IF NOT EXISTS` for both tables with the exact EF column names (quoted PascalCase) and the indexes above. Types: uuid, character varying(n), integer, boolean, timestamp with time zone, date, time without time zone, double precision, bigint. Constraint and index names must equal EF's defaults so a database created by `EnsureCreatedAsync` does not get duplicates: `PK_exercise_goals`, `PK_exercise_occurrences`, `IX_exercise_goals_CoupleId_IsActive`, `IX_exercise_goals_IsActive_NextDueAtUtc`, `IX_exercise_occurrences_GoalId_LocalDate` (UNIQUE), `IX_exercise_occurrences_CoupleId_LocalDate`, `IX_exercise_occurrences_Status_DeadlineUtc`. The SQL literal is a raw string passed through `ExecuteSqlRawAsync` with format args, so any literal brace must be doubled (none are needed for these tables).
 
@@ -271,7 +285,7 @@ General rules for this controller:
 - `GET goals`, `GET today` and `GET history` return `200` with empty collections (today: Goals `[]`, Occurrences `[]`, NextDueAtUtc `null`, NextDueGoalId `null`) when the caller has no couple or the couple is not `Active`. `GET catalog` never depends on the couple. The frontend logs the user out if `loadData` throws, so these must never 4xx for an unlinked user.
 - Every `Notification` row written by this feature is followed by `NotificationCreated` (`NotificationDto`) to `CoupleHub.UserGroupName(notification.UserId)`.
 - **Alarm lock**: while a goal has an occurrence in `alarming`/`inProgress`, the *assigned* user receives `409 exercise.alarm_active` on `DELETE goals/{id}`, on `PUT` with `IsActive=false`, and on `PUT` that changes `AssignedUserId`, `ExerciseType`, `Target` or `ScheduledTime`. The other partner may still do those things; they cancel the occurrence (below).
-- `DbUpdateConcurrencyException` anywhere → `409 exercise.version_conflict`.
+- `DbUpdateConcurrencyException` anywhere, or a `DbUpdateException` whose inner `PostgresException.SqlState == "23505"` (the worker or another device opened the same `(GoalId, LocalDate)` first) → `409 exercise.version_conflict`. The client refetches.
 
 | Method | Route | Body | Returns | Notes |
 |---|---|---|---|---|
@@ -283,8 +297,10 @@ General rules for this controller:
 | GET | `today` | | `ExerciseTodayDto` | goals (active), occurrences: every occurrence that is alarming/inProgress plus every occurrence whose `LocalDate` equals the goal's current local date (computed per goal via its time zone). `NextDueAtUtc`/`NextDueGoalId` from the active goal with the smallest `NextDueAtUtc` |
 | GET | `history?days=30` | | `ExerciseHistoryDto` | days clamped 1..365; occurrences with `ScheduledAtUtc >= now - days`, newest first; stats for each partner |
 | POST | `occurrences/{id}/start` | | `ExerciseOccurrenceDto` | 403 unless caller is the assigned user; 409 `exercise.not_active` unless alarming/inProgress or if `DeadlineUtc <= now` while alarming. Calls `Start` (also when already inProgress: progress resets). Sends `ExerciseStarted` to couple group |
-| POST | `occurrences/{id}/complete` | `CompleteExerciseRequest` | `ExerciseOccurrenceDto` | 403 unless assigned user; 409 `exercise.not_active` unless inProgress; 422 with the `ExerciseVerification` error. On success: Notification `ExerciseCompleted` to the partner, `ExerciseCompleted` event to couple group |
-| POST | `occurrences/{id}/cancel` | | `ExerciseOccurrenceDto` | **partner only**: 403 for the assigned user; 409 `exercise.not_active` unless alarming/inProgress. `Cancel`, Notification `ExerciseCancelled` to the assigned user ("<Partner> let you off today"), `ExerciseCancelled` event to couple group |
+| POST | `goals/{id}/start-early` | | `ExerciseOccurrenceDto` | **assigned user only**, before today's alarm rings: 400 `exercise.no_couple` without an active couple; 404 if the goal is not in the caller's couple or is inactive; 403 `exercise.not_assignee` for the partner; 409 `exercise.not_due_today` unless `goal.IsDueLaterToday(now)` (the local date of `NextDueAtUtc` in the goal's zone is today there and `now < NextDueAtUtc`). If the `(GoalId, that local date)` occurrence exists: alarming/inProgress → `Start` (as `start`), otherwise 409 `exercise.not_active`. Else `ExerciseOccurrence.OpenEarly` (ScheduledAtUtc = the real due time, DeadlineUtc = due + grace, then `Start`). No `ExerciseDue` notification and no pointer move: giving up still lets the alarm ring at the due time. 409 `exercise.version_conflict` on a unique-index race. Sends `ExerciseStarted` to couple group |
+| POST | `occurrences/{id}/complete` | `CompleteExerciseRequest` | `ExerciseOccurrenceDto` | 403 unless assigned user; 409 `exercise.not_active` unless inProgress; 422 with the `ExerciseVerification` error. On success: in the same save, loads the goal and calls `SettleOccurrence(occurrence.ScheduledAtUtc, now)`, so a dare done before it rang moves the pointer to tomorrow (a race with the worker on the goal's xmin → 409 `exercise.version_conflict`). Notification `ExerciseCompleted` to the partner, `ExerciseCompleted` event to couple group, and `ExerciseGoalsChanged` when the pointer moved |
+| POST | `occurrences/{id}/cancel` | | `ExerciseOccurrenceDto` | **partner only**: 403 for the assigned user; 409 `exercise.not_active` unless alarming/inProgress. `Cancel` plus the goal's `SettleOccurrence` in the same save, as for complete (a call-off before it rang drops that day's alarm). Notification `ExerciseCancelled` to the assigned user ("<Partner> let you off today"), `ExerciseCancelled` event to couple group, and `ExerciseGoalsChanged` when the pointer moved |
+| POST | `occurrences/{id}/ask-off` | `AskCallOffRequest { note?: string }` | `ExerciseOccurrenceDto` | **assigned user only**: 400 `exercise.no_couple` without an active couple; 404 if not in the caller's couple; 403 `exercise.not_assignee` for the partner; 409 `exercise.not_active` unless alarming/inProgress or once the window closed (`DeadlineUtc` while alarming, `CompleteByUtc` while inProgress); 409 `exercise.already_asked` if asked before; 422 `exercise.invalid_note` over 140 characters. `RequestCallOff` (no version bump), Notification `ExerciseCallOffAsked` to the partner ("<Name> asks to call off today's sit-ups", body = note or a default line, data `{ occurrenceId, goalId }`), `ExerciseCallOffAsked` event to couple group. The partner grants it with `cancel` |
 
 Progress is reported through the hub, not REST.
 
@@ -318,7 +334,7 @@ Each tick, in one scope:
 1. **Open due alarms.** `ExerciseGoals` joined to `Couples` where couple `Status == Active`,
    `IsActive && NextDueAtUtc <= now`. For each goal: `zone = ResolveTimeZone(goal.TimeZoneId)`,
    `localDate = LocalDate(goal.NextDueAtUtc, zone)`.
-   - If an occurrence `(GoalId, localDate)` already exists: only advance the pointer.
+   - If an occurrence `(GoalId, localDate)` already exists (e.g. started early): only advance the pointer. A goal whose occurrence was settled early already points at tomorrow, so the worker never selects it for today.
    - Else if `now > goal.NextDueAtUtc + GraceMinutes` (server was down): **no occurrence**, only advance the pointer. Downtime never counts against anyone.
    - Else `Open`, add `Notification(ExerciseDue)` for the assigned user.
    - Always `goal.AdvanceNextDue(NextDueUtc(goal.ScheduledTime, zone, goal.NextDueAtUtc.AddMinutes(1)), now)`.
@@ -342,6 +358,7 @@ Register with `AddHostedService<ExerciseAlarmWorker>()` in `Program.cs`.
 | `ExerciseCompleted` | `ExerciseOccurrenceDto` |
 | `ExerciseMissed` | `ExerciseOccurrenceDto` |
 | `ExerciseCancelled` | `ExerciseOccurrenceDto` |
+| `ExerciseCallOffAsked` | `ExerciseOccurrenceDto` |
 | `ExerciseGoalsChanged` | `ExerciseGoalDto[]` (active goals) |
 | `NotificationCreated` | existing `NotificationDto` (user group) |
 
@@ -535,4 +552,15 @@ npm.cmd run lint
 npm.cmd run build
 ```
 
-Unit tests to add (`tests/Twogether.UnitTests/ExerciseTests.cs`): schedule next-due across midnight; a spring-forward gap advances to the first valid minute; an ambiguous fall-back time resolves to the earlier instant and advancing the pointer from it does not yield the same local date twice; a goal created after today's time fires tomorrow; occurrence state machine (start resets progress, complete requires InProgress, miss/cancel, RecordProgress does not bump StateVersion while Start/Complete/Miss/Cancel do); verification rejects too-fast, low-confidence, under-target and not-started; streak counting ignores Cancelled and ends on an empty day; stats completion rate.
+Unit tests to add (`tests/Twogether.UnitTests/ExerciseTests.cs`): schedule next-due across midnight; a spring-forward gap advances to the first valid minute; an ambiguous fall-back time resolves to the earlier instant and advancing the pointer from it does not yield the same local date twice; a goal created after today's time fires tomorrow; occurrence state machine (start resets progress, complete requires InProgress, miss/cancel, RecordProgress does not bump StateVersion while Start/Complete/Miss/Cancel do); verification rejects too-fast, low-confidence, under-target and not-started; streak counting ignores Cancelled and ends on an empty day; stats completion rate; `SettleOccurrence` advances only when the pointer is at or before the occurrence, lands on the next local time across London DST changes and is a no-op once the pointer is past; `IsLaterToday` uses the goal's zone; `OpenEarly` keeps the real due time, starts at once and refuses once the dare rang.
+
+## Android client
+
+The Android app (`android/`) keeps the server in charge of timers and state:
+
+- It schedules exact alarms on the phone at each of the person's own goals' `NextDueAtUtc`, as returned by `GET today`, and re-plans after every refresh, boot, clock change and update. The phone only wakes itself; the server still opens, expires and settles the occurrence.
+- When an alarm fires, the app rings locally and then reads `GET today` to find the occurrence, waiting up to a minute for the worker to open it. It never decides on its own that an occurrence exists. Being offline never stops the ringing early.
+- "Silence on this phone" is local only: the occurrence stays open until its deadline, as Play policy requires a local dismiss.
+- From Today, before a dare rings, the app calls `POST goals/{id}/start-early` to do it early; completing it (or the partner's call-off) moves `NextDueAtUtc` to tomorrow, so the next refresh drops today's alarm.
+- Rep counting runs on the device. The app calls `start`, counts with the pose model, holds the finish until `MinSecondsPerUnit × target` has passed, then calls `complete` with the count and the mean landmark visibility as `confidence`.
+

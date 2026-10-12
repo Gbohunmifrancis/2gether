@@ -34,6 +34,8 @@ public sealed class GameController(
     [HttpPost("sessions")]
     public async Task<ActionResult<GameSessionDto>> Create(CreateGameSessionRequest request, CancellationToken cancellationToken)
     {
+        if (!GameEngine.IsValidLetter(request.Letter))
+            return UnprocessableEntity(new ApiError("game.invalid_letter", "Pick a single letter from A to Z."));
         if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return BadRequest(new ApiError("game.no_couple", "Link a partner before starting a game."));
         var linkedCouple = await db.Couples.AsNoTracking().AnyAsync(couple => couple.Id == currentUser.CoupleId.Value && couple.Status == CoupleStatus.Active, cancellationToken);
         if (!linkedCouple) return BadRequest(new ApiError("game.no_partner", "Link a partner before starting a game."));
@@ -45,7 +47,7 @@ public sealed class GameController(
         if (!partnerId.HasValue) return Conflict(new ApiError("game.players_missing", "Both partners must be linked before a game is invited."));
 
         var setupJson = request.GameType == GameType.ICallOn
-            ? JsonSerializer.Serialize(new { letter = request.Letter })
+            ? JsonSerializer.Serialize(new { letter = request.Letter?.ToUpperInvariant() })
             : JsonSerializer.Serialize(new { questions = await questionProvider.GetQuestionsAsync(cancellationToken) });
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
         var notification = Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameInvite, "A game is waiting", $"{inviter.DisplayName} invited you to {Humanize(request.GameType)}.", JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);
@@ -99,6 +101,8 @@ public sealed class GameController(
     [HttpPost("sessions/{sessionId:guid}/actions")]
     public async Task<ActionResult<GameSessionDto>> ApplyAction(Guid sessionId, ApplyGameActionRequest request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Action) || request.Action.Length > 40 || request.Value?.Length > GameEngine.MaxActionValueLength)
+            return UnprocessableEntity(new ApiError("game.invalid_action", "That action is not available."));
         var session = await OwnedSession(sessionId, cancellationToken);
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
         if (session.Status != GameSessionStatus.InProgress) return Conflict(new ApiError("game.not_in_progress", "The game is not in progress."));
@@ -108,9 +112,11 @@ public sealed class GameController(
         if (session.GameType != GameType.ICallOn && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
         try
         {
-            var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
-            if (expired && session.GameType != GameType.ICallOn) return Conflict(new ApiError("game.expired", "This round expired. Start another game."));
-            var action = expired && session.GameType == GameType.ICallOn ? "timeout" : request.Action;
+            // Only I call on has a clock; turn-by-turn games wait for the player whose turn it is.
+            var expired = session.GameType == GameType.ICallOn && session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
+            if (GameEngine.IsServerOnlyAction(request.Action))
+                return UnprocessableEntity(new ApiError("game.invalid_action", "That action is not available."));
+            var action = expired ? GameEngine.TimeoutAction : request.Action;
             var validations = session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && request.Value is not null
                 ? await wordValidator.ValidateAsync(session.StateJson, request.Value, cancellationToken)
                 : null;
@@ -144,6 +150,7 @@ public sealed class GameController(
     {
         var session = await OwnedSession(sessionId, cancellationToken);
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
+        if (!session.IsOpen) return Conflict(new ApiError("game.already_ended", "This game has already ended."));
         session.EndBy(currentUser.UserId.Value, clock.UtcNow);
         var endedBy = await db.Users.AsNoTracking().SingleAsync(user => user.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = await db.Users.AsNoTracking().Where(user => user.CoupleId == session.CoupleId && user.Id != endedBy.Id).Select(user => (Guid?)user.Id).SingleOrDefaultAsync(cancellationToken);

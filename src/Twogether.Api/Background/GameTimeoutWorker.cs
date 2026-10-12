@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Controllers;
 using Twogether.Api.Hubs;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Games;
 using Twogether.Core.Enums;
@@ -13,17 +14,14 @@ public sealed class GameTimeoutWorker(
     IHubContext<CoupleHub> hub,
     IGameEngine engine,
     IDateTimeProvider clock,
-    IConfiguration configuration,
     ILogger<GameTimeoutWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // The default local profile has no database. Keep the web app usable in
-        // that profile while enabling the worker automatically in deployed setups.
-        if (string.IsNullOrWhiteSpace(configuration["DATABASE_URL"])
-            && string.IsNullOrWhiteSpace(configuration["PGHOST"])
-            && string.IsNullOrWhiteSpace(configuration["Database:ConnectionString"]))
-            return;
+        // The default local profile may have no database. Wait for one instead of
+        // crashing the loop every second; appsettings always supplies a connection
+        // string, so a configuration check alone would never notice.
+        await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(GameTimeoutWorker), stoppingToken);
 
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         while (await timer.WaitForNextTickAsync(stoppingToken))
@@ -31,6 +29,11 @@ public sealed class GameTimeoutWorker(
             try
             {
                 await AdvanceExpiredRounds(stoppingToken);
+                if (clock.UtcNow >= nextStaleSweep)
+                {
+                    nextStaleSweep = clock.UtcNow.AddMinutes(10);
+                    await EndStaleGames(stoppingToken);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -41,6 +44,35 @@ public sealed class GameTimeoutWorker(
                 logger.LogError(exception, "Failed to advance expired game rounds.");
             }
         }
+    }
+
+    private DateTime nextStaleSweep = DateTime.MinValue;
+
+    /// <summary>An unanswered invite lasts a day; a turn-by-turn game left alone for a week ends. Either would block new games.</summary>
+    public static readonly TimeSpan InviteLifetime = TimeSpan.FromDays(1);
+    public static readonly TimeSpan IdleGameLifetime = TimeSpan.FromDays(7);
+
+    private async Task EndStaleGames(CancellationToken cancellationToken)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var now = clock.UtcNow;
+        var inviteCutoff = now - InviteLifetime;
+        var idleCutoff = now - IdleGameLifetime;
+        var stale = await db.GameSessions
+            .Where(session => (session.Status == GameSessionStatus.WaitingForPartner && session.UpdatedAtUtc < inviteCutoff)
+                || ((session.Status == GameSessionStatus.InProgress || session.Status == GameSessionStatus.Paused) && session.UpdatedAtUtc < idleCutoff))
+            .Take(100)
+            .ToListAsync(cancellationToken);
+        if (stale.Count == 0) return;
+        foreach (var session in stale) session.Abandon(now);
+        await db.SaveChangesAsync(cancellationToken);
+        foreach (var session in stale)
+        {
+            await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId))
+                .SendAsync("GameEnded", new GameEndedDto(session.Id, Guid.Empty, "Heartpact", now), cancellationToken);
+        }
+        logger.LogInformation("Ended {Count} stale games.", stale.Count);
     }
 
     private async Task AdvanceExpiredRounds(CancellationToken cancellationToken)
@@ -58,7 +90,7 @@ public sealed class GameTimeoutWorker(
 
         foreach (var session in sessions)
         {
-            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, "timeout", null, null, now);
+            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now);
             if (next.Completed) session.Complete(next.StateJson, now);
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, now);
         }

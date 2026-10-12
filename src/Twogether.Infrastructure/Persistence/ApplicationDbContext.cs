@@ -17,6 +17,26 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<CoupleLocation> CoupleLocations => Set<CoupleLocation>();
+    public DbSet<ExerciseGoal> ExerciseGoals => Set<ExerciseGoal>();
+    public DbSet<ExerciseOccurrence> ExerciseOccurrences => Set<ExerciseOccurrence>();
+    public DbSet<FoodEntry> FoodEntries => Set<FoodEntry>();
+    public DbSet<NutritionTarget> NutritionTargets => Set<NutritionTarget>();
+    public DbSet<FoodScan> FoodScans => Set<FoodScan>();
+    public DbSet<Pregnancy> Pregnancies => Set<Pregnancy>();
+    public DbSet<PregnancyAppointment> PregnancyAppointments => Set<PregnancyAppointment>();
+    public DbSet<KickSession> KickSessions => Set<KickSession>();
+    public DbSet<DailyQuestion> DailyQuestions => Set<DailyQuestion>();
+    public DbSet<DailyAnswer> DailyAnswers => Set<DailyAnswer>();
+    public DbSet<Memory> Memories => Set<Memory>();
+    public DbSet<DeviceRegistration> DeviceRegistrations => Set<DeviceRegistration>();
+    public DbSet<PasswordResetCode> PasswordResetCodes => Set<PasswordResetCode>();
+    public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
+    public DbSet<AdminAuditEvent> AdminAuditEvents => Set<AdminAuditEvent>();
+    public DbSet<PlusGrant> PlusGrants => Set<PlusGrant>();
+    public DbSet<UserActivityDay> UserActivityDays => Set<UserActivityDay>();
+    public DbSet<StoreSubscription> StoreSubscriptions => Set<StoreSubscription>();
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+    public DbSet<AlbumSyncState> AlbumSyncStates => Set<AlbumSyncState>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

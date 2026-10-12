@@ -8,6 +8,8 @@ namespace Twogether.Api.Auth;
 
 public sealed class JwtTokenService(JwtSettings settings) : ITokenService
 {
+    public const string CoupleClaim = "couple_id";
+
     public string CreateAccessToken(Guid userId, Guid? coupleId, string email, string displayName, DateTime utcNow)
     {
         var claims = new List<Claim>
@@ -19,7 +21,7 @@ public sealed class JwtTokenService(JwtSettings settings) : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        if (coupleId.HasValue) claims.Add(new Claim("couple_id", coupleId.Value.ToString()));
+        if (coupleId.HasValue) claims.Add(new Claim(CoupleClaim, coupleId.Value.ToString()));
 
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey)),

@@ -1,0 +1,159 @@
+name: Android
+
+on:
+  push:
+    branches: [ "main", "claude/**" ]
+    paths: [ "android/**", "src/**", ".github/workflows/android.yml" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+# Firebase settings are not secret in the strict sense (they ship inside the app), but keeping them
+# in repository secrets keeps them out of git. Without them the app builds and polls instead of push.
+env:
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+  FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+  FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
+  MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+  GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+
+jobs:
+  check:
+    name: Build, unit tests, lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build, test, lint
+        run: ./gradlew assembleDebug testDebugUnitTest lintDebug -Proborazzi.test.record=true
+      - name: Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens
+          path: android/app/build/screens
+          if-no-files-found: ignore
+      - name: Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            android/app/build/reports
+            android/app/build/test-results
+
+  live:
+    name: App client against the real API
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: twogether
+          POSTGRES_PASSWORD: twogether_dev
+          POSTGRES_DB: twogether
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd "pg_isready -U twogether" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: S3 stand-in for the album
+        run: |
+          python3 -m venv "$RUNNER_TEMP/moto" && "$RUNNER_TEMP/moto/bin/pip" install -q 'moto[server]'
+          "$RUNNER_TEMP/moto/bin/moto_server" -H 127.0.0.1 -p 9000 > "$RUNNER_TEMP/moto.log" 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:9000/ >/dev/null && break; sleep 1; done
+          curl -sf -X PUT http://127.0.0.1:9000/heartpact
+      - name: Start the API
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://localhost:5135
+          Database__ConnectionString: Host=localhost;Port=5432;Database=twogether;Username=twogether;Password=twogether_dev
+          Database__EnsureCreated: "true"
+          # Every live test signs up two people from one address.
+          RateLimits__Enabled: "false"
+          # Plus purchases with Google's answers faked by the token (docs/billing.md); refused in Production.
+          Billing__Provider: fake
+          # Reset codes go to the log, where the live test reads them.
+          Email__Provider: log
+          Media__ServiceUrl: http://127.0.0.1:9000
+          Media__Bucket: heartpact
+          Media__AccessKey: test
+          Media__SecretKey: test
+          Media__Region: us-east-1
+        run: |
+          dotnet build Twogether.slnx -c Debug
+          nohup dotnet run --no-build --project src/Twogether.Api --no-launch-profile > "$RUNNER_TEMP/api.log" 2>&1 &
+          for i in $(seq 1 90); do code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5135/api/couple || true); [ "$code" = "401" ] && exit 0; sleep 2; done
+          cat "$RUNNER_TEMP/api.log"; exit 1
+      - name: Live tests
+        working-directory: android
+        env:
+          HEARTPACT_API_URL: http://localhost:5135/
+          HEARTPACT_API_LOG: ${{ runner.temp }}/api.log
+        run: ./gradlew testDebugUnitTest --tests '*LiveApiTest*'
+      - name: API log
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log"
+
+  release:
+    name: Signed release bundle
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      HEARTPACT_RELEASE_API_URL: ${{ secrets.HEARTPACT_RELEASE_API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Signing key
+        id: key
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "No ANDROID_KEYSTORE_BASE64 secret: skipping the signed bundle."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-java@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.key.outputs.present == 'true'
+      - name: Bundle
+        if: steps.key.outputs.present == 'true'
+        run: ./gradlew bundleRelease
+      - uses: actions/upload-artifact@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          name: heartpact-release-aab
+          path: android/app/build/outputs/bundle/release/*.aab

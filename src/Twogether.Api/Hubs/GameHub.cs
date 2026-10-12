@@ -1,3 +1,4 @@
+using Twogether.Api.Presence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,20 @@ using Twogether.Core.Enums;
 namespace Twogether.Api.Hubs;
 
 [Authorize]
-public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IGameEngine engine, IGameWordValidator wordValidator) : Hub
+public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IGameEngine engine, IGameWordValidator wordValidator, HubConnectionRegistry connections) : Hub
 {
+    public override Task OnConnectedAsync()
+    {
+        if (currentUser.UserId.HasValue) connections.Add(currentUser.UserId.Value, Context);
+        return base.OnConnectedAsync();
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (currentUser.UserId.HasValue) connections.Remove(currentUser.UserId.Value, Context.ConnectionId);
+        return base.OnDisconnectedAsync(exception);
+    }
+
     public static string GroupName(Guid sessionId) => $"game-{sessionId:N}";
 
     public async Task JoinSession(Guid sessionId)
@@ -32,11 +45,13 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         GameEngineResult next;
         var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
         if (expired && session.GameType != GameType.ICallOn) throw new HubException("This round expired. Start another game.");
-        action = expired && session.GameType == GameType.ICallOn ? "timeout" : action;
+        if (GameEngine.IsServerOnlyAction(action) || string.IsNullOrWhiteSpace(action) || action.Length > 40 || value?.Length > GameEngine.MaxActionValueLength)
+            throw new HubException("That action is not available.");
+        action = expired && session.GameType == GameType.ICallOn ? GameEngine.TimeoutAction : action;
         IReadOnlyDictionary<string, bool?>? validations = null;
         if (session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
             validations = await wordValidator.ValidateAsync(session.StateJson, value, Context.ConnectionAborted);
-        try { next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, value, index, clock.UtcNow, validations); }
+        try { next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId!.Value, action, value, index, clock.UtcNow, validations); }
         catch (InvalidOperationException exception) { throw new HubException(exception.Message); }
         if (next.Completed) session.Complete(next.StateJson, clock.UtcNow);
         else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, clock.UtcNow);

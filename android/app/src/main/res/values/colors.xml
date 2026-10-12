@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only what the window needs before Compose draws; every other colour lives in ui/theme. -->
+    <color name="splash_indigo">#FF1F2557</color>
+    <color name="page">#FFE3E5F6</color>
+    <color name="page_night">#FF10132B</color>
+    <color name="alarm_ink">#FF161A3D</color>
+</resources>

@@ -15,5 +15,8 @@ public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notific
         builder.Property(item => item.Body).HasMaxLength(1000).IsRequired();
         builder.Property(item => item.DataJson).HasColumnType("jsonb");
         builder.HasIndex(item => new { item.UserId, item.CreatedAtUtc });
+        builder.Property(item => item.PushState).HasConversion<string>().HasMaxLength(20).IsRequired();
+        // The dispatcher only ever scans pending pushes; a partial index keeps that scan tiny.
+        builder.HasIndex(item => item.CreatedAtUtc).HasFilter("\"PushState\" = 'Pending'").HasDatabaseName("IX_notifications_pending_push");
     }
 }

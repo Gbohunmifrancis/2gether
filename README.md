@@ -25,7 +25,7 @@ The C# layout and conventions follow the existing NoteFusion project: dependenci
 - Initial User, Couple, PartnerInvite, Cycle, and GameSession domain types
 - Shared API error mapping
 - Couple and game SignalR hub shells
-- Health endpoint at `/health`
+- Health endpoints: `/health` (liveness, never touches the database) and `/api/health/ready` (readiness, `503` while the database is unreachable; use it as the deploy health check)
 - Mobile-first Next.js dashboard shell inspired by the supplied design reference
 - Desktop sidebar and mobile bottom navigation
 
