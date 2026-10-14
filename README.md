@@ -55,6 +55,8 @@ npm.cmd run dev
 
 Open `http://localhost:3000`. The API health endpoint is `http://localhost:5080/health`.
 
+Deployment (API to Railway, admin dashboard to Cloudflare Pages, Android app to Google Play) is automated on `main`; see `docs/deploy.md`.
+
 Environment keys use double underscores in deployment, for example `Database__ConnectionString` and `Frontend__Origin`.
 
 For the deployed frontend set `NEXT_PUBLIC_API_BASE_URL` and `NEXT_PUBLIC_SIGNALR_BASE_URL` to the public API origin. Set the API's `Frontend__Origin` to the Vercel origin (comma-separated if more than one origin is needed).

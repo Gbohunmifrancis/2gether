@@ -1,5 +1,11 @@
 package app.heartpact.alarm
 
+import app.heartpact.ui.graphics.StickingHeart
+import app.heartpact.ui.graphics.StickTimeline
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -166,7 +172,7 @@ private fun AskOffDialog(partnerName: String, onSend: (String?) -> Unit, onDismi
 
 /** Heart complete (mockup 07): both halves stuck, both characters cheer. */
 @Composable
-fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: () -> Unit) {
+fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: () -> Unit, mySide: Side = Side.Left, frozenAtMs: Float? = null) {
     val colors = Heartpact.colors
     val done = occurrence.completedAtUtc?.let { utc(it) }
     val scheduled = utc(occurrence.scheduledAtUtc)
@@ -178,7 +184,13 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
     Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding().padding(12.dp)) {
         StickerCard(Modifier.fillMaxWidth().weight(1f), shape = Shapes.Dare) {
             Column(Modifier.fillMaxSize().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Character(Who.Both, Pose.Cheer, 170.dp)
+                // Mockup 20: your half sticks next to the one your partner set, then you both cheer.
+                var whole by remember { mutableStateOf(frozenAtMs != null && frozenAtMs >= StickTimeline.END_MS) }
+                val cheer by animateFloatAsState(if (whole) 1f else 0f, tween(if (frozenAtMs != null) 0 else 220, easing = LinearOutSlowInEasing), label = "cheer")
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    StickingHeart(mySide, 104.dp, frozenAtMs = frozenAtMs, onWhole = { whole = true })
+                    Character(Who.Both, Pose.Cheer, 150.dp, Modifier.graphicsLayer { alpha = cheer; scaleX = 0.8f + 0.2f * cheer; scaleY = 0.8f + 0.2f * cheer })
+                }
                 Text("Heart complete", style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
                 Text("${occurrence.achievedCount} of ${occurrence.target} ${occurrence.exerciseType.displayName.lowercase()} at ${done?.let { localTime(it.toString()) } ?: ""},\n$timing",
                     style = Heartpact.type.bodyLarge, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))

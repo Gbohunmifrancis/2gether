@@ -10,6 +10,13 @@ import app.heartpact.alarm.AlarmReadiness
 import app.heartpact.alarm.AlarmRinging
 import app.heartpact.alarm.EndReason
 import app.heartpact.alarm.HeartComplete
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import app.heartpact.ui.graphics.StickingHeart
+import app.heartpact.ui.graphics.StickTimeline
 import app.heartpact.data.ExerciseGoal
 import app.heartpact.data.ExerciseHistory
 import app.heartpact.data.ExerciseOccurrence
@@ -94,8 +101,22 @@ class ExerciseShotsTest {
         shot("camera-landscape") { CameraRepContent(ui, {}, {}) { Box(Modifier.fillMaxSize().background(Color(0xFF6E6A70))) } }
     }
 
-    @Test fun heartComplete() = shot("heart-complete") {
-        HeartComplete(ringing.copy(status = OccurrenceStatus.Completed, achievedCount = 20, completedAtUtc = "2026-10-11T07:56:00Z", scheduledAtUtc = "2026-10-11T08:00:00Z"), "Theo") {}
+    @Test fun heartComplete() {
+        val done = ringing.copy(status = OccurrenceStatus.Completed, achievedCount = 20, completedAtUtc = "2026-10-11T07:56:00Z", scheduledAtUtc = "2026-10-11T08:00:00Z")
+        shot("heart-complete") { HeartComplete(done, "Theo", onDone = {}, frozenAtMs = StickTimeline.END_MS) }
+        shot("heart-complete-landing") { HeartComplete(done, "Theo", onDone = {}, frozenAtMs = 140f) }
+        shot("heart-complete-theo") { HeartComplete(done, "Maya", onDone = {}, mySide = Side.Right, frozenAtMs = StickTimeline.END_MS) }
+    }
+
+    /** Mockup 20, frame by frame, for both partners: 0, 120 and 240 ms. */
+    @Test fun stickingFrames() = shot("sticking-frames") {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+            listOf(Side.Left, Side.Right).forEach { side ->
+                Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+                    listOf(0f, StickTimeline.DROP_MS, StickTimeline.END_MS).forEach { ms -> StickingHeart(side, 90.dp, frozenAtMs = ms) }
+                }
+            }
+        }
     }
 
     @Test fun calledOff() = shot("called-off") { AlarmEnded(EndReason.LetOff, "Theo") {} }

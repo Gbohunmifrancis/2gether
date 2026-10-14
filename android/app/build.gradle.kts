@@ -23,8 +23,9 @@ android {
         applicationId = "app.heartpact"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        // The deploy pipeline numbers each release (Play needs every upload's code to be higher).
+        versionCode = setting("ANDROID_VERSION_CODE").toIntOrNull() ?: 1
+        versionName = setting("ANDROID_VERSION_NAME").ifBlank { "0.1.0" }
         // Firebase Cloud Messaging. Without these the app runs without push and polls instead.
         for (name in listOf("FIREBASE_PROJECT_ID", "FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_SENDER_ID")) {
             buildConfigField("String", name, "\"${setting(name)}\"")

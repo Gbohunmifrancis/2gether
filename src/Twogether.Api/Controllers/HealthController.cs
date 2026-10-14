@@ -11,7 +11,7 @@ public sealed class HealthController(ApplicationDbContext db, ILogger<HealthCont
     /// <summary>Liveness: the process answers. Never touches the database, so a slow database does not get it restarted.</summary>
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult Get() => Ok(new { status = "ok", service = "twogether-api" });
+    public IActionResult Get() => Ok(new { status = "ok", service = "twogether-api", version = AppVersion.Current });
 
     /// <summary>
     /// Readiness: point the platform's deploy health check here. 503 while the database is out of
