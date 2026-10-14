@@ -73,7 +73,7 @@ class AlarmActivity : ComponentActivity() {
                             onProgress = model::progress,
                         )
                     }
-                    is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::finish)
+                    is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::finish, mySide = side)
                     is AlarmPhase.Ended -> AlarmEnded(phase.reason, ui.partnerName, onDone = ::finish)
                 }
             }
