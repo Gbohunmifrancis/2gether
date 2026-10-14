@@ -109,7 +109,8 @@ seeded, with every page screenshotted (the `admin-screens` artifact).
 
 ## Deploying
 
-The build is static files (`npm run build` → `admin/dist`). Build with `VITE_API_URL=https://your-api` and host
+The Deploy workflow builds it and publishes it to Cloudflare Pages on every change to `admin/` on `main` (see
+`docs/deploy.md`). The build is static files (`npm run build` → `admin/dist`). Build with `VITE_API_URL=https://your-api` and host
 anywhere that can serve a single-page app: Cloudflare Pages, Netlify, S3 + CloudFront, or the same host as the API.
 `public/_redirects` sends every path to `index.html`, and `public/_headers` sets a strict Content Security Policy
 (scripts only from the dashboard itself, no framing), `no-referrer` and `no-store`; both are read by Cloudflare

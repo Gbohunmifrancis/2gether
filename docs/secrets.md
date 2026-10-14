@@ -16,15 +16,17 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `GOOGLE_WEB_CLIENT_ID` | "Continue with Google" | Google Cloud console → APIs & Services → Credentials: the **Web application** OAuth client id (`…apps.googleusercontent.com`). Also create an **Android** OAuth client for package `app.heartpact` with your signing certificate's SHA-1, or Google refuses the sign-in. Without it the button is hidden |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | signed release bundle | chosen when the keystore was made |
-| `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to `https://api.heartpact.app/` |
+| `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to the `API_URL` variable, else `https://api.heartpact.app/` |
+| `PLAY_SERVICE_ACCOUNT_JSON` | uploading to Google Play | see `docs/deploy.md` |
+| `RAILWAY_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | deploying the API and dashboard | see `docs/deploy.md`, with the `API_URL`, `ADMIN_URL` and other variables |
 
 Without the Firebase secrets the app still builds and works: it polls instead of receiving pushes. Without the
-keystore secrets the `release` job is skipped. Locally, put the same names in `~/.gradle/gradle.properties` as
+keystore secrets the Deploy workflow's Android job is skipped. Locally, put the same names in `~/.gradle/gradle.properties` as
 `heartpact.FIREBASE_APP_ID=…`, or export them before running Gradle.
 
-The workflow is `.github/workflows/android.yml`: build, unit and screenshot tests and lint on every push; the app's
-client against a real API (PostgreSQL service, an S3 stand-in for photos); and, on `main` or by hand, a signed
-App Bundle uploaded as a build artifact.
+`.github/workflows/android.yml` runs build, unit and screenshot tests, and lint on every push. It also tests the
+app's client against a real API (a PostgreSQL service and an S3 stand-in for photos). Signed bundles and uploads to
+Google Play happen in `.github/workflows/deploy.yml` (see `docs/deploy.md`).
 
 ## API host environment
 

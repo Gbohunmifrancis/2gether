@@ -272,7 +272,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<CoupleHub>("/hubs/couple");
 app.MapHub<GameHub>("/hubs/game");
-app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "twogether-api" }));
+app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "twogether-api", version = Twogether.Api.Common.AppVersion.Current }));
 
 var ensureDatabase = app.Configuration.GetValue<bool?>("Database:EnsureCreated") ?? app.Environment.IsProduction();
 if (ensureDatabase)
