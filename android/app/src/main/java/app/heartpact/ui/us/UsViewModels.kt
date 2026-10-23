@@ -3,6 +3,8 @@ package app.heartpact.ui.us
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.heartpact.data.ApiResult
+import app.heartpact.data.AuthRepository
+import app.heartpact.data.AuthUser
 import app.heartpact.data.DailyQuestion
 import app.heartpact.data.DeleteAccountRequest
 import app.heartpact.data.NotificationPreferences
@@ -35,7 +37,7 @@ data class UsUi(
     val deleteError: String? = null,
 )
 
-class UsViewModel(private val us: UsRepository, events: Flow<String> = emptyFlow()) : ViewModel() {
+class UsViewModel(private val us: UsRepository, events: Flow<String> = emptyFlow(), private val account: AuthRepository? = null) : ViewModel() {
     private val _ui = MutableStateFlow(UsUi())
     val ui: StateFlow<UsUi> = _ui.asStateFlow()
 
@@ -67,6 +69,17 @@ class UsViewModel(private val us: UsRepository, events: Flow<String> = emptyFlow
     }
 
     fun clearDeleteError() = _ui.update { it.copy(deleteError = null) }
+
+    /** Saved on the server; the stored session updates, so everything reading the user sees the new country. */
+    fun setCountry(user: AuthUser, code: String) {
+        val auth = account ?: return
+        if (code == user.countryCode) return
+        _ui.update { it.copy(busy = true) }
+        viewModelScope.launch {
+            val result = auth.setCountry(user, code)
+            _ui.update { it.copy(busy = false, note = result.note()) }
+        }
+    }
 }
 
 data class QuestionUi(

@@ -1,5 +1,6 @@
 package app.heartpact.ui.auth
 
+import app.heartpact.data.Countries
 import app.heartpact.data.Gender
 import java.time.LocalDate
 
@@ -10,6 +11,8 @@ data class SignUpForm(
     val password: String = "",
     val dateOfBirth: LocalDate? = null,
     val gender: Gender? = null,
+    /** ISO 3166-1 alpha-2. The screen fills in the phone's best guess; it can be changed. */
+    val country: String? = null,
 ) {
     fun errors(today: LocalDate = LocalDate.now()): Map<Field, String> = buildMap {
         if (name.isBlank()) put(Field.Name, "Add the name your partner knows you by.")
@@ -21,9 +24,10 @@ data class SignUpForm(
             dateOfBirth.isAfter(today) || dateOfBirth.year < 1900 -> put(Field.DateOfBirth, "That date doesn't look right.")
         }
         if (gender == null) put(Field.Gender, "Choose the option that best describes you.")
+        if (!Countries.isKnown(country)) put(Field.Country, "Choose the country you live in.")
     }
 
-    enum class Field { Name, Email, Password, DateOfBirth, Gender }
+    enum class Field { Name, Email, Password, DateOfBirth, Gender, Country }
 
     companion object {
         const val MIN_PASSWORD = 8

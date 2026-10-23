@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.HeartBroken
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonRemove
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
@@ -37,12 +38,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.heartpact.data.Countries
 import app.heartpact.data.DailyQuestion
 import app.heartpact.data.NotificationPreferences
 import app.heartpact.data.utc
+import app.heartpact.ui.auth.CountrySheet
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -87,10 +91,14 @@ fun UsTab(
     onClearDeleteError: () -> Unit,
     extraRows: @Composable () -> Unit = {},
     location: @Composable () -> Unit = {},
+    /** ISO code, or null for accounts made before the app asked. The row shows only with [onCountry]. */
+    country: String? = null,
+    onCountry: ((String) -> Unit)? = null,
 ) {
     val colors = Heartpact.colors
     var confirmEnd by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var pickingCountry by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
         Row(Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -110,10 +118,18 @@ fun UsTab(
         }
         SectionHeader("Account")
         StickerCard(Modifier.padding(horizontal = 12.dp)) {
-            CardRow("Sign out", subtitle = "Your pact and photos stay; sign back in any time", icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
+            if (onCountry != null) {
+                CardRow("Country", subtitle = country?.let { "${Countries.flag(it)}  ${Countries.name(it)}" } ?: "Not set yet. Tell us, for photos and food tips from home",
+                    icon = Icons.Outlined.Public, onClick = { pickingCountry = true }) { Chevron() }
+            }
+            CardRow("Sign out", divider = onCountry != null, subtitle = "Your pact and photos stay; sign back in any time", icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
             CardRow("End our pact", subtitle = "Unlinks you both and stops every dare", icon = Icons.Outlined.HeartBroken, divider = true, onClick = { confirmEnd = true })
             CardRow("Delete my account", subtitle = "Everything of yours, for good", icon = Icons.Outlined.PersonRemove, divider = true, onClick = { confirmDelete = true })
         }
+    }
+    if (pickingCountry && onCountry != null) {
+        val context = LocalContext.current
+        CountrySheet(country, remember { Countries.guess(context) }, onPick = { onCountry(it); pickingCountry = false }, onDismiss = { pickingCountry = false })
     }
     if (confirmEnd) AlertDialog(
         onDismissRequest = { confirmEnd = false },

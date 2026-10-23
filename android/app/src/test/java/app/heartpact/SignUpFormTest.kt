@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 class SignUpFormTest {
     private val today = LocalDate.of(2026, 10, 11)
-    private val valid = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female)
+    private val valid = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG")
 
     @Test fun `a complete form has no errors`() = assertEquals(emptyMap<Field, String>(), valid.errors(today))
 
@@ -30,6 +30,13 @@ class SignUpFormTest {
     @Test fun `name and gender are required`() {
         val errors = valid.copy(name = "  ", gender = null).errors(today)
         assertTrue(Field.Name in errors && Field.Gender in errors)
+    }
+
+    @Test fun `a real country is required, as the app serves content by it`() {
+        assertTrue(Field.Country in valid.copy(country = null).errors(today))
+        assertTrue(Field.Country in valid.copy(country = "Nigeria").errors(today))
+        assertTrue(Field.Country in valid.copy(country = "XX").errors(today))
+        assertFalse(Field.Country in valid.copy(country = "IN").errors(today))
     }
 
     @Test fun `email shape check`() {

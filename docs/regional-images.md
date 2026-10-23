@@ -22,8 +22,10 @@ How each surface picks a region:
   `website/assets/boot.js` before anything loads and swapped in by `site.js`, so only one image is downloaded. Nothing is sent anywhere and no location is looked up. Without JavaScript, or for a time
   zone we don't map, it shows the default. Add `?region=africa` (or `mena`, `latam`, `eastasia`, `southasia`,
   `default`) to a link to force one, for ads aimed at a region or for checking.
-- **App:** from the country chosen at sign-up, stored on the user and returned as `countryCode` and `region` on
-  `AuthUserDto`. The server maps country to region with `ContentRegions` in
+- **App:** from the country chosen at sign-up (email and Google), stored on the user and returned as `countryCode`
+  and `region` on `AuthUserDto`. The picker starts on the phone's best guess (SIM country, then mobile network,
+  then the language setting), read on the phone only. People who signed up before it was asked can set it under
+  **Us → Country**, and anyone can change it there. The server maps country to region with `ContentRegions` in
   `src/Twogether.Core/Users/ContentRegions.cs`, so the app and server-side content agree. Today the server also
   uses the country to tune food photo estimates to local dishes.
 

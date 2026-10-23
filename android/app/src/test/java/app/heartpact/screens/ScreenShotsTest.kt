@@ -32,7 +32,7 @@ class ScreenShotsTest {
     @Test fun welcome() = shot("welcome") { WelcomeScreen({}, {}) }
 
     @Test fun signUp() {
-        val filled = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female)
+        val filled = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG")
         shot("sign-up") { SignUpScreen(SignUpState(form = filled), {}, {}, {}) }
         shot("sign-up-errors") { SignUpScreen(SignUpState(form = SignUpForm(email = "maya@", password = "short"), showErrors = true), {}, {}, {}) }
     }

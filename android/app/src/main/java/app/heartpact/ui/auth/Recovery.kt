@@ -19,11 +19,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,6 +40,7 @@ import androidx.lifecycle.viewModelScope
 import app.heartpact.BuildConfig
 import app.heartpact.data.ApiResult
 import app.heartpact.data.AuthRepository
+import app.heartpact.data.Countries
 import app.heartpact.data.Gender
 import app.heartpact.data.GoogleSignInRequest
 import app.heartpact.data.OFFLINE_MESSAGE
@@ -174,6 +177,7 @@ data class GoogleState(
     val name: String = "",
     val dateOfBirth: LocalDate? = null,
     val gender: Gender = Gender.PreferNotToSay,
+    val country: String? = null,
 )
 
 class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
@@ -205,15 +209,17 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
     fun name(value: String) = _state.update { it.copy(name = value) }
     fun birthday(value: LocalDate) = _state.update { it.copy(dateOfBirth = value) }
     fun gender(value: Gender) = _state.update { it.copy(gender = value) }
+    fun country(value: String) = _state.update { it.copy(country = value, note = null) }
     fun cancel() = _state.update { GoogleState() }
 
     fun finish(onSignedIn: () -> Unit) {
         val s = _state.value
         val idToken = token ?: return
         val dob = s.dateOfBirth ?: run { _state.update { it.copy(note = "Choose your date of birth.") }; return }
+        val country = s.country?.takeIf(Countries::isKnown) ?: run { _state.update { it.copy(note = "Choose the country you live in.") }; return }
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
-            val result = auth.google(GoogleSignInRequest(idToken, dob.toString(), s.gender, s.name.trim().takeIf { it.isNotEmpty() }))
+            val result = auth.google(GoogleSignInRequest(idToken, dob.toString(), s.gender, s.name.trim().takeIf { it.isNotEmpty() }, country))
             _state.update { it.copy(busy = false, note = result.note()) }
             if (result is ApiResult.Ok) onSignedIn()
         }
@@ -223,16 +229,20 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
 /** The last step of signing up with Google: what Google doesn't tell us. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday: (LocalDate) -> Unit, onGender: (Gender) -> Unit, onFinish: () -> Unit, onBack: () -> Unit) {
+fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday: (LocalDate) -> Unit, onGender: (Gender) -> Unit, onCountry: (String) -> Unit, onFinish: () -> Unit, onBack: () -> Unit) {
     val colors = Heartpact.colors
     var picking by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val guess = remember { Countries.guess(context) }
+    LaunchedEffect(guess) { if (state.country == null && guess != null) onCountry(guess) }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         TopBar("Almost there", onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Google signed you in. Two more things and your account is ready.", style = Heartpact.type.bodyLarge, color = colors.ink2)
+            Text("Google signed you in. A few more things and your account is ready.", style = Heartpact.type.bodyLarge, color = colors.ink2)
             HeartField("Your name", state.name, onName, keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
             HeartField("Date of birth", state.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "", {},
                 trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, "Choose date of birth", tint = colors.ink2) } })
+            CountryField(state.country, onCountry, suggested = guess)
             Text("Which describes you?", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 GENDERS.forEach { (gender, label) -> HeartChip(label, state.gender == gender, { onGender(gender) }) }

@@ -20,6 +20,9 @@ interface HeartpactApi {
     @GET("api/auth/me")
     suspend fun me(): Response<AuthUser>
 
+    @PUT("api/auth/profile")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): Response<AuthResponse>
+
     @GET("api/couple")
     suspend fun couple(): Response<Couple>
 

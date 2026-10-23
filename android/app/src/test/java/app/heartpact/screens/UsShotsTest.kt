@@ -31,7 +31,12 @@ class UsShotsTest {
     @Test fun us() {
         shot("us") {
             HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
-                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {})
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {}, country = "NG", onCountry = {})
+            })
+        }
+        shot("us-no-country") {
+            HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {}, onCountry = {})
             })
         }
     }

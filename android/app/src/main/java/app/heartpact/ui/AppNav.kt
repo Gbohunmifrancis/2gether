@@ -179,7 +179,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val context = LocalContext.current
                     if (googleState.finishing) {
                         BackHandler { google.cancel() }
-                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
                     } else WelcomeScreen(
                         onCreateAccount = { nav.navigate(Routes.SIGN_UP) }, onSignIn = { nav.navigate(Routes.SIGN_IN) },
                         onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
@@ -206,7 +206,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val context = LocalContext.current
                     if (googleState.finishing) {
                         BackHandler { google.cancel() }
-                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
                     } else SignInScreen(state.copy(note = state.note ?: googleState.note), model::email, model::password, { model.submit { appModel.refresh() } },
                         onForgot = { nav.navigate(Routes.forgot(state.email)) },
                         onCreateAccount = { nav.navigate(Routes.SIGN_UP) { popUpTo(Routes.WELCOME) } }, onBack = { nav.popBackStack() },
@@ -244,7 +244,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
                     val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food, container.pushEvents) } })
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
-                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents) } })
+                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents, container.auth) } })
                     val usUi by usModel.ui.collectAsStateWithLifecycle()
                     val locationModel: LocationViewModel = viewModel(key = "location", factory = viewModelFactory { initializer { LocationViewModel(application) } })
                     val locationUi by locationModel.ui.collectAsStateWithLifecycle()
@@ -298,6 +298,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 onEndPact = { usModel.endPact { appModel.refresh() } },
                                 onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
                                 onClearDeleteError = usModel::clearDeleteError,
+                                country = me.countryCode, onCountry = { usModel.setCountry(me, it) },
                                 location = {
                                     LocationCard(locationUi, partner, onOpen = { nav.navigate(Routes.MAP) }, onShare = shareLocation,
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)

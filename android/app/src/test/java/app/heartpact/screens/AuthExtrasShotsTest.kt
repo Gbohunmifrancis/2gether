@@ -1,6 +1,7 @@
 package app.heartpact.screens
 
 import app.heartpact.data.Gender
+import app.heartpact.ui.auth.CountryList
 import app.heartpact.ui.auth.ForgotPasswordScreen
 import app.heartpact.ui.auth.ForgotState
 import app.heartpact.ui.auth.GoogleFinishScreen
@@ -24,6 +25,12 @@ class AuthExtrasShotsTest {
 
     @Test fun google() {
         shot("welcome-google") { WelcomeScreen({}, {}, onGoogle = {}) }
-        shot("google-finish") { GoogleFinishScreen(GoogleState(finishing = true, name = "Maya Okafor", dateOfBirth = LocalDate.of(1996, 5, 14), gender = Gender.Female), {}, {}, {}, {}, {}) }
+        shot("google-finish") { GoogleFinishScreen(GoogleState(finishing = true, name = "Maya Okafor", dateOfBirth = LocalDate.of(1996, 5, 14), gender = Gender.Female, country = "IN"), {}, {}, {}, {}, {}, {}) }
+    }
+
+    @Test fun countries() {
+        shot("country-list") { CountryList(current = "NG", suggested = "NG", onPick = {}) }
+        shot("country-list-search") { CountryList(current = "NG", suggested = "NG", onPick = {}, initialQuery = "ind") }
+        shot("country-list-night", night = true) { CountryList(current = "IN", suggested = "IN", onPick = {}) }
     }
 }

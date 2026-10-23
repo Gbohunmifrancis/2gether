@@ -26,16 +26,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.heartpact.data.Countries
 import app.heartpact.data.Gender
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
@@ -58,6 +61,9 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
     val form = state.form
     val errors = state.fieldErrors
     var picking by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val guess = remember { Countries.guess(context) }
+    LaunchedEffect(guess) { if (form.country == null && guess != null) onEdit { it.copy(country = guess) } }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         TopBar("Create your account", onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -75,6 +81,7 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
                 error = errors[SignUpForm.Field.DateOfBirth],
                 trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, "Choose date of birth", tint = colors.ink2) } },
             )
+            CountryField(form.country, { code -> onEdit { it.copy(country = code) } }, error = errors[SignUpForm.Field.Country], suggested = guess)
             Text("Which describes you?", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 GENDERS.forEach { (gender, label) -> HeartChip(label, form.gender == gender, { onEdit { it.copy(gender = gender) } }) }
