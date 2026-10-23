@@ -31,7 +31,7 @@ object AlarmNotifier {
 
     fun ensureChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL) != null) return
+        // Creating an existing channel only renames it (the person's own settings stay), so names follow the language.
         val channel = NotificationChannel(CHANNEL, tr("Dare alarms"), NotificationManager.IMPORTANCE_HIGH).apply {
             description = tr("Rings when a dare is due. You can always silence it on this phone.")
             setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())

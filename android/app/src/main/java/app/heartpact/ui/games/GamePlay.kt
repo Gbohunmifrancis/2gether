@@ -43,7 +43,7 @@ object GamePlay {
         val scores = when (s.gameType) {
             GameType.MemoryMatch -> memory(s).scores
             GameType.ICallOn -> iCallOn(s).scores
-            else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answers", "{count} matching answers")
+            else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0
         val theirs = scores.entries.firstOrNull { it.key != me }?.value ?: 0

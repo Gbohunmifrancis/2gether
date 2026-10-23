@@ -104,7 +104,7 @@ fun PactsTab(ui: PactsUi, partnerName: String, onStop: (String) -> Unit, onNewDa
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)) {
             Text(tr("Pacts"), style = Heartpact.type.headline, color = colors.ink)
-            Text(trn(ui.view?.hearts ?: 0, "Your sticker page · {count} hearts in 30 days", "Your sticker page · {count} hearts in 30 days"), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
+            Text(trn(ui.view?.hearts ?: 0, "Your sticker page · {count} heart in 30 days", "Your sticker page · {count} hearts in 30 days"), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
         Segmented(listOf(tr("Dares for you"), tr("Dares you set")), if (forMe) 0 else 1) { forMe = it == 0 }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
@@ -155,7 +155,7 @@ private fun PactCardView(card: PactCard, partnerName: String, forMe: Boolean, on
     val colors = Heartpact.colors
     val goal = card.goal
     val time = utc(goal.nextDueAtUtc).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
-    val amount = if (goal.exerciseType.measure == Measure.Seconds) trn(goal.target, "{exercise}, {count} seconds", "{exercise}, {count} seconds", "exercise" to goal.exerciseType.displayName)
+    val amount = if (goal.exerciseType.measure == Measure.Seconds) trn(goal.target, "{exercise}, {count} second", "{exercise}, {count} seconds", "exercise" to goal.exerciseType.displayName)
         else tr("{target} {exercise}", "target" to goal.target, "exercise" to goal.exerciseType.displayName.lowercase())
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp), shape = Shapes.Dare) {
         Column(Modifier.padding(18.dp)) {

@@ -206,7 +206,7 @@ private fun QuizBoard(s: GameSession, me: String, partnerName: String, busy: Boo
     val q = GamePlay.quiz(s)
     var answer by remember(q.round) { mutableStateOf("") }
     val myTurn = s.currentTurnUserId == me && s.status == GameStatus.InProgress
-    Text(trn(q.scores[me] ?: 0, "Question {round} of {rounds} · {count} hearts so far", "Question {round} of {rounds} · {count} hearts so far",
+    Text(trn(q.scores[me] ?: 0, "Question {round} of {rounds} · {count} heart so far", "Question {round} of {rounds} · {count} hearts so far",
         "round" to minOf(q.round + 1, q.totalRounds), "rounds" to q.totalRounds), style = Heartpact.type.small, color = colors.ink2)
     when (q.lastResult) {
         "match" -> NoteCard(tr("You both said the same thing. A heart for each of you."), Modifier.padding(top = 10.dp))

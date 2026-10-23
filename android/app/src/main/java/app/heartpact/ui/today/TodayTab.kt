@@ -131,12 +131,12 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
                     if (occurrence != null) {
                         val left = Duration.between(now, utc(occurrence.completeByUtc ?: occurrence.deadlineUtc)).toMinutes().coerceAtLeast(0)
                         Text("$left", style = Heartpact.type.display, color = colors.ink)
-                        Text(trn(left, "minutes left\n{achieved} of {target} counted", "minutes left\n{achieved} of {target} counted",
+                        Text(trn(left, "minute left\n{achieved} of {target} counted", "minutes left\n{achieved} of {target} counted",
                             "achieved" to occurrence.achievedCount, "target" to occurrence.target), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(bottom = 4.dp))
                     } else {
                         val until = Duration.between(now, dare.dueAt)
                         val label = when {
-                            until.toMinutes() < 60 -> trn(until.toMinutes().coerceAtLeast(1), "Rings in {count} minutes", "Rings in {count} minutes")
+                            until.toMinutes() < 60 -> trn(until.toMinutes().coerceAtLeast(1), "Rings in {count} minute", "Rings in {count} minutes")
                             dare.dueAt.atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now() -> tr("Rings today at {time}", "time" to time(dare.dueAt))
                             else -> tr("Rings tomorrow at {time}", "time" to time(dare.dueAt))
                         }

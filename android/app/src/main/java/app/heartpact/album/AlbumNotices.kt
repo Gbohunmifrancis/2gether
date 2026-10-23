@@ -28,7 +28,7 @@ object AlbumNotices {
 
     fun ensureChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL) != null) return
+        // Creating an existing channel only renames it (the person's own settings stay), so names follow the language.
         manager.createNotificationChannel(
             NotificationChannel(CHANNEL, tr("Shared album"), NotificationManager.IMPORTANCE_LOW).apply {
                 description = tr("Sync progress and a daily nudge when photos are waiting on this phone.")

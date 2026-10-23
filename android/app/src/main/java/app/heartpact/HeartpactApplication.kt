@@ -7,6 +7,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import app.heartpact.i18n.Tr
+import app.heartpact.album.AlbumNotices
+import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.push.Push
 
 class HeartpactApplication : Application() {
@@ -29,5 +31,9 @@ class HeartpactApplication : Application() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         Tr.load(this)
+        // Rename the notification channels that already exist (location's is renamed when sharing next starts).
+        Push.ensureChannels(this)
+        AlarmNotifier.ensureChannel(this)
+        AlbumNotices.ensureChannel(this)
     }
 }

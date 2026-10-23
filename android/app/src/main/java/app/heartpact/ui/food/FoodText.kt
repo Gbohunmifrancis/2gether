@@ -101,6 +101,6 @@ object FoodText {
     fun scansLeft(remaining: Int, limit: Int) = when {
         limit <= 0 -> null
         remaining <= 0 -> tr("No photo estimates left today")
-        else -> trn(remaining, "{count} of {limit} photo estimates left today", "{count} of {limit} photo estimates left today", "limit" to limit)
+        else -> trn(remaining, "{count} of {limit} photo estimate left today", "{count} of {limit} photo estimates left today", "limit" to limit)
     }
 }

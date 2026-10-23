@@ -77,7 +77,7 @@ fun FoodScanScreen(
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr("Back"), tint = Color.White)
                 }
                 Box(Modifier.weight(1f))
-                (scansLeft ?: (ui.phase as? ScanPhase.Ready)?.let { trn(it.scan.scansRemainingToday, "{count} photo estimates left today", "{count} photo estimates left today") })?.let {
+                (scansLeft ?: (ui.phase as? ScanPhase.Ready)?.let { trn(it.scan.scansRemainingToday, "{count} photo estimate left today", "{count} photo estimates left today") })?.let {
                     Text(it, style = Heartpact.type.labelSmall, color = Color.White,
                         modifier = Modifier.clip(Shapes.Pill).background(Color.Black.copy(alpha = 0.45f)).padding(horizontal = 14.dp, vertical = 8.dp))
                 }

@@ -85,8 +85,8 @@ data class OccurrenceChecks(
         val parts = flags.mapNotNull { flag ->
             when (flag) {
                 "missedCheckIn" -> trn(challengesMissed, "missed a camera check-in", "missed {count} camera check-ins")
-                "phoneMoved" -> trn(phoneMovedReps, "the phone was moving during {count} reps", "the phone was moving during {count} reps")
-                "leftFrame" -> trn(outOfFrameSeconds, "out of view for {count} seconds", "out of view for {count} seconds")
+                "phoneMoved" -> trn(phoneMovedReps, "the phone was moving during {count} rep", "the phone was moving during {count} reps")
+                "leftFrame" -> trn(outOfFrameSeconds, "out of view for {count} second", "out of view for {count} seconds")
                 "unverifiedApp" -> tr("the app couldn't be verified")
                 else -> null
             }

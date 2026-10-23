@@ -92,11 +92,9 @@ class LocationShareService : Service() {
 
     private fun notification(partner: String): Notification {
         val manager = getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL) == null) {
-            manager.createNotificationChannel(NotificationChannel(CHANNEL, tr("Location sharing"), NotificationManager.IMPORTANCE_LOW).apply {
-                description = tr("Shown the whole time you share your location.")
-            })
-        }
+        manager.createNotificationChannel(NotificationChannel(CHANNEL, tr("Location sharing"), NotificationManager.IMPORTANCE_LOW).apply {
+            description = tr("Shown the whole time you share your location.")
+        })
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).putExtra(AlbumNotices.EXTRA_OPEN_TAB, "us").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, Intent(this, LocationShareService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(this, CHANNEL)

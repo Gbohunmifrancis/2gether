@@ -54,16 +54,13 @@ object Push {
     /** The alarm channel belongs to the alarm; these two carry everything else. */
     fun ensureChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(GENERAL) == null) {
-            manager.createNotificationChannel(NotificationChannel(GENERAL, tr("From your partner"), NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = tr("Dares done or missed, call-off requests, photos added.")
-            })
-        }
-        if (manager.getNotificationChannel(QUIET) == null) {
-            manager.createNotificationChannel(NotificationChannel(QUIET, tr("During quiet hours"), NotificationManager.IMPORTANCE_LOW).apply {
-                description = tr("The same notifications, arriving silently during your quiet hours.")
-            })
-        }
+        // Creating an existing channel only renames it (the person's own settings stay), so names follow the language.
+        manager.createNotificationChannel(NotificationChannel(GENERAL, tr("From your partner"), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            description = tr("Dares done or missed, call-off requests, photos added.")
+        })
+        manager.createNotificationChannel(NotificationChannel(QUIET, tr("During quiet hours"), NotificationManager.IMPORTANCE_LOW).apply {
+            description = tr("The same notifications, arriving silently during your quiet hours.")
+        })
     }
 
     suspend fun currentToken(): String? {
