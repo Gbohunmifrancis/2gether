@@ -35,6 +35,8 @@ android {
         buildConfigField("boolean", "HAS_MAPS_KEY", setting("MAPS_API_KEY").isNotBlank().toString())
         // Google sign-in: the web OAuth client id the server checks ID tokens against. Empty hides the button.
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${setting("GOOGLE_WEB_CLIENT_ID")}\"")
+        // Play Integrity: the Google Cloud project number linked in Play Console. Empty skips the check.
+        buildConfigField("String", "PLAY_INTEGRITY_PROJECT_NUMBER", "\"${setting("PLAY_INTEGRITY_PROJECT_NUMBER")}\"")
     }
 
     signingConfigs {
@@ -118,6 +120,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.maps.compose)
     implementation(libs.billing.ktx)
+    implementation(libs.play.integrity)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.credentials)
     implementation(libs.credentials.play)

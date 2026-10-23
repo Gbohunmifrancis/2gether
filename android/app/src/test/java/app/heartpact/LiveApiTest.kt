@@ -145,6 +145,10 @@ class LiveApiTest {
         withContext(Dispatchers.IO) { Thread.sleep(ExerciseType.PushUp.minimumMillis(1) + 300) }
         val done = (mayaEx.complete(push.id, 1, 0.9) as ApiResult.Ok).value
         assertEquals(OccurrenceStatus.Completed, done.status)
+        // An app that sends no checks or token: nothing noticed, and (with Integrity on) the app is unverified.
+        assertEquals(0, done.checks?.formFaults)
+        assertEquals("missing", done.checks?.integrity)
+        assertEquals(listOf("unverifiedApp"), done.checks?.flags)
 
         val history = (mayaEx.history(7) as ApiResult.Ok).value
         assertEquals(setOf(OccurrenceStatus.Cancelled, OccurrenceStatus.Completed), history.occurrences.map { it.status }.toSet())
@@ -172,7 +176,15 @@ class LiveApiTest {
         assertEquals(app.heartpact.data.utc(goal.nextDueAtUtc), app.heartpact.data.utc(started.scheduledAtUtc))
 
         withContext(Dispatchers.IO) { Thread.sleep(ExerciseType.PushUp.minimumMillis(1) + 300) }
-        assertEquals(OccurrenceStatus.Completed, (mayaEx.complete(started.id, 1, 0.9) as ApiResult.Ok).value.status)
+        // What the camera noticed travels with the finish; Integrity's fake provider passes "fake.pass" (docs/exercise-checks.md).
+        val checks = app.heartpact.exercise.ExerciseChecks(formFaults = 2, fastReps = 1, challengesPassed = 0, challengesMissed = 1, phoneMovedReps = 0, outOfFrameSeconds = 4)
+        val finished = (mayaEx.complete(started.id, 1, 0.9, checks, "fake.pass") as ApiResult.Ok).value
+        assertEquals(OccurrenceStatus.Completed, finished.status)
+        assertEquals("passed", finished.checks?.integrity)
+        assertEquals(listOf("missedCheckIn"), finished.checks?.flags)
+        // Theo sees it on Today, flags first.
+        val theirs = (theoEx.today() as ApiResult.Ok).value.occurrences.single { it.id == started.id }
+        assertEquals("Worth a look: missed a camera check-in.", theirs.checks?.partnerLine())
 
         val today = (mayaEx.today() as ApiResult.Ok).value
         val moved = app.heartpact.data.utc(today.goals.single { it.id == goal.id }.nextDueAtUtc)

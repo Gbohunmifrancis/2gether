@@ -1,5 +1,6 @@
 package app.heartpact.data
 
+import app.heartpact.exercise.ExerciseChecks
 import kotlinx.serialization.json.Json
 
 /** Account: sign up, sign in, sign out. A successful call stores the session before returning. */
@@ -48,7 +49,8 @@ class ExerciseRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun start(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startOccurrence(id) }
     /** Today's dare before it rings: opens the day's occurrence now. Completing it cancels today's alarm. */
     suspend fun startEarly(goalId: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startEarly(goalId) }
-    suspend fun complete(id: String, count: Int, confidence: Double): ApiResult<ExerciseOccurrence> = apiCall(json) { api.completeOccurrence(id, CompleteRequest(count, confidence)) }
+    suspend fun complete(id: String, count: Int, confidence: Double, checks: ExerciseChecks? = null, integrityToken: String? = null): ApiResult<ExerciseOccurrence> =
+        apiCall(json) { api.completeOccurrence(id, CompleteRequest(count, confidence, checks, integrityToken)) }
     /** Only the partner may cancel: this is "call it off together", granting the other's request. */
     suspend fun cancel(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.cancelOccurrence(id) }
     suspend fun askOff(id: String, note: String?): ApiResult<ExerciseOccurrence> = apiCall(json) { api.askOff(id, AskOffRequest(note?.trim()?.takeIf { it.isNotEmpty() })) }

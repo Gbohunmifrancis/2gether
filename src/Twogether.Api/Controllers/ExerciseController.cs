@@ -21,6 +21,7 @@ public sealed class ExerciseController(
     ICurrentUser currentUser,
     IDateTimeProvider clock,
     IHubContext<CoupleHub> hub,
+    IPlayIntegrityVerifier integrity,
     ILogger<ExerciseController> logger) : ApiControllerBase
 {
     private static readonly ApiError NoCouple = new("exercise.no_couple", "Link your partner before setting goals.");
@@ -300,15 +301,23 @@ public sealed class ExerciseController(
             return Problem(verdict.Error);
         }
 
-        occurrence.Complete(achieved, confidence, now);
+        // Advisory: what the camera noticed and whether the app is genuine are stored for the partner, never a reason to refuse.
+        var sent = request.Checks?.ToCounts() ?? default;
+        var checks = sent.Clamped();
+        // The token was requested for the numbers as the app sent them, before any clamping.
+        var integrityVerdict = await integrity.VerifyAsync(request.IntegrityToken, PlayIntegrityRules.RequestHash(occurrence.Id, request.AchievedCount, sent), cancellationToken);
+        if (integrityVerdict is ExerciseIntegrity.Failed or ExerciseIntegrity.Missing)
+            logger.LogInformation("Exercise completion {OccurrenceId} has Play Integrity verdict {Verdict}", occurrence.Id, integrityVerdict);
+        occurrence.Complete(achieved, confidence, now, checks, integrityVerdict);
         var settled = await SettleGoalAsync(occurrence, now, cancellationToken);
         var names = await NamesAsync(couple, cancellationToken);
         var partnerId = PartnerOf(couple, occurrence.UserId);
         Notification? notification = null;
         if (partnerId is { } partner)
         {
-            notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, "Goal done",
-                $"{Name(names, occurrence.UserId)} finished {occurrence.Title}: {FormatTarget(occurrence)}.",
+            var flagged = occurrence.Checks.Summary(occurrence.Integrity);
+            notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? "Goal done" : "Goal done, worth a look",
+                $"{Name(names, occurrence.UserId)} finished {occurrence.Title}: {FormatTarget(occurrence)}." + (flagged is null ? "" : $" {flagged}"),
                 System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
             db.Notifications.Add(notification);
         }

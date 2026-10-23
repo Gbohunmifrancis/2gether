@@ -195,6 +195,13 @@ public static class DatabaseSchemaUpgrade
         -- "Ask to call it off": advisory, set by the assigned partner while the alarm rings.
         ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "CallOffRequestedAtUtc" timestamp with time zone NULL;
         ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "CallOffNote" character varying(140) NULL;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "FormFaults" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "FastReps" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "ChallengesPassed" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "ChallengesMissed" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "PhoneMovedReps" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "OutOfFrameSeconds" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "Integrity" character varying(20) NOT NULL DEFAULT 'NotChecked';
 
         CREATE TABLE IF NOT EXISTS food_entries (
             "Id" uuid NOT NULL,

@@ -34,6 +34,16 @@ public sealed class ExerciseOccurrence : BaseEntity
     public DateTime? CompletedAtUtc { get; private set; }
     public int AchievedCount { get; private set; }
     public double Confidence { get; private set; }
+    /// <summary>What the camera noticed in the session that completed it (see <see cref="ExerciseCheckCounts"/>).</summary>
+    public int FormFaults { get; private set; }
+    public int FastReps { get; private set; }
+    public int ChallengesPassed { get; private set; }
+    public int ChallengesMissed { get; private set; }
+    public int PhoneMovedReps { get; private set; }
+    public int OutOfFrameSeconds { get; private set; }
+    public ExerciseIntegrity Integrity { get; private set; } = ExerciseIntegrity.NotChecked;
+
+    public ExerciseCheckCounts Checks => new(FormFaults, FastReps, ChallengesPassed, ChallengesMissed, PhoneMovedReps, OutOfFrameSeconds);
     /// <summary>Concurrency token. Bumped by every status transition, never by progress.</summary>
     public long StateVersion { get; private set; }
     /// <summary>When the assigned partner asked to be let off today. Only the partner can grant it, by cancelling.</summary>
@@ -84,6 +94,7 @@ public sealed class ExerciseOccurrence : BaseEntity
         StartedAtUtc = utcNow;
         AchievedCount = 0;
         Confidence = 0;
+        RecordChecks(default, ExerciseIntegrity.NotChecked);
         var allowance = utcNow + ExerciseVerification.CompletionAllowance;
         CompleteByUtc = allowance > DeadlineUtc ? allowance : DeadlineUtc;
         StateVersion++;
@@ -99,15 +110,28 @@ public sealed class ExerciseOccurrence : BaseEntity
         UpdatedAtUtc = utcNow;
     }
 
-    public void Complete(int achievedCount, double confidence, DateTime utcNow)
+    public void Complete(int achievedCount, double confidence, DateTime utcNow, ExerciseCheckCounts checks = default, ExerciseIntegrity integrity = ExerciseIntegrity.NotChecked)
     {
         if (Status != ExerciseOccurrenceStatus.InProgress) throw new InvalidOperationException("Only an in-progress exercise can be completed.");
         Status = ExerciseOccurrenceStatus.Completed;
         AchievedCount = achievedCount;
         Confidence = confidence;
+        RecordChecks(checks, integrity);
         CompletedAtUtc = utcNow;
         StateVersion++;
         UpdatedAtUtc = utcNow;
+    }
+
+    private void RecordChecks(ExerciseCheckCounts checks, ExerciseIntegrity integrity)
+    {
+        var clean = checks.Clamped();
+        FormFaults = clean.FormFaults;
+        FastReps = clean.FastReps;
+        ChallengesPassed = clean.ChallengesPassed;
+        ChallengesMissed = clean.ChallengesMissed;
+        PhoneMovedReps = clean.PhoneMovedReps;
+        OutOfFrameSeconds = clean.OutOfFrameSeconds;
+        Integrity = integrity;
     }
 
     public void Miss(DateTime utcNow)

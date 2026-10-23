@@ -134,6 +134,9 @@ Rules: `achievedCount >= target`; `confidence >= 0.35`; `startedAtUtc` not null;
 elapsed = completedAtUtc - startedAtUtc; `elapsed.TotalSeconds >= MinSecondsPerUnit * target`
 (for Seconds types MinSecondsPerUnit is the fraction of the target that must elapse).
 
+On top of these rules, the camera judges form and watches for cheating, and the finish carries what it noticed
+(and a Play Integrity token) for the partner to see. Those never reject a completion: see `docs/exercise-checks.md`.
+
 ### `Exercise/ExerciseStreak.cs` (pure, static)
 
 ```csharp
@@ -212,7 +215,7 @@ public sealed class ExerciseOccurrence : BaseEntity
     public static ExerciseOccurrence OpenEarly(ExerciseGoal goal, DateTime utcNow); // Open(goal, goal.NextDueLocalDate(), goal.NextDueAtUtc, utcNow) then Start(utcNow); throws unless goal.IsDueLaterToday(utcNow); does not move the goal's pointer
     public void Start(DateTime utcNow);                   // Alarming/InProgress -> InProgress; resets AchievedCount=0, Confidence=0, StartedAtUtc=utcNow, CompleteByUtc; bumps version; throws otherwise
     public void RecordProgress(int achievedCount, double confidence, DateTime utcNow); // InProgress only; achievedCount clamped to >= current; does NOT bump StateVersion
-    public void Complete(int achievedCount, double confidence, DateTime utcNow);       // InProgress -> Completed; bumps version
+    public void Complete(int achievedCount, double confidence, DateTime utcNow, ExerciseCheckCounts checks = default, ExerciseIntegrity integrity = NotChecked); // InProgress -> Completed; stores the camera's checks (docs/exercise-checks.md); bumps version
     public void Miss(DateTime utcNow);                    // Alarming/InProgress -> Missed; bumps version
     public void Cancel(DateTime utcNow);                  // Alarming/InProgress -> Cancelled; bumps version
     public void RequestCallOff(string? note, DateTime utcNow); // Alarming/InProgress only, once; does NOT bump StateVersion; throws otherwise
@@ -229,7 +232,7 @@ latest start).
 
 ```csharp
 public sealed record ExerciseGoalDto(Guid Id, Guid CoupleId, Guid AssignedUserId, string AssignedUserName, Guid CreatedByUserId, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string ScheduledTime /* "HH:mm" */, string TimeZoneId, int GraceMinutes, bool IsActive, DateTime NextDueAtUtc, DateTime CreatedAtUtc);
-public sealed record ExerciseOccurrenceDto(Guid Id, Guid GoalId, Guid CoupleId, Guid UserId, string UserName, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string LocalDate /* yyyy-MM-dd */, DateTime ScheduledAtUtc, DateTime DeadlineUtc, DateTime? CompleteByUtc, ExerciseOccurrenceStatus Status, DateTime AlarmStartedAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, int AchievedCount, double Confidence, long StateVersion, DateTime? CallOffRequestedAtUtc = null, string? CallOffNote = null);
+public sealed record ExerciseOccurrenceDto(Guid Id, Guid GoalId, Guid CoupleId, Guid UserId, string UserName, ExerciseType ExerciseType, string Title, int Target, ExerciseMeasure Measure, string LocalDate /* yyyy-MM-dd */, DateTime ScheduledAtUtc, DateTime DeadlineUtc, DateTime? CompleteByUtc, ExerciseOccurrenceStatus Status, DateTime AlarmStartedAtUtc, DateTime? StartedAtUtc, DateTime? CompletedAtUtc, int AchievedCount, double Confidence, long StateVersion, DateTime? CallOffRequestedAtUtc = null, string? CallOffNote = null, ExerciseChecksDto? Checks = null);
 public sealed record ExerciseTodayDto(DateTime GeneratedAtUtc, IReadOnlyList<ExerciseGoalDto> Goals, IReadOnlyList<ExerciseOccurrenceDto> Occurrences, DateTime? NextDueAtUtc, Guid? NextDueGoalId);
 public sealed record ExercisePartnerStatsDto(Guid UserId, string UserName, int CurrentStreakDays, int CompletedCount, int MissedCount, double CompletionRate);
 public sealed record ExerciseHistoryDto(int Days, IReadOnlyList<ExerciseOccurrenceDto> Occurrences, IReadOnlyList<ExercisePartnerStatsDto> Stats);

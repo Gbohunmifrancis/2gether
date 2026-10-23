@@ -17,6 +17,7 @@ import app.heartpact.exercise.Pose.Companion.R_WRIST
 import app.heartpact.exercise.RepCounter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.cos
@@ -168,5 +169,87 @@ class RepCounterTest {
             l[R_HIP] = l[R_HIP].copy(visibility = 0.1f); l[R_KNEE] = l[R_KNEE].copy(visibility = 0.1f); l[R_ANKLE] = l[R_ANKLE].copy(visibility = 0.1f)
         }
         assertEquals(2, play(RepCounter(ExerciseType.Squat), frames).count)
+    }
+
+    // Form: what doesn't count, and the tip it leaves.
+
+    @Test fun `a squat that stops halfway doesn't count and says go lower`() {
+        val counter = RepCounter(ExerciseType.Squat)
+        val state = play(counter, angleFrames(cycles(172f, 125f, 2), L_HIP, L_KNEE, L_ANKLE))
+        assertEquals(0, state.count)
+        assertEquals(2, state.formFaults)
+        assertEquals("Go lower: hips down toward knee height.", state.cue)
+    }
+
+    @Test fun `small wobbles standing still are not faults`() {
+        val state = play(RepCounter(ExerciseType.Squat), angleFrames(List(30) { if (it % 2 == 0) 172f else 150f }, L_HIP, L_KNEE, L_ANKLE))
+        assertEquals(0, state.formFaults)
+        assertNull(state.cue)
+    }
+
+    @Test fun `bouncing at the bottom without standing up counts one rep, not three`() {
+        // Down, half up, down, half up, down, then all the way up.
+        val values = listOf(172f, 150f, 120f, 95f, 90f, 90f, 120f, 140f, 140f, 110f, 95f, 90f, 90f, 120f, 140f, 140f, 100f, 90f, 90f, 120f, 150f, 165f, 172f, 172f, 172f)
+        val state = play(RepCounter(ExerciseType.Squat), angleFrames(values, L_HIP, L_KNEE, L_ANKLE))
+        assertEquals(1, state.count)
+        assertEquals(2, state.formFaults)
+    }
+
+    @Test fun `a squat with the chest dropped doesn't count`() {
+        val frames = angleFrames(cycles(172f, 90f, 2), L_HIP, L_KNEE, L_ANKLE).onEach { l ->
+            val knee = l[L_KNEE]; val hip = l[L_HIP]
+            // At the bottom, fold the trunk forward to about 70 degrees from upright.
+            if (Pose(l, 0).angle(L_HIP, L_KNEE, L_ANKLE) < 120f) l[L_SHOULDER] = Landmark(hip.x + 0.235f, hip.y - 0.085f)
+            l[L_KNEE] = knee
+        }
+        val state = play(RepCounter(ExerciseType.Squat), frames)
+        assertEquals(0, state.count)
+        assertEquals(2, state.formFaults)
+        assertEquals("Keep your chest up as you go down.", state.cue)
+    }
+
+    @Test fun `push-ups with sagging hips don't count`() {
+        val frames = angleFrames(cycles(165f, 80f, 3), L_SHOULDER, L_ELBOW, L_WRIST, 0.12f).onEach { l ->
+            // Hips pushed well out of the shoulder-to-ankle line.
+            l[L_HIP] = Landmark(0.62f, 0.55f)
+        }
+        val state = play(RepCounter(ExerciseType.PushUp), frames)
+        assertEquals(0, state.count)
+        assertEquals("Keep your body in one straight line.", state.cue)
+    }
+
+    @Test fun `reps quicker than the exercise allows don't count`() {
+        val counter = RepCounter(ExerciseType.Squat)
+        // Full squats, but each one in about 300 ms: under 60 percent of the 0.8 s minimum.
+        val state = angleFrames(cycles(172f, 90f, 3), L_HIP, L_KNEE, L_ANKLE).mapIndexed { i, l -> counter.update(Pose(l, i * 20L)) }.last()
+        assertEquals(0, state.count)
+        assertEquals(3, state.fastReps)
+        assertEquals("Slow down: that one was too quick to count.", state.cue)
+    }
+
+    @Test fun `the tip fades after a few seconds`() {
+        val counter = RepCounter(ExerciseType.Squat)
+        play(counter, angleFrames(cycles(172f, 125f, 1), L_HIP, L_KNEE, L_ANKLE))
+        val later = angleFrames(List(40) { 172f }, L_HIP, L_KNEE, L_ANKLE).mapIndexed { i, l -> counter.update(Pose(l, 2_000L + i * frameMs)) }.last()
+        assertNull(later.cue)
+        assertEquals(1, later.formFaults)
+    }
+
+    @Test fun `a counted rep reports when it began and ended`() {
+        val state = play(RepCounter(ExerciseType.Squat), angleFrames(cycles(172f, 90f, 1), L_HIP, L_KNEE, L_ANKLE))
+        assertEquals(1, state.count)
+        val start = state.lastRepStartMs!!; val end = state.lastRepEndMs!!
+        assertTrue(end - start in 900L..1_700L)
+    }
+
+    @Test fun `a broken plank says which way to move the hips`() {
+        val counter = RepCounter(ExerciseType.Plank)
+        val sag = play(counter, (0..15).map { plankFrame(true) } + (0..3).map { plankFrame(false) })
+        assertEquals("Lift your hips into a straight line.", sag.cue)
+        assertEquals(1, sag.formFaults)
+        val pike = standing().also { l ->
+            l[L_SHOULDER] = Landmark(0.25f, 0.60f); l[L_HIP] = Landmark(0.50f, 0.48f); l[L_ANKLE] = Landmark(0.80f, 0.66f)
+        }
+        assertEquals("Lower your hips into a straight line.", counter.update(Pose(pike, 5_000L)).cue)
     }
 }

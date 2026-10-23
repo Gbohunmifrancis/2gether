@@ -21,6 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.ReportGmailerrorred
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PhotoCamera
@@ -97,9 +99,11 @@ fun TodayTab(
             StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) {
                 val ringing = v.partnerRinging
                 val next = v.partnerNext
+                val done = v.partnerDone
                 when {
                     ringing != null -> CardRow("$partnerName's ${ringing.title.lowercase()} is ringing",
                         subtitle = "${ringing.achievedCount} of ${ringing.target} counted · rings until ${time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))}", icon = Icons.Rounded.Alarm)
+                    done != null -> PartnerDone(done, partnerName)
                     next != null -> CardRow("Your dare for $partnerName", subtitle = "${next.target} ${next.exerciseType.displayName.lowercase()} · rings at ${time(utc(next.nextDueAtUtc))}", icon = Icons.Rounded.Alarm)
                     else -> CardRow("No dare for $partnerName yet", subtitle = "Set one and stick your half on first", icon = Icons.Rounded.Alarm)
                 }
@@ -152,6 +156,19 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
         }
         if (dare.setByPartner) Character(if (mySide == Side.Left) Who.Right else Who.Left, Pose.Wave, 72.dp, Modifier.align(Alignment.TopEnd).offset(x = (-6).dp, y = (-40).dp))
     }
+}
+
+/** My partner's finished dare: when, and what the camera noticed, flags first. */
+@Composable
+private fun PartnerDone(done: ExerciseOccurrence, partnerName: String) {
+    val checks = done.checks
+    val line = checks?.partnerLine()
+    val flagged = checks?.flagged == true
+    CardRow(
+        "$partnerName finished ${done.achievedCount} ${done.exerciseType.displayName.lowercase()}",
+        subtitle = listOfNotNull(done.completedAtUtc?.let { "at ${time(utc(it))}" }, line).joinToString(" · "),
+        icon = if (flagged) Icons.Rounded.ReportGmailerrorred else Icons.Rounded.Favorite,
+    )
 }
 
 @Composable

@@ -2,6 +2,7 @@ package app.heartpact.ui.camera
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,7 +58,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -68,11 +72,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import app.heartpact.exercise.ChallengeUi
 import app.heartpact.exercise.CounterState
+import app.heartpact.exercise.ExerciseChecks
 import app.heartpact.exercise.ExerciseType
 import app.heartpact.exercise.Measure
+import app.heartpact.exercise.MotionLog
 import app.heartpact.exercise.Pose
 import app.heartpact.exercise.RepCounter
+import app.heartpact.exercise.SessionChecks
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.HalfState
@@ -115,6 +123,8 @@ data class CameraUi(
     val setBy: String? = null,
     /** Null when there's nothing ringing to silence. */
     val silenced: Boolean? = null,
+    /** A surprise check-in on screen, or its result for a moment after. */
+    val challenge: ChallengeUi? = null,
 )
 
 /** The words and numbers on the camera screen, apart from layout. */
@@ -198,7 +208,10 @@ private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, preview: @Com
                     Icon(Icons.Rounded.Cameraswitch, "Switch camera", tint = Color.White)
                 }
             }
-            Progress(ui, trackHeight = if (wide) 76.dp else 150.dp, modifier = Modifier.align(if (wide) Alignment.BottomEnd else Alignment.CenterEnd))
+            // A check-in takes the middle of the picture; the bar steps aside until it's answered.
+            val checkingIn = ui.challenge != null && ui.challenge.passed == null
+            if (!checkingIn) Progress(ui, trackHeight = if (wide) 76.dp else 150.dp, modifier = Modifier.align(if (wide) Alignment.BottomEnd else Alignment.CenterEnd))
+            ui.challenge?.let { CheckIn(it, Modifier.align(Alignment.Center).padding(horizontal = if (wide) 0.dp else 24.dp)) }
             ui.setBy?.let { partner ->
                 val who = if (ui.mySide == Side.Left) Who.Right else Who.Left
                 Row(
@@ -240,6 +253,26 @@ private fun Progress(ui: CameraUi, trackHeight: Dp, modifier: Modifier) {
     }
 }
 
+/** A surprise check-in, big and central so it can't be missed mid-rep. */
+@Composable
+private fun CheckIn(challenge: ChallengeUi, modifier: Modifier) {
+    val accent = when (challenge.passed) { true -> Bone; false -> OutOfFrame; null -> Color.White }
+    Column(
+        modifier.widthIn(max = 300.dp).clip(Shapes.Card).background(Glass.copy(alpha = 0.88f)).padding(horizontal = 22.dp, vertical = 18.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Assertive },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(challenge.title, style = Heartpact.type.title, color = accent, textAlign = TextAlign.Center)
+        Text(challenge.body, style = Heartpact.type.body, color = Color.White.copy(alpha = 0.9f), textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
+        if (challenge.passed == null) {
+            Box(Modifier.padding(top = 14.dp).fillMaxWidth().height(8.dp).clip(Shapes.Pill).background(Color.White.copy(alpha = 0.18f))) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth(challenge.progress).clip(Shapes.Pill).background(Bone))
+            }
+            Text("${(challenge.msLeft + 999) / 1_000}s left", style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f), modifier = Modifier.padding(top = 6.dp))
+        }
+    }
+}
+
 @Composable
 private fun Chip(text: String, dot: Color, modifier: Modifier = Modifier) {
     Row(modifier.clip(Shapes.Pill).background(Glass.copy(alpha = 0.62f)).padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -276,7 +309,7 @@ private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: ()
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { left(Alignment.End) }
             }
         }
-        val note = ui.note ?: if (ui.sealing) "Sticking your half…" else null
+        val note = ui.note ?: if (ui.sealing) "Sticking your half…" else ui.counter.cue
         Text(
             note ?: ui.type.cue,
             style = if (note != null) Heartpact.type.label else Heartpact.type.small,
@@ -338,7 +371,7 @@ fun CameraRepScreen(
     /** When the alarm stops ringing; null when the dare is done early. */
     ringsUntil: Instant?,
     note: String?,
-    onReached: (Int, Double) -> Unit,
+    onReached: (Int, Double, ExerciseChecks) -> Unit,
     onStop: () -> Unit,
     onProgress: (Int, Double) -> Unit = { _, _ -> },
     mySide: Side = Side.Left,
@@ -359,6 +392,13 @@ fun CameraRepScreen(
     var sealing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val counter = remember { RepCounter(type) }
+    var challenge by remember { mutableStateOf<ChallengeUi?>(null) }
+    val motion = remember { MotionLog() }
+    val checks = remember { SessionChecks(type, target, motion) }
+    DisposableEffect(Unit) {
+        val sensors = PhoneMotion(context, motion)
+        onDispose { sensors.close() }
+    }
     val startedAt = remember { System.currentTimeMillis() }
     var clock by remember { mutableLongStateOf(startedAt) }
     LaunchedEffect(Unit) { while (true) { delay(1_000); clock = System.currentTimeMillis() } }
@@ -372,7 +412,7 @@ fun CameraRepScreen(
         val wait = type.minimumMillis(target) - (System.currentTimeMillis() - startedAt) + 500
         if (wait > 0) delay(wait)
         sent = true
-        reached(counted.count, counted.confidence)
+        reached(counted.count, counted.confidence, checks.report(counted))
     }
     // Each new rep goes to the partner live (advisory: the server's completion check is what counts).
     val progress by rememberUpdatedState(onProgress)
@@ -389,6 +429,7 @@ fun CameraRepScreen(
         mySide = mySide,
         setBy = setBy,
         silenced = silenced,
+        challenge = challenge,
     )
     CameraRepContent(shown, onFlip = { front = !front }, onStop = onStop, onSilence = onSilence) {
         if (granted) {
@@ -398,7 +439,9 @@ fun CameraRepScreen(
                 val executor = Executors.newSingleThreadExecutor()
                 val tracker = runCatching {
                     PoseTracker(context, onPose = { detected ->
-                        counted = counter.update(detected)
+                        val state = counter.update(detected)
+                        challenge = checks.update(detected, state, detected?.timestampMs ?: SystemClock.uptimeMillis())
+                        counted = state
                         pose = detected
                     }, onError = { error = it })
                 }.onFailure { error = "The pose model couldn't load on this phone." }.getOrNull()

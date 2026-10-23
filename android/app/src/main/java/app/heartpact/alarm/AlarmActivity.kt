@@ -70,7 +70,7 @@ class AlarmActivity : ComponentActivity() {
                                 target = phase.occurrence.target,
                                 ringsUntil = if (model.early) null else deadline,
                                 note = ui.note,
-                                onReached = { count, confidence -> model.complete(count, confidence) { message -> model.showNote(message) } },
+                                onReached = { count, confidence, checks -> model.complete(count, confidence, checks) { message -> model.showNote(message) } },
                                 onStop = leave,
                                 onProgress = model::progress,
                                 mySide = side,

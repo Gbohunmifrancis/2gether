@@ -32,6 +32,20 @@ class Pose(val landmarks: List<Landmark>, val timestampMs: Long, val aspect: Flo
     /** The body side (left or right joints) the camera sees better. */
     fun betterSide(left: IntArray, right: IntArray): IntArray = if (visibility(*left) >= visibility(*right)) left else right
 
+    /** How far the segment from [base] to [top] leans away from straight up, in degrees. */
+    fun lean(base: Int, top: Int): Float {
+        val dx = px(this[top]) - px(this[base]); val dy = this[base].y - this[top].y
+        if (hypot(dx, dy) < 1e-6f) return 0f
+        return Math.toDegrees(kotlin.math.atan2(abs(dx).toDouble(), dy.toDouble())).toFloat()
+    }
+
+    /** The height of the line from [a] to [b] at horizontal position [x] (normalised). */
+    fun lineY(a: Int, b: Int, x: Float): Float {
+        val span = this[b].x - this[a].x
+        if (abs(span) < 1e-6f) return (this[a].y + this[b].y) / 2
+        return this[a].y + (this[b].y - this[a].y) * ((x - this[a].x) / span)
+    }
+
     fun verticalGap(upper: Int, lower: Int) = this[lower].y - this[upper].y
     fun horizontalSpread(a: Int, b: Int) = abs(px(this[a]) - px(this[b]))
 

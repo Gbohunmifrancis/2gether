@@ -8,6 +8,8 @@ import app.heartpact.data.ApiResult
 import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.OccurrenceStatus
+import app.heartpact.data.PlayIntegrity
+import app.heartpact.exercise.ExerciseChecks
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +47,8 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
 
     init {
         viewModelScope.launch { if (slot.early) startEarly() else load() }
+        // Warm Play Integrity up while the person exercises, so the token at the finish is quick.
+        viewModelScope.launch { app.integrity.prepare() }
     }
 
     val early get() = slot.early
@@ -154,10 +158,11 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
     }
 
     /** The camera counted the target; the server re-checks the count, the confidence and the time taken. */
-    fun complete(count: Int, confidence: Double, onRejected: (String) -> Unit) {
+    fun complete(count: Int, confidence: Double, checks: ExerciseChecks, onRejected: (String) -> Unit) {
         val occurrence = currentOccurrence() ?: return
         viewModelScope.launch {
-            when (val result = app.exercise.complete(occurrence.id, count, confidence)) {
+            val token = app.integrity.token(PlayIntegrity.requestHash(occurrence.id, count, checks))
+            when (val result = app.exercise.complete(occurrence.id, count, confidence, checks, token)) {
                 is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) }; replan() }
                 is ApiResult.Failure -> onRejected(result.message)
                 ApiResult.Offline -> onRejected(OFFLINE_MESSAGE)

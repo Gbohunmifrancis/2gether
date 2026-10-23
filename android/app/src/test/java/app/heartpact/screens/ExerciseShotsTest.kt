@@ -73,6 +73,14 @@ class ExerciseShotsTest {
         shot("today-upcoming") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false, readiness = AlarmReadiness(true, false, false)), "Theo", {}, onCallOff = {}, onKeep = {}, onNewDare = {}, now = now) }) }
     }
 
+    @Test fun todayPartnerFinishedWithFlags() {
+        val his = ringing.copy(id = "o3", goalId = "g2", userId = "theo", exerciseType = ExerciseType.PushUp, title = "Push-ups", target = 30, achievedCount = 30,
+            status = OccurrenceStatus.Completed, completedAtUtc = "2026-10-11T07:30:00Z",
+            checks = app.heartpact.data.OccurrenceChecks(formFaults = 2, challengesMissed = 1, phoneMovedReps = 3, flags = listOf("missedCheckIn", "phoneMoved")))
+        val view = TodayBuilder.build(ExerciseToday("x", listOf(goal, hisGoal), listOf(his)), history, "maya", now, java.time.ZoneOffset.UTC)
+        shot("today-partner-flagged") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false), "Theo", {}, onCallOff = {}, onKeep = {}, onNewDare = {}, now = now) }) }
+    }
+
     @Test fun pacts() {
         val goals = listOf(goal, hisGoal)
         val view = app.heartpact.ui.pacts.PactsBuilder.build(goals, history.copy(occurrences = history.occurrences + ringing.copy(id = "t", localDate = "2026-10-11", status = OccurrenceStatus.Completed)), "maya", now, java.time.ZoneOffset.UTC)
@@ -107,6 +115,15 @@ class ExerciseShotsTest {
     @Test fun cameraTheo() {
         val ui = workout.copy(counter = CounterState(count = 15, inFrame = false), mySide = Side.Right, setBy = null, silenced = true, sealing = true)
         shot("camera-theo") { app.heartpact.ui.theme.HeartpactTheme(actor = Side.Right) { CameraRepContent(ui, {}, {}) { CameraStandIn() } } }
+    }
+
+    /** A surprise check-in on screen, with the tip from a rep that didn't count. */
+    @Test fun cameraCheckIn() {
+        val ui = workout.copy(
+            counter = CounterState(count = 9, inFrame = true, confidence = 0.9, cue = "Both hands all the way above your head."),
+            challenge = app.heartpact.exercise.ChallengeUi(app.heartpact.exercise.ChallengeKind.Freeze, msLeft = 4_200, progress = 0.4f),
+        )
+        shot("camera-check-in") { CameraRepContent(ui, {}, {}) { CameraStandIn() } }
     }
 
     @Test @Config(qualifiers = "w844dp-h390dp-land-xxhdpi") fun cameraLandscape() {

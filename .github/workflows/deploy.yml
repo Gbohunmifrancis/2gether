@@ -226,6 +226,7 @@ jobs:
       FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
       MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
       GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+      PLAY_INTEGRITY_PROJECT_NUMBER: ${{ secrets.PLAY_INTEGRITY_PROJECT_NUMBER }}
       PLAY_TRACK: ${{ inputs.play_track || vars.PLAY_TRACK || 'internal' }}
       PLAY_RELEASE_STATUS: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
     steps:

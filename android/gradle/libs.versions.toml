@@ -26,11 +26,13 @@ credentials = "1.5.0"
 googleId = "1.1.1"
 mapsCompose = "7.0.0"
 billing = "8.3.0"
+integrity = "1.6.0"
 junit = "4.13.2"
 androidxJunit = "1.3.0"
 
 [libraries]
 billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
+play-integrity = { module = "com.google.android.play:integrity", version.ref = "integrity" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }

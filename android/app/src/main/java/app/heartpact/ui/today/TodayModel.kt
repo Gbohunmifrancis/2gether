@@ -23,6 +23,8 @@ data class TodayView(
     /** My partner's dare that is ringing right now, if any; carries their call-off request. */
     val partnerRinging: ExerciseOccurrence?,
     val partnerNext: ExerciseGoal?,
+    /** My partner's dare finished today, with what the camera noticed. */
+    val partnerDone: ExerciseOccurrence?,
     val week: List<Pair<LocalDate, DaySticker>>,
     val hearts: Int,
 )
@@ -39,6 +41,10 @@ object TodayBuilder {
         }
         val partnerRinging = today.occurrences.firstOrNull { it.userId != me && it.status.ringing }
         val partnerNext = today.goals.filter { it.assignedUserId != me && it.isActive }.minByOrNull { utc(it.nextDueAtUtc) }
+        val todayLocal = now.atZone(zone).toLocalDate()
+        val partnerDone = today.occurrences
+            .filter { it.userId != me && it.status == OccurrenceStatus.Completed && it.completedAtUtc != null && utc(it.completedAtUtc).atZone(zone).toLocalDate() == todayLocal }
+            .maxByOrNull { utc(it.completedAtUtc!!) }
 
         val all = (history?.occurrences.orEmpty() + today.occurrences).filter { it.userId == me }.distinctBy { it.id }
         val todayDate = now.atZone(zone).toLocalDate()
@@ -54,6 +60,6 @@ object TodayBuilder {
             }
         }
         val hearts = all.count { it.status == OccurrenceStatus.Completed }
-        return TodayView(mine, partnerRinging, partnerNext, week, hearts)
+        return TodayView(mine, partnerRinging, partnerNext, partnerDone, week, hearts)
     }
 }
