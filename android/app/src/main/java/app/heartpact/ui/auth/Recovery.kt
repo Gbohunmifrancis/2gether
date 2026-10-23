@@ -44,6 +44,8 @@ import app.heartpact.data.Countries
 import app.heartpact.data.Gender
 import app.heartpact.data.GoogleSignInRequest
 import app.heartpact.data.OFFLINE_MESSAGE
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
@@ -90,12 +92,12 @@ class ForgotViewModel(private val auth: AuthRepository, email: String = "") : Vi
     fun back() = _state.update { it.copy(sent = false, code = "", password = "", note = null, error = null) }
 
     fun send() {
-        if (!looksLikeEmail(_state.value.email)) { _state.update { it.copy(error = "Enter the email you signed up with.") }; return }
+        if (!looksLikeEmail(_state.value.email)) { _state.update { it.copy(error = tr("Enter the email you signed up with.")) }; return }
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             val result = auth.forgot(_state.value.email)
             _state.update {
-                if (result is ApiResult.Ok) it.copy(busy = false, sent = true, note = "If that email has an account, a code is on its way. It works for 15 minutes.")
+                if (result is ApiResult.Ok) it.copy(busy = false, sent = true, note = tr("If that email has an account, a code is on its way. It works for 15 minutes."))
                 else it.copy(busy = false, note = result.note())
             }
         }
@@ -104,8 +106,8 @@ class ForgotViewModel(private val auth: AuthRepository, email: String = "") : Vi
     fun reset(onDone: () -> Unit) {
         val s = _state.value
         when {
-            s.code.length != 6 -> { _state.update { it.copy(error = "Enter the six-digit code from the email.") }; return }
-            s.password.length < SignUpForm.MIN_PASSWORD -> { _state.update { it.copy(error = "Use at least ${SignUpForm.MIN_PASSWORD} characters.") }; return }
+            s.code.length != 6 -> { _state.update { it.copy(error = tr("Enter the six-digit code from the email.")) }; return }
+            s.password.length < SignUpForm.MIN_PASSWORD -> { _state.update { it.copy(error = trn(SignUpForm.MIN_PASSWORD, "Use at least {count} character.", "Use at least {count} characters.")) }; return }
         }
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
@@ -120,22 +122,22 @@ class ForgotViewModel(private val auth: AuthRepository, email: String = "") : Vi
 fun ForgotPasswordScreen(state: ForgotState, onEmail: (String) -> Unit, onCode: (String) -> Unit, onPassword: (String) -> Unit, onSend: () -> Unit, onReset: () -> Unit, onBack: () -> Unit) {
     val colors = Heartpact.colors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar("Reset your password", onBack)
+        TopBar(tr("Reset your password"), onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (!state.sent) {
-                Text("We'll email you a six-digit code. Your pact, dares and photos stay just as they are.", style = Heartpact.type.bodyLarge, color = colors.ink2)
-                HeartField("Email", state.email, onEmail, error = state.error,
+                Text(tr("We'll email you a six-digit code. Your pact, dares and photos stay just as they are."), style = Heartpact.type.bodyLarge, color = colors.ink2)
+                HeartField(tr("Email"), state.email, onEmail, error = state.error,
                     keyboard = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done))
             } else {
-                Text("Check ${state.email} for the code, then choose a new password. Signing in with it signs you out everywhere else.", style = Heartpact.type.bodyLarge, color = colors.ink2)
-                HeartField("Six-digit code", state.code, onCode, keyboard = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next))
-                HeartField("New password", state.password, onPassword, password = true, error = state.error, hint = "At least ${SignUpForm.MIN_PASSWORD} characters",
+                Text(tr("Check {email} for the code, then choose a new password. Signing in with it signs you out everywhere else.", "email" to state.email), style = Heartpact.type.bodyLarge, color = colors.ink2)
+                HeartField(tr("Six-digit code"), state.code, onCode, keyboard = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next))
+                HeartField(tr("New password"), state.password, onPassword, password = true, error = state.error, hint = trn(SignUpForm.MIN_PASSWORD, "At least {count} character", "At least {count} characters"),
                     keyboard = KeyboardOptions(imeAction = ImeAction.Done))
-                HeartButton("Send a new code", onSend, kind = ButtonKind.Text, fillWidth = false, height = 40.dp)
+                HeartButton(tr("Send a new code"), onSend, kind = ButtonKind.Text, fillWidth = false, height = 40.dp)
             }
             state.note?.let { NoteCard(it) }
         }
-        HeartButton(if (state.sent) "Set password and sign in" else "Email me a code", if (state.sent) onReset else onSend,
+        HeartButton(if (state.sent) tr("Set password and sign in") else tr("Email me a code"), if (state.sent) onReset else onSend,
             Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy)
     }
 }
@@ -160,11 +162,11 @@ object GoogleSignIn {
             if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 val google = GoogleIdTokenCredential.createFrom(credential.data)
                 Outcome.Token(google.idToken, google.displayName)
-            } else Outcome.Failed("Google didn't return an account. Try again.")
+            } else Outcome.Failed(tr("Google didn't return an account. Try again."))
         } catch (_: GetCredentialCancellationException) {
             Outcome.Cancelled
         } catch (e: GetCredentialException) {
-            Outcome.Failed("Google sign-in isn't available on this phone right now.")
+            Outcome.Failed(tr("Google sign-in isn't available on this phone right now."))
         }
     }
 }
@@ -215,8 +217,8 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
     fun finish(onSignedIn: () -> Unit) {
         val s = _state.value
         val idToken = token ?: return
-        val dob = s.dateOfBirth ?: run { _state.update { it.copy(note = "Choose your date of birth.") }; return }
-        val country = s.country?.takeIf(Countries::isKnown) ?: run { _state.update { it.copy(note = "Choose the country you live in.") }; return }
+        val dob = s.dateOfBirth ?: run { _state.update { it.copy(note = tr("Choose your date of birth.")) }; return }
+        val country = s.country?.takeIf(Countries::isKnown) ?: run { _state.update { it.copy(note = tr("Choose the country you live in.")) }; return }
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             val result = auth.google(GoogleSignInRequest(idToken, dob.toString(), s.gender, s.name.trim().takeIf { it.isNotEmpty() }, country))
@@ -236,21 +238,21 @@ fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday:
     val guess = remember { Countries.guess(context) }
     LaunchedEffect(guess) { if (state.country == null && guess != null) onCountry(guess) }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar("Almost there", onBack)
+        TopBar(tr("Almost there"), onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Google signed you in. A few more things and your account is ready.", style = Heartpact.type.bodyLarge, color = colors.ink2)
-            HeartField("Your name", state.name, onName, keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
-            HeartField("Date of birth", state.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "", {},
-                trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, "Choose date of birth", tint = colors.ink2) } })
+            Text(tr("Google signed you in. A few more things and your account is ready."), style = Heartpact.type.bodyLarge, color = colors.ink2)
+            HeartField(tr("Your name"), state.name, onName, keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
+            HeartField(tr("Date of birth"), state.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "", {},
+                trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, tr("Choose date of birth"), tint = colors.ink2) } })
             CountryField(state.country, onCountry, suggested = guess)
-            Text("Which describes you?", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
+            Text(tr("Which describes you?"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 GENDERS.forEach { (gender, label) -> HeartChip(label, state.gender == gender, { onGender(gender) }) }
             }
-            Text("Choosing Woman turns on cycle tracking. It stays private until you share it.", style = Heartpact.type.small, color = colors.ink2)
+            Text(tr("Choosing Woman turns on cycle tracking. It stays private until you share it."), style = Heartpact.type.small, color = colors.ink2)
             state.note?.let { NoteCard(it) }
         }
-        HeartButton("Create account", onFinish, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy)
+        HeartButton(tr("Create account"), onFinish, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy)
     }
     if (picking) BirthDatePicker(state.dateOfBirth, onPicked = { onBirthday(it); picking = false }, onDismiss = { picking = false })
 }

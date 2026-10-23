@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.graphics.Character
@@ -36,17 +37,17 @@ fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (
         Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
             Character(Who.Both, Pose.Wave, 200.dp)
         }
-        Text("Keep your promises to each other.", style = Heartpact.type.headline.copy(fontSize = 34.sp, lineHeight = 37.sp), color = colors.ink)
+        Text(tr("Keep your promises to each other."), style = Heartpact.type.headline.copy(fontSize = 34.sp, lineHeight = 37.sp), color = colors.ink)
         Text(
-            "Dare each other to move. The camera counts the reps, and every promise you keep becomes a heart on your page.",
+            tr("Dare each other to move. The camera counts the reps, and every promise you keep becomes a heart on your page."),
             style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 12.dp, bottom = 28.dp),
         )
-        HeartButton("Create an account", onCreateAccount)
-        HeartButton("I already have an account", onSignIn, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline)
-        onGoogle?.let { HeartButton("Continue with Google", it, Modifier.padding(top = 8.dp), kind = ButtonKind.Text, busy = googleBusy) }
+        HeartButton(tr("Create an account"), onCreateAccount)
+        HeartButton(tr("I already have an account"), onSignIn, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline)
+        onGoogle?.let { HeartButton(tr("Continue with Google"), it, Modifier.padding(top = 8.dp), kind = ButtonKind.Text, busy = googleBusy) }
         note?.let { app.heartpact.ui.components.NoteCard(it, Modifier.padding(top = 8.dp)) }
         Text(
-            "Got an invite code from your partner? You'll enter it after you sign up.",
+            tr("Got an invite code from your partner? You'll enter it after you sign up."),
             style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 16.dp),
         )

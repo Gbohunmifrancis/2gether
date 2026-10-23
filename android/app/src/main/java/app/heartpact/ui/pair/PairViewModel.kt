@@ -7,6 +7,8 @@ import app.heartpact.data.CoupleRepository
 import app.heartpact.data.CoupleStatus
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.PartnerInvite
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,7 +63,7 @@ class PairViewModel(private val couple: CoupleRepository, private val userId: St
     fun submitCode() {
         val code = _state.value.code
         if (code.length != CODE_DIGITS) {
-            _state.update { it.copy(codeError = "Enter all $CODE_DIGITS digits.") }
+            _state.update { it.copy(codeError = trn(CODE_DIGITS, "Enter all {count} digit.", "Enter all {count} digits.")) }
             return
         }
         accept(code = code)
@@ -75,7 +77,7 @@ class PairViewModel(private val couple: CoupleRepository, private val userId: St
                 is ApiResult.Ok -> linked()
                 is ApiResult.Failure -> {
                     val message = when (result.code) {
-                        "invite.invalid" -> if (token != null) "That invite link has expired or was already used. Ask your partner for a new one." else "That code didn't work. Check it with your partner, or ask for a new one."
+                        "invite.invalid" -> if (token != null) tr("That invite link has expired or was already used. Ask your partner for a new one.") else tr("That code didn't work. Check it with your partner, or ask for a new one.")
                         else -> result.message
                     }
                     _state.update { it.copy(accepting = false, entering = true, codeError = message) }

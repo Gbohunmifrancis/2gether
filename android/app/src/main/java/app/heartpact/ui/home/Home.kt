@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.heartpact.i18n.tr
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
@@ -55,12 +56,20 @@ import app.heartpact.ui.theme.Shapes
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-enum class Tab(val label: String, val icon: ImageVector, val selectedIcon: ImageVector) {
-    Today("Today", Icons.Outlined.Today, Icons.Rounded.Today),
-    Pacts("Pacts", Icons.Outlined.FavoriteBorder, Icons.Rounded.Favorite),
-    Food("Food", Icons.Outlined.Restaurant, Icons.Rounded.Restaurant),
-    Us("Us", Icons.Outlined.Diversity1, Icons.Rounded.Diversity1),
-    Album("Album", Icons.Outlined.PhotoLibrary, Icons.Rounded.PhotoLibrary),
+enum class Tab(val icon: ImageVector, val selectedIcon: ImageVector) {
+    Today(Icons.Outlined.Today, Icons.Rounded.Today),
+    Pacts(Icons.Outlined.FavoriteBorder, Icons.Rounded.Favorite),
+    Food(Icons.Outlined.Restaurant, Icons.Rounded.Restaurant),
+    Us(Icons.Outlined.Diversity1, Icons.Rounded.Diversity1),
+    Album(Icons.Outlined.PhotoLibrary, Icons.Rounded.PhotoLibrary);
+
+    val label: String get() = when (this) {
+        Today -> tr("Today")
+        Pacts -> tr("Pacts")
+        Food -> tr("Food")
+        Us -> tr("Us")
+        Album -> tr("Album")
+    }
 }
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
@@ -75,17 +84,17 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
         Box(Modifier.weight(1f).statusBarsPadding()) {
             when (tab) {
                 Tab.Today -> today()
-                Tab.Pacts -> pacts?.invoke() ?: TabPage("Pacts", "Your sticker page") { EmptyPage(Who.Right, Pose.Stand, "No dares yet", "Dares you set each other live here, with every heart you've kept.") }
-                Tab.Food -> food?.invoke() ?: TabPage("Food", "Photo estimates run about ±30%") { EmptyPage(Who.Left, Pose.Stand, "Nothing logged today", "Snap a meal and you'll get a calorie range, never a single made-up number.") }
-                Tab.Us -> us?.invoke() ?: TabPage("Us", "$myName and $partnerName") {
+                Tab.Pacts -> pacts?.invoke() ?: TabPage(tr("Pacts"), tr("Your sticker page")) { EmptyPage(Who.Right, Pose.Stand, tr("No dares yet"), tr("Dares you set each other live here, with every heart you've kept.")) }
+                Tab.Food -> food?.invoke() ?: TabPage(tr("Food"), tr("Photo estimates run about ±30%")) { EmptyPage(Who.Left, Pose.Stand, tr("Nothing logged today"), tr("Snap a meal and you'll get a calorie range, never a single made-up number.")) }
+                Tab.Us -> us?.invoke() ?: TabPage(tr("Us"), tr("{me} and {partner}", "me" to myName, "partner" to partnerName)) {
                     Column(Modifier.padding(horizontal = 12.dp)) {
                         Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) { Character(Who.Both, Pose.Hug, 130.dp) }
                         StickerCard {
-                            CardRow("Sign out", subtitle = "You can sign back in any time", icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
+                            CardRow(tr("Sign out"), subtitle = tr("You can sign back in any time"), icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
                         }
                     }
                 }
-                Tab.Album -> album?.invoke() ?: TabPage("Album", "Photos stay on your phone until you sync") { EmptyPage(Who.Left, Pose.Rest, "No photos yet", "Add photos and they stay on this phone. When you tap Sync, they join your shared album.", Mood.Sleep) }
+                Tab.Album -> album?.invoke() ?: TabPage(tr("Album"), tr("Photos stay on your phone until you sync")) { EmptyPage(Who.Left, Pose.Rest, tr("No photos yet"), tr("Add photos and they stay on this phone. When you tap Sync, they join your shared album."), Mood.Sleep) }
             }
         }
         NavBar(tab) { tab = it; onTab(it) }

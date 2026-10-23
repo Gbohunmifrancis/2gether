@@ -35,11 +35,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.Countries
+import app.heartpact.i18n.tr
 import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.Shapes
 
-internal const val COUNTRY_HINT = "So the photos and food tips you see feel like home."
+internal val COUNTRY_HINT get() = tr("So the photos and food tips you see feel like home.")
 
 /** Looks like the other fields; tapping it opens the list. */
 @Composable
@@ -47,11 +48,11 @@ fun CountryField(code: String?, onPick: (String) -> Unit, modifier: Modifier = M
     var open by remember { mutableStateOf(false) }
     val shown = code?.let { "${Countries.flag(it)}  ${Countries.name(it)}" } ?: ""
     Box(modifier) {
-        HeartField("Country", shown, {}, error = error, hint = if (error == null) COUNTRY_HINT else null,
+        HeartField(tr("Country"), shown, {}, error = error, hint = if (error == null) COUNTRY_HINT else null,
             trailing = { Icon(Icons.Rounded.ExpandMore, null, tint = Heartpact.colors.ink2, modifier = Modifier.padding(end = 12.dp)) })
         Box(
             Modifier.matchParentSize().clickable(role = Role.Button) { open = true }
-                .semantics { contentDescription = if (code == null) "Country, not chosen. Choose" else "Country, ${Countries.name(code)}. Change" },
+                .semantics { contentDescription = if (code == null) tr("Country, not chosen. Choose") else tr("Country, {country}. Change", "country" to Countries.name(code)) },
         )
     }
     if (open) CountrySheet(code, suggested ?: code, onPick = { onPick(it); open = false }, onDismiss = { open = false })
@@ -76,18 +77,18 @@ fun CountryList(current: String?, suggested: String?, onPick: (String) -> Unit, 
     val shown = remember(query) { all.filter { (code, _) -> Countries.matches(code, query) } }
     val top = suggested?.takeIf { query.isBlank() && Countries.isKnown(it) }
     Column(modifier) {
-        Text("Where do you live?", style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(horizontal = 20.dp))
-        HeartField("Search", query, { query = it }, Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+        Text(tr("Where do you live?"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(horizontal = 20.dp))
+        HeartField(tr("Search"), query, { query = it }, Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             keyboard = KeyboardOptions(imeAction = ImeAction.Search))
         LazyColumn(Modifier.fillMaxWidth()) {
             if (top != null) {
-                item { Text("Suggested", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 2.dp)) }
+                item { Text(tr("Suggested"), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 2.dp)) }
                 item { CountryRow(top, Countries.name(top), top == current) { onPick(top) } }
-                item { Text("All countries", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 2.dp)) }
+                item { Text(tr("All countries"), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 2.dp)) }
             }
             items(shown, key = { it.first }) { (code, name) -> CountryRow(code, name, code == current) { onPick(code) } }
             if (shown.isEmpty()) item {
-                Text("No country matches “$query”.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(20.dp))
+                Text(tr("No country matches “{query}”.", "query" to query), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(20.dp))
             }
         }
     }

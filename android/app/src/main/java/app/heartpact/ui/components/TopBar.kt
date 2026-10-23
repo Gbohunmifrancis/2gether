@@ -13,13 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.heartpact.i18n.tr
 import app.heartpact.ui.theme.Heartpact
 
 /** The small top app bar: back, then the title. */
 @Composable
 fun TopBar(title: String = "", onBack: (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = Heartpact.colors.ink2) }
+        if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr("Back"), tint = Heartpact.colors.ink2) }
         Text(title, style = Heartpact.type.title, color = Heartpact.colors.ink, modifier = Modifier.padding(start = 4.dp))
     }
 }

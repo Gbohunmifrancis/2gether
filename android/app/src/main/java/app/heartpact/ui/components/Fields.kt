@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.heartpact.i18n.tr
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.Shapes
 
@@ -101,7 +102,7 @@ fun HeartField(
                 )
                 if (password) {
                     IconButton(onClick = { reveal = !reveal }) {
-                        Icon(if (reveal) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, if (reveal) "Hide password" else "Show password", tint = colors.ink2)
+                        Icon(if (reveal) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, if (reveal) tr("Hide password") else tr("Show password"), tint = colors.ink2)
                     }
                 }
                 trailing?.invoke()

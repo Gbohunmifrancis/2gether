@@ -14,6 +14,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import app.heartpact.MainActivity
 import app.heartpact.R
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 
 /** The album's quiet notifications: sync progress while it runs, and the once-a-day nudge. */
 object AlbumNotices {
@@ -28,8 +30,8 @@ object AlbumNotices {
         val manager = context.getSystemService(NotificationManager::class.java)
         if (manager.getNotificationChannel(CHANNEL) != null) return
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL, "Shared album", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Sync progress and a daily nudge when photos are waiting on this phone."
+            NotificationChannel(CHANNEL, tr("Shared album"), NotificationManager.IMPORTANCE_LOW).apply {
+                description = tr("Sync progress and a daily nudge when photos are waiting on this phone.")
             },
         )
     }
@@ -44,8 +46,8 @@ object AlbumNotices {
         ensureChannel(context)
         return NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_heart)
-            .setContentTitle("Syncing photos")
-            .setContentText(if (total > 0) "$done of $total in your shared album" else "Getting ready")
+            .setContentTitle(tr("Syncing photos"))
+            .setContentText(if (total > 0) tr("{done} of {total} in your shared album", "done" to done, "total" to total) else tr("Getting ready"))
             .setProgress(total, done, total == 0)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -64,8 +66,8 @@ object AlbumNotices {
         ensureChannel(context)
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_heart)
-            .setContentTitle(if (waiting == 1) "1 photo is only on this phone" else "$waiting photos are only on this phone")
-            .setContentText("Sync when you're ready and they'll join your shared album.")
+            .setContentTitle(trn(waiting, "{count} photo is only on this phone", "{count} photos are only on this phone"))
+            .setContentText(tr("Sync when you're ready and they'll join your shared album."))
             .setContentIntent(openAlbum(context))
             .setAutoCancel(true)
             .build()

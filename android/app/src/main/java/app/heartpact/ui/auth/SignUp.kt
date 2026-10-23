@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.heartpact.data.Countries
 import app.heartpact.data.Gender
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.HeartField
@@ -52,7 +54,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-internal val GENDERS = listOf(Gender.Female to "Woman", Gender.Male to "Man", Gender.NonBinary to "Non-binary", Gender.PreferNotToSay to "Prefer not to say")
+internal val GENDERS get() = listOf(Gender.Female to tr("Woman"), Gender.Male to tr("Man"), Gender.NonBinary to tr("Non-binary"), Gender.PreferNotToSay to tr("Prefer not to say"))
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -65,36 +67,36 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
     val guess = remember { Countries.guess(context) }
     LaunchedEffect(guess) { if (form.country == null && guess != null) onEdit { it.copy(country = guess) } }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar("Create your account", onBack)
+        TopBar(tr("Create your account"), onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeartField("Your name", form.name, { v -> onEdit { it.copy(name = v) } }, error = errors[SignUpForm.Field.Name],
+            HeartField(tr("Your name"), form.name, { v -> onEdit { it.copy(name = v) } }, error = errors[SignUpForm.Field.Name],
                 keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next))
-            HeartField("Email", form.email, { v -> onEdit { it.copy(email = v) } }, error = errors[SignUpForm.Field.Email],
+            HeartField(tr("Email"), form.email, { v -> onEdit { it.copy(email = v) } }, error = errors[SignUpForm.Field.Email],
                 keyboard = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next))
-            HeartField("Password", form.password, { v -> onEdit { it.copy(password = v) } }, password = true,
-                error = errors[SignUpForm.Field.Password], hint = "At least ${SignUpForm.MIN_PASSWORD} characters",
+            HeartField(tr("Password"), form.password, { v -> onEdit { it.copy(password = v) } }, password = true,
+                error = errors[SignUpForm.Field.Password], hint = trn(SignUpForm.MIN_PASSWORD, "At least {count} character", "At least {count} characters"),
                 keyboard = KeyboardOptions(imeAction = ImeAction.Done), actions = KeyboardActions(onDone = { picking = form.dateOfBirth == null }))
             HeartField(
-                "Date of birth",
+                tr("Date of birth"),
                 form.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "",
                 {},
                 error = errors[SignUpForm.Field.DateOfBirth],
-                trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, "Choose date of birth", tint = colors.ink2) } },
+                trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, tr("Choose date of birth"), tint = colors.ink2) } },
             )
             CountryField(form.country, { code -> onEdit { it.copy(country = code) } }, error = errors[SignUpForm.Field.Country], suggested = guess)
-            Text("Which describes you?", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
+            Text(tr("Which describes you?"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 GENDERS.forEach { (gender, label) -> HeartChip(label, form.gender == gender, { onEdit { it.copy(gender = gender) } }) }
             }
             Text(
-                errors[SignUpForm.Field.Gender] ?: "Choosing Woman turns on cycle tracking. It stays private until you share it.",
+                errors[SignUpForm.Field.Gender] ?: tr("Choosing Woman turns on cycle tracking. It stays private until you share it."),
                 style = Heartpact.type.small, color = if (errors[SignUpForm.Field.Gender] != null) colors.error else colors.ink2,
             )
             state.note?.let { NoteCard(it) }
         }
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)) {
-            HeartButton("Create account", onSubmit, busy = state.busy)
-            Text("By continuing you agree to the Terms and the Privacy Policy.", style = Heartpact.type.small, color = colors.ink2,
+            HeartButton(tr("Create account"), onSubmit, busy = state.busy)
+            Text(tr("By continuing you agree to the Terms and the Privacy Policy."), style = Heartpact.type.small, color = colors.ink2,
                 textAlign = TextAlign.Center, modifier = Modifier.padding(top = 10.dp).fillMaxWidth())
         }
     }
@@ -116,8 +118,8 @@ internal fun BirthDatePicker(current: LocalDate?, onPicked: (LocalDate) -> Unit,
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = { state.selectedDateMillis?.let { onPicked(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) } ?: onDismiss() }) { Text("Done") }
+            TextButton(onClick = { state.selectedDateMillis?.let { onPicked(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) } ?: onDismiss() }) { Text(tr("Done")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancel")) } },
     ) { DatePicker(state) }
 }
