@@ -41,4 +41,15 @@ data class HeartpactType(
     val button: TextStyle = TextStyle(fontFamily = Figtree, fontWeight = FontWeight.Bold, fontSize = 16.sp),
 )
 
+/**
+ * Arabic and Devanagari come from the system fonts (Sora and Figtree are Latin only). Their letters join, so the
+ * Latin ramp's tight letter spacing would pull them apart, and they stand taller, so lines get more room.
+ */
+fun HeartpactType.forLanguage(language: String): HeartpactType {
+    if (language != "ar" && language != "hi") return this
+    fun TextStyle.open() = copy(letterSpacing = 0.em, lineHeight = if (lineHeight.isSp && lineHeight.value < fontSize.value * 1.35f) (fontSize.value * 1.35f).sp else lineHeight)
+    return HeartpactType(display.open(), displaySmall.open(), headline.open(), title.open(), titleSmall.open(), wordmark, bodyLarge.open(), body.open(),
+        small.open(), label.open(), labelSmall.open(), button.open())
+}
+
 val LocalHeartpactType = staticCompositionLocalOf { HeartpactType() }

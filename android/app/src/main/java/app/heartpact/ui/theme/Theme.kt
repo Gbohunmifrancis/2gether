@@ -38,7 +38,7 @@ fun HeartpactTheme(night: Boolean = isSystemInDarkTheme(), actor: Side = Side.Le
     }
     CompositionLocalProvider(
         LocalHeartpactColors provides colors,
-        LocalHeartpactType provides HeartpactType(),
+        LocalHeartpactType provides HeartpactType().forLanguage(java.util.Locale.getDefault().language),
         LocalActor provides actor,
     ) {
         MaterialTheme(colorScheme = scheme, content = content)
