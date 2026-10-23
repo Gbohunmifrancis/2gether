@@ -8,6 +8,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.initializer
@@ -18,7 +19,6 @@ import app.heartpact.ui.camera.CameraRepScreen
 import app.heartpact.ui.theme.HeartpactTheme
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 
 /**
  * The full-screen alarm, shown over the lock screen: ringing, then the camera, then the heart.
@@ -63,15 +63,22 @@ class AlarmActivity : ComponentActivity() {
                         val leave = { if (model.early) finish() else model.backToAlarm() }
                         BackHandler { leave() }
                         val deadline = app.heartpact.data.utc(phase.occurrence.completeByUtc ?: phase.occurrence.deadlineUtc)
-                        CameraRepScreen(
-                            type = phase.occurrence.exerciseType,
-                            target = phase.occurrence.target,
-                            minutesLeft = if (model.early) null else ((deadline.toEpochMilli() - Instant.now().toEpochMilli()) / 60_000).toInt().coerceAtLeast(0),
-                            note = ui.note,
-                            onReached = { count, confidence -> model.complete(count, confidence) { message -> model.showNote(message) } },
-                            onStop = leave,
-                            onProgress = model::progress,
-                        )
+                        // The workout follows the phone's day or night; the ringing screen stays on ink.
+                        HeartpactTheme(night = isSystemInDarkTheme(), actor = side) {
+                            CameraRepScreen(
+                                type = phase.occurrence.exerciseType,
+                                target = phase.occurrence.target,
+                                ringsUntil = if (model.early) null else deadline,
+                                note = ui.note,
+                                onReached = { count, confidence -> model.complete(count, confidence) { message -> model.showNote(message) } },
+                                onStop = leave,
+                                onProgress = model::progress,
+                                mySide = side,
+                                setBy = slot.setByName,
+                                silenced = if (model.early) null else ui.silenced,
+                                onSilence = model::silence,
+                            )
+                        }
                     }
                     is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::finish, mySide = side)
                     is AlarmPhase.Ended -> AlarmEnded(phase.reason, ui.partnerName, onDone = ::finish)
