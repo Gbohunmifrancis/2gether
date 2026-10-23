@@ -45,12 +45,10 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 /* Brand mark and the Play button */
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.03em; }
 .brand svg { width: 30px; height: 28px; }
-.play { display: inline-flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 28px 0 22px; border-radius: 30px; background: var(--ink); color: #FFFFFF; text-decoration: none; transition: transform .25s var(--ease-out), box-shadow .25s; box-shadow: 0 16px 30px -18px var(--navy); }
-.play:hover { color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 22px 36px -18px var(--navy); }
-.play svg { width: 24px; height: 26px; flex: none; }
-.play span { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
-.play small { font-size: 12px; opacity: 0.8; }
-.play b { font-size: 19px; }
+/* Google's own badge, unaltered; its transparent margin is the clear space Google asks for. */
+.play { display: inline-block; border-radius: 12px; transition: transform .25s var(--ease-out); }
+.play:hover { transform: translateY(-2px); }
+.play img { width: auto; height: 84px; }
 .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 22px; background: #FFFFFF; color: var(--navy); text-decoration: none; font-weight: 700; }
 
 /* The bar that appears once the hero has scrolled away */
@@ -81,7 +79,12 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 /* The heart sits on the seam: the left edge of their half (the top edge once stacked). */
 .fold-heart { position: absolute; z-index: 3; left: 0; top: 50%; width: clamp(150px, 15vw, 210px); transform: translate(-50%, -50%); filter: drop-shadow(0 14px 20px rgba(13, 16, 38, 0.35)); pointer-events: none; }
 .fold-heart svg { width: 100%; height: auto; overflow: visible; }
-.fold-heart path { fill: url(#foldAcross); stroke: #FFFFFF; stroke-width: 9; stroke-linejoin: round; paint-order: stroke; }
+.fold-heart path { stroke: #FFFFFF; stroke-width: 9; stroke-linejoin: round; paint-order: stroke; transform-box: fill-box; }
+.fold-heart .whole { fill: url(#foldAcross); transform-origin: 50% 55%; }
+.fold-heart .half { display: none; }
+.fold-heart .half.l { fill: #7480D4; transform-origin: 100% 60%; }
+.fold-heart .half.r { fill: #1F2557; transform-origin: 0% 60%; }
+.fold-heart svg { transform-origin: 50% 58%; }
 
 /* Little live cards around the heart, like notifications from the two phones */
 .float { position: absolute; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 10px; border-radius: 16px; background: rgba(255, 255, 255, 0.94); color: var(--ink); font-size: 14px; line-height: 1.25; box-shadow: 0 18px 40px -20px rgba(13, 16, 38, 0.6); }
@@ -99,8 +102,8 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 /* ---------- Statement ---------- */
 .statement { padding: 96px 24px 88px; text-align: center; background: var(--wash); }
 .statement p { margin: 0 auto; max-width: 820px; font-family: var(--display); font-weight: 700; font-size: clamp(28px, 3.4vw, 42px); line-height: 1.18; letter-spacing: -0.03em; }
-.statement .play { margin-top: 38px; }
-.statement .note { margin: 14px 0 0; font-size: 15px; color: var(--ink-2); }
+.statement .play { margin-top: 24px; }
+.statement .note { margin: 8px auto 0; font-size: 15px; color: var(--ink-2); }
 
 /* ---------- One dare, two phones ---------- */
 .story { padding: 110px 0; }
@@ -190,7 +193,7 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .cta h2 { margin: 0; font-size: clamp(46px, 7.6vw, 104px); line-height: 0.92; }
 .cta h2 span { display: block; }
 .cta h2 .them { color: var(--peri); }
-.cta .play { margin-top: 44px; }
+.cta .play { margin-top: 30px; }
 
 /* ---------- Footer ---------- */
 .footer { background: var(--night); color: var(--ink-soft); padding: 40px 0; font-size: 15px; }
@@ -242,7 +245,7 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
   .phone-only { display: inline-flex; }
   /* Stacked, the fold runs across: the heart turns its split to match. */
   .fold-heart { left: 50%; top: 0; }
-  .fold-heart path { fill: url(#foldDown); }
+  .fold-heart .whole { fill: url(#foldDown); }
   .float { display: none; }
   .stage { min-height: 400px; }
   .chip.c1 { top: -6px; }
@@ -272,7 +275,12 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .motion .hero .them .line > span { animation-delay: .25s; }
 .motion .hero .them .line:nth-child(2) > span { animation-delay: .35s; }
 .motion .hero .eyebrow, .motion .hero p.lede { animation: fade .9s .55s var(--ease-out) both; }
-.motion .fold-heart { animation: stick 1.05s .5s both; }
+/* The heart: each half flies in from its own side and they stick, the seamless whole takes over, then it beats. */
+.motion .fold-heart .half { display: inline; }
+.motion .fold-heart .half.l { animation: halfLeft .85s .45s var(--ease-out) both, gone .18s 1.32s forwards; }
+.motion .fold-heart .half.r { animation: halfRight .85s .45s var(--ease-out) both, gone .18s 1.32s forwards; }
+.motion .fold-heart .whole { animation: appear .18s 1.28s both; }
+.motion .fold-heart svg { animation: press .55s 1.28s ease-out, beat 4s 2.6s ease-in-out infinite; }
 .motion .float { animation: pop .8s var(--ease-out) both, bob 6s ease-in-out infinite; }
 .motion .float.f1 { animation-delay: 1.2s, 2s; }
 .motion .float.f2 { animation-delay: 1.4s, 2.6s; }
@@ -283,13 +291,15 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
-/* The app's sticking moment: drop in big, press flat, settle. */
-@keyframes stick {
-  0% { opacity: 0; transform: translate(-50%, -110%) scale(1.25) rotate(-8deg); }
-  45% { opacity: 1; transform: translate(-50%, -50%) scale(.9) rotate(2deg); }
-  70% { transform: translate(-50%, -50%) scale(1.05) rotate(-1deg); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
-}
+@keyframes halfLeft { from { opacity: 0; transform: translate(-70px, -8px) rotate(-16deg); } 50% { opacity: 1; } to { opacity: 1; transform: none; } }
+@keyframes halfRight { from { opacity: 0; transform: translate(70px, -8px) rotate(16deg); } 50% { opacity: 1; } to { opacity: 1; transform: none; } }
+@keyframes gone { to { opacity: 0; } }
+@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+/* Like the app's sticking moment: pressed flat, then settled. */
+@keyframes press { 0% { transform: scale(1); } 40% { transform: scale(1.06, .92); } 75% { transform: scale(.97, 1.04); } 100% { transform: scale(1); } }
+/* A heartbeat: two quick beats, then rest. */
+@keyframes beat { 0%, 30%, 100% { transform: scale(1); } 8% { transform: scale(1.09); } 15% { transform: scale(.98); } 22% { transform: scale(1.06); } }
+@keyframes dropIn { from { opacity: 0; transform: translateY(-40px) scale(1.2); } 60% { opacity: 1; transform: translateY(0) scale(.94); } to { opacity: 1; transform: none; } }
 
 /* Scroll-linked: the statement lights up word by word; parallax; the panel rises; the closing lines meet. */
 .motion [data-words] .w { opacity: .16; transition: opacity .25s linear; }
@@ -315,3 +325,9 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .motion .stage.in .chip { opacity: 1; transform: none; }
 .motion .stage.in .chip.c1 { transition-delay: .6s; }
 .motion .stage.in .chip.c2 { transition-delay: 1.9s; }
+
+/* Stacked, the halves would cross the fold the wrong way: the whole heart drops in instead (after the rules above). */
+@media (max-width: 860px) {
+  .motion .fold-heart .half { display: none; }
+  .motion .fold-heart .whole { animation: dropIn .9s .5s var(--ease-out) both; }
+}

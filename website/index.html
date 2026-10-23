@@ -29,7 +29,6 @@
     <linearGradient id="foldAcross" x1="0" y1="0" x2="100" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
     <linearGradient id="foldDown" x1="0" y1="15" x2="0" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
     <symbol id="mark" viewBox="-2 4 104 98"><path d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z" fill="currentColor"/><path d="M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z" fill="#A9B1F2"/></symbol>
-    <symbol id="play" viewBox="0 0 24 26"><path d="M3 2 L21 13 L3 24 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
 
@@ -63,7 +62,12 @@
       <p class="lede">At 7:00 their phone rings until the camera counts every rep. Then their half sticks, and the heart is whole.</p>
     </div>
     <div class="fold-heart" aria-hidden="true">
-      <svg viewBox="-8 -2 116 112"><path d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z"/></svg>
+      <svg viewBox="-8 -2 116 112">
+        <!-- Two halves stick together, then hand over to the seamless whole, which beats. -->
+        <path class="whole" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z"/>
+        <path class="half l" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z"/>
+        <path class="half r" d="M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z"/>
+      </svg>
     </div>
   </div>
   <div class="float f1" aria-hidden="true" data-parallax="0.12">
@@ -84,9 +88,7 @@
   <section class="statement" aria-labelledby="what">
     <h2 id="what" class="visually-hidden">What Heartpact is</h2>
     <p data-words>Heartpact is the couples app where promises ring. The camera counts the reps, and a heart only fills when you both keep your word.</p>
-    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact" data-reveal>
-      <svg aria-hidden="true"><use href="#play"/></svg><span><small>Get it on</small><b>Google Play</b></span>
-    </a>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact" data-reveal><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="Get it on Google Play"></a>
     <p class="note" data-reveal>Free for both of you, on Android.</p>
   </section>
 
@@ -205,7 +207,7 @@
 
   <section class="cta" data-progress aria-labelledby="cta-title">
     <h2 id="cta-title" class="display"><span class="you">You bring half.</span><span class="them">They bring half.</span></h2>
-    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact"><svg aria-hidden="true"><use href="#play"/></svg><span><small>Get it on</small><b>Google Play</b></span></a>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact"><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="Get it on Google Play"></a>
   </section>
 </main>
 
