@@ -44,7 +44,9 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 
 /* Brand mark and the Play button */
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.03em; }
-.brand svg { width: 30px; height: 28px; }
+/* The app's own launcher icon, with a faint ring so it holds its shape on the navy grounds. */
+.brand .app-icon { width: 36px; height: 36px; border-radius: 9px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22), 0 6px 14px -8px rgba(13, 16, 38, 0.6); }
+.topbar .brand .app-icon { width: 32px; height: 32px; box-shadow: 0 4px 10px -6px rgba(13, 16, 38, 0.5); }
 /* Google's own badge, unaltered; its transparent margin is the clear space Google asks for. */
 .play { display: inline-block; border-radius: 12px; transition: transform .25s var(--ease-out); }
 .play:hover { transform: translateY(-2px); }
