@@ -19,9 +19,9 @@ class AuthRepository(private val api: HeartpactApi, private val session: Session
     suspend fun google(request: GoogleSignInRequest): ApiResult<AuthResponse> =
         apiCall(json) { api.googleSignIn(request) }.alsoOk { session.save(it.accessToken, it.user) }
 
-    /** Changes only the country; the rest of the profile goes back as it is. */
-    suspend fun setCountry(user: AuthUser, countryCode: String): ApiResult<AuthResponse> =
-        apiCall(json) { api.updateProfile(UpdateProfileRequest(user.displayName, user.avatarUrl, user.mapColor, countryCode)) }.alsoOk { session.save(it.accessToken, it.user) }
+    /** Changes the country and/or gender; the rest of the profile goes back as it is. */
+    suspend fun updateProfile(user: AuthUser, countryCode: String? = null, gender: Gender? = null): ApiResult<AuthResponse> =
+        apiCall(json) { api.updateProfile(UpdateProfileRequest(user.displayName, user.avatarUrl, user.mapColor, countryCode, gender)) }.alsoOk { session.save(it.accessToken, it.user) }
 
     suspend fun signOut() = session.clear()
 }

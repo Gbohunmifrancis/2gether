@@ -238,6 +238,8 @@ public sealed class AuthController(
             return UnprocessableEntity(new ApiError("profile.invalid_color", "Map color must be a six-digit hex color."));
         // Left out by app versions from before the country was asked: then it stays as it is.
         if (!TryCountry(request.CountryCode, out var country)) return UnprocessableEntity(BadCountry);
+        if (request.Gender is { } gender && !Enum.IsDefined(gender))
+            return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
         var user = await db.Users.SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user is null) return NotFound();
         // An unchanged avatar is let through: the profile screen sends it back with every edit.
@@ -245,7 +247,11 @@ public sealed class AuthController(
             return UnprocessableEntity(new ApiError("profile.invalid_avatar", "The avatar must be an https link of at most 500 characters."));
         user.UpdateProfile(request.DisplayName.Trim(), avatar, mapColor, clock.UtcNow);
         if (country is not null) user.SetCountry(country, clock.UtcNow);
+        if (request.Gender is { } newGender && newGender != user.Gender) user.SetGender(newGender, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
+        // Becoming a woman turns on cycle tracking, as at sign-up, unless the partner already tracks one. Changing away
+        // keeps the cycle and its history: nothing is deleted behind anyone's back.
+        await EnsureFemaleCycleOwnerAsync(user, cancellationToken);
         var token = tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(new AuthResponse(token, ToUser(user)));
     }
@@ -286,7 +292,8 @@ public sealed record GoogleSignInRequest(string IdToken, DateOnly? DateOfBirth =
 /// <summary>An ApiError plus what Google told us, so the app can prefill the last step.</summary>
 public sealed record GoogleProfileRequired(string Code, string Message, string Email, string? Name);
 public sealed record AuthResponse(string AccessToken, AuthUserDto User);
-public sealed record UpdateProfileRequest(string DisplayName, string? AvatarUrl, string? MapColor, string? CountryCode = null);
+/// <summary>Country and gender are optional: left out (as older app versions do), they stay as they are.</summary>
+public sealed record UpdateProfileRequest(string DisplayName, string? AvatarUrl, string? MapColor, string? CountryCode = null, Gender? Gender = null);
 /// <summary><c>Region</c> is the content region for <c>CountryCode</c> (africa, mena, southasia, eastasia, latam, default).</summary>
 public sealed record AuthUserDto(Guid Id, string Email, string DisplayName, Guid? CoupleId, string TimeZoneId, string? AvatarUrl, string MapColor, bool CycleOwner, Gender Gender,
     string? CountryCode, string Region);

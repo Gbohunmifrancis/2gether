@@ -299,6 +299,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
                                 onClearDeleteError = usModel::clearDeleteError,
                                 country = me.countryCode, onCountry = { usModel.setCountry(me, it) },
+                                gender = me.gender, onGender = { usModel.setGender(me, it) { cycleSummary.load() } },
                                 location = {
                                     LocationCard(locationUi, partner, onOpen = { nav.navigate(Routes.MAP) }, onShare = shareLocation,
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)

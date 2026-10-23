@@ -1,5 +1,7 @@
 package app.heartpact.ui.us
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.HeartBroken
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonRemove
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -44,9 +47,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.Countries
 import app.heartpact.data.DailyQuestion
+import app.heartpact.data.Gender
 import app.heartpact.data.NotificationPreferences
 import app.heartpact.data.utc
 import app.heartpact.ui.auth.CountrySheet
+import app.heartpact.ui.auth.GENDERS
+import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -77,6 +83,7 @@ private fun Heading(text: String, modifier: Modifier = Modifier) =
 fun Chevron() = Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = Heartpact.colors.ink2)
 
 /** Us (mockup 12): the two of you, the daily question, notifications, and the account. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UsTab(
     ui: UsUi,
@@ -94,11 +101,15 @@ fun UsTab(
     /** ISO code, or null for accounts made before the app asked. The row shows only with [onCountry]. */
     country: String? = null,
     onCountry: ((String) -> Unit)? = null,
+    /** The row shows only with [onGender]. */
+    gender: Gender? = null,
+    onGender: ((Gender) -> Unit)? = null,
 ) {
     val colors = Heartpact.colors
     var confirmEnd by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     var pickingCountry by remember { mutableStateOf(false) }
+    var pickingGender by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
         Row(Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -122,7 +133,11 @@ fun UsTab(
                 CardRow("Country", subtitle = country?.let { "${Countries.flag(it)}  ${Countries.name(it)}" } ?: "Not set yet. Tell us, for photos and food tips from home",
                     icon = Icons.Outlined.Public, onClick = { pickingCountry = true }) { Chevron() }
             }
-            CardRow("Sign out", divider = onCountry != null, subtitle = "Your pact and photos stay; sign back in any time", icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
+            if (onGender != null) {
+                CardRow("Gender", subtitle = GENDERS.firstOrNull { it.first == gender }?.second ?: "Not set",
+                    icon = Icons.Outlined.Person, divider = onCountry != null, onClick = { pickingGender = true }) { Chevron() }
+            }
+            CardRow("Sign out", divider = onCountry != null || onGender != null, subtitle = "Your pact and photos stay; sign back in any time", icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
             CardRow("End our pact", subtitle = "Unlinks you both and stops every dare", icon = Icons.Outlined.HeartBroken, divider = true, onClick = { confirmEnd = true })
             CardRow("Delete my account", subtitle = "Everything of yours, for good", icon = Icons.Outlined.PersonRemove, divider = true, onClick = { confirmDelete = true })
         }
@@ -131,6 +146,19 @@ fun UsTab(
         val context = LocalContext.current
         CountrySheet(country, remember { Countries.guess(context) }, onPick = { onCountry(it); pickingCountry = false }, onDismiss = { pickingCountry = false })
     }
+    if (pickingGender && onGender != null) AlertDialog(
+        onDismissRequest = { pickingGender = false },
+        title = { Text("Which describes you?") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GENDERS.forEach { (option, label) -> HeartChip(label, gender == option, { onGender(option); pickingGender = false }) }
+                }
+                Text("Choosing Woman turns on cycle tracking. It stays private until you share it.", style = Heartpact.type.small, color = colors.ink2)
+            }
+        },
+        confirmButton = { TextButton(onClick = { pickingGender = false }) { Text("Close") } },
+    )
     if (confirmEnd) AlertDialog(
         onDismissRequest = { confirmEnd = false },
         title = { Text("End your pact with $partnerName?") },

@@ -49,9 +49,9 @@ data class AuthUser(
     val region: String = "default",
 )
 
-/** The whole profile is sent back with each change; a left-out country stays as it is. */
+/** The whole profile is sent back with each change; a left-out country or gender stays as it is. */
 @Serializable
-data class UpdateProfileRequest(val displayName: String, val avatarUrl: String?, val mapColor: String?, val countryCode: String? = null)
+data class UpdateProfileRequest(val displayName: String, val avatarUrl: String?, val mapColor: String?, val countryCode: String? = null, val gender: Gender? = null)
 
 @Serializable
 data class AuthResponse(val accessToken: String, val user: AuthUser)

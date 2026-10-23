@@ -2,6 +2,7 @@ package app.heartpact.screens
 
 import app.heartpact.data.DailyAnswer
 import app.heartpact.data.DailyQuestion
+import app.heartpact.data.Gender
 import app.heartpact.data.NotificationPreferences
 import app.heartpact.ui.home.HomeScreen
 import app.heartpact.ui.home.Tab
@@ -31,7 +32,7 @@ class UsShotsTest {
     @Test fun us() {
         shot("us") {
             HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
-                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {}, country = "NG", onCountry = {})
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {}, country = "NG", onCountry = {}, gender = Gender.Female, onGender = {})
             })
         }
         shot("us-no-country") {
