@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import app.heartpact.data.Appointment
 import app.heartpact.data.Pregnancy
 import app.heartpact.data.utc
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
@@ -186,7 +187,7 @@ private fun Weeks(week: Int) {
 @Composable
 private fun AppointmentRow(a: Appointment, myId: String, partnerName: String, divider: Boolean, onDelete: () -> Unit) {
     val at = utc(a.atUtc).atZone(ZoneId.systemDefault())
-    val line = listOfNotNull(at.format(DateTimeFormatter.ofPattern("EEE d MMM · HH:mm")), a.location).joinToString(" · ")
+    val line = listOfNotNull(at.format(Dates.formatter("EEE d MMM · HH:mm")), a.location).joinToString(" · ")
     var confirm by remember { mutableStateOf(false) }
     CardRow(a.title, subtitle = line, icon = Icons.Outlined.Event, divider = divider, onClick = { confirm = true }) {
         Text(if (a.createdByUserId == myId) tr("You") else tr("{partner} added", "partner" to partnerName), style = Heartpact.type.labelSmall, color = Heartpact.actor.onSoft,
@@ -216,7 +217,7 @@ private fun Start(busy: Boolean, partnerName: String, onStart: (LocalDate?, Loca
         HeartChip(tr("I know the due date"), byDue, { byDue = true; date = null })
         HeartChip(tr("From my last period"), !byDue, { byDue = false; date = null })
     }
-    HeartButton(date?.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy")) ?: if (byDue) tr("Choose the due date") else tr("Choose the first day of your last period"),
+    HeartButton(date?.format(Dates.formatter("EEEE d MMMM yyyy")) ?: if (byDue) tr("Choose the due date") else tr("Choose the first day of your last period"),
         { picking = true }, Modifier.padding(top = 12.dp), kind = ButtonKind.Outline, icon = Icons.Outlined.Event)
     StickerCard(Modifier.padding(top = 14.dp)) {
         CardRow(tr("Share with {partner}", "partner" to partnerName), subtitle = tr("You can change this any time"), onClick = { share = !share }) {
@@ -250,7 +251,7 @@ private fun AddAppointment(today: LocalDate, onDismiss: () -> Unit, onSave: (Str
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HeartField(tr("What"), title, { title = it.take(120) }, keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HeartButton(day.format(DateTimeFormatter.ofPattern("EEE d MMM")), { pickDay = true }, kind = ButtonKind.Outline, fillWidth = false, height = 44.dp)
+                    HeartButton(day.format(Dates.formatter("EEE d MMM")), { pickDay = true }, kind = ButtonKind.Outline, fillWidth = false, height = 44.dp)
                     HeartButton(time.format(DateTimeFormatter.ofPattern("HH:mm")), { pickTime = true }, kind = ButtonKind.Outline, fillWidth = false, height = 44.dp)
                 }
                 HeartField(tr("Where (optional)"), location, { location = it.take(200) })

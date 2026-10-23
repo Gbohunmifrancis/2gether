@@ -33,6 +33,7 @@ import app.heartpact.billing.PlusOffers
 import app.heartpact.data.Entitlement
 import app.heartpact.data.PlanLimits
 import app.heartpact.data.utc
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
@@ -51,7 +52,7 @@ import java.time.format.DateTimeFormatter
 
 /** What the Plus screen says, kept apart from layout so it can be tested as text. */
 object PlusText {
-    private val day = DateTimeFormatter.ofPattern("d MMM yyyy")
+    private val day get() = Dates.formatter("d MMM yyyy")
 
     fun date(iso: String, zone: ZoneId = ZoneId.systemDefault()): String = day.format(utc(iso).atZone(zone))
 

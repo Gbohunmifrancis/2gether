@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
@@ -125,5 +126,5 @@ fun PairScreen(
 
 private fun expiry(isoUtc: String): String = runCatching {
     val local = Instant.parse(if (isoUtc.endsWith("Z") || isoUtc.contains('+')) isoUtc else "${isoUtc}Z").atZone(ZoneId.systemDefault())
-    tr("{day} at {time}", "day" to local.format(DateTimeFormatter.ofPattern("EEEE")), "time" to local.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
+    tr("{day} at {time}", "day" to local.format(Dates.formatter("EEEE")), "time" to local.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
 }.getOrDefault(tr("soon"))

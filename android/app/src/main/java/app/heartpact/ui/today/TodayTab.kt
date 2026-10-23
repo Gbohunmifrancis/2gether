@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.utc
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
@@ -79,7 +80,7 @@ fun TodayTab(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
             Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
-            val date = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM"))
+            val date = LocalDate.now().format(Dates.formatter("EEEE d MMMM"))
             Text(if (view != null) trn(view.hearts, "{date} · {count} heart this week", "{date} · {count} hearts this week", "date" to date) else date,
                 style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
@@ -179,10 +180,10 @@ private fun PartnerDone(done: ExerciseOccurrence, partnerName: String) {
 @Composable
 private fun Week(view: TodayView) {
     val colors = Heartpact.colors
-    val fmt = DateTimeFormatter.ofPattern("d MMM")
+    val fmt = Dates.formatter("d MMM")
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("${view.week.first().first.format(DateTimeFormatter.ofPattern("d"))}–${view.week.last().first.format(fmt)}", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.weight(1f))
+            Text("${view.week.first().first.format(Dates.formatter("d"))}–${view.week.last().first.format(fmt)}", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.weight(1f))
             view.week.forEach { (_, sticker) ->
                 when (sticker) {
                     DaySticker.Heart -> HeartSticker(HalfState.Stuck, HalfState.Stuck, 26.dp)

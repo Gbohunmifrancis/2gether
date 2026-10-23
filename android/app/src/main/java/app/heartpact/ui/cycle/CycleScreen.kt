@@ -55,6 +55,7 @@ import app.heartpact.data.CycleDayLog
 import app.heartpact.data.CycleMood
 import app.heartpact.data.CycleShare
 import app.heartpact.data.FlowLevel
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
@@ -189,7 +190,7 @@ private fun Strip(days: List<StripDay>) {
     val fertile = colors.left.soft
     val plain = colors.sticker2
     val ink = colors.ink
-    val fmt = DateTimeFormatter.ofPattern("d MMM")
+    val fmt = Dates.formatter("d MMM")
     StickerCard(Modifier.padding(top = 20.dp).fillMaxWidth(), shape = Shapes.Dare) {
         Column(Modifier.padding(18.dp)) {
             Canvas(Modifier.fillMaxWidth().height(64.dp).semantics { contentDescription = tr("Cycle from {from} to {to}", "from" to days.first().date.format(fmt), "to" to days.last().date.format(fmt)) }) {
@@ -264,7 +265,7 @@ private fun Setup(ui: CycleUi, onSetup: (LocalDate, Int, Int) -> Unit, today: Lo
     var period by remember { mutableIntStateOf(ui.profile.averagePeriodLengthDays) }
     var picking by remember { mutableStateOf(false) }
     Text(tr("When did your last period start?"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
-    HeartButton(start.format(DateTimeFormatter.ofPattern("EEEE d MMMM")), { picking = true }, Modifier.padding(top = 10.dp), kind = ButtonKind.Outline, fillWidth = false)
+    HeartButton(start.format(Dates.formatter("EEEE d MMMM")), { picking = true }, Modifier.padding(top = 10.dp), kind = ButtonKind.Outline, fillWidth = false)
     Stepper(tr("Usual cycle length"), trn(cycle, "{count} day", "{count} days"), { cycle = (cycle - 1).coerceAtLeast(15) }, { cycle = (cycle + 1).coerceAtMost(60) })
     Stepper(tr("Usual period length"), trn(period, "{count} day", "{count} days"), { period = (period - 1).coerceAtLeast(1) }, { period = (period + 1).coerceAtMost(14) })
     Text(tr("Not sure? 28 and 5 are common starting points; predictions get better as you log."), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))

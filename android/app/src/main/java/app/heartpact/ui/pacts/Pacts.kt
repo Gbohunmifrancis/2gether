@@ -38,6 +38,7 @@ import app.heartpact.data.ApiResult
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.utc
 import app.heartpact.exercise.Measure
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
@@ -171,8 +172,8 @@ private fun PactCardView(card: PactCard, partnerName: String, forMe: Boolean, on
                 card.days.forEach { (_, s) -> DayStickerView(s, forMe) }
             }
             Row(Modifier.padding(top = 6.dp).fillMaxWidth()) {
-                Text(card.days.first().first.format(DateTimeFormatter.ofPattern("d MMM")), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.weight(1f))
-                Text(tr("today, {date}", "date" to card.days.last().first.format(DateTimeFormatter.ofPattern("d MMM"))), style = Heartpact.type.small, color = colors.ink3)
+                Text(card.days.first().first.format(Dates.formatter("d MMM")), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.weight(1f))
+                Text(tr("today, {date}", "date" to card.days.last().first.format(Dates.formatter("d MMM"))), style = Heartpact.type.small, color = colors.ink3)
             }
             if (!forMe) HeartButton(tr("Stop this dare"), onStopRequest, Modifier.padding(top = 6.dp), kind = ButtonKind.Text, height = 40.dp, fillWidth = false)
         }

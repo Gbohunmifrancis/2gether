@@ -3,6 +3,7 @@ package app.heartpact.ui.pregnancy
 import app.heartpact.data.KickSession
 import app.heartpact.data.Pregnancy
 import app.heartpact.data.utc
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import java.time.LocalDate
@@ -10,7 +11,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object PregnancyText {
-    private val dayMonth = DateTimeFormatter.ofPattern("d MMMM")
+    private val dayMonth get() = Dates.formatter("d MMMM")
 
     fun due(p: Pregnancy): String = tr("Due around {date}", "date" to LocalDate.parse(p.dueDate).format(dayMonth))
 
@@ -26,7 +27,7 @@ object PregnancyText {
         val day = when (at.toLocalDate()) {
             today -> tr("today")
             today.minusDays(1) -> tr("yesterday")
-            else -> at.format(DateTimeFormatter.ofPattern("EEE d MMM"))
+            else -> at.format(Dates.formatter("EEE d MMM"))
         }
         val minutes = ((last.durationSeconds ?: 0) + 59) / 60
         return trn(last.count, "{count} kick in {minutes} min · {day} {time}", "{count} kicks in {minutes} min · {day} {time}",

@@ -4,6 +4,7 @@ import app.heartpact.data.CycleDayLog
 import app.heartpact.data.CyclePrediction
 import app.heartpact.data.CycleShare
 import app.heartpact.data.FlowLevel
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -35,7 +36,7 @@ object CyclePlan {
         return days + predicted
     }
 
-    private val dayMonth = DateTimeFormatter.ofPattern("d MMMM")
+    private val dayMonth get() = Dates.formatter("d MMMM")
 
     /** "27–29 October": the predicted start, give or take a day. */
     fun likely(next: LocalDate): String {

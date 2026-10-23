@@ -44,7 +44,7 @@ object AlbumText {
         var unit = 0
         while (value >= 1000 && unit < units.lastIndex) { value /= 1024; unit++ }
         if (bytes < 1024) return tr("{size} B", "size" to bytes)
-        val shown = if (value >= 10 || unit == 0) value.roundToLong().toString() else String.format(Locale.US, "%.1f", value).removeSuffix(".0")
+        val shown = if (value >= 10 || unit == 0) value.roundToLong().toString() else String.format(Locale.getDefault(), "%.1f", value).removeSuffix(".0").removeSuffix(",0")
         return when (unit) {
             0 -> tr("{size} KB", "size" to shown)
             1 -> tr("{size} MB", "size" to shown)

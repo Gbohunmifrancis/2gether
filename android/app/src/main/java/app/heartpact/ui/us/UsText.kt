@@ -3,6 +3,7 @@ package app.heartpact.ui.us
 import app.heartpact.data.DailyQuestion
 import app.heartpact.data.NotificationPreferences
 import app.heartpact.data.utc
+import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import java.time.LocalDate
 import java.time.ZoneId
@@ -13,7 +14,7 @@ object UsText {
     fun togetherSince(linkedAtUtc: String?, today: LocalDate = LocalDate.now(), zone: ZoneId = ZoneId.systemDefault()): String? {
         val date = linkedAtUtc?.let { runCatching { utc(it).atZone(zone).toLocalDate() }.getOrNull() } ?: return null
         val pattern = if (date.year == today.year) "d MMMM" else "d MMMM yyyy"
-        return tr("together since {date}", "date" to date.format(DateTimeFormatter.ofPattern(pattern)))
+        return tr("together since {date}", "date" to date.format(Dates.formatter(pattern)))
     }
 
     fun questionStatus(q: DailyQuestion?, partner: String): String = when {
@@ -46,7 +47,7 @@ object UsText {
         val date = LocalDate.parse(q.localDate)
         val day = when (date) {
             today.minusDays(1) -> tr("Yesterday")
-            else -> date.format(DateTimeFormatter.ofPattern("EEE d MMM"))
+            else -> date.format(Dates.formatter("EEE d MMM"))
         }
         val who = when {
             q.myAnswer != null && q.partnerAnswered -> tr("you both answered")

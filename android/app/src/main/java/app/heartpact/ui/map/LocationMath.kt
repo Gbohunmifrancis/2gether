@@ -30,7 +30,7 @@ object LocationMath {
     fun distance(m: Double): String = when {
         m < 100 -> tr("right next to you")
         m < 1000 -> tr("{meters} m away", "meters" to (m / 10).roundToInt() * 10)
-        m < 10_000 -> tr("{km} km away", "km" to "%.1f".format(java.util.Locale.US, m / 1000))
+        m < 10_000 -> tr("{km} km away", "km" to "%.1f".format(java.util.Locale.getDefault(), m / 1000))
         else -> tr("{km} km away", "km" to (m / 1000).roundToInt())
     }
 
