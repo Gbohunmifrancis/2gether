@@ -75,5 +75,12 @@
     "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b",
     "license": "Unsplash License",
     "use": "stand-in camera feed for the rep counter"
+  },
+  "camera-arm-raises.jpg": {
+    "source": "Unsplash",
+    "url": "https://unsplash.com/photos/1518310383802-640c2de311b2",
+    "image": "https://images.unsplash.com/photo-1518310383802-640c2de311b2",
+    "license": "Unsplash License",
+    "use": "stand-in for the front camera during arm raises (portrait workout screen), cropped to the centre figure"
   }
 }
