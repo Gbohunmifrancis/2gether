@@ -10,6 +10,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.heartpact.album.AlbumNotices
+import app.heartpact.i18n.Tr
 import app.heartpact.ui.AppViewModel
 import app.heartpact.ui.HeartpactApp
 
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
         // The system splash is a plain indigo frame; the walk-together scene starts as soon as Compose draws.
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        Tr.load(this)
         enableEdgeToEdge()
         if (savedInstanceState == null) handleIntent(intent)
         setContent { HeartpactApp(container, appModel) }
