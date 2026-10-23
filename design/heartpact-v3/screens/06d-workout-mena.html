@@ -1,0 +1,54 @@
+<!-- {"status":"light","time":"8:02","handle":"dark","bg":"#161A3D"} -->
+<!-- Workout, portrait (mena photo): the camera full-bleed, your progress toward your half on the right, the count on a sticker sheet. -->
+<div style="position:absolute;left:0;top:0;width:390px;height:595px;background:url(../assets/camera-mena.jpg) center top/100% auto"></div>
+<div style="position:absolute;left:0;top:0;width:390px;height:190px;background:linear-gradient(rgba(22,26,61,.72),rgba(22,26,61,0))"></div>
+<svg style="position:absolute;left:0;top:0" width="390" height="595" viewBox="0 0 390 595" fill="none">
+  <g stroke="#B9C0FF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="106,346 102,262 108,169 124,331 131,441 131,543"/>
+    <polyline points="212,345 225,258 222,169 198,331 202,441 214,543"/>
+    <polyline points="108,169 222,169"/>
+    <polyline points="124,331 198,331"/>
+  </g>
+  <g fill="#fff" stroke="#1F2557" stroke-width="2.5"><circle cx="108" cy="169" r="6"/><circle cx="222" cy="169" r="6"/><circle cx="102" cy="262" r="6"/><circle cx="225" cy="258" r="6"/><circle cx="106" cy="346" r="6"/><circle cx="212" cy="345" r="6"/><circle cx="124" cy="331" r="6"/><circle cx="198" cy="331" r="6"/><circle cx="131" cy="441" r="6"/><circle cx="202" cy="441" r="6"/><circle cx="131" cy="543" r="6"/><circle cx="214" cy="543" r="6"/></g>
+</svg>
+
+<!-- Top bar: whose dare and what, the frame check, flip camera -->
+<div style="position:absolute;left:20px;right:16px;top:44px;display:flex;align-items:flex-start;color:#fff">
+  <div style="flex:1">
+    <div class="small" style="opacity:.85;display:flex;align-items:center;gap:5px"><span class="ms s16">alarm</span>Theo's dare</div>
+    <div class="headline" style="margin-top:2px">15 arm raises</div>
+    <span class="tag" style="margin-top:10px;background:rgba(22,26,61,.62);color:#fff;height:30px;padding:0 12px;border-radius:15px;gap:7px"><span class="dot" style="background:#B9C0FF"></span>Whole body in frame</span>
+  </div>
+  <div class="iconbtn" style="width:46px;height:46px;background:rgba(22,26,61,.62);color:#fff"><span class="ms">flip_camera_android</span></div>
+</div>
+
+<!-- Progress toward your half: Theo's is on, yours sticks when the bar fills -->
+<div style="position:absolute;right:16px;top:176px;width:70px;padding:14px 0 12px;border-radius:33px;background:var(--sticker);box-shadow:var(--lift-2);display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="display:flex">{{slot:l:30}}<div style="margin-left:-11px">{{half:r:30}}</div></div>
+  <div style="width:14px;height:150px;border-radius:7px;background:var(--maya-soft);position:relative;overflow:hidden">
+    <div style="position:absolute;left:0;right:0;bottom:0;height:60%;border-radius:7px;background:var(--maya)"></div>
+  </div>
+  <div style="text-align:center;line-height:1.1"><div class="title-s" style="color:var(--ink)">6</div><div class="small" style="font-size:11px;color:var(--ink-2)">to go</div></div>
+</div>
+
+<!-- Theo sees each rep live -->
+<div style="position:absolute;right:16px;top:486px;display:flex;align-items:center;gap:6px;padding:4px 14px 4px 6px;border-radius:24px;background:rgba(22,26,61,.62);color:#fff">
+  {{m:theo:cheer:36:sticker:cheer}}<span class="label-s">Theo is watching</span>
+</div>
+
+<!-- The sheet: elapsed, the count, time left to ring; then the way out -->
+<div style="position:absolute;left:0;right:0;top:556px;bottom:0;background:var(--sticker);border-radius:30px 30px 0 0;padding:22px 20px 0;box-shadow:0 -10px 30px -12px rgba(22,26,61,.5)">
+  <div style="display:flex;align-items:center">
+    <div style="flex:1"><div class="small faint">Elapsed</div><div class="title" style="margin-top:2px">0:42</div></div>
+    <div style="width:132px;height:104px;border-radius:26px;background:var(--maya-soft);display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div class="display" style="font-size:58px;color:var(--maya-ink)">9</div>
+      <div class="label-s" style="color:var(--maya-ink);margin-top:4px">of 15 raises</div>
+    </div>
+    <div style="flex:1;text-align:right"><div class="small faint">Left to ring</div><div class="title" style="margin-top:2px">26:40</div></div>
+  </div>
+  <div class="small muted" style="text-align:center;margin-top:12px">Face the camera, raise both hands above your head.</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:6px;height:64px;border-radius:32px;background:var(--page)">
+    <div class="iconbtn" style="width:52px;height:52px;border-radius:26px;background:var(--sticker);color:var(--ink)"><span class="ms">notifications_off</span></div>
+    <div class="btn filled" style="flex:1;height:52px;border-radius:26px;box-shadow:none"><span class="ms s20 fill">stop</span>Stop counting</div>
+  </div>
+</div>

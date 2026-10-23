@@ -5,6 +5,26 @@
   var root = document.documentElement;
   var motion = root.classList.contains("motion");
 
+  // Regional images (docs/regional-images.md): boot.js worked out the region before anything loaded.
+  /** Regions with their own image so far; the rest show the default. */
+  var READY = ["africa", "mena", "latam", "eastasia"];
+  var ALT = {
+    africa: "The workout screen counting squats, 9 of 15, with the pose drawn over the camera",
+    mena: "The workout screen counting arm raises, 9 of 15, with the pose drawn over the camera",
+    latam: "The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera",
+    eastasia: "The workout screen counting squats, 9 of 15, with the pose drawn over the camera",
+  };
+  // The image has no src until now, so only one version is ever downloaded.
+  (function showRegionalImages() {
+    var region = root.getAttribute("data-region") || "default";
+    var own = READY.indexOf(region) >= 0;
+    document.querySelectorAll("img[data-regional]").forEach(function (img) {
+      var name = img.getAttribute("data-regional");
+      img.src = "/assets/img/" + name + (own ? "-" + region : "") + ".webp";
+      if (own && ALT[region]) img.alt = ALT[region];
+    });
+  })();
+
   // The slim bar appears once the hero is gone, so the Play button is always one tap away.
   var hero = document.querySelector(".hero");
   var topbar = document.querySelector(".topbar");

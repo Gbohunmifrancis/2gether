@@ -118,6 +118,9 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .side.theirs .eyebrow { color: var(--peri-ink); }
 .side ol { margin: 18px 0 0; padding-left: 22px; display: grid; gap: 14px; }
 .side li span { color: var(--ink-2); }
+/* Waits for site.js to pick its region's image; without JavaScript the <noscript> copy shows instead. */
+.side img.phone:not([src]) { display: none; }
+.motion .side img.phone:not([src]), .js .side img.phone:not([src]) { display: block; }
 .side .phone { width: min(250px, 70%); margin: 40px auto -60px; border-radius: 32px; box-shadow: 0 34px 60px -30px var(--navy); }
 
 /* ---------- Fair play ---------- */

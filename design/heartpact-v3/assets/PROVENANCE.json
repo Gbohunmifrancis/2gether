@@ -82,5 +82,33 @@
     "image": "https://images.unsplash.com/photo-1518310383802-640c2de311b2",
     "license": "Unsplash License",
     "use": "stand-in for the front camera during arm raises (portrait workout screen), cropped to the centre figure"
+  },
+  "camera-africa.jpg": {
+    "source": "Pexels",
+    "url": "https://www.pexels.com/photo/8173430/",
+    "image": "https://images.pexels.com/photos/8173430/pexels-photo-8173430.jpeg",
+    "license": "Pexels License (free for commercial use, no attribution required)",
+    "use": "regional stand-in for the front camera on the workout screen (africa): woman doing a squat in her living room"
+  },
+  "camera-mena.jpg": {
+    "source": "Pexels",
+    "url": "https://www.pexels.com/photo/8736746/",
+    "image": "https://images.pexels.com/photos/8736746/pexels-photo-8736746.jpeg",
+    "license": "Pexels License (free for commercial use, no attribution required)",
+    "use": "regional stand-in for the front camera on the workout screen (mena): woman in a hijab standing in a boxing gym"
+  },
+  "camera-latam.jpg": {
+    "source": "Pexels",
+    "url": "https://www.pexels.com/photo/8173450/",
+    "image": "https://images.pexels.com/photos/8173450/pexels-photo-8173450.jpeg",
+    "license": "Pexels License (free for commercial use, no attribution required)",
+    "use": "regional stand-in for the front camera on the workout screen (latam): woman standing in her living room, facing the camera"
+  },
+  "camera-eastasia.jpg": {
+    "source": "Pexels",
+    "url": "https://www.pexels.com/photo/3768700/",
+    "image": "https://images.pexels.com/photos/3768700/pexels-photo-3768700.jpeg",
+    "license": "Pexels License (free for commercial use, no attribution required)",
+    "use": "regional stand-in for the front camera on the workout screen (eastasia): woman doing a kettlebell squat, cropped from a group class"
   }
 }
