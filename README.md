@@ -55,7 +55,7 @@ npm.cmd run dev
 
 Open `http://localhost:3000`. The API health endpoint is `http://localhost:5080/health`.
 
-Deployment (API to Railway, admin dashboard to Cloudflare Pages, Android app to Google Play) is automated on `main`; see `docs/deploy.md`.
+Deployment (API to Railway, admin dashboard and marketing site to Cloudflare Pages, Android app to Google Play) is automated on `main`; see `docs/deploy.md`. The marketing site, with the privacy policy, terms and account deletion page, is in `website/` (see `docs/website.md`).
 
 Environment keys use double underscores in deployment, for example `Database__ConnectionString` and `Frontend__Origin`.
 

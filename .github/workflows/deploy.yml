@@ -18,6 +18,10 @@ on:
         description: Deploy the admin dashboard to Cloudflare Pages
         type: boolean
         default: true
+      website:
+        description: Deploy the marketing site to Cloudflare Pages
+        type: boolean
+        default: true
       android:
         description: Upload the Android app to Google Play
         type: boolean
@@ -43,6 +47,7 @@ jobs:
     outputs:
       api: ${{ steps.pick.outputs.api }}
       admin: ${{ steps.pick.outputs.admin }}
+      website: ${{ steps.pick.outputs.website }}
       android: ${{ steps.pick.outputs.android }}
     steps:
       - uses: actions/checkout@v4
@@ -54,23 +59,26 @@ jobs:
           BEFORE: ${{ github.event.before }}
           IN_API: ${{ inputs.api }}
           IN_ADMIN: ${{ inputs.admin }}
+          IN_WEBSITE: ${{ inputs.website }}
           IN_ANDROID: ${{ inputs.android }}
         run: |
           if [ "$EVENT" = "workflow_dispatch" ]; then
             echo "api=$IN_API" >> "$GITHUB_OUTPUT"
             echo "admin=$IN_ADMIN" >> "$GITHUB_OUTPUT"
+            echo "website=$IN_WEBSITE" >> "$GITHUB_OUTPUT"
             echo "android=$IN_ANDROID" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # A new branch or a force-push has no usable "before": ship everything.
           if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            files=$(printf 'Dockerfile\nadmin/\nandroid/\n')
+            files=$(printf 'Dockerfile\nadmin/\nwebsite/\nandroid/\n')
           else
             files=$(git diff --name-only "$BEFORE" "$GITHUB_SHA")
           fi
           has() { echo "$files" | grep -Eq "$1" && echo true || echo false; }
           echo "api=$(has '^(src/|tests/|Dockerfile|railway\.json|Directory\.Build\.props|Twogether\.slnx)')" >> "$GITHUB_OUTPUT"
           echo "admin=$(has '^admin/')" >> "$GITHUB_OUTPUT"
+          echo "website=$(has '^website/')" >> "$GITHUB_OUTPUT"
           echo "android=$(has '^android/')" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
@@ -200,6 +208,62 @@ jobs:
             sleep 10
           done
           echo "::error title=Dashboard not live::$ADMIN_URL doesn't serve $script after 5 minutes."
+          exit 1
+
+  website:
+    name: Marketing site to Cloudflare Pages
+    needs: changes
+    # Static pages: nothing to wait for. Only the deletion page calls the API, at API_URL.
+    if: needs.changes.outputs.website == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production-website
+      url: ${{ vars.SITE_URL }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PAGES_PROJECT: ${{ vars.CLOUDFLARE_SITE_PROJECT || 'heartpact-site' }}
+      API_URL: ${{ vars.API_URL }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: ready
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$API_URL" ]; then
+            echo "::notice title=Website not deployed::Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets and the API_URL variable. See docs/website.md."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Point the deletion page at the API
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/site"
+          cp -R website/. "$RUNNER_TEMP/site/"
+          api="${API_URL%/}"
+          # The script that calls the API, and the Content-Security-Policy that allows it.
+          sed -i "s#https://api.heartpact.app#$api#g" "$RUNNER_TEMP/site/assets/config.js" "$RUNNER_TEMP/site/_headers"
+          grep -q "$api" "$RUNNER_TEMP/site/assets/config.js" && grep -q "connect-src 'self' $api" "$RUNNER_TEMP/site/_headers"
+      - name: Upload to Cloudflare Pages
+        if: steps.ready.outputs.go == 'true'
+        run: npx --yes wrangler@4.151.0 pages deploy "$RUNNER_TEMP/site" --project-name "$PAGES_PROJECT" --branch main --commit-hash "$GITHUB_SHA" --commit-message "$(git log -1 --format=%s | head -c 80)"
+      - name: Check the live site
+        if: steps.ready.outputs.go == 'true' && env.SITE_URL != ''
+        run: |
+          # This build's stylesheet must be what the site serves, with the security headers on.
+          for i in $(seq 1 30); do
+            if curl -fsS --max-time 10 "$SITE_URL/assets/site.css" | cmp -s - website/assets/site.css; then
+              headers=$(curl -sS -D - -o /dev/null "$SITE_URL/privacy/")
+              echo "$headers" | grep -iq "^content-security-policy:" || { echo "::error::$SITE_URL has no Content-Security-Policy (website/_headers)."; exit 1; }
+              # The deletion page signs in from the site's origin: the API must allow it in Frontend__Origin.
+              allowed=$(curl -sS -D - -o /dev/null -X OPTIONS -H "Origin: $SITE_URL" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type" "${API_URL%/}/api/auth/login" | tr -d '\r' | grep -i "^access-control-allow-origin:" || true)
+              [ -n "$allowed" ] || echo "::warning title=Deletion page can't reach the API::Add $SITE_URL to Frontend__Origin on the API. See docs/website.md."
+              echo "Live: $SITE_URL"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error title=Website not live::$SITE_URL doesn't serve this build's stylesheet after 5 minutes."
           exit 1
 
   android:
