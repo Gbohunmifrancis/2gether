@@ -153,7 +153,7 @@ private fun Waiting(s: GameSession, me: String, partnerName: String, busy: Boole
     }
     if (mine) HeartButton(tr("Cancel the invite"), { actions.onAbandon(s.id) }, Modifier.padding(top = 24.dp), kind = ButtonKind.Text)
     else {
-        HeartButton(tr("Play {game}", "game" to GamePlay.title(s.gameType).lowercase()), { actions.onAccept(s.id) }, Modifier.padding(top = 24.dp), busy = busy)
+        HeartButton(GamePlay.play(s.gameType), { actions.onAccept(s.id) }, Modifier.padding(top = 24.dp), busy = busy)
         HeartButton(tr("Not now"), { actions.onAbandon(s.id) }, Modifier.padding(top = 4.dp), kind = ButtonKind.Text)
     }
 }

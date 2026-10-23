@@ -5,6 +5,7 @@
     python3 android/i18n/catalog.py check    # every language file has every string, no stale ones, same {placeholders}
     python3 android/i18n/catalog.py missing fr   # just the strings French still needs, as JSON
     python3 android/i18n/catalog.py merge fr batch.json   # adds a batch of translations to fr.json, sorted
+    python3 android/i18n/catalog.py prune    # drops translations whose English is no longer in the app
 
 CatalogTest.kt does the same check in the unit tests, so CI fails on a string without translations.
 """
@@ -139,6 +140,16 @@ def main():
         print(f"{language}: merged {len(batch) - len(unknown)}, {len(missing)} still missing")
         for k in unknown:
             print("not a key in the app (typo in the English?):", repr(k))
+        return
+    elif command == "prune":
+        for language in LANGUAGES:
+            path = CATALOGS / f"{language}.json"
+            if not path.exists():
+                continue
+            catalog = json.loads(path.read_text(encoding="utf-8"))
+            kept = {k: v for k, v in catalog.items() if k.startswith("@") or k in found}
+            path.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+            print(f"{language}: dropped {len(catalog) - len(kept)}")
         return
     elif command == "missing":
         _, missing = check_language(sys.argv[2], found)

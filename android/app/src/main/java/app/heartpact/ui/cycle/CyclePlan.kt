@@ -6,6 +6,7 @@ import app.heartpact.data.CycleShare
 import app.heartpact.data.FlowLevel
 import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -47,7 +48,7 @@ object CyclePlan {
 
     fun summary(prediction: CyclePrediction, cycleLength: Int): String? {
         val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return null
-        return tr("Of about {cycleLength}. Next period likely {dates}.", "cycleLength" to cycleLength, "dates" to likely(next))
+        return trn(cycleLength, "Of about {count} day. Next period likely {dates}.", "Of about {count} days. Next period likely {dates}.", "dates" to likely(next))
     }
 
     fun shareLine(level: CycleShare, partner: String): String = when (level) {

@@ -43,7 +43,21 @@ enum class ExerciseType(val englishName: String, val measure: Measure, val defau
         SitUp -> tr("Side-on, lying down, whole body in frame.")
     }
 
-    fun label(target: Int): String = if (measure == Measure.Seconds) trn(target, "{exercise}, {count} second", "{exercise}, {count} seconds", "exercise" to displayName.lowercase()) else tr("{count} {exercise}", "count" to target, "exercise" to displayName.lowercase())
+    /** "15 squats", "Plank, 30 seconds": one whole phrase per exercise, so every language can make the number agree. */
+    fun label(target: Int): String = when (this) {
+        Squat -> trn(target, "{count} squat", "{count} squats")
+        PushUp -> trn(target, "{count} push-up", "{count} push-ups")
+        JumpingJack -> trn(target, "{count} jumping jack", "{count} jumping jacks")
+        Plank -> trn(target, "plank, {count} second", "plank, {count} seconds")
+        ArmRaise -> trn(target, "{count} arm raise", "{count} arm raises")
+        HighKnees -> trn(target, "{count} high knee", "{count} high knees")
+        SitUp -> trn(target, "{count} sit-up", "{count} sit-ups")
+    }
+
+    /** How far along a dare is: "12 of 15 squats", or "12 of 30 seconds" for a plank. */
+    fun progress(achieved: Int, target: Int): String =
+        if (measure == Measure.Seconds) trn(target, "{achieved} of {count} second", "{achieved} of {count} seconds", "achieved" to achieved)
+        else tr("{achieved} of {total}", "achieved" to achieved, "total" to label(target))
 }
 
 @Serializable

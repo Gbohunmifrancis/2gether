@@ -40,7 +40,7 @@ class CyclePlanTest {
     }
 
     @Test fun `wording`() {
-        assertEquals("Of about 28. Next period likely 27–29 October.", CyclePlan.summary(prediction, 28))
+        assertEquals("Of about 28 days. Next period likely 27–29 October.", CyclePlan.summary(prediction, 28))
         assertEquals("31 October–2 November", CyclePlan.likely(LocalDate.of(2026, 11, 1)))
         assertEquals("Day 12 · Theo sees predictions", CyclePlan.usRow(true, 12, app.heartpact.data.CycleShare.PredictionsOnly, "Theo", null))
         assertEquals("Day 12 of Maya's cycle", CyclePlan.usRow(false, null, null, "Maya", 12))

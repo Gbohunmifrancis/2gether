@@ -122,7 +122,7 @@ fun AlarmRinging(
         StickerCard(shape = Shapes.Dare) {
             Column(Modifier.padding(20.dp)) {
                 Text(occurrence.title, style = Heartpact.type.title, color = Heartpact.colors.ink)
-                Text(tr("{achieved} of {target} counted · stops at {target}", "achieved" to occurrence.achievedCount, "target" to occurrence.target), style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                Text(occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target), style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 Row(Modifier.padding(top = 14.dp).fillMaxWidth().clip(Shapes.Well).background(Heartpact.colors.sticker2).padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (mySide == Side.Left) HeartSticker(HalfState.Slot, HalfState.Stuck, 42.dp) else HeartSticker(HalfState.Stuck, HalfState.Slot, 42.dp)
                     Text(if (setByPartner) tr("{partner}'s half is on. Yours sticks at {target}.", "partner" to partnerName, "target" to occurrence.target) else tr("Your half sticks at {target}.", "target" to occurrence.target), style = Heartpact.type.body, color = Heartpact.colors.ink)
@@ -178,16 +178,15 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
     val colors = Heartpact.colors
     val done = occurrence.completedAtUtc?.let { utc(it) }
     val scheduled = utc(occurrence.scheduledAtUtc)
-    val exercise = occurrence.exerciseType.displayName.lowercase()
-    val at = done?.let { localTime(it.toString()) } ?: ""
+    val progress = occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target).replaceFirstChar { it.uppercase() }
     val summary = when {
-        done == null -> tr("{achieved} of {target} {exercise} at {time},", "achieved" to occurrence.achievedCount, "target" to occurrence.target, "exercise" to exercise, "time" to at) + "\n"
+        done == null -> progress
         done.isBefore(scheduled) -> {
             val early = Duration.between(done, scheduled).toMinutes().coerceAtLeast(1)
-            trn(early, "{achieved} of {target} {exercise} at {time},\n{count} minute before it would ring.", "{achieved} of {target} {exercise} at {time},\n{count} minutes before it would ring.",
-                "achieved" to occurrence.achievedCount, "target" to occurrence.target, "exercise" to exercise, "time" to at)
+            trn(early, "{progress} at {time},\n{count} minute before it would ring.", "{progress} at {time},\n{count} minutes before it would ring.",
+                "progress" to progress, "time" to localTime(done.toString()))
         }
-        else -> tr("{achieved} of {target} {exercise} at {time},\nwhile it was ringing.", "achieved" to occurrence.achievedCount, "target" to occurrence.target, "exercise" to exercise, "time" to at)
+        else -> tr("{progress} at {time},\nwhile it was ringing.", "progress" to progress, "time" to localTime(done.toString()))
     }
     Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding().padding(12.dp)) {
         StickerCard(Modifier.fillMaxWidth().weight(1f), shape = Shapes.Dare) {

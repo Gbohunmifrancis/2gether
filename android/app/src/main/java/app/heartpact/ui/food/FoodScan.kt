@@ -104,7 +104,7 @@ fun FoodScanScreen(
             }
             (ui.phase as? ScanPhase.Ready)?.let { ready ->
                 val adjusted = FoodText.adjust(ready.scan, ui.portion)
-                HeartButton(tr("Log {range} kcal to {meal}", "range" to FoodText.range(adjusted.low, adjusted.high), "meal" to ui.meal.label.lowercase()), onLog,
+                HeartButton(FoodText.logTo(ui.meal, FoodText.range(adjusted.low, adjusted.high)), onLog,
                     Modifier.padding(horizontal = 20.dp).padding(bottom = 14.dp), busy = ui.busy)
             }
         }

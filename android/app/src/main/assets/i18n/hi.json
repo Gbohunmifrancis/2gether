@@ -303,7 +303,10 @@
  "Log by hand": "खुद लिखो",
  "Log it": "लॉग करो",
  "Log it by hand": "खुद लिखकर लॉग करो",
- "Log {range} kcal to {meal}": "{meal} में {range} kcal जोड़ो",
+ "Log {range} kcal to breakfast": "नाश्ते में {range} kcal जोड़ो",
+ "Log {range} kcal to dinner": "डिनर में {range} kcal जोड़ो",
+ "Log {range} kcal to lunch": "लंच में {range} kcal जोड़ो",
+ "Log {range} kcal to snack": "स्नैक में {range} kcal जोड़ो",
  "Logged today": "आज लॉग किया",
  "Lower your hips into a straight line.": "हिप्स नीचे करके सीधी लाइन में लाओ।",
  "Lunch": "लंच",
@@ -315,9 +318,9 @@
  "memories": "यादें",
  "Memory match": "मेमोरी मैच",
  "Messages": "मैसेज",
- "minute left\n{achieved} of {target} counted|minutes left\n{achieved} of {target} counted": {
-  "one": "मिनट बाकी\n{target} में से {achieved} गिने गए",
-  "other": "मिनट बाकी\n{target} में से {achieved} गिने गए"
+ "minute left\n{progress}|minutes left\n{progress}": {
+  "one": "मिनट बाकी\n{progress}",
+  "other": "मिनट बाकी\n{progress}"
  },
  "missed": "छूटा",
  "missed a camera check-in|missed {count} camera check-ins": {
@@ -375,13 +378,16 @@
  "Notifications": "नोटिफ़िकेशन",
  "Notifications arrive silently, without sound": "नोटिफ़िकेशन चुपचाप, बिना आवाज़ के आते हैं",
  "Now find its pair": "अब इसका जोड़ा ढूँढो",
- "Of about {cycleLength}. Next period likely {dates}.": "लगभग {cycleLength} में से। अगला पीरियड शायद {dates} को।",
+ "Of about {count} day. Next period likely {dates}.|Of about {count} days. Next period likely {dates}.": {
+  "one": "लगभग {count} दिन में से। अगला पीरियड शायद {dates}।",
+  "other": "लगभग {count} दिनों में से। अगला पीरियड शायद {dates}।"
+ },
  "of your cycle, food and goals": "तुम्हारे चक्र, खाने और लक्ष्यों में से",
  "of {count} second|of {count} seconds": {
   "one": "{count} सेकंड में से",
   "other": "{count} सेकंड में से"
  },
- "of {count} {exercise}": "{count} {exercise} में से",
+ "of {total}": "{total} में से",
  "On now: notifications arrive silently": "अभी चालू: नोटिफ़िकेशन बिना आवाज़ आते हैं",
  "On this day": "आज ही के दिन",
  "one": "एक",
@@ -431,9 +437,19 @@
  "Photos stay on your phone until you sync": "सिंक करने तक फ़ोटो तुम्हारे फ़ोन पर ही रहती हैं",
  "Pick a game and {partner} gets an invite. It starts when they join.": "गेम चुनो, {partner} को न्योता चला जाएगा। उनके जुड़ते ही शुरू।",
  "Plank": "प्लैंक",
+ "plank, {count} second|plank, {count} seconds": {
+  "one": "प्लैंक, {count} सेकंड",
+  "other": "प्लैंक, {count} सेकंड"
+ },
  "plans and dreams": "प्लान और सपने",
+ "Play Guess my answer": "मेरा जवाब बूझो खेलो",
+ "Play Handwriting": "लिखावट खेलो",
+ "Play I call on": "नाम-जगह-चीज़ खेलो",
+ "Play Memory match": "मेमोरी मैच खेलो",
+ "Play Same answer": "एक जैसा जवाब खेलो",
  "Play together": "साथ खेलो",
- "Play {game}": "{game} खेलो",
+ "Play Truth or dare": "ट्रुथ ऑर डेयर खेलो",
+ "Play Word dash": "शब्दों की दौड़ खेलो",
  "Plus gives you both more space. Or delete a few shared photos to make room.": "Plus से तुम दोनों को ज़्यादा जगह मिलती है। या जगह बनाने के लिए कुछ साझा फ़ोटो हटा दो।",
  "Plus is on us until {date}. Subscribe to keep it after that.": "{date} तक Plus हमारी तरफ़ से। उसके बाद भी चाहिए तो सब्सक्राइब करो।",
  "Plus is on us. It covers you both.": "Plus हमारी तरफ़ से। यह तुम दोनों के लिए है।",
@@ -756,19 +772,28 @@
  "Your turn: flip a card": "तुम्हारी बारी: एक कार्ड पलटो",
  "Your {plan} plan is set not to renew. Plus ends on {date}.": "तुम्हारा {plan} प्लान रिन्यू नहीं होगा। Plus {date} को खत्म होगा।",
  "Your {plan} plan renews on {date}.": "तुम्हारा {plan} प्लान {date} को रिन्यू होगा।",
- "{achieved} of {target} counted · rings until {time}": "{target} में से {achieved} गिने गए · {time} तक बजेगा",
- "{achieved} of {target} counted · stops at {target}": "{target} में से {achieved} गिने गए · {target} पर रुकेगा",
- "{achieved} of {target} {exercise} at {time},": "{time} पर {target} में से {achieved} {exercise},",
- "{achieved} of {target} {exercise} at {time},\nwhile it was ringing.": "{time} पर {target} में से {achieved} {exercise},\nअलार्म बजते हुए।",
- "{achieved} of {target} {exercise} at {time},\n{count} minute before it would ring.|{achieved} of {target} {exercise} at {time},\n{count} minutes before it would ring.": {
-  "one": "{time} पर {target} में से {achieved} {exercise},\nबजने से {count} मिनट पहले।",
-  "other": "{time} पर {target} में से {achieved} {exercise},\nबजने से {count} मिनट पहले।"
+ "{achieved} of {count} second|{achieved} of {count} seconds": {
+  "one": "{count} सेकंड में से {achieved}",
+  "other": "{count} सेकंड में से {achieved}"
  },
+ "{achieved} of {total}": "{total} में से {achieved}",
  "{calories} kcal so far, from {meals}": "{meals} से अब तक {calories} kcal",
  "{category} starting with {letter}": "{letter} से {category}",
+ "{count} arm raise|{count} arm raises": {
+  "one": "{count} आर्म रेज़",
+  "other": "{count} आर्म रेज़"
+ },
  "{count} day|{count} days": {
   "one": "{count} दिन",
   "other": "{count} दिन"
+ },
+ "{count} high knee|{count} high knees": {
+  "one": "{count} हाई नी",
+  "other": "{count} हाई नीज़"
+ },
+ "{count} jumping jack|{count} jumping jacks": {
+  "one": "{count} जंपिंग जैक",
+  "other": "{count} जंपिंग जैक्स"
  },
  "{count} kick in {minutes} min · {day} {time}|{count} kicks in {minutes} min · {day} {time}": {
   "one": "{minutes} मिनट में {count} किक · {day} {time}",
@@ -827,9 +852,21 @@
   "one": "{count} पॉइंट",
   "other": "{count} पॉइंट"
  },
+ "{count} push-up|{count} push-ups": {
+  "one": "{count} पुश-अप",
+  "other": "{count} पुश-अप्स"
+ },
  "{count} rep didn't count|{count} reps didn't count": {
   "one": "{count} रेप नहीं गिना गया",
   "other": "{count} रेप नहीं गिने गए"
+ },
+ "{count} sit-up|{count} sit-ups": {
+  "one": "{count} सिट-अप",
+  "other": "{count} सिट-अप्स"
+ },
+ "{count} squat|{count} squats": {
+  "one": "{count} स्क्वैट",
+  "other": "{count} स्क्वैट्स"
  },
  "{count} week|{count} weeks": {
   "one": "{count} हफ़्ता",
@@ -839,7 +876,9 @@
   "one": "{count} साल",
   "other": "{count} साल"
  },
- "{count} {exercise}": "{count} {exercise}",
+ "{dare} by {time}": "{time} तक {dare}",
+ "{dare} won't ring for {partner} any more. The hearts already kept stay on both pages.": "{dare}: अब {partner} के लिए नहीं बजेगा। जो दिल मिल चुके हैं, वे दोनों पेज पर रहेंगे।",
+ "{dare} · rings at {time}": "{dare} · {time} पर बजेगा",
  "{date} · {count} heart this week|{date} · {count} hearts this week": {
   "one": "{date} · इस हफ़्ते {count} दिल",
   "other": "{date} · इस हफ़्ते {count} दिल"
@@ -870,7 +909,7 @@
  "{partner} can see it's ringing": "{partner} को दिख रहा है कि यह बज रहा है",
  "{partner} can see this and add appointments": "{partner} को यह दिखता है और वे अपॉइंटमेंट जोड़ सकते हैं",
  "{partner} doesn't see pregnancy mode": "{partner} को प्रेगनेंसी मोड नहीं दिखता",
- "{partner} finished {achieved} {exercise}": "{partner} ने {achieved} {exercise} पूरे किए",
+ "{partner} finished {dare}": "{partner} ने पूरे किए: {dare}",
  "{partner} has answered. Your turn: see if you match.": "{partner} ने जवाब दे दिया। अब तुम्हारी बारी: देखो मेल खाता है या नहीं।",
  "{partner} hasn't shared a cycle with you. If they track one here, they choose what you see.": "{partner} ने तुम्हारे साथ कोई चक्र शेयर नहीं किया है। अगर वे यहाँ ट्रैक करें, तो तुम्हें क्या दिखे, यह उनकी मर्ज़ी।",
  "{partner} invited you to play": "{partner} ने तुम्हें खेलने बुलाया है",
@@ -922,6 +961,12 @@
   "other": "हर {count} साल में {price}"
  },
  "{price} each period": "हर अवधि {price}",
+ "{progress} at {time},\nwhile it was ringing.": "{time} पर {progress},\nजब अलार्म बज रहा था।",
+ "{progress} at {time},\n{count} minute before it would ring.|{progress} at {time},\n{count} minutes before it would ring.": {
+  "one": "{time} पर {progress},\nबजने से {count} मिनट पहले।",
+  "other": "{time} पर {progress},\nबजने से {count} मिनट पहले।"
+ },
+ "{progress} · rings until {time}": "{progress} · {time} तक बजेगा",
  "{seconds}s": "{seconds}s",
  "{seconds}s left": "{seconds}s बाकी",
  "{size} B": "{size} B",
@@ -931,10 +976,6 @@
  "{size} TB": "{size} TB",
  "{size} to send": "{size} भेजना है",
  "{size} to send, which may count against your data": "{size} भेजना है, इसमें तुम्हारा डेटा खर्च हो सकता है",
- "{target} {exercise}": "{target} {exercise}",
- "{target} {exercise} by {time}": "{time} तक {target} {exercise}",
- "{target} {exercise} won't ring for {partner} any more. The hearts already kept stay on both pages.": "{partner} के लिए {target} {exercise} अब नहीं बजेगा। जो दिल पहले से मिल चुके हैं, वे दोनों पेज पर रहेंगे।",
- "{target} {exercise} · rings at {time}": "{target} {exercise} · {time} पर बजेगा",
  "{title} · Your dare is ringing": "{title} · तुम्हारी चुनौती बज रही है",
  "{title} · {partner}'s dare is ringing": "{title} · {partner} की चुनौती बज रही है",
  "{waiting} waiting · {refused} not added": "{waiting} रुकी हुई · {refused} नहीं जुड़ीं",

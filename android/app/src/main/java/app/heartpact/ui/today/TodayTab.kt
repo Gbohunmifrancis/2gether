@@ -105,11 +105,11 @@ fun TodayTab(
                 val done = v.partnerDone
                 when {
                     ringing != null -> CardRow(tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.title.lowercase()),
-                        subtitle = tr("{achieved} of {target} counted · rings until {time}", "achieved" to ringing.achievedCount, "target" to ringing.target,
+                        subtitle = tr("{progress} · rings until {time}", "progress" to ringing.exerciseType.progress(ringing.achievedCount, ringing.target),
                             "time" to time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))), icon = Icons.Rounded.Alarm)
                     done != null -> PartnerDone(done, partnerName)
-                    next != null -> CardRow(tr("Your dare for {partner}", "partner" to partnerName), subtitle = tr("{target} {exercise} · rings at {time}", "target" to next.target,
-                        "exercise" to next.exerciseType.displayName.lowercase(), "time" to time(utc(next.nextDueAtUtc))), icon = Icons.Rounded.Alarm)
+                    next != null -> CardRow(tr("Your dare for {partner}", "partner" to partnerName), subtitle = tr("{dare} · rings at {time}", "dare" to next.exerciseType.label(next.target).replaceFirstChar { it.uppercase() },
+                        "time" to time(utc(next.nextDueAtUtc))), icon = Icons.Rounded.Alarm)
                     else -> CardRow(tr("No dare for {partner} yet", "partner" to partnerName), subtitle = tr("Set one and stick your half on first"), icon = Icons.Rounded.Alarm)
                 }
             }
@@ -126,14 +126,14 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
     Box(Modifier.padding(horizontal = 12.dp).padding(top = 30.dp)) {
         StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Dare, lift = 14.dp) {
             Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 14.dp)) {
-                Text(tr("{target} {exercise} by {time}", "target" to dare.goal.target, "exercise" to dare.goal.exerciseType.displayName.lowercase(), "time" to time(dare.dueAt)), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(end = 70.dp))
+                Text(tr("{dare} by {time}", "dare" to dare.goal.exerciseType.label(dare.goal.target).replaceFirstChar { it.uppercase() }, "time" to time(dare.dueAt)), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(end = 70.dp))
                 Text(if (dare.setByPartner) tr("{partner}'s dare · your phone rings if you don't", "partner" to partnerName) else tr("Your own dare · your phone rings if you don't"), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (occurrence != null) {
                         val left = Duration.between(now, utc(occurrence.completeByUtc ?: occurrence.deadlineUtc)).toMinutes().coerceAtLeast(0)
                         Text("$left", style = Heartpact.type.display, color = colors.ink)
-                        Text(trn(left, "minute left\n{achieved} of {target} counted", "minutes left\n{achieved} of {target} counted",
-                            "achieved" to occurrence.achievedCount, "target" to occurrence.target), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(bottom = 4.dp))
+                        Text(trn(left, "minute left\n{progress}", "minutes left\n{progress}",
+                            "progress" to occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target)), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(bottom = 4.dp))
                     } else {
                         val until = Duration.between(now, dare.dueAt)
                         val label = when {
@@ -171,7 +171,7 @@ private fun PartnerDone(done: ExerciseOccurrence, partnerName: String) {
     val line = checks?.partnerLine()
     val flagged = checks?.flagged == true
     CardRow(
-        tr("{partner} finished {achieved} {exercise}", "partner" to partnerName, "achieved" to done.achievedCount, "exercise" to done.exerciseType.displayName.lowercase()),
+        tr("{partner} finished {dare}", "partner" to partnerName, "dare" to done.exerciseType.label(done.achievedCount)),
         subtitle = listOfNotNull(done.completedAtUtc?.let { tr("at {time}", "time" to time(utc(it))) }, line).joinToString(" · "),
         icon = if (flagged) Icons.Rounded.ReportGmailerrorred else Icons.Rounded.Favorite,
     )

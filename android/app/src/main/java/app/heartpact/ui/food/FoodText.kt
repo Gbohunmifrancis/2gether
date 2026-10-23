@@ -34,6 +34,14 @@ object FoodText {
     fun n(value: Int): String = numbers.format(value)
     fun range(low: Int, high: Int): String = if (low == high) n(low) else "${n(low)}–${n(high)}"
 
+    /** The scan's log button: one whole sentence per meal, so each language can use its own preposition. */
+    fun logTo(meal: MealType, range: String): String = when (meal) {
+        MealType.Breakfast -> tr("Log {range} kcal to breakfast", "range" to range)
+        MealType.Lunch -> tr("Log {range} kcal to lunch", "range" to range)
+        MealType.Dinner -> tr("Log {range} kcal to dinner", "range" to range)
+        MealType.Snack -> tr("Log {range} kcal to snack", "range" to range)
+    }
+
     private val words get() = listOf(tr("no"), tr("one"), tr("two"), tr("three"), tr("four"), tr("five"), tr("six"), tr("seven"), tr("eight"), tr("nine"), tr("ten"))
     private fun count(n: Int) = words.getOrElse(n) { n.toString() }
 

@@ -31,6 +31,17 @@ object GamePlay {
         GameType.TruthOrDare -> tr("Truth or dare")
     }
 
+    /** The button that accepts an invite: one whole phrase per game. */
+    fun play(type: GameType) = when (type) {
+        GameType.CoupleQuiz -> tr("Play Same answer")
+        GameType.MemoryMatch -> tr("Play Memory match")
+        GameType.ICallOn -> tr("Play I call on")
+        GameType.GuessMyAnswer -> tr("Play Guess my answer")
+        GameType.WordDash -> tr("Play Word dash")
+        GameType.Handwriting -> tr("Play Handwriting")
+        GameType.TruthOrDare -> tr("Play Truth or dare")
+    }
+
     fun blurb(type: GameType) = when (type) {
         GameType.CoupleQuiz -> tr("One question, two answers. A heart each time you both say the same thing.")
         GameType.MemoryMatch -> tr("Twelve cards, six pairs, your turn then mine. Most pairs wins.")

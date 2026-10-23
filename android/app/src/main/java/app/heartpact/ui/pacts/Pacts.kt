@@ -127,7 +127,7 @@ fun PactsTab(ui: PactsUi, partnerName: String, onStop: (String) -> Unit, onNewDa
         AlertDialog(
             onDismissRequest = { stopping = null },
             title = { Text(tr("Stop this dare?")) },
-            text = { Text(tr("{target} {exercise} won't ring for {partner} any more. The hearts already kept stay on both pages.", "target" to card.goal.target, "exercise" to card.goal.exerciseType.displayName.lowercase(), "partner" to partnerName)) },
+            text = { Text(tr("{dare} won't ring for {partner} any more. The hearts already kept stay on both pages.", "dare" to card.goal.exerciseType.label(card.goal.target).replaceFirstChar { it.uppercase() }, "partner" to partnerName)) },
             confirmButton = { TextButton(onClick = { onStop(card.goal.id); stopping = null }) { Text(tr("Stop it")) } },
             dismissButton = { TextButton(onClick = { stopping = null }) { Text(tr("Keep it")) } },
         )
@@ -157,7 +157,7 @@ private fun PactCardView(card: PactCard, partnerName: String, forMe: Boolean, on
     val goal = card.goal
     val time = utc(goal.nextDueAtUtc).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
     val amount = if (goal.exerciseType.measure == Measure.Seconds) trn(goal.target, "{exercise}, {count} second", "{exercise}, {count} seconds", "exercise" to goal.exerciseType.displayName)
-        else tr("{target} {exercise}", "target" to goal.target, "exercise" to goal.exerciseType.displayName.lowercase())
+        else goal.exerciseType.label(goal.target)
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp), shape = Shapes.Dare) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.Top) {

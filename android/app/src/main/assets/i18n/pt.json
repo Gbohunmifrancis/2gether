@@ -303,7 +303,10 @@
  "Log by hand": "Registrar à mão",
  "Log it": "Registrar",
  "Log it by hand": "Registrar à mão",
- "Log {range} kcal to {meal}": "Registrar {range} kcal no {meal}",
+ "Log {range} kcal to breakfast": "Registrar {range} kcal no café da manhã",
+ "Log {range} kcal to dinner": "Registrar {range} kcal no jantar",
+ "Log {range} kcal to lunch": "Registrar {range} kcal no almoço",
+ "Log {range} kcal to snack": "Registrar {range} kcal no lanche",
  "Logged today": "Registrado hoje",
  "Lower your hips into a straight line.": "Desça o quadril até ficar em linha reta.",
  "Lunch": "Almoço",
@@ -315,9 +318,9 @@
  "memories": "lembranças",
  "Memory match": "Jogo da memória",
  "Messages": "Mensagens",
- "minute left\n{achieved} of {target} counted|minutes left\n{achieved} of {target} counted": {
-  "one": "minuto restante\n{achieved} de {target} contadas",
-  "other": "minutos restantes\n{achieved} de {target} contadas"
+ "minute left\n{progress}|minutes left\n{progress}": {
+  "one": "minuto restante\n{progress}",
+  "other": "minutos restantes\n{progress}"
  },
  "missed": "perdido",
  "missed a camera check-in|missed {count} camera check-ins": {
@@ -375,13 +378,16 @@
  "Notifications": "Notificações",
  "Notifications arrive silently, without sound": "As notificações chegam em silêncio, sem som",
  "Now find its pair": "Agora ache o par",
- "Of about {cycleLength}. Next period likely {dates}.": "De uns {cycleLength}. Próxima menstruação provável em {dates}.",
+ "Of about {count} day. Next period likely {dates}.|Of about {count} days. Next period likely {dates}.": {
+  "one": "De cerca de {count} dia. Próxima menstruação provável em {dates}.",
+  "other": "De cerca de {count} dias. Próxima menstruação provável em {dates}."
+ },
  "of your cycle, food and goals": "do seu ciclo, comida e metas",
  "of {count} second|of {count} seconds": {
   "one": "de {count} segundo",
   "other": "de {count} segundos"
  },
- "of {count} {exercise}": "de {count} {exercise}",
+ "of {total}": "de {total}",
  "On now: notifications arrive silently": "Ativo agora: as notificações chegam sem som",
  "On this day": "Neste dia",
  "one": "uma",
@@ -431,9 +437,19 @@
  "Photos stay on your phone until you sync": "As fotos ficam no seu celular até você sincronizar",
  "Pick a game and {partner} gets an invite. It starts when they join.": "Escolha um jogo e {partner} recebe um convite. Começa quando {partner} entrar.",
  "Plank": "Prancha",
+ "plank, {count} second|plank, {count} seconds": {
+  "one": "prancha, {count} segundo",
+  "other": "prancha, {count} segundos"
+ },
  "plans and dreams": "planos e sonhos",
+ "Play Guess my answer": "Jogar Adivinhe minha resposta",
+ "Play Handwriting": "Jogar Escrita à mão",
+ "Play I call on": "Jogar Adedonha",
+ "Play Memory match": "Jogar Jogo da memória",
+ "Play Same answer": "Jogar Mesma resposta",
  "Play together": "Jogar juntos",
- "Play {game}": "Jogar {game}",
+ "Play Truth or dare": "Jogar Verdade ou consequência",
+ "Play Word dash": "Jogar Corrida de palavras",
  "Plus gives you both more space. Or delete a few shared photos to make room.": "O Plus dá mais espaço para vocês dois. Ou apague algumas fotos compartilhadas para liberar espaço.",
  "Plus is on us until {date}. Subscribe to keep it after that.": "O Plus é por nossa conta até {date}. Assine para continuar depois disso.",
  "Plus is on us. It covers you both.": "O Plus é por nossa conta. Ele vale para vocês dois.",
@@ -756,19 +772,28 @@
  "Your turn: flip a card": "Sua vez: vire uma carta",
  "Your {plan} plan is set not to renew. Plus ends on {date}.": "Seu plano {plan} não vai ser renovado. O Plus termina em {date}.",
  "Your {plan} plan renews on {date}.": "Seu plano {plan} renova em {date}.",
- "{achieved} of {target} counted · rings until {time}": "{achieved} de {target} contadas · toca até {time}",
- "{achieved} of {target} counted · stops at {target}": "{achieved} de {target} contadas · para em {target}",
- "{achieved} of {target} {exercise} at {time},": "{achieved} de {target} {exercise} às {time},",
- "{achieved} of {target} {exercise} at {time},\nwhile it was ringing.": "{achieved} de {target} {exercise} às {time},\nenquanto tocava.",
- "{achieved} of {target} {exercise} at {time},\n{count} minute before it would ring.|{achieved} of {target} {exercise} at {time},\n{count} minutes before it would ring.": {
-  "one": "{achieved} de {target} {exercise} às {time},\n{count} minuto antes de tocar.",
-  "other": "{achieved} de {target} {exercise} às {time},\n{count} minutos antes de tocar."
+ "{achieved} of {count} second|{achieved} of {count} seconds": {
+  "one": "{achieved} de {count} segundo",
+  "other": "{achieved} de {count} segundos"
  },
+ "{achieved} of {total}": "{achieved} de {total}",
  "{calories} kcal so far, from {meals}": "{calories} kcal até agora, em {meals}",
  "{category} starting with {letter}": "{category} com {letter}",
+ "{count} arm raise|{count} arm raises": {
+  "one": "{count} elevação de braço",
+  "other": "{count} elevações de braço"
+ },
  "{count} day|{count} days": {
   "one": "{count} dia",
   "other": "{count} dias"
+ },
+ "{count} high knee|{count} high knees": {
+  "one": "{count} elevação de joelho",
+  "other": "{count} elevações de joelho"
+ },
+ "{count} jumping jack|{count} jumping jacks": {
+  "one": "{count} polichinelo",
+  "other": "{count} polichinelos"
  },
  "{count} kick in {minutes} min · {day} {time}|{count} kicks in {minutes} min · {day} {time}": {
   "one": "{count} chute em {minutes} min · {day} {time}",
@@ -827,9 +852,21 @@
   "one": "{count} pt",
   "other": "{count} pts"
  },
+ "{count} push-up|{count} push-ups": {
+  "one": "{count} flexão",
+  "other": "{count} flexões"
+ },
  "{count} rep didn't count|{count} reps didn't count": {
   "one": "{count} repetição não contou",
   "other": "{count} repetições não contaram"
+ },
+ "{count} sit-up|{count} sit-ups": {
+  "one": "{count} abdominal",
+  "other": "{count} abdominais"
+ },
+ "{count} squat|{count} squats": {
+  "one": "{count} agachamento",
+  "other": "{count} agachamentos"
  },
  "{count} week|{count} weeks": {
   "one": "{count} semana",
@@ -839,7 +876,9 @@
   "one": "{count} ano",
   "other": "{count} anos"
  },
- "{count} {exercise}": "{count} {exercise}",
+ "{dare} by {time}": "{dare} até {time}",
+ "{dare} won't ring for {partner} any more. The hearts already kept stay on both pages.": "{dare}: não vai mais tocar para {partner}. Os corações já conquistados ficam nas duas páginas.",
+ "{dare} · rings at {time}": "{dare} · toca às {time}",
  "{date} · {count} heart this week|{date} · {count} hearts this week": {
   "one": "{date} · {count} coração esta semana",
   "other": "{date} · {count} corações esta semana"
@@ -870,7 +909,7 @@
  "{partner} can see it's ringing": "{partner} vê que está tocando",
  "{partner} can see this and add appointments": "{partner} pode ver e adicionar consultas",
  "{partner} doesn't see pregnancy mode": "{partner} não vê o modo gravidez",
- "{partner} finished {achieved} {exercise}": "{partner} fez {achieved} {exercise}",
+ "{partner} finished {dare}": "{partner} terminou: {dare}",
  "{partner} has answered. Your turn: see if you match.": "{partner} já respondeu. Sua vez: vejam se combinam.",
  "{partner} hasn't shared a cycle with you. If they track one here, they choose what you see.": "{partner} não compartilhou um ciclo com você. Quem acompanha o ciclo aqui escolhe o que você vê.",
  "{partner} invited you to play": "{partner} te chamou para jogar",
@@ -922,6 +961,12 @@
   "other": "{price} a cada {count} anos"
  },
  "{price} each period": "{price} por período",
+ "{progress} at {time},\nwhile it was ringing.": "{progress} às {time},\nenquanto tocava.",
+ "{progress} at {time},\n{count} minute before it would ring.|{progress} at {time},\n{count} minutes before it would ring.": {
+  "one": "{progress} às {time},\n{count} minuto antes de tocar.",
+  "other": "{progress} às {time},\n{count} minutos antes de tocar."
+ },
+ "{progress} · rings until {time}": "{progress} · toca até {time}",
  "{seconds}s": "{seconds}s",
  "{seconds}s left": "faltam {seconds}s",
  "{size} B": "{size} B",
@@ -931,10 +976,6 @@
  "{size} TB": "{size} TB",
  "{size} to send": "{size} para enviar",
  "{size} to send, which may count against your data": "{size} para enviar, o que pode gastar seu plano de dados",
- "{target} {exercise}": "{target} {exercise}",
- "{target} {exercise} by {time}": "{target} {exercise} até as {time}",
- "{target} {exercise} won't ring for {partner} any more. The hearts already kept stay on both pages.": "{target} {exercise} não vai mais tocar para {partner}. Os corações já conquistados continuam nas duas páginas.",
- "{target} {exercise} · rings at {time}": "{target} {exercise} · toca às {time}",
  "{title} · Your dare is ringing": "{title} · Seu desafio está tocando",
  "{title} · {partner}'s dare is ringing": "{title} · O desafio de {partner} está tocando",
  "{waiting} waiting · {refused} not added": "{waiting} esperando · {refused} não adicionadas",

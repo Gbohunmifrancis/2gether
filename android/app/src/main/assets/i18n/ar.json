@@ -319,7 +319,10 @@
  "Log by hand": "سجّل يدويًا",
  "Log it": "تسجيل",
  "Log it by hand": "سجّلها يدويًا",
- "Log {range} kcal to {meal}": "سجّل {range} سعرة في {meal}",
+ "Log {range} kcal to breakfast": "سجّل {range} سعرة في الفطور",
+ "Log {range} kcal to dinner": "سجّل {range} سعرة في العشاء",
+ "Log {range} kcal to lunch": "سجّل {range} سعرة في الغداء",
+ "Log {range} kcal to snack": "سجّل {range} سعرة في الوجبات الخفيفة",
  "Logged today": "مسجّل اليوم",
  "Lower your hips into a straight line.": "اخفض وركيك إلى خط مستقيم.",
  "Lunch": "الغداء",
@@ -331,13 +334,13 @@
  "memories": "ذكريات",
  "Memory match": "لعبة الذاكرة",
  "Messages": "الرسائل",
- "minute left\n{achieved} of {target} counted|minutes left\n{achieved} of {target} counted": {
-  "zero": "دقيقة متبقية\nاحتُسب {achieved} من {target}",
-  "one": "دقيقة متبقية\nاحتُسب {achieved} من {target}",
-  "two": "دقيقتان متبقيتان\nاحتُسب {achieved} من {target}",
-  "few": "دقائق متبقية\nاحتُسب {achieved} من {target}",
-  "many": "دقيقة متبقية\nاحتُسب {achieved} من {target}",
-  "other": "دقيقة متبقية\nاحتُسب {achieved} من {target}"
+ "minute left\n{progress}|minutes left\n{progress}": {
+  "zero": "أقل من دقيقة متبقية\n{progress}",
+  "one": "دقيقة واحدة متبقية\n{progress}",
+  "two": "دقيقتان متبقيتان\n{progress}",
+  "few": "دقائق متبقية\n{progress}",
+  "many": "دقيقة متبقية\n{progress}",
+  "other": "دقيقة متبقية\n{progress}"
  },
  "missed": "فائت",
  "missed a camera check-in|missed {count} camera check-ins": {
@@ -399,7 +402,14 @@
  "Notifications": "الإشعارات",
  "Notifications arrive silently, without sound": "تصل الإشعارات بصمت، دون صوت",
  "Now find its pair": "الآن ابحث عن مثيلتها",
- "Of about {cycleLength}. Next period likely {dates}.": "من نحو {cycleLength}. الحيض القادم غالبًا {dates}.",
+ "Of about {count} day. Next period likely {dates}.|Of about {count} days. Next period likely {dates}.": {
+  "zero": "من أصل {count} يوم تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "one": "من أصل يوم واحد تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "two": "من أصل يومين تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "few": "من أصل {count} أيام تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "many": "من أصل {count} يومًا تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "other": "من أصل {count} يوم تقريبًا. الحيض القادم على الأرجح {dates}."
+ },
  "of your cycle, food and goals": "من دورتك وطعامك وأهدافك",
  "of {count} second|of {count} seconds": {
   "zero": "من أصل {count} ثانية",
@@ -409,7 +419,7 @@
   "many": "من أصل {count} ثانية",
   "other": "من أصل {count} ثانية"
  },
- "of {count} {exercise}": "من أصل {count} · {exercise}",
+ "of {total}": "من أصل {total}",
  "On now: notifications arrive silently": "مفعّلة الآن: تصل الإشعارات بصمت",
  "On this day": "في مثل هذا اليوم",
  "one": "واحدة",
@@ -471,9 +481,23 @@
  "Photos stay on your phone until you sync": "تبقى الصور على هاتفك حتى المزامنة",
  "Pick a game and {partner} gets an invite. It starts when they join.": "اختر لعبة وستصل دعوة إلى {partner}. تبدأ اللعبة فور الانضمام.",
  "Plank": "بلانك",
+ "plank, {count} second|plank, {count} seconds": {
+  "zero": "بلانك، {count} ثانية",
+  "one": "بلانك، ثانية واحدة",
+  "two": "بلانك، ثانيتان",
+  "few": "بلانك، {count} ثوانٍ",
+  "many": "بلانك، {count} ثانية",
+  "other": "بلانك، {count} ثانية"
+ },
  "plans and dreams": "خطط وأحلام",
+ "Play Guess my answer": "العب: خمّن إجابتي",
+ "Play Handwriting": "العب: خط اليد",
+ "Play I call on": "العب: إنسان حيوان نبات",
+ "Play Memory match": "العب: لعبة الذاكرة",
+ "Play Same answer": "العب: الإجابة نفسها",
  "Play together": "العبا معًا",
- "Play {game}": "العب {game}",
+ "Play Truth or dare": "العب: صراحة أم جرأة",
+ "Play Word dash": "العب: سباق الكلمات",
  "Plus gives you both more space. Or delete a few shared photos to make room.": "يمنحكما Plus مساحة أكبر. أو احذف بعض الصور المشتركة لإفساح المجال.",
  "Plus is on us until {date}. Subscribe to keep it after that.": "Plus هدية منا حتى {date}. اشترك للاحتفاظ به بعد ذلك.",
  "Plus is on us. It covers you both.": "Plus هدية منا، ويشملكما معًا.",
@@ -820,20 +844,25 @@
  "Your turn: flip a card": "دورك: اقلب بطاقة",
  "Your {plan} plan is set not to renew. Plus ends on {date}.": "اشتراكك ال{plan} لن يتجدد. ينتهي Plus في {date}.",
  "Your {plan} plan renews on {date}.": "يتجدد اشتراكك ال{plan} في {date}.",
- "{achieved} of {target} counted · rings until {time}": "احتُسب {achieved} من {target} · يرنّ حتى {time}",
- "{achieved} of {target} counted · stops at {target}": "احتُسب {achieved} من {target} · يتوقف عند {target}",
- "{achieved} of {target} {exercise} at {time},": "{exercise}: {achieved} من {target} عند {time}،",
- "{achieved} of {target} {exercise} at {time},\nwhile it was ringing.": "{exercise}: {achieved} من {target} عند {time}،\nأثناء الرنين.",
- "{achieved} of {target} {exercise} at {time},\n{count} minute before it would ring.|{achieved} of {target} {exercise} at {time},\n{count} minutes before it would ring.": {
-  "zero": "{exercise}: {achieved} من {target} عند {time}،\nقبل موعد الرنين.",
-  "one": "{exercise}: {achieved} من {target} عند {time}،\nقبل الرنين بدقيقة.",
-  "two": "{exercise}: {achieved} من {target} عند {time}،\nقبل الرنين بدقيقتين.",
-  "few": "{exercise}: {achieved} من {target} عند {time}،\nقبل الرنين بـ{count} دقائق.",
-  "many": "{exercise}: {achieved} من {target} عند {time}،\nقبل الرنين بـ{count} دقيقة.",
-  "other": "{exercise}: {achieved} من {target} عند {time}،\nقبل الرنين بـ{count} دقيقة."
+ "{achieved} of {count} second|{achieved} of {count} seconds": {
+  "zero": "{achieved} من {count} ثانية",
+  "one": "{achieved} من ثانية واحدة",
+  "two": "{achieved} من ثانيتين",
+  "few": "{achieved} من {count} ثوانٍ",
+  "many": "{achieved} من {count} ثانية",
+  "other": "{achieved} من {count} ثانية"
  },
+ "{achieved} of {total}": "{achieved} من {total}",
  "{calories} kcal so far, from {meals}": "{calories} سعرة حتى الآن، من {meals}",
  "{category} starting with {letter}": "{category} بحرف {letter}",
+ "{count} arm raise|{count} arm raises": {
+  "zero": "رفع الذراعين × {count}",
+  "one": "رفع الذراعين × {count}",
+  "two": "رفع الذراعين × {count}",
+  "few": "رفع الذراعين × {count}",
+  "many": "رفع الذراعين × {count}",
+  "other": "رفع الذراعين × {count}"
+ },
  "{count} day|{count} days": {
   "zero": "لا أيام",
   "one": "يوم واحد",
@@ -841,6 +870,22 @@
   "few": "{count} أيام",
   "many": "{count} يومًا",
   "other": "{count} يوم"
+ },
+ "{count} high knee|{count} high knees": {
+  "zero": "رفع الركبتين × {count}",
+  "one": "رفع الركبتين × {count}",
+  "two": "رفع الركبتين × {count}",
+  "few": "رفع الركبتين × {count}",
+  "many": "رفع الركبتين × {count}",
+  "other": "رفع الركبتين × {count}"
+ },
+ "{count} jumping jack|{count} jumping jacks": {
+  "zero": "قفز مفتوح × {count}",
+  "one": "قفز مفتوح × {count}",
+  "two": "قفز مفتوح × {count}",
+  "few": "قفز مفتوح × {count}",
+  "many": "قفز مفتوح × {count}",
+  "other": "قفز مفتوح × {count}"
  },
  "{count} kick in {minutes} min · {day} {time}|{count} kicks in {minutes} min · {day} {time}": {
   "zero": "لا ركلات في {minutes} د · {day} {time}",
@@ -955,6 +1000,14 @@
   "many": "{count} نقطة",
   "other": "{count} نقطة"
  },
+ "{count} push-up|{count} push-ups": {
+  "zero": "ضغط × {count}",
+  "one": "ضغط × {count}",
+  "two": "ضغط × {count}",
+  "few": "ضغط × {count}",
+  "many": "ضغط × {count}",
+  "other": "ضغط × {count}"
+ },
  "{count} rep didn't count|{count} reps didn't count": {
   "zero": "كل التكرارات احتُسبت",
   "one": "تكرار واحد لم يُحتسب",
@@ -962,6 +1015,22 @@
   "few": "{count} تكرارات لم تُحتسب",
   "many": "{count} تكرارًا لم يُحتسب",
   "other": "{count} تكرار لم يُحتسب"
+ },
+ "{count} sit-up|{count} sit-ups": {
+  "zero": "تمارين البطن × {count}",
+  "one": "تمارين البطن × {count}",
+  "two": "تمارين البطن × {count}",
+  "few": "تمارين البطن × {count}",
+  "many": "تمارين البطن × {count}",
+  "other": "تمارين البطن × {count}"
+ },
+ "{count} squat|{count} squats": {
+  "zero": "سكوات × {count}",
+  "one": "سكوات × {count}",
+  "two": "سكوات × {count}",
+  "few": "سكوات × {count}",
+  "many": "سكوات × {count}",
+  "other": "سكوات × {count}"
  },
  "{count} week|{count} weeks": {
   "zero": "لا أسابيع",
@@ -979,7 +1048,9 @@
   "many": "{count} سنة",
   "other": "{count} سنة"
  },
- "{count} {exercise}": "{exercise} × {count}",
+ "{dare} by {time}": "{dare} قبل {time}",
+ "{dare} won't ring for {partner} any more. The hearts already kept stay on both pages.": "{dare}: لن يرنّ لـ{partner} بعد الآن. تبقى القلوب التي جُمعت على الصفحتين.",
+ "{dare} · rings at {time}": "{dare} · يرنّ عند {time}",
  "{date} · {count} heart this week|{date} · {count} hearts this week": {
   "zero": "{date} · لا قلوب هذا الأسبوع",
   "one": "{date} · قلب واحد هذا الأسبوع",
@@ -1018,7 +1089,7 @@
  "{partner} can see it's ringing": "بإمكان {partner} رؤية أنه يرنّ",
  "{partner} can see this and add appointments": "يمكن لـ{partner} رؤيته وإضافة مواعيد",
  "{partner} doesn't see pregnancy mode": "وضع الحمل غير ظاهر لـ{partner}",
- "{partner} finished {achieved} {exercise}": "اكتمل لدى {partner}: {exercise} × {achieved}",
+ "{partner} finished {dare}": "أنهى {partner}: {dare}",
  "{partner} has answered. Your turn: see if you match.": "وصلت إجابة {partner}. دورك: هل تتطابقان؟",
  "{partner} hasn't shared a cycle with you. If they track one here, they choose what you see.": "لا توجد دورة مشارَكة من {partner}. عند تتبّعها هنا، يعود قرار ما يظهر لك إلى {partner}.",
  "{partner} invited you to play": "دعوة للعب من {partner}",
@@ -1086,6 +1157,16 @@
   "other": "{price} كل {count} سنة"
  },
  "{price} each period": "{price} لكل فترة",
+ "{progress} at {time},\nwhile it was ringing.": "{progress} عند {time}،\nبينما كان يرنّ.",
+ "{progress} at {time},\n{count} minute before it would ring.|{progress} at {time},\n{count} minutes before it would ring.": {
+  "zero": "{progress} عند {time}،\nقبل الرنين بأقل من دقيقة.",
+  "one": "{progress} عند {time}،\nقبل الرنين بدقيقة واحدة.",
+  "two": "{progress} عند {time}،\nقبل الرنين بدقيقتين.",
+  "few": "{progress} عند {time}،\nقبل الرنين بـ{count} دقائق.",
+  "many": "{progress} عند {time}،\nقبل الرنين بـ{count} دقيقة.",
+  "other": "{progress} عند {time}،\nقبل الرنين بـ{count} دقيقة."
+ },
+ "{progress} · rings until {time}": "{progress} · يرنّ حتى {time}",
  "{seconds}s": "{seconds} ث",
  "{seconds}s left": "متبقٍ {seconds} ث",
  "{size} B": "{size} بايت",
@@ -1095,10 +1176,6 @@
  "{size} TB": "{size} تيرابايت",
  "{size} to send": "{size} للإرسال",
  "{size} to send, which may count against your data": "{size} للإرسال، وقد تُحتسب من باقة بياناتك",
- "{target} {exercise}": "{exercise} × {target}",
- "{target} {exercise} by {time}": "{exercise} × {target} قبل {time}",
- "{target} {exercise} won't ring for {partner} any more. The hearts already kept stay on both pages.": "لن يرنّ {exercise} × {target} لـ{partner} بعد الآن. وتبقى القلوب المحفوظة على الصفحتين.",
- "{target} {exercise} · rings at {time}": "{exercise} × {target} · يرنّ عند {time}",
  "{title} · Your dare is ringing": "{title} · تحدّيك يرنّ",
  "{title} · {partner}'s dare is ringing": "{title} · تحدي {partner} يرنّ",
  "{waiting} waiting · {refused} not added": "{waiting} بالانتظار · {refused} لم تُضف",

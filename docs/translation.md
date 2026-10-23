@@ -41,7 +41,10 @@ starts and again when the language changes (`Tr.load`).
 - Counts go through `trn`, never `if (n == 1) ... else ...`. Arabic has six forms; Hindi and French treat 0 as one.
 - Text kept in a top-level `val`, `const val` or object property is read once, so it would stay in the old language
   after a switch. Make it a getter (`val label get() = tr("…")`) or a function.
-- Dates, times and numbers already follow the phone's language through `java.time` formatters; leave those.
+- Dates: write the English layout through `Dates.formatter("d MMMM")`, not `DateTimeFormatter.ofPattern`; other
+  languages then get their own order and words ("27 de outubro"). Numbers with decimals use `Locale.getDefault()`.
+- Don't drop a translated word into another sentence (`"{count} {exercise}"`, `"Play {game}"`): gender, case and
+  articles can't follow. Write one whole phrase per case instead, as `ExerciseType.label` and `GamePlay.play` do.
 
 ## Adding or changing text
 
@@ -49,10 +52,15 @@ starts and again when the language changes (`Tr.load`).
 2. `python3 android/i18n/catalog.py export` lists every string, with where it is used, in `android/i18n/source.json`.
 3. Add the translations to each language file. `python3 android/i18n/catalog.py missing fr` shows what French
    still needs.
-4. `python3 android/i18n/catalog.py check` must pass; CI runs it. It fails on a missing translation, a translation
+4. `python3 android/i18n/catalog.py prune` drops translations whose English has gone.
+5. `python3 android/i18n/catalog.py check` must pass; CI runs it. It fails on a missing translation, a translation
    whose English is gone, or placeholders that don't match.
 
 Changing the English of a string changes its key, so every language needs the new string again.
+
+Arabic and Hindi come from the phone's system fonts (Sora and Figtree are Latin only); `HeartpactType.forLanguage`
+gives them normal letter spacing and taller lines. Arabic lays out right to left on its own.
+`LocalizedShotsTest` renders key screens in every language into `android/app/build/screens/<language>/`.
 
 ## Tone
 

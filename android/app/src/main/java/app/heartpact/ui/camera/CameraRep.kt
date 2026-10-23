@@ -138,7 +138,7 @@ object CameraText {
     fun whose(setBy: String?): String = setBy?.let { tr("{partner}'s dare", "partner" to it) } ?: tr("Your dare")
 
     /** Under the big count: "of 15 arm raises", "of 30 seconds". */
-    fun of(type: ExerciseType, target: Int): String = if (type.measure == Measure.Seconds) trn(target, "of {count} second", "of {count} seconds") else tr("of {count} {exercise}", "count" to target, "exercise" to type.displayName.lowercase())
+    fun of(type: ExerciseType, target: Int): String = if (type.measure == Measure.Seconds) trn(target, "of {count} second", "of {count} seconds") else tr("of {total}", "total" to type.label(target))
 
     fun toGo(ui: CameraUi): String {
         val left = (ui.target - ui.counter.count).coerceAtLeast(0)
