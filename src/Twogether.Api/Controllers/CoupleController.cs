@@ -136,7 +136,8 @@ public sealed class CoupleController(
         await hub.Clients.Group(CoupleHub.UserGroupName(invite.InviterUserId)).SendAsync("CoupleConnected", new { userId = user.Id, displayName = user.DisplayName }, cancellationToken);
         await hub.Clients.Group(CoupleHub.UserGroupName(invite.InviterUserId)).SendAsync("NotificationCreated", NotificationController.ToDto(connected), cancellationToken);
         var accessToken = tokenService.CreateAccessToken(user.Id, couple.Id, user.Email, user.DisplayName, clock.UtcNow);
-        return Ok(new AuthResponse(accessToken, new AuthUserDto(user.Id, user.Email, user.DisplayName, couple.Id, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender)));
+        return Ok(new AuthResponse(accessToken, new AuthUserDto(user.Id, user.Email, user.DisplayName, couple.Id, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender,
+            user.CountryCode, Twogether.Core.Users.ContentRegions.For(user.CountryCode))));
     }
 
     [HttpPost("breakup")]

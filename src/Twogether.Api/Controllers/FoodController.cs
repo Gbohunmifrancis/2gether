@@ -244,7 +244,8 @@ public sealed class FoodController(
                     : $"You have used today's {limit} photo scans. Log this one by hand."));
 
         var watch = Stopwatch.StartNew();
-        var result = await estimator.EstimateAsync(photo.Value, FoodRules.CleanHint(request.Portion, request.Hint), cancellationToken);
+        var country = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.CountryCode).SingleOrDefaultAsync(cancellationToken);
+        var result = await estimator.EstimateAsync(photo.Value, FoodRules.CleanHint(request.Portion, request.Hint), country, cancellationToken);
         watch.Stop();
         var now = clock.UtcNow;
         var latency = (int)Math.Min(watch.ElapsedMilliseconds, int.MaxValue);

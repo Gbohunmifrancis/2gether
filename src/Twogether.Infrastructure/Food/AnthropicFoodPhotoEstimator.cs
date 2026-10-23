@@ -43,14 +43,13 @@ public sealed class AnthropicFoodPhotoEstimator : IFoodPhotoEstimator
     public bool IsConfigured => _client is not null;
     public string ModelName => _settings.Model;
 
-    public async Task<Result<FoodEstimate>> EstimateAsync(FoodPhoto photo, string? hint, CancellationToken cancellationToken)
+    public async Task<Result<FoodEstimate>> EstimateAsync(FoodPhoto photo, string? hint, string? countryCode, CancellationToken cancellationToken)
     {
         if (_client is null) return Error.Failure("food.estimation_unavailable", "Photo estimates are not configured.");
         var mediaType = ToMediaType(photo.MediaType);
         if (mediaType is null) return Error.Validation("food.image_type", "Unsupported image type.");
 
-        var userText = "Estimate this meal. Respond with the JSON object only."
-            + (string.IsNullOrWhiteSpace(hint) ? string.Empty : $" Notes from the person who ate it: {hint}");
+        var userText = FoodPrompt.UserText(hint, countryCode);
         var request = new MessageCreateParams
         {
             Model = _settings.Model,

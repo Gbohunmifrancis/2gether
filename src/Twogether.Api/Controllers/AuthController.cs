@@ -7,6 +7,7 @@ using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Auth;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Core.Users;
 
 namespace Twogether.Api.Controllers;
 
@@ -24,6 +25,7 @@ public sealed class AuthController(
 {
     private static readonly ApiError ResetSent = new("auth.reset_sent", "If an account uses that email, a code is on its way. It works for 15 minutes.");
     private static readonly ApiError BadResetCode = new("auth.invalid_reset_code", "That code is wrong or has expired. Ask for a new one.");
+    private static readonly ApiError BadCountry = new("auth.invalid_country", "Choose your country from the list.");
 
     /// <summary>
     /// Emails a six-digit code. The answer is the same whether or not the account exists, so the
@@ -139,11 +141,13 @@ public sealed class AuthController(
             return UnprocessableEntity(new GoogleProfileRequired("auth.profile_required", "Tell us your birthday to finish signing up.", identity.Email, identity.Name));
         if (!Enum.IsDefined(request.Gender))
             return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
+        if (!TryCountry(request.CountryCode, out var googleCountry)) return UnprocessableEntity(BadCountry);
         var name = (string.IsNullOrWhiteSpace(request.DisplayName) ? identity.Name : request.DisplayName)?.Trim();
         if (string.IsNullOrWhiteSpace(name) || name.Length > 100) name = address.Split('@')[0];
         var created = Twogether.Core.Entities.User.Create(address, name, request.DateOfBirth.Value, now, passwordHash: null, googleId: identity.Subject,
             cycleOwner: request.Gender == Gender.Female, gender: request.Gender);
         created.LinkGoogle(identity.Subject, now);
+        if (googleCountry is not null) created.SetCountry(googleCountry, now);
         var couple = Twogether.Core.Entities.Couple.Create(created.Id, now);
         created.SetCouple(couple.Id, now);
         db.Users.Add(created);
@@ -168,6 +172,7 @@ public sealed class AuthController(
         var now = clock.UtcNow;
         if (!Enum.IsDefined(request.Gender))
             return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
+        if (!TryCountry(request.CountryCode, out var country)) return UnprocessableEntity(BadCountry);
         var user = Twogether.Core.Entities.User.Create(
             request.Email,
             request.DisplayName,
@@ -176,6 +181,7 @@ public sealed class AuthController(
             passwordHasher.Hash(request.Password),
             cycleOwner: request.Gender == Gender.Female,
             gender: request.Gender);
+        if (country is not null) user.SetCountry(country, now);
         var couple = Twogether.Core.Entities.Couple.Create(user.Id, now);
         user.SetCouple(couple.Id, now);
         db.Users.Add(user);
@@ -230,12 +236,15 @@ public sealed class AuthController(
         var mapColor = string.IsNullOrWhiteSpace(request.MapColor) ? "#f45c91" : request.MapColor.Trim();
         if (!System.Text.RegularExpressions.Regex.IsMatch(mapColor, "^#[0-9a-fA-F]{6}$"))
             return UnprocessableEntity(new ApiError("profile.invalid_color", "Map color must be a six-digit hex color."));
+        // Left out by app versions from before the country was asked: then it stays as it is.
+        if (!TryCountry(request.CountryCode, out var country)) return UnprocessableEntity(BadCountry);
         var user = await db.Users.SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user is null) return NotFound();
         // An unchanged avatar is let through: the profile screen sends it back with every edit.
         if (avatar is not null && avatar != user.AvatarUrl && (avatar.Length > 500 || !Uri.TryCreate(avatar, UriKind.Absolute, out var avatarUri) || avatarUri.Scheme != Uri.UriSchemeHttps))
             return UnprocessableEntity(new ApiError("profile.invalid_avatar", "The avatar must be an https link of at most 500 characters."));
         user.UpdateProfile(request.DisplayName.Trim(), avatar, mapColor, clock.UtcNow);
+        if (country is not null) user.SetCountry(country, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
         var token = tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(new AuthResponse(token, ToUser(user)));
@@ -244,7 +253,15 @@ public sealed class AuthController(
     private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError("auth.account_disabled", "This account has been disabled. Contact support if you think this is a mistake."));
 
     private static AuthResponse ToResponse(User user, string token) => new(token, ToUser(user));
-    private static AuthUserDto ToUser(User user) => new(user.Id, user.Email, user.DisplayName, user.CoupleId, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender);
+    private static AuthUserDto ToUser(User user) => new(user.Id, user.Email, user.DisplayName, user.CoupleId, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender,
+        user.CountryCode, ContentRegions.For(user.CountryCode));
+
+    /// <summary>Optional on the wire (older app versions don't send it), but a code that is sent must be a real country.</summary>
+    private static bool TryCountry(string? requested, out string? country)
+    {
+        country = ContentRegions.Normalize(requested);
+        return country is not null || string.IsNullOrWhiteSpace(requested);
+    }
 
     private async Task EnsureFemaleCycleOwnerAsync(User user, CancellationToken cancellationToken)
     {
@@ -261,13 +278,15 @@ public sealed class AuthController(
     }
 }
 
-public sealed record RegisterRequest(string Email, string Password, string DisplayName, DateOnly DateOfBirth, Gender Gender = Gender.PreferNotToSay);
+public sealed record RegisterRequest(string Email, string Password, string DisplayName, DateOnly DateOfBirth, Gender Gender = Gender.PreferNotToSay, string? CountryCode = null);
 public sealed record LoginRequest(string Email, string Password);
 public sealed record ForgotPasswordRequest(string Email);
 public sealed record ResetPasswordRequest(string Email, string Code, string NewPassword);
-public sealed record GoogleSignInRequest(string IdToken, DateOnly? DateOfBirth = null, Gender Gender = Gender.PreferNotToSay, string? DisplayName = null);
+public sealed record GoogleSignInRequest(string IdToken, DateOnly? DateOfBirth = null, Gender Gender = Gender.PreferNotToSay, string? DisplayName = null, string? CountryCode = null);
 /// <summary>An ApiError plus what Google told us, so the app can prefill the last step.</summary>
 public sealed record GoogleProfileRequired(string Code, string Message, string Email, string? Name);
 public sealed record AuthResponse(string AccessToken, AuthUserDto User);
-public sealed record UpdateProfileRequest(string DisplayName, string? AvatarUrl, string? MapColor);
-public sealed record AuthUserDto(Guid Id, string Email, string DisplayName, Guid? CoupleId, string TimeZoneId, string? AvatarUrl, string MapColor, bool CycleOwner, Gender Gender);
+public sealed record UpdateProfileRequest(string DisplayName, string? AvatarUrl, string? MapColor, string? CountryCode = null);
+/// <summary><c>Region</c> is the content region for <c>CountryCode</c> (africa, mena, southasia, eastasia, latam, default).</summary>
+public sealed record AuthUserDto(Guid Id, string Email, string DisplayName, Guid? CoupleId, string TimeZoneId, string? AvatarUrl, string MapColor, bool CycleOwner, Gender Gender,
+    string? CountryCode, string Region);

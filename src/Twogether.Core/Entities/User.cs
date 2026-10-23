@@ -1,5 +1,6 @@
 using Twogether.Core.Enums;
 using Twogether.Core.Seedwork;
+using Twogether.Core.Users;
 using Twogether.Shared.Guards;
 
 namespace Twogether.Core.Entities;
@@ -20,6 +21,8 @@ public sealed class User : BaseEntity
     public bool EmailVerified { get; private set; }
     public Guid? CoupleId { get; private set; }
     public string TimeZoneId { get; private set; } = "UTC";
+    /// <summary>ISO 3166-1 alpha-2, chosen at sign-up; picks regional content. Null for accounts made before it was asked.</summary>
+    public string? CountryCode { get; private set; }
     /// <summary>Tokens issued before this are rejected: set when the password is reset, to end every other session.</summary>
     public DateTime? SessionsValidFromUtc { get; private set; }
     /// <summary>Set by an admin: the account can't sign in and its sessions end.</summary>
@@ -62,6 +65,12 @@ public sealed class User : BaseEntity
     public void SetCouple(Guid? coupleId, DateTime utcNow)
     {
         CoupleId = coupleId;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void SetCountry(string countryCode, DateTime utcNow)
+    {
+        CountryCode = ContentRegions.Normalize(countryCode) ?? throw new ArgumentException($"'{countryCode}' is not an ISO 3166-1 alpha-2 country code.", nameof(countryCode));
         UpdatedAtUtc = utcNow;
     }
 
