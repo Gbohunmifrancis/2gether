@@ -3,6 +3,7 @@ package app.heartpact.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import app.heartpact.alarm.AlarmEnded
@@ -86,20 +87,39 @@ class ExerciseShotsTest {
         shot("alarm-asked") { AlarmRinging(ringing.copy(callOffRequestedAtUtc = "2026-10-11T07:47:00Z"), "Theo", true, Side.Left, false, null, {}, {}, {}, now = { now }) }
     }
 
-    @Test fun camera() {
+    /** Facing the camera, one arm up: the arm-raise pose from the workout mockup. */
+    private val armRaise = MutableList(Pose.COUNT) { Landmark(0.5f, 0.5f, 0.1f) }.apply {
+        this[Pose.L_SHOULDER] = Landmark(0.42f, 0.34f, 0.95f); this[Pose.R_SHOULDER] = Landmark(0.58f, 0.34f, 0.95f)
+        this[Pose.L_ELBOW] = Landmark(0.38f, 0.44f, 0.95f); this[Pose.L_WRIST] = Landmark(0.41f, 0.35f, 0.95f)
+        this[Pose.R_ELBOW] = Landmark(0.63f, 0.23f, 0.95f); this[Pose.R_WRIST] = Landmark(0.60f, 0.10f, 0.95f)
+        this[Pose.L_HIP] = Landmark(0.42f, 0.54f, 0.95f); this[Pose.R_HIP] = Landmark(0.59f, 0.54f, 0.95f)
+        this[Pose.L_KNEE] = Landmark(0.44f, 0.71f, 0.95f); this[Pose.R_KNEE] = Landmark(0.56f, 0.71f, 0.95f)
+        this[Pose.L_ANKLE] = Landmark(0.46f, 0.90f, 0.95f); this[Pose.R_ANKLE] = Landmark(0.54f, 0.90f, 0.95f)
+    }
+    private val workout = CameraUi(ExerciseType.ArmRaise, 15, CounterState(count = 9, inFrame = true, confidence = 0.9), Pose(armRaise, 0, 844f / 390f),
+        secondsLeft = 26 * 60 + 40, elapsedSeconds = 42, setBy = "Theo", silenced = false)
+
+    @Test fun camera() = shot("camera") { CameraRepContent(workout, {}, {}) { CameraStandIn() } }
+
+    @Test fun cameraNight() = shot("camera-night", night = true) { CameraRepContent(workout, {}, {}) { CameraStandIn() } }
+
+    /** Theo's phone on a dare he set himself, silenced, about to finish: his colours, no partner bubble. */
+    @Test fun cameraTheo() {
+        val ui = workout.copy(counter = CounterState(count = 15, inFrame = false), mySide = Side.Right, setBy = null, silenced = true, sealing = true)
+        shot("camera-theo") { app.heartpact.ui.theme.HeartpactTheme(actor = Side.Right) { CameraRepContent(ui, {}, {}) { CameraStandIn() } } }
+    }
+
+    @Test @Config(qualifiers = "w844dp-h390dp-land-xxhdpi") fun cameraLandscape() {
         // A side-on sit-up pose for the overlay.
         val points = MutableList(Pose.COUNT) { Landmark(0.5f, 0.5f, 0.1f) }.apply {
             this[Pose.L_SHOULDER] = Landmark(0.40f, 0.40f, 0.95f); this[Pose.L_ELBOW] = Landmark(0.48f, 0.30f, 0.95f); this[Pose.L_WRIST] = Landmark(0.44f, 0.22f, 0.95f)
             this[Pose.L_HIP] = Landmark(0.55f, 0.70f, 0.95f); this[Pose.L_KNEE] = Landmark(0.72f, 0.48f, 0.95f); this[Pose.L_ANKLE] = Landmark(0.88f, 0.72f, 0.95f)
         }
-        val ui = CameraUi(ExerciseType.SitUp, 20, CounterState(count = 14, inFrame = true, confidence = 0.9), Pose(points, 0, 844f / 390f), minutesLeft = 26)
-        shot("camera") { CameraRepContent(ui, {}, {}) { Box(Modifier.fillMaxSize().background(Color(0xFF6E6A70))) } }
+        val ui = CameraUi(ExerciseType.SitUp, 20, CounterState(count = 14, inFrame = true, confidence = 0.9), Pose(points, 0, 390f / 844f), secondsLeft = 1_600, elapsedSeconds = 75, setBy = "Theo", silenced = false)
+        shot("camera-landscape") { CameraRepContent(ui, {}, {}) { CameraStandIn() } }
     }
 
-    @Test @Config(qualifiers = "w844dp-h390dp-land-xxhdpi") fun cameraLandscape() {
-        val ui = CameraUi(ExerciseType.SitUp, 20, CounterState(count = 14, inFrame = true, confidence = 0.9), null, minutesLeft = 26)
-        shot("camera-landscape") { CameraRepContent(ui, {}, {}) { Box(Modifier.fillMaxSize().background(Color(0xFF6E6A70))) } }
-    }
+    @Composable private fun CameraStandIn() = Box(Modifier.fillMaxSize().background(Color(0xFF6E6A70)))
 
     @Test fun heartComplete() {
         val done = ringing.copy(status = OccurrenceStatus.Completed, achievedCount = 20, completedAtUtc = "2026-10-11T07:56:00Z", scheduledAtUtc = "2026-10-11T08:00:00Z")

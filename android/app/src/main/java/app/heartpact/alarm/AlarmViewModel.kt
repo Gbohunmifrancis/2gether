@@ -28,11 +28,18 @@ sealed interface AlarmPhase {
 
 enum class EndReason { LetOff, Missed, Gone }
 
-data class AlarmUi(val phase: AlarmPhase = AlarmPhase.Loading, val note: String? = null, val busy: Boolean = false, val partnerName: String = "your partner")
+data class AlarmUi(
+    val phase: AlarmPhase = AlarmPhase.Loading,
+    val note: String? = null,
+    val busy: Boolean = false,
+    val partnerName: String = "your partner",
+    /** Silenced on this phone: the dare stays open, the sound stops. */
+    val silenced: Boolean = false,
+)
 
 class AlarmViewModel(application: Application, private val slot: AlarmSlot) : AndroidViewModel(application) {
     private val app = (application as HeartpactApplication).container
-    private val _ui = MutableStateFlow(AlarmUi(partnerName = slot.setByName ?: "your partner"))
+    private val _ui = MutableStateFlow(AlarmUi(partnerName = slot.setByName ?: "your partner", silenced = slot.key in AlarmStore(application).silenced))
     val ui: StateFlow<AlarmUi> = _ui.asStateFlow()
     private var watcher: Job? = null
 
@@ -165,7 +172,10 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
         _ui.update { it.copy(phase = AlarmPhase.Ringing(occurrence)) }
     }
 
-    fun silence() = AlarmNotifier.silence(getApplication(), slot)
+    fun silence() {
+        AlarmNotifier.silence(getApplication(), slot)
+        _ui.update { it.copy(silenced = true) }
+    }
 
     private fun stopRinging() = AlarmNotifier.stop(getApplication(), slot)
 
