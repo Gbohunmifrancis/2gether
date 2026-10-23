@@ -81,7 +81,7 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 /* The heart sits on the seam: the left edge of their half (the top edge once stacked). */
 .fold-heart { position: absolute; z-index: 3; left: 0; top: 50%; width: clamp(150px, 15vw, 210px); transform: translate(-50%, -50%); filter: drop-shadow(0 14px 20px rgba(13, 16, 38, 0.35)); pointer-events: none; }
 .fold-heart svg { width: 100%; height: auto; overflow: visible; }
-.fold-heart path { fill: url(#foldAcross); }
+.fold-heart path { fill: url(#foldAcross); stroke: #FFFFFF; stroke-width: 9; stroke-linejoin: round; paint-order: stroke; }
 
 /* Little live cards around the heart, like notifications from the two phones */
 .float { position: absolute; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 10px; border-radius: 16px; background: rgba(255, 255, 255, 0.94); color: var(--ink); font-size: 14px; line-height: 1.25; box-shadow: 0 18px 40px -20px rgba(13, 16, 38, 0.6); }
