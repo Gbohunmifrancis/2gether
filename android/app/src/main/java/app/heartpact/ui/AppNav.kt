@@ -10,6 +10,7 @@ import app.heartpact.alarm.AlarmActivity
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmSlot
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -225,7 +226,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val me = session?.user ?: return@composable
-                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val context = LocalContext.current
                     val todayModel: TodayViewModel = viewModel(factory = viewModelFactory { initializer { TodayViewModel(application, me.id, partner) } })
@@ -308,15 +309,15 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                     val cycleMode = cycleSummaryUi.mode
                                     if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
                                         val partnerDay = cycleSummaryUi.shared?.prediction?.cycleDay
-                                        CardRow(if (cycleMode == CycleMode.Partner) "$partner's cycle" else "Your cycle",
+                                        CardRow(if (cycleMode == CycleMode.Partner) tr("{partner}'s cycle", "partner" to partner) else tr("Your cycle"),
                                             subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner, partnerDay),
                                             icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
                                     CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),
                                         icon = Icons.Outlined.WorkspacePremium, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
-                                    CardRow("Play together", subtitle = "Same answer, memory match, I call on",
+                                    CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"),
                                         icon = Icons.Outlined.SportsEsports, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
-                                    CardRow("Pregnancy mode", subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
+                                    CardRow(tr("Pregnancy mode"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
                                         icon = Icons.Outlined.ChildCare, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
                                 },
                             )
@@ -361,7 +362,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val me = session?.user ?: return@composable
-                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
                     val activity = LocalActivity.current ?: return@composable
                     val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id) } })
                     val ui by model.ui.collectAsStateWithLifecycle()
@@ -371,7 +372,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                 composable(Routes.QUESTION) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
                     val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us, container.pushEvents) } })
                     val state by model.ui.collectAsStateWithLifecycle()
                     QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
@@ -380,7 +381,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val me = session?.user?.id ?: return@composable
-                    val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: GamesViewModel = viewModel(factory = viewModelFactory { initializer { GamesViewModel(application) } })
                     LaunchedEffect(Unit) { model.refresh() }
@@ -393,19 +394,19 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                 composable(Routes.MAP) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: LocationViewModel = viewModel(factory = viewModelFactory { initializer { LocationViewModel(application) } })
                     LaunchedEffect(Unit) { model.refresh() }
                     val state by model.ui.collectAsStateWithLifecycle()
                     val share = rememberShareLocation { model.share(partner) }
                     MapScreen(state, partner, MapActions(onShare = share, onPause = model::pause, onResume = model::resume, onStop = model::stop, onBack = { nav.popBackStack() }),
-                        myName = session?.user?.displayName ?: "You")
+                        myName = session?.user?.displayName ?: tr("You"))
                 }
                 composable(Routes.CYCLE) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
                     val model: CycleViewModel = viewModel(factory = viewModelFactory { initializer { CycleViewModel(container.cycle) } })
                     LaunchedEffect(Unit) { model.load() }
                     val state by model.ui.collectAsStateWithLifecycle()
@@ -417,7 +418,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                 composable(Routes.PREGNANCY) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
                     val model: PregnancyViewModel = viewModel(factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
                     LaunchedEffect(Unit) { model.load() }
                     val state by model.ui.collectAsStateWithLifecycle()

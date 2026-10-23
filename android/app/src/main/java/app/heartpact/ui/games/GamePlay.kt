@@ -6,6 +6,8 @@ import app.heartpact.data.GameType
 import app.heartpact.data.ICallOnState
 import app.heartpact.data.MemoryState
 import app.heartpact.data.QuizState
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import kotlinx.serialization.json.Json
 
 /** Pure: reading a session's state and saying what it means for the person holding the phone. */
@@ -20,38 +22,38 @@ object GamePlay {
     val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn)
 
     fun title(type: GameType) = when (type) {
-        GameType.CoupleQuiz -> "Same answer"
-        GameType.MemoryMatch -> "Memory match"
-        GameType.ICallOn -> "I call on"
-        GameType.GuessMyAnswer -> "Guess my answer"
-        GameType.WordDash -> "Word dash"
-        GameType.Handwriting -> "Handwriting"
-        GameType.TruthOrDare -> "Truth or dare"
+        GameType.CoupleQuiz -> tr("Same answer")
+        GameType.MemoryMatch -> tr("Memory match")
+        GameType.ICallOn -> tr("I call on")
+        GameType.GuessMyAnswer -> tr("Guess my answer")
+        GameType.WordDash -> tr("Word dash")
+        GameType.Handwriting -> tr("Handwriting")
+        GameType.TruthOrDare -> tr("Truth or dare")
     }
 
     fun blurb(type: GameType) = when (type) {
-        GameType.CoupleQuiz -> "One question, two answers. A heart each time you both say the same thing."
-        GameType.MemoryMatch -> "Twelve cards, six pairs, your turn then mine. Most pairs wins."
-        GameType.ICallOn -> "A letter, four categories, 15 seconds. Judge each other's answers."
-        else -> "Take turns answering."
+        GameType.CoupleQuiz -> tr("One question, two answers. A heart each time you both say the same thing.")
+        GameType.MemoryMatch -> tr("Twelve cards, six pairs, your turn then mine. Most pairs wins.")
+        GameType.ICallOn -> tr("A letter, four categories, 15 seconds. Judge each other's answers.")
+        else -> tr("Take turns answering.")
     }
 
     fun outcome(s: GameSession, me: String, partner: String): String {
-        if (s.status == GameStatus.Abandoned) return "Ended early"
+        if (s.status == GameStatus.Abandoned) return tr("Ended early")
         val scores = when (s.gameType) {
             GameType.MemoryMatch -> memory(s).scores
             GameType.ICallOn -> iCallOn(s).scores
-            else -> return "${quiz(s).scores[me] ?: 0} matching answers"
+            else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answers", "{count} matching answers")
         }
         val mine = scores[me] ?: 0
         val theirs = scores.entries.firstOrNull { it.key != me }?.value ?: 0
         return when {
-            mine > theirs -> "You won, $mine to $theirs"
-            theirs > mine -> "$partner won, $theirs to $mine"
-            else -> "A draw, $mine each"
+            mine > theirs -> tr("You won, {mine} to {theirs}", "mine" to mine, "theirs" to theirs)
+            theirs > mine -> tr("{partner} won, {theirs} to {mine}", "partner" to partner, "theirs" to theirs, "mine" to mine)
+            else -> tr("A draw, {score} each", "score" to mine)
         }
     }
 
     /** Values 1 to 6 on memory cards become six stickers. */
-    fun cardLabel(value: Int) = listOf("Heart", "Star", "Flower", "Sun", "Moon", "Cake").getOrElse(value - 1) { "?" }
+    fun cardLabel(value: Int) = listOf(tr("Heart"), tr("Star"), tr("Flower"), tr("Sun"), tr("Moon"), tr("Cake")).getOrElse(value - 1) { "?" }
 }
