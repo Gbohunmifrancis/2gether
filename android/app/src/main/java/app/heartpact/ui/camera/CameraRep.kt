@@ -81,6 +81,8 @@ import app.heartpact.exercise.MotionLog
 import app.heartpact.exercise.Pose
 import app.heartpact.exercise.RepCounter
 import app.heartpact.exercise.SessionChecks
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.HalfState
@@ -133,17 +135,17 @@ object CameraText {
 
     fun title(type: ExerciseType, target: Int): String = type.label(target).replaceFirstChar { it.uppercase() }
 
-    fun whose(setBy: String?): String = setBy?.let { "$it's dare" } ?: "Your dare"
+    fun whose(setBy: String?): String = setBy?.let { tr("{partner}'s dare", "partner" to it) } ?: tr("Your dare")
 
     /** Under the big count: "of 15 arm raises", "of 30 seconds". */
-    fun of(type: ExerciseType, target: Int): String = if (type.measure == Measure.Seconds) "of $target seconds" else "of $target ${type.displayName.lowercase()}"
+    fun of(type: ExerciseType, target: Int): String = if (type.measure == Measure.Seconds) trn(target, "of {count} second", "of {count} seconds") else tr("of {count} {exercise}", "count" to target, "exercise" to type.displayName.lowercase())
 
     fun toGo(ui: CameraUi): String {
         val left = (ui.target - ui.counter.count).coerceAtLeast(0)
-        return if (ui.type.measure == Measure.Seconds) "${left}s" else "$left"
+        return if (ui.type.measure == Measure.Seconds) tr("{seconds}s", "seconds" to left) else "$left"
     }
 
-    fun frame(inFrame: Boolean): String = if (inFrame) "Whole body in frame" else "Step back so all of you is in frame"
+    fun frame(inFrame: Boolean): String = if (inFrame) tr("Whole body in frame") else tr("Step back so all of you is in frame")
 }
 
 /**
@@ -205,7 +207,7 @@ private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, preview: @Com
                     Chip(CameraText.frame(ui.counter.inFrame), dot = if (ui.counter.inFrame) Bone else OutOfFrame, modifier = Modifier.padding(top = 10.dp))
                 }
                 IconButton(onClick = onFlip, modifier = Modifier.size(46.dp).clip(Shapes.Pill).background(Glass.copy(alpha = 0.62f))) {
-                    Icon(Icons.Rounded.Cameraswitch, "Switch camera", tint = Color.White)
+                    Icon(Icons.Rounded.Cameraswitch, tr("Switch camera"), tint = Color.White)
                 }
             }
             // A check-in takes the middle of the picture; the bar steps aside until it's answered.
@@ -220,7 +222,7 @@ private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, preview: @Com
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Character(who, CharacterPose.Cheer, 36.dp)
-                    Text("$partner is watching", style = Heartpact.type.labelSmall, color = Color.White)
+                    Text(tr("{partner} is watching", "partner" to partner), style = Heartpact.type.labelSmall, color = Color.White)
                 }
             }
         }
@@ -238,7 +240,7 @@ private fun Progress(ui: CameraUi, trackHeight: Dp, modifier: Modifier) {
     val myHalf = if (done) HalfState.Stuck else HalfState.Slot
     Column(
         modifier.width(70.dp).shadow(12.dp, Shapes.Pill, ambientColor = Glass, spotColor = Glass).clip(Shapes.Pill).background(colors.sticker).padding(top = 14.dp, bottom = 12.dp)
-            .semantics(mergeDescendants = true) { contentDescription = "${ui.counter.count} of ${ui.target}, ${CameraText.toGo(ui)} to go" },
+            .semantics(mergeDescendants = true) { contentDescription = tr("{count} of {target}, {left} to go", "count" to ui.counter.count, "target" to ui.target, "left" to CameraText.toGo(ui)) },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -248,7 +250,7 @@ private fun Progress(ui: CameraUi, trackHeight: Dp, modifier: Modifier) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(CameraText.toGo(ui), style = Heartpact.type.titleSmall, color = colors.ink)
-            Text("to go", style = Heartpact.type.small.copy(fontSize = 11.sp, lineHeight = 13.sp), color = colors.ink2)
+            Text(tr("to go"), style = Heartpact.type.small.copy(fontSize = 11.sp, lineHeight = 13.sp), color = colors.ink2)
         }
     }
 }
@@ -268,7 +270,7 @@ private fun CheckIn(challenge: ChallengeUi, modifier: Modifier) {
             Box(Modifier.padding(top = 14.dp).fillMaxWidth().height(8.dp).clip(Shapes.Pill).background(Color.White.copy(alpha = 0.18f))) {
                 Box(Modifier.fillMaxHeight().fillMaxWidth(challenge.progress).clip(Shapes.Pill).background(Bone))
             }
-            Text("${(challenge.msLeft + 999) / 1_000}s left", style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f), modifier = Modifier.padding(top = 6.dp))
+            Text(tr("{seconds}s left", "seconds" to (challenge.msLeft + 999) / 1_000), style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f), modifier = Modifier.padding(top = 6.dp))
         }
     }
 }
@@ -292,9 +294,9 @@ private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: ()
             .padding(start = 20.dp, end = 20.dp, top = if (wide) 16.dp else 22.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val elapsed = @Composable { align: Alignment.Horizontal -> Stat("Elapsed", CameraText.clock(ui.elapsedSeconds), align) }
+        val elapsed = @Composable { align: Alignment.Horizontal -> Stat(tr("Elapsed"), CameraText.clock(ui.elapsedSeconds), align) }
         val left = @Composable { align: Alignment.Horizontal ->
-            ui.secondsLeft?.let { Stat("Left to ring", CameraText.clock(it), align) } ?: Stat("To go", CameraText.toGo(ui), align)
+            ui.secondsLeft?.let { Stat(tr("Left to ring"), CameraText.clock(it), align) } ?: Stat(tr("To go"), CameraText.toGo(ui), align)
         }
         if (wide) {
             Row(Modifier.fillMaxWidth()) {
@@ -309,7 +311,7 @@ private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: ()
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { left(Alignment.End) }
             }
         }
-        val note = ui.note ?: if (ui.sealing) "Sticking your half…" else ui.counter.cue
+        val note = ui.note ?: if (ui.sealing) tr("Sticking your half…") else ui.counter.cue
         Text(
             note ?: ui.type.cue,
             style = if (note != null) Heartpact.type.label else Heartpact.type.small,
@@ -327,12 +329,12 @@ private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: ()
                 IconButton(onClick = onSilence, enabled = !silenced, modifier = Modifier.size(52.dp).clip(Shapes.Pill).background(colors.sticker)) {
                     Icon(
                         if (silenced) Icons.Rounded.NotificationsPaused else Icons.Rounded.NotificationsOff,
-                        if (silenced) "Silenced on this phone" else "Silence on this phone",
+                        if (silenced) tr("Silenced on this phone") else tr("Silence on this phone"),
                         tint = if (silenced) colors.ink3 else colors.ink,
                     )
                 }
             }
-            HeartButton("Stop counting", onStop, Modifier.weight(1f), icon = Icons.Rounded.Stop, height = 52.dp)
+            HeartButton(tr("Stop counting"), onStop, Modifier.weight(1f), icon = Icons.Rounded.Stop, height = 52.dp)
         }
     }
 }
@@ -424,7 +426,7 @@ fun CameraRepScreen(
         type, target, counted, pose,
         secondsLeft = ringsUntil?.let { ((it.toEpochMilli() - clock) / 1_000).toInt().coerceAtLeast(0) },
         elapsedSeconds = ((clock - startedAt) / 1_000).toInt(),
-        note = error ?: note ?: if (!granted) "Heartpact needs the camera to count your reps. Nothing is recorded or sent." else null,
+        note = error ?: note ?: if (!granted) tr("Heartpact needs the camera to count your reps. Nothing is recorded or sent.") else null,
         sealing = sealing,
         mySide = mySide,
         setBy = setBy,
@@ -444,7 +446,7 @@ fun CameraRepScreen(
                         counted = state
                         pose = detected
                     }, onError = { error = it })
-                }.onFailure { error = "The pose model couldn't load on this phone." }.getOrNull()
+                }.onFailure { error = tr("The pose model couldn't load on this phone.") }.getOrNull()
                 val providerFuture = ProcessCameraProvider.getInstance(context)
                 providerFuture.addListener({
                     val provider = providerFuture.get()
@@ -457,7 +459,7 @@ fun CameraRepScreen(
                     provider.unbindAll()
                     runCatching {
                         provider.bindToLifecycle(lifecycle, if (front) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
-                    }.onFailure { error = "This phone's camera couldn't start." }
+                    }.onFailure { error = tr("This phone's camera couldn't start.") }
                 }, ContextCompat.getMainExecutor(context))
                 onDispose {
                     runCatching { providerFuture.get().unbindAll() }

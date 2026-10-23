@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.camera.core.ImageProxy
 import app.heartpact.exercise.Landmark
 import app.heartpact.exercise.Pose
+import app.heartpact.i18n.tr
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
@@ -37,7 +38,7 @@ class PoseTracker(context: Context, private val onPose: (Pose?) -> Unit, private
                 }
                 onPose(pose)
             }
-            .setErrorListener { error -> Log.w(TAG, "Pose detection failed", error); onError("The camera couldn't read your pose. Try more light.") }
+            .setErrorListener { error -> Log.w(TAG, "Pose detection failed", error); onError(tr("The camera couldn't read your pose. Try more light.")) }
             .build(),
     )
 

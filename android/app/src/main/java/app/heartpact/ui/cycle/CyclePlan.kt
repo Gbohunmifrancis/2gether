@@ -4,6 +4,7 @@ import app.heartpact.data.CycleDayLog
 import app.heartpact.data.CyclePrediction
 import app.heartpact.data.CycleShare
 import app.heartpact.data.FlowLevel
+import app.heartpact.i18n.tr
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -45,24 +46,24 @@ object CyclePlan {
 
     fun summary(prediction: CyclePrediction, cycleLength: Int): String? {
         val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return null
-        return "Of about $cycleLength. Next period likely ${likely(next)}."
+        return tr("Of about {cycleLength}. Next period likely {dates}.", "cycleLength" to cycleLength, "dates" to likely(next))
     }
 
     fun shareLine(level: CycleShare, partner: String): String = when (level) {
-        CycleShare.None -> "$partner sees nothing of your cycle."
-        CycleShare.PredictionsOnly -> "$partner sees your next period and fertile window. Not your logs or notes."
-        CycleShare.FullDetail -> "$partner sees your predictions and what you log, including notes."
+        CycleShare.None -> tr("{partner} sees nothing of your cycle.", "partner" to partner)
+        CycleShare.PredictionsOnly -> tr("{partner} sees your next period and fertile window. Not your logs or notes.", "partner" to partner)
+        CycleShare.FullDetail -> tr("{partner} sees your predictions and what you log, including notes.", "partner" to partner)
     }
 
     fun usRow(owner: Boolean, cycleDay: Int?, share: CycleShare?, partner: String, partnerDay: Int?): String = when {
-        owner && cycleDay != null -> "Day $cycleDay · " + when (share) {
-            CycleShare.None -> "private"
-            CycleShare.FullDetail -> "$partner sees everything"
-            else -> "$partner sees predictions"
+        owner && cycleDay != null -> when (share) {
+            CycleShare.None -> tr("Day {day} · private", "day" to cycleDay)
+            CycleShare.FullDetail -> tr("Day {day} · {partner} sees everything", "day" to cycleDay, "partner" to partner)
+            else -> tr("Day {day} · {partner} sees predictions", "day" to cycleDay, "partner" to partner)
         }
-        owner -> "Set up your cycle"
-        partnerDay != null -> "Day $partnerDay of $partner's cycle"
-        else -> "Track your cycle, privately"
+        owner -> tr("Set up your cycle")
+        partnerDay != null -> tr("Day {day} of {partner}'s cycle", "day" to partnerDay, "partner" to partner)
+        else -> tr("Track your cycle, privately")
     }
 
     /**
@@ -77,5 +78,19 @@ object CyclePlan {
         return yesterday == null || yesterday.flowLevel == FlowLevel.None || yesterday.flowLevel == FlowLevel.Spotting
     }
 
+    /** The symptoms on offer. These English names are what's saved and sent; [symptomLabel] is what people see. */
     val symptoms = listOf("Cramps", "Tired", "Headache", "Bloating", "Tender", "Acne", "Cravings", "Back pain")
+
+    /** A saved symptom in the reader's language; one this app doesn't know is shown as saved. */
+    fun symptomLabel(symptom: String): String = when (symptom) {
+        "Cramps" -> tr("Cramps")
+        "Tired" -> tr("Tired")
+        "Headache" -> tr("Headache")
+        "Bloating" -> tr("Bloating")
+        "Tender" -> tr("Tender")
+        "Acne" -> tr("Acne")
+        "Cravings" -> tr("Cravings")
+        "Back pain" -> tr("Back pain")
+        else -> symptom
+    }
 }

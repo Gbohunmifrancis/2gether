@@ -10,6 +10,7 @@ import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.OccurrenceStatus
 import app.heartpact.data.PlayIntegrity
 import app.heartpact.exercise.ExerciseChecks
+import app.heartpact.i18n.tr
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,14 +35,14 @@ data class AlarmUi(
     val phase: AlarmPhase = AlarmPhase.Loading,
     val note: String? = null,
     val busy: Boolean = false,
-    val partnerName: String = "your partner",
+    val partnerName: String = tr("your partner"),
     /** Silenced on this phone: the dare stays open, the sound stops. */
     val silenced: Boolean = false,
 )
 
 class AlarmViewModel(application: Application, private val slot: AlarmSlot) : AndroidViewModel(application) {
     private val app = (application as HeartpactApplication).container
-    private val _ui = MutableStateFlow(AlarmUi(partnerName = slot.setByName ?: "your partner", silenced = slot.key in AlarmStore(application).silenced))
+    private val _ui = MutableStateFlow(AlarmUi(partnerName = slot.setByName ?: tr("your partner"), silenced = slot.key in AlarmStore(application).silenced))
     val ui: StateFlow<AlarmUi> = _ui.asStateFlow()
     private var watcher: Job? = null
 

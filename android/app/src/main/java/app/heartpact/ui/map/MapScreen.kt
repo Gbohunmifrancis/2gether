@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import app.heartpact.BuildConfig
 import app.heartpact.data.LocationPoint
 import app.heartpact.data.SharingStatus
+import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -160,12 +161,12 @@ data class MapActions(
 /** The map (mockup 13): where you both are, and the controls that are always one tap away. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Instant = Instant.now(), drawn: Boolean = !BuildConfig.HAS_MAPS_KEY, myName: String = "You") {
+fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Instant = Instant.now(), drawn: Boolean = !BuildConfig.HAS_MAPS_KEY, myName: String = tr("You")) {
     val colors = Heartpact.colors
     Box(Modifier.fillMaxSize().background(colors.page)) {
         if (drawn) SketchMap(ui.points, Modifier.fillMaxWidth().height(520.dp)) else RealMap(ui.points, Modifier.fillMaxWidth().height(540.dp))
         IconButton(onClick = actions.onBack, modifier = Modifier.statusBarsPadding().padding(12.dp).size(52.dp).clip(CircleShape).background(colors.sticker)) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = colors.ink)
+            Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr("Back"), tint = colors.ink)
         }
         Column(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(Shapes.Sheet).background(colors.sticker)
@@ -182,31 +183,31 @@ fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Ins
             val me = ui.me
             Person(partnerName.take(1), partnerName, when {
                 them != null && me != null -> LocationMath.distance(LocationMath.meters(me.latitude, me.longitude, them.latitude, them.longitude)) + " · " + LocationMath.age(them.updatedAtUtc, now)
-                status?.partner?.status == SharingStatus.Paused -> "Paused " + (LocationMath.pausedUntil(status.partner.pausedUntilUtc) ?: "")
-                status?.partner?.status == SharingStatus.Sharing -> "Sharing; you'll see each other once you share too"
-                else -> "Not sharing"
+                status?.partner?.status == SharingStatus.Paused -> LocationMath.pausedUntil(status.partner.pausedUntilUtc)?.let { tr("Paused until {time}", "time" to it) } ?: tr("Paused")
+                status?.partner?.status == SharingStatus.Sharing -> tr("Sharing; you'll see each other once you share too")
+                else -> tr("Not sharing")
             }, partner = true)
-            Person(myName.take(1), "You", when (ui.myStatus) {
-                SharingStatus.Sharing -> "$partnerName sees you while you both share"
-                SharingStatus.Paused -> "Paused " + (LocationMath.pausedUntil(status?.me?.pausedUntilUtc) ?: "")
-                SharingStatus.Off -> "Not sharing"
+            Person(myName.take(1), tr("You"), when (ui.myStatus) {
+                SharingStatus.Sharing -> tr("{partner} sees you while you both share", "partner" to partnerName)
+                SharingStatus.Paused -> LocationMath.pausedUntil(status?.me?.pausedUntilUtc)?.let { tr("Paused until {time}", "time" to it) } ?: tr("Paused")
+                SharingStatus.Off -> tr("Not sharing")
             }, partner = false)
             when (ui.myStatus) {
                 SharingStatus.Off -> {
-                    HeartButton(if (ui.sendingHere) "Starting…" else "Share my location", actions.onShare, Modifier.padding(top = 16.dp), icon = Icons.Outlined.LocationOn, enabled = !ui.sendingHere)
-                    Text("Sharing is mutual and always visible: you only see $partnerName while you both share, and a notification shows the whole time. Stop any time.",
+                    HeartButton(if (ui.sendingHere) tr("Starting…") else tr("Share my location"), actions.onShare, Modifier.padding(top = 16.dp), icon = Icons.Outlined.LocationOn, enabled = !ui.sendingHere)
+                    Text(tr("Sharing is mutual and always visible: you only see {partner} while you both share, and a notification shows the whole time. Stop any time.", "partner" to partnerName),
                         style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
                 }
-                SharingStatus.Paused -> HeartButton("Resume sharing", actions.onResume, Modifier.padding(top = 16.dp), busy = ui.busy)
+                SharingStatus.Paused -> HeartButton(tr("Resume sharing"), actions.onResume, Modifier.padding(top = 16.dp), busy = ui.busy)
                 SharingStatus.Sharing -> {
-                    if (!ui.sendingHere) HeartButton("Send from this phone", actions.onShare, Modifier.padding(top = 16.dp), kind = ButtonKind.Tonal)
-                    Text("Pause sharing", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 18.dp, bottom = 10.dp))
+                    if (!ui.sendingHere) HeartButton(tr("Send from this phone"), actions.onShare, Modifier.padding(top = 16.dp), kind = ButtonKind.Tonal)
+                    Text(tr("Pause sharing"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 18.dp, bottom = 10.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        HeartChip("1 hour", false, { actions.onPause(60) })
-                        HeartChip("Until tomorrow", false, { actions.onPause(LocationMath.minutesUntilTomorrow(ZonedDateTime.now())) })
-                        HeartChip("Stop sharing", false, actions.onStop)
+                        HeartChip(tr("1 hour"), false, { actions.onPause(60) })
+                        HeartChip(tr("Until tomorrow"), false, { actions.onPause(LocationMath.minutesUntilTomorrow(ZonedDateTime.now())) })
+                        HeartChip(tr("Stop sharing"), false, actions.onStop)
                     }
-                    Text("Either of you can pause. While one of you is paused, neither of you sees the other.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
+                    Text(tr("Either of you can pause. While one of you is paused, neither of you sees the other."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
                 }
             }
         }
@@ -236,18 +237,18 @@ fun LocationCard(ui: LocationUi, partnerName: String, onOpen: () -> Unit, onShar
     val me = ui.me
     val them = ui.partner
     val subtitle = when {
-        me != null && them != null -> "$partnerName is " + LocationMath.distance(LocationMath.meters(me.latitude, me.longitude, them.latitude, them.longitude)) + " · " + LocationMath.age(them.updatedAtUtc, now).removePrefix("updated ")
-        ui.myStatus == SharingStatus.Paused -> "Paused " + (LocationMath.pausedUntil(ui.status?.me?.pausedUntilUtc) ?: "")
-        ui.status?.partner?.status == SharingStatus.Paused -> "$partnerName paused " + (LocationMath.pausedUntil(ui.status.partner.pausedUntilUtc) ?: "")
-        else -> "Mutual, visible, and you can stop any time"
+        me != null && them != null -> tr("{partner} is {distance}", "partner" to partnerName, "distance" to LocationMath.distance(LocationMath.meters(me.latitude, me.longitude, them.latitude, them.longitude))) + " · " + LocationMath.ago(them.updatedAtUtc, now)
+        ui.myStatus == SharingStatus.Paused -> LocationMath.pausedUntil(ui.status?.me?.pausedUntilUtc)?.let { tr("Paused until {time}", "time" to it) } ?: tr("Paused")
+        ui.status?.partner?.status == SharingStatus.Paused -> LocationMath.pausedUntil(ui.status.partner.pausedUntilUtc)?.let { tr("{partner} paused until {time}", "partner" to partnerName, "time" to it) } ?: tr("{partner} paused", "partner" to partnerName)
+        else -> tr("Mutual, visible, and you can stop any time")
     }
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(bottom = 14.dp)) {
         if (ui.points.isNotEmpty()) SketchMap(ui.points, Modifier.fillMaxWidth().height(150.dp), character = 44.dp)
         CardRow(LocationMath.headline(ui.status, partnerName), subtitle = subtitle, icon = Icons.Outlined.LocationOn, onClick = onOpen) {
             val (label, action) = when (ui.myStatus) {
-                SharingStatus.Off -> "Share" to onShare
-                SharingStatus.Paused -> "Resume" to onResume
-                SharingStatus.Sharing -> "Pause" to onPause
+                SharingStatus.Off -> tr("Share") to onShare
+                SharingStatus.Paused -> tr("Resume") to onResume
+                SharingStatus.Sharing -> tr("Pause") to onPause
             }
             Text(label, style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clip(Shapes.Pill).clickable(onClick = action).padding(8.dp))
         }

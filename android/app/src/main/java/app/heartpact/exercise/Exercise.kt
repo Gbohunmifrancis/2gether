@@ -1,11 +1,13 @@
 package app.heartpact.exercise
 
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Mirrors the server's ExerciseCatalog (docs/couple-goals.md); the server re-checks every completion. */
 @Serializable
-enum class ExerciseType(val displayName: String, val measure: Measure, val defaultTarget: Int, val minTarget: Int, val maxTarget: Int, val minSecondsPerUnit: Double, val cue: String) {
+enum class ExerciseType(val englishName: String, val measure: Measure, val defaultTarget: Int, val minTarget: Int, val maxTarget: Int, val minSecondsPerUnit: Double, val englishCue: String) {
     @SerialName("squat") Squat("Squats", Measure.Reps, 15, 1, 200, 0.8, "Side-on to the camera, whole body in frame."),
     @SerialName("pushUp") PushUp("Push-ups", Measure.Reps, 10, 1, 200, 0.7, "Side-on, phone on the floor a couple of metres away."),
     @SerialName("jumpingJack") JumpingJack("Jumping jacks", Measure.Reps, 20, 1, 300, 0.4, "Face the camera, arms and feet in frame."),
@@ -19,7 +21,29 @@ enum class ExerciseType(val displayName: String, val measure: Measure, val defau
     /** For reps the factor is seconds per rep; for holds it is the fraction of the target that must pass. Either way: factor × target seconds. */
     fun minimumMillis(target: Int): Long = (minSecondsPerUnit * target * 1000).toLong()
 
-    fun label(target: Int): String = if (measure == Measure.Seconds) "${displayName.lowercase()}, ${target} seconds" else "$target ${displayName.lowercase()}"
+    /** The name people see, in their language ([englishName] is the English). */
+    val displayName: String get() = when (this) {
+        Squat -> tr("Squats")
+        PushUp -> tr("Push-ups")
+        JumpingJack -> tr("Jumping jacks")
+        Plank -> tr("Plank")
+        ArmRaise -> tr("Arm raises")
+        HighKnees -> tr("High knees")
+        SitUp -> tr("Sit-ups")
+    }
+
+    /** How to stand for the camera, in the person's language ([englishCue] is the English). */
+    val cue: String get() = when (this) {
+        Squat -> tr("Side-on to the camera, whole body in frame.")
+        PushUp -> tr("Side-on, phone on the floor a couple of metres away.")
+        JumpingJack -> tr("Face the camera, arms and feet in frame.")
+        Plank -> tr("Side-on, hold a straight line from shoulders to ankles.")
+        ArmRaise -> tr("Face the camera, raise both hands above your head.")
+        HighKnees -> tr("Face the camera, bring each knee up to hip height.")
+        SitUp -> tr("Side-on, lying down, whole body in frame.")
+    }
+
+    fun label(target: Int): String = if (measure == Measure.Seconds) trn(target, "{exercise}, {count} second", "{exercise}, {count} seconds", "exercise" to displayName.lowercase()) else tr("{count} {exercise}", "count" to target, "exercise" to displayName.lowercase())
 }
 
 @Serializable

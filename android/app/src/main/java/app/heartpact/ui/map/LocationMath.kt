@@ -3,6 +3,7 @@ package app.heartpact.ui.map
 import app.heartpact.data.SharingStatus
 import app.heartpact.data.SharingStatusView
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalTime
@@ -27,19 +28,30 @@ object LocationMath {
     }
 
     fun distance(m: Double): String = when {
-        m < 100 -> "right next to you"
-        m < 1000 -> "${(m / 10).roundToInt() * 10} m away"
-        m < 10_000 -> "${"%.1f".format(java.util.Locale.US, m / 1000)} km away"
-        else -> "${(m / 1000).roundToInt()} km away"
+        m < 100 -> tr("right next to you")
+        m < 1000 -> tr("{meters} m away", "meters" to (m / 10).roundToInt() * 10)
+        m < 10_000 -> tr("{km} km away", "km" to "%.1f".format(java.util.Locale.US, m / 1000))
+        else -> tr("{km} km away", "km" to (m / 1000).roundToInt())
     }
 
     fun age(updatedAtUtc: String, now: Instant): String {
         val minutes = Duration.between(utc(updatedAtUtc), now).toMinutes()
         return when {
-            minutes < 1 -> "updated just now"
-            minutes < 60 -> "updated $minutes min ago"
-            minutes < 24 * 60 -> "updated ${minutes / 60} h ago"
-            else -> "updated over a day ago"
+            minutes < 1 -> tr("updated just now")
+            minutes < 60 -> tr("updated {minutes} min ago", "minutes" to minutes)
+            minutes < 24 * 60 -> tr("updated {hours} h ago", "hours" to minutes / 60)
+            else -> tr("updated over a day ago")
+        }
+    }
+
+    /** [age] without "updated": "2 min ago", "just now". */
+    fun ago(updatedAtUtc: String, now: Instant): String {
+        val minutes = Duration.between(utc(updatedAtUtc), now).toMinutes()
+        return when {
+            minutes < 1 -> tr("just now")
+            minutes < 60 -> tr("{minutes} min ago", "minutes" to minutes)
+            minutes < 24 * 60 -> tr("{hours} h ago", "hours" to minutes / 60)
+            else -> tr("over a day ago")
         }
     }
 
@@ -53,16 +65,17 @@ object LocationMath {
         val me = status?.me?.status ?: SharingStatus.Off
         val them = status?.partner?.status ?: SharingStatus.Off
         return when {
-            status?.mutual == true -> "You both share location"
-            me == SharingStatus.Paused || them == SharingStatus.Paused -> if (me == SharingStatus.Paused) "You paused sharing" else "$partner paused sharing"
-            me == SharingStatus.Sharing -> "You're sharing; $partner isn't yet"
-            them == SharingStatus.Sharing -> "$partner shares; you don't yet"
-            else -> "Location sharing is off"
+            status?.mutual == true -> tr("You both share location")
+            me == SharingStatus.Paused || them == SharingStatus.Paused -> if (me == SharingStatus.Paused) tr("You paused sharing") else tr("{partner} paused sharing", "partner" to partner)
+            me == SharingStatus.Sharing -> tr("You're sharing; {partner} isn't yet", "partner" to partner)
+            them == SharingStatus.Sharing -> tr("{partner} shares; you don't yet", "partner" to partner)
+            else -> tr("Location sharing is off")
         }
     }
 
+    /** The time a pause ends, "18:30", for "Paused until {time}". */
     fun pausedUntil(iso: String?, zone: ZoneId = ZoneId.systemDefault()): String? =
-        iso?.let { "until " + utc(it).atZone(zone).toLocalTime().withSecond(0).withNano(0).toString() }
+        iso?.let { utc(it).atZone(zone).toLocalTime().withSecond(0).withNano(0).toString() }
 
     /**
      * Two points on a drawn map: an equirectangular projection around their midpoint, scaled so both sit

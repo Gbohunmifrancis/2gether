@@ -12,6 +12,7 @@ import app.heartpact.exercise.Pose.Companion.R_HIP
 import app.heartpact.exercise.Pose.Companion.R_KNEE
 import app.heartpact.exercise.Pose.Companion.R_SHOULDER
 import app.heartpact.exercise.Pose.Companion.R_WRIST
+import app.heartpact.i18n.tr
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -64,16 +65,16 @@ enum class ChallengeKind {
 /** A check-in on screen: what to do, how long is left, how far along the hold is, then how it went. */
 data class ChallengeUi(val kind: ChallengeKind, val msLeft: Long, val progress: Float, val passed: Boolean? = null) {
     val title: String get() = when {
-        passed == true -> "Check-in passed"
-        passed == false -> "Missed the check-in"
-        kind == ChallengeKind.Freeze -> "Check-in: freeze!"
-        else -> "Check-in: hips up!"
+        passed == true -> tr("Check-in passed")
+        passed == false -> tr("Missed the check-in")
+        kind == ChallengeKind.Freeze -> tr("Check-in: freeze!")
+        else -> tr("Check-in: hips up!")
     }
     val body: String get() = when {
-        passed == true -> "Thanks. Keep going."
-        passed == false -> "Your partner will see that one was missed. Keep going."
-        kind == ChallengeKind.Freeze -> "Hold completely still for 2 seconds."
-        else -> "Raise your hips, then back into a straight line."
+        passed == true -> tr("Thanks. Keep going.")
+        passed == false -> tr("Your partner will see that one was missed. Keep going.")
+        kind == ChallengeKind.Freeze -> tr("Hold completely still for 2 seconds.")
+        else -> tr("Raise your hips, then back into a straight line.")
     }
 }
 

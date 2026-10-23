@@ -23,6 +23,7 @@ import app.heartpact.HeartpactApplication
 import app.heartpact.MainActivity
 import app.heartpact.R
 import app.heartpact.album.AlbumNotices
+import app.heartpact.i18n.tr
 
 /**
  * Shares this phone's position while the person has asked to, with a notification that says so and
@@ -43,7 +44,7 @@ class LocationShareService : Service() {
             return START_NOT_STICKY
         }
         if (!hasPermission(this)) { stopSelf(); return START_NOT_STICKY }
-        val partner = intent?.getStringExtra(EXTRA_PARTNER) ?: "your partner"
+        val partner = intent?.getStringExtra(EXTRA_PARTNER) ?: tr("your partner")
         val type = if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION else 0
         val started = runCatching { ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(partner), type) }
         if (started.isFailure) { stopSelf(); return START_NOT_STICKY }
@@ -92,19 +93,19 @@ class LocationShareService : Service() {
     private fun notification(partner: String): Notification {
         val manager = getSystemService(NotificationManager::class.java)
         if (manager.getNotificationChannel(CHANNEL) == null) {
-            manager.createNotificationChannel(NotificationChannel(CHANNEL, "Location sharing", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Shown the whole time you share your location."
+            manager.createNotificationChannel(NotificationChannel(CHANNEL, tr("Location sharing"), NotificationManager.IMPORTANCE_LOW).apply {
+                description = tr("Shown the whole time you share your location.")
             })
         }
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).putExtra(AlbumNotices.EXTRA_OPEN_TAB, "us").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, Intent(this, LocationShareService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_heart)
-            .setContentTitle("Sharing your location with $partner")
-            .setContentText("Only while you both share. Stop any time.")
+            .setContentTitle(tr("Sharing your location with {partner}", "partner" to partner))
+            .setContentText(tr("Only while you both share. Stop any time."))
             .setOngoing(true)
             .setContentIntent(open)
-            .addAction(0, "Stop sharing", stop)
+            .addAction(0, tr("Stop sharing"), stop)
             .build()
     }
 
