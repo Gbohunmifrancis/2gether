@@ -4,6 +4,7 @@
     python3 android/i18n/catalog.py export   # writes android/i18n/source.json: every English string, where it's used
     python3 android/i18n/catalog.py check    # every language file has every string, no stale ones, same {placeholders}
     python3 android/i18n/catalog.py missing fr   # just the strings French still needs, as JSON
+    python3 android/i18n/catalog.py merge fr batch.json   # adds a batch of translations to fr.json, sorted
 
 CatalogTest.kt does the same check in the unit tests, so CI fails on a string without translations.
 """
@@ -125,6 +126,20 @@ def main():
         out = ROOT / "i18n/source.json"
         out.write_text(json.dumps(found, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
         print(f"{len(found)} strings ({sum(e['plural'] for e in found.values())} counts) -> {out}")
+    elif command == "merge":
+        language, batch = sys.argv[2], json.loads(pathlib.Path(sys.argv[3]).read_text(encoding="utf-8"))
+        path = CATALOGS / f"{language}.json"
+        catalog = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        unknown = [k for k in batch if k not in found and not k.startswith("@")]
+        catalog.update({k: v for k, v in batch.items() if k not in unknown})
+        ordered = {k: catalog[k] for k in sorted(catalog, key=lambda k: (not k.startswith("@"), k.lower()))}
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(ordered, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        _, missing = check_language(language, found)
+        print(f"{language}: merged {len(batch) - len(unknown)}, {len(missing)} still missing")
+        for k in unknown:
+            print("not a key in the app (typo in the English?):", repr(k))
+        return
     elif command == "missing":
         _, missing = check_language(sys.argv[2], found)
         print(json.dumps({k: found[k] for k in missing}, ensure_ascii=False, indent=1))
