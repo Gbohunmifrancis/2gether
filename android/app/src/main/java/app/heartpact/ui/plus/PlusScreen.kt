@@ -33,6 +33,7 @@ import app.heartpact.billing.PlusOffers
 import app.heartpact.data.Entitlement
 import app.heartpact.data.PlanLimits
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -57,11 +58,11 @@ object PlusText {
     fun subtitle(entitlement: Entitlement?, partnerName: String): String {
         val subscription = entitlement?.subscription
         return when {
-            entitlement == null || entitlement.plan == app.heartpact.data.Plan.Free -> "One plan covers both of you. Either of you can buy it."
-            subscription != null && subscription.purchasedByMe -> "You have Plus. It covers you and $partnerName."
-            subscription != null -> "$partnerName pays for Plus. It covers you both."
-            entitlement.complimentary -> entitlement.complimentaryUntilUtc?.let { "Plus is on us until ${date(it)}. Subscribe to keep it after that." } ?: "Plus is on us. It covers you both."
-            else -> "You both have Plus."
+            entitlement == null || entitlement.plan == app.heartpact.data.Plan.Free -> tr("One plan covers both of you. Either of you can buy it.")
+            subscription != null && subscription.purchasedByMe -> tr("You have Plus. It covers you and {partner}.", "partner" to partnerName)
+            subscription != null -> tr("{partner} pays for Plus. It covers you both.", "partner" to partnerName)
+            entitlement.complimentary -> entitlement.complimentaryUntilUtc?.let { tr("Plus is on us until {date}. Subscribe to keep it after that.", "date" to date(it)) } ?: tr("Plus is on us. It covers you both.")
+            else -> tr("You both have Plus.")
         }
     }
 
@@ -70,13 +71,17 @@ object PlusText {
         val subscription = entitlement?.subscription ?: return null
         val until = date(subscription.expiresAtUtc)
         val plan = PlusOffers.planName(subscription.productId).lowercase()
-        val whose = if (subscription.purchasedByMe) "Your" else "$partnerName's"
+        val mine = subscription.purchasedByMe
         return when {
             subscription.status == "inGracePeriod" ->
-                if (subscription.purchasedByMe) "Google couldn't take the last payment. Fix it in Google Play by $until to keep Plus."
-                else "Google couldn't take $partnerName's last payment. Plus stays until $until while they fix it."
-            !subscription.autoRenewing || subscription.status == "canceled" -> "$whose $plan plan is set not to renew. Plus ends on $until."
-            else -> "$whose $plan plan renews on $until."
+                if (mine) tr("Google couldn't take the last payment. Fix it in Google Play by {date} to keep Plus.", "date" to until)
+                else tr("Google couldn't take {partner}'s last payment. Plus stays until {date} while they fix it.", "partner" to partnerName, "date" to until)
+            !subscription.autoRenewing || subscription.status == "canceled" ->
+                if (mine) tr("Your {plan} plan is set not to renew. Plus ends on {date}.", "plan" to plan, "date" to until)
+                else tr("{partner}'s {plan} plan is set not to renew. Plus ends on {date}.", "partner" to partnerName, "plan" to plan, "date" to until)
+            else ->
+                if (mine) tr("Your {plan} plan renews on {date}.", "plan" to plan, "date" to until)
+                else tr("{partner}'s {plan} plan renews on {date}.", "partner" to partnerName, "plan" to plan, "date" to until)
         }
     }
 
@@ -84,15 +89,15 @@ object PlusText {
     fun usRow(entitlement: Entitlement?, partnerName: String): String {
         val subscription = entitlement?.subscription
         return when {
-            entitlement == null -> "More food scans, album space and history"
-            entitlement.plan == app.heartpact.data.Plan.Free -> "Free plan · more scans, album space and history with Plus"
-            subscription != null && subscription.purchasedByMe -> "Plus · you pay, it covers you both"
-            subscription != null -> "Plus · $partnerName pays, it covers you both"
-            else -> "Plus · on us" + (entitlement.complimentaryUntilUtc?.let { " until ${date(it)}" } ?: "")
+            entitlement == null -> tr("More food scans, album space and history")
+            entitlement.plan == app.heartpact.data.Plan.Free -> tr("Free plan · more scans, album space and history with Plus")
+            subscription != null && subscription.purchasedByMe -> tr("Plus · you pay, it covers you both")
+            subscription != null -> tr("Plus · {partner} pays, it covers you both", "partner" to partnerName)
+            else -> entitlement.complimentaryUntilUtc?.let { tr("Plus · on us until {date}", "date" to date(it)) } ?: tr("Plus · on us")
         }
     }
 
-    const val FOOTER = "Cancel anytime in the Play Store. Deleting your account doesn't cancel it."
+    val FOOTER get() = tr("Cancel anytime in the Play Store. Deleting your account doesn't cancel it.")
 }
 
 /** Heartpact Plus (mockup 18): what you both get, the plans, and Google Play's purchase sheet. */
@@ -112,7 +117,7 @@ fun PlusScreen(
     val showPlans = entitlement != null && entitlement.canPurchase && subscription == null
     Column(Modifier.fillMaxSize().navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, "Close", tint = colors.ink2) }
+            IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, tr("Close"), tint = colors.ink2) }
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             Row(verticalAlignment = Alignment.Bottom) {
@@ -122,7 +127,7 @@ fun PlusScreen(
                 }
                 Character(Who.Both, Pose.Cheer, 104.dp)
             }
-            if (ui.welcomed) NoteCard("Welcome to Plus. $partnerName has it too, from now on.", Modifier.padding(top = 16.dp))
+            if (ui.welcomed) NoteCard(tr("Welcome to Plus. {partner} has it too, from now on.", "partner" to partnerName), Modifier.padding(top = 16.dp))
             ui.note?.let { NoteCard(it, Modifier.padding(top = 16.dp)) }
             if (ui.pending) NoteCard(PlusViewModel.PENDING, Modifier.padding(top = 16.dp))
 
@@ -132,13 +137,13 @@ fun PlusScreen(
                 Comparison(entitlement.freeLimits, entitlement.plusLimits, Modifier.padding(top = 18.dp))
                 PlusText.subscriptionStatus(entitlement, partnerName)?.let { status ->
                     StickerCard(Modifier.fillMaxWidth().padding(top = 14.dp)) {
-                        CardRow(status, subtitle = if (subscription?.purchasedByMe == true) "Managed in Google Play" else "$partnerName manages it in Google Play")
+                        CardRow(status, subtitle = if (subscription?.purchasedByMe == true) tr("Managed in Google Play") else tr("{partner} manages it in Google Play", "partner" to partnerName))
                     }
                 }
                 if (showPlans) {
-                    Text("Choose a plan", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
+                    Text(tr("Choose a plan"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
                     if (ui.options.isEmpty()) {
-                        Text(ui.storeMessage ?: "Loading plans from Google Play…", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))
+                        Text(ui.storeMessage ?: tr("Loading plans from Google Play…"), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))
                     }
                     ui.options.forEach { option ->
                         PlanCard(option, selected = option.productId == ui.selected, onClick = { onSelect(option.productId) }, modifier = Modifier.padding(top = 10.dp))
@@ -149,13 +154,13 @@ fun PlusScreen(
         }
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp)) {
             when {
-                subscription?.purchasedByMe == true -> HeartButton("Manage in Google Play", onClick = { onManage(subscription.productId) }, kind = ButtonKind.Tonal)
-                showPlans -> HeartButton("Continue with Google Play", onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending, busy = ui.busy)
-                else -> HeartButton("Done", onClick = onClose, kind = ButtonKind.Tonal)
+                subscription?.purchasedByMe == true -> HeartButton(tr("Manage in Google Play"), onClick = { onManage(subscription.productId) }, kind = ButtonKind.Tonal)
+                showPlans -> HeartButton(tr("Continue with Google Play"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending, busy = ui.busy)
+                else -> HeartButton(tr("Done"), onClick = onClose, kind = ButtonKind.Tonal)
             }
             if (showPlans) {
                 Text(PlusText.FOOTER, style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 10.dp))
-                HeartButton("Restore a purchase", onClick = onRestore, kind = ButtonKind.Text, enabled = !ui.busy, height = 40.dp)
+                HeartButton(tr("Restore a purchase"), onClick = onRestore, kind = ButtonKind.Text, enabled = !ui.busy, height = 40.dp)
             }
         }
     }
@@ -166,8 +171,8 @@ private fun Comparison(free: PlanLimits?, plus: PlanLimits?, modifier: Modifier 
     if (free == null || plus == null) return
     val colors = Heartpact.colors
     StickerCard(modifier.fillMaxWidth()) {
-        CardRow("What you both get", trailing = {
-            Text("Free", style = Heartpact.type.labelSmall, color = colors.ink3, textAlign = TextAlign.End, modifier = Modifier.width(66.dp))
+        CardRow(tr("What you both get"), trailing = {
+            Text(tr("Free"), style = Heartpact.type.labelSmall, color = colors.ink3, textAlign = TextAlign.End, modifier = Modifier.width(66.dp))
             Text("Plus", style = Heartpact.type.labelSmall, color = Heartpact.actor.action, textAlign = TextAlign.End, modifier = Modifier.width(66.dp))
         })
         PlusOffers.comparison(free, plus).forEach { (label, freeValue, plusValue) ->

@@ -19,6 +19,7 @@ import app.heartpact.data.MealType
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.UpdateFoodEntryRequest
 import app.heartpact.data.UpsertTargetRequest
+import app.heartpact.i18n.tr
 import app.heartpact.media.Jpeg
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -93,7 +94,7 @@ class FoodScanViewModel(application: Application, private val source: Uri) : And
         _ui.update { it.copy(phase = ScanPhase.Reading, note = null) }
         val image = payload ?: withContext(Dispatchers.IO) { prepare() }.also { payload = it }
         if (image == null) {
-            _ui.update { it.copy(phase = ScanPhase.Failed("photo", "That photo couldn't be read. Try another one.")) }
+            _ui.update { it.copy(phase = ScanPhase.Failed("photo", tr("That photo couldn't be read. Try another one."))) }
             return@launch
         }
         _ui.update {
@@ -147,8 +148,8 @@ data class FoodEntryUi(
     val note: String? = null,
 ) {
     val caloriesValue: Int? get() = calories.trim().toIntOrNull()?.takeIf { it in 0..5000 }
-    val descriptionError: String? get() = if (description.isBlank()) "Say what you ate" else if (description.trim().length > 120) "Keep it under 120 characters" else null
-    val caloriesError: String? get() = if (caloriesValue == null) "A number from 0 to 5,000" else null
+    val descriptionError: String? get() = if (description.isBlank()) tr("Say what you ate") else if (description.trim().length > 120) tr("Keep it under 120 characters") else null
+    val caloriesError: String? get() = if (caloriesValue == null) tr("A number from 0 to 5,000") else null
 }
 
 /** Log a meal by hand, or change or delete one already logged. */

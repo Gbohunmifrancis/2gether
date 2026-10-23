@@ -16,6 +16,7 @@ import app.heartpact.data.Entitlement
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.Plan
 import app.heartpact.data.PlusRepository
+import app.heartpact.i18n.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -76,7 +77,7 @@ class PlusViewModel(private val plus: PlusRepository, private val store: PlaySto
                     state.copy(
                         options = options,
                         selected = state.selected?.takeIf { id -> options.any { it.productId == id } } ?: options.firstOrNull()?.productId,
-                        storeMessage = if (options.isEmpty()) "Plus isn't on sale in your country yet." else null,
+                        storeMessage = if (options.isEmpty()) tr("Plus isn't on sale in your country yet.") else null,
                     )
                 }
             }
@@ -101,9 +102,9 @@ class PlusViewModel(private val plus: PlusRepository, private val store: PlaySto
         viewModelScope.launch {
             val note = when (val result = PlusRestore.run(store, plus, userId, onlyUnacknowledged = false)) {
                 is RestoreResult.Restored -> { accept(result.entitlement); null }
-                is RestoreResult.NothingToRestore -> if (result.pending) PENDING else "This Google account has no Plus subscription for you."
+                is RestoreResult.NothingToRestore -> if (result.pending) PENDING else tr("This Google account has no Plus subscription for you.")
                 is RestoreResult.Refused -> result.message
-                RestoreResult.StoreUnavailable -> "Can't reach Google Play. Check your connection and try again."
+                RestoreResult.StoreUnavailable -> tr("Can't reach Google Play. Check your connection and try again.")
                 RestoreResult.Offline -> OFFLINE_MESSAGE
             }
             _ui.update { it.copy(busy = false, note = note) }
@@ -125,8 +126,8 @@ class PlusViewModel(private val plus: PlusRepository, private val store: PlaySto
                     when (val result = plus.verify(productId, purchase.token)) {
                         is ApiResult.Ok -> accept(result.value)
                         // Paid, but the server couldn't confirm yet: it is retried on the next start.
-                        is ApiResult.Failure -> _ui.update { it.copy(note = "Your payment went through, but we couldn't switch Plus on yet. ${result.message}") }
-                        ApiResult.Offline -> _ui.update { it.copy(note = "Your payment went through. Plus switches on as soon as you're back online.") }
+                        is ApiResult.Failure -> _ui.update { it.copy(note = tr("Your payment went through, but we couldn't switch Plus on yet. {serverMessage}", "serverMessage" to result.message)) }
+                        ApiResult.Offline -> _ui.update { it.copy(note = tr("Your payment went through. Plus switches on as soon as you're back online.")) }
                     }
                 }
                 _ui.update { it.copy(busy = false) }
@@ -142,7 +143,7 @@ class PlusViewModel(private val plus: PlusRepository, private val store: PlaySto
     }
 
     companion object {
-        const val PENDING = "Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it."
+        val PENDING get() = tr("Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.")
     }
 }
 

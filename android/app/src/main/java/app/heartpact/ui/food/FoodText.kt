@@ -6,6 +6,8 @@ import app.heartpact.data.FoodScanResult
 import app.heartpact.data.FoodShareLevel
 import app.heartpact.data.FoodTotals
 import app.heartpact.data.MealType
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import java.text.NumberFormat
 import java.time.LocalTime
 import java.util.Locale
@@ -14,10 +16,16 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /** How much of the photo the person actually ate. Mirrors FoodRules.ScaleRange on the server. */
-enum class Portion(val label: String, val factor: Double) {
-    Smaller("Smaller", 0.75),
-    AsShown("As shown", 1.0),
-    Larger("Larger", 1.3),
+enum class Portion(val factor: Double) {
+    Smaller(0.75),
+    AsShown(1.0),
+    Larger(1.3);
+
+    val label: String get() = when (this) {
+        Smaller -> tr("Smaller")
+        AsShown -> tr("As shown")
+        Larger -> tr("Larger")
+    }
 }
 
 /** Pure wording and numbers for the Food tab: estimates are ranges, never one made-up number. */
@@ -26,40 +34,38 @@ object FoodText {
     fun n(value: Int): String = numbers.format(value)
     fun range(low: Int, high: Int): String = if (low == high) n(low) else "${n(low)}–${n(high)}"
 
-    private val words = listOf("no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+    private val words get() = listOf(tr("no"), tr("one"), tr("two"), tr("three"), tr("four"), tr("five"), tr("six"), tr("seven"), tr("eight"), tr("nine"), tr("ten"))
     private fun count(n: Int) = words.getOrElse(n) { n.toString() }
 
     fun headline(entries: List<FoodEntry>, totals: FoodTotals): String {
-        if (entries.isEmpty()) return "Nothing logged yet today"
+        if (entries.isEmpty()) return tr("Nothing logged yet today")
         val photos = entries.count { it.source == FoodEntrySource.PhotoEstimate }
-        val what = when {
-            photos == entries.size -> if (photos == 1) "one meal photo" else "${count(photos)} meal photos"
-            entries.size == 1 -> "one meal"
-            else -> "${count(entries.size)} meals"
-        }
-        return if (totals.low == totals.high) "${n(totals.calories)} kcal so far, from $what"
-        else "About ${range(totals.low, totals.high)} kcal so far, from $what"
+        val what = if (photos == entries.size) trn(photos, "one meal photo", "{number} meal photos", "number" to count(photos))
+        else trn(entries.size, "one meal", "{number} meals", "number" to count(entries.size))
+        return if (totals.low == totals.high) tr("{calories} kcal so far, from {meals}", "calories" to n(totals.calories), "meals" to what)
+        else tr("About {range} kcal so far, from {meals}", "range" to range(totals.low, totals.high), "meals" to what)
     }
 
     fun caption(totals: FoodTotals, aim: Int): String = when {
-        totals.entryCount == 0 -> "Snap a meal and you'll get a range, never a single made-up number. Your aim is about ${n(aim)} kcal."
-        totals.low != totals.high -> "Each photo is a range, so the dashed end shows where today really lands."
-        else -> "Your aim is about ${n(aim)} kcal."
+        totals.entryCount == 0 -> tr("Snap a meal and you'll get a range, never a single made-up number. Your aim is about {calories} kcal.", "calories" to n(aim))
+        totals.low != totals.high -> tr("Each photo is a range, so the dashed end shows where today really lands.")
+        else -> tr("Your aim is about {calories} kcal.", "calories" to n(aim))
     }
 
     fun entryLine(entry: FoodEntry, time: String): String =
-        "${entry.mealType.label} · $time" + if (entry.source == FoodEntrySource.PhotoEstimate) " · from a photo" else ""
+        if (entry.source == FoodEntrySource.PhotoEstimate) tr("{meal} · {time} · from a photo", "meal" to entry.mealType.label, "time" to time)
+        else "${entry.mealType.label} · $time"
 
     fun partnerLine(level: FoodShareLevel): String = when (level) {
-        FoodShareLevel.None -> "keeps food private"
-        FoodShareLevel.TotalsOnly -> "shares daily totals only"
-        FoodShareLevel.FullDetail -> "shares every meal"
+        FoodShareLevel.None -> tr("keeps food private")
+        FoodShareLevel.TotalsOnly -> tr("shares daily totals only")
+        FoodShareLevel.FullDetail -> tr("shares every meal")
     }
 
     fun shareChoice(level: FoodShareLevel, partner: String): String = when (level) {
-        FoodShareLevel.None -> "Nothing: $partner sees no food at all"
-        FoodShareLevel.TotalsOnly -> "Daily totals: $partner sees your day's range, not the meals"
-        FoodShareLevel.FullDetail -> "Every meal: $partner sees what you logged"
+        FoodShareLevel.None -> tr("Nothing: {partner} sees no food at all", "partner" to partner)
+        FoodShareLevel.TotalsOnly -> tr("Daily totals: {partner} sees your day's range, not the meals", "partner" to partner)
+        FoodShareLevel.FullDetail -> tr("Every meal: {partner} sees what you logged", "partner" to partner)
     }
 
     /** A guess at the meal from the clock; the person can change it. */
@@ -89,11 +95,12 @@ object FoodText {
             round1(scan.proteinGrams * f), round1(scan.carbsGrams * f), round1(scan.fatGrams * f))
     }
 
-    fun grams(range: Pair<Int, Int>) = if (range.first == range.second) "${range.first} g" else "${range.first}–${range.second} g"
+    fun grams(range: Pair<Int, Int>) =
+        tr("{grams} g", "grams" to if (range.first == range.second) "${range.first}" else "${range.first}–${range.second}")
 
     fun scansLeft(remaining: Int, limit: Int) = when {
         limit <= 0 -> null
-        remaining <= 0 -> "No photo estimates left today"
-        else -> "$remaining of $limit photo estimates left today"
+        remaining <= 0 -> tr("No photo estimates left today")
+        else -> trn(remaining, "{count} of {limit} photo estimates left today", "{count} of {limit} photo estimates left today", "limit" to limit)
     }
 }

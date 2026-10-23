@@ -1,5 +1,6 @@
 package app.heartpact.data
 
+import app.heartpact.i18n.tr
 import kotlinx.serialization.json.Json
 import retrofit2.Response
 import java.io.IOException
@@ -11,7 +12,7 @@ sealed interface ApiResult<out T> {
     data object Offline : ApiResult<Nothing>
 }
 
-const val OFFLINE_MESSAGE = "You're offline. Check your connection and try again."
+val OFFLINE_MESSAGE get() = tr("You're offline. Check your connection and try again.")
 
 /** Runs a Retrofit call and turns every outcome, including no network, into an [ApiResult]. */
 suspend fun <T> apiCall(json: Json, block: suspend () -> Response<T>): ApiResult<T> {
@@ -26,9 +27,9 @@ suspend fun <T> apiCall(json: Json, block: suspend () -> Response<T>): ApiResult
     }
     val error = runCatching { json.decodeFromString<ApiErrorBody>(response.errorBody()?.string().orEmpty()) }.getOrNull()
     val message = error?.message?.takeIf { it.isNotBlank() } ?: when (response.code()) {
-        401 -> "Your session has ended. Sign in again."
-        in 500..599 -> "Something went wrong on our side. Try again in a moment."
-        else -> "That didn't work. Try again."
+        401 -> tr("Your session has ended. Sign in again.")
+        in 500..599 -> tr("Something went wrong on our side. Try again in a moment.")
+        else -> tr("That didn't work. Try again.")
     }
     return ApiResult.Failure(error?.code ?: "http.${response.code()}", message, response.code())
 }

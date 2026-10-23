@@ -2,6 +2,8 @@ package app.heartpact.data
 
 import app.heartpact.exercise.ExerciseType
 import app.heartpact.exercise.Measure
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.Instant
@@ -82,18 +84,18 @@ data class OccurrenceChecks(
     fun partnerLine(): String? {
         val parts = flags.mapNotNull { flag ->
             when (flag) {
-                "missedCheckIn" -> if (challengesMissed == 1) "missed a camera check-in" else "missed $challengesMissed camera check-ins"
-                "phoneMoved" -> "the phone was moving during $phoneMovedReps reps"
-                "leftFrame" -> "out of view for $outOfFrameSeconds seconds"
-                "unverifiedApp" -> "the app couldn't be verified"
+                "missedCheckIn" -> trn(challengesMissed, "missed a camera check-in", "missed {count} camera check-ins")
+                "phoneMoved" -> trn(phoneMovedReps, "the phone was moving during {count} reps", "the phone was moving during {count} reps")
+                "leftFrame" -> trn(outOfFrameSeconds, "out of view for {count} seconds", "out of view for {count} seconds")
+                "unverifiedApp" -> tr("the app couldn't be verified")
                 else -> null
             }
         }
-        if (parts.isNotEmpty()) return "Worth a look: " + parts.joinToString(", ") + "."
+        if (parts.isNotEmpty()) return tr("Worth a look: {problems}.", "problems" to parts.joinToString(", "))
         val notCounted = formFaults + fastReps
         return when {
-            notCounted > 0 -> "$notCounted ${if (notCounted == 1) "rep" else "reps"} didn't count"
-            challengesPassed > 0 -> "Every camera check-in passed"
+            notCounted > 0 -> trn(notCounted, "{count} rep didn't count", "{count} reps didn't count")
+            challengesPassed > 0 -> tr("Every camera check-in passed")
             else -> null
         }
     }

@@ -3,6 +3,7 @@ package app.heartpact.billing
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import app.heartpact.i18n.tr
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClientStateListener
@@ -69,10 +70,10 @@ interface PlayStore {
 }
 
 object PlayMessages {
-    const val UNAVAILABLE = "Google Play isn't available on this phone. Check you're signed in to the Play Store."
-    const val UNREACHABLE = "Can't reach Google Play. Check your connection and try again."
-    const val NOT_ON_SALE = "Plus isn't on sale in your country yet."
-    const val FAILED = "Google Play couldn't finish that. Try again in a moment."
+    val UNAVAILABLE get() = tr("Google Play isn't available on this phone. Check you're signed in to the Play Store.")
+    val UNREACHABLE get() = tr("Can't reach Google Play. Check your connection and try again.")
+    val NOT_ON_SALE get() = tr("Plus isn't on sale in your country yet.")
+    val FAILED get() = tr("Google Play couldn't finish that. Try again in a moment.")
 
     fun forCode(code: Int): String = when (code) {
         BillingResponseCode.BILLING_UNAVAILABLE, BillingResponseCode.FEATURE_NOT_SUPPORTED -> UNAVAILABLE

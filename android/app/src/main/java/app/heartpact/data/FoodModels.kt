@@ -1,16 +1,24 @@
 package app.heartpact.data
 
+import app.heartpact.i18n.tr
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Wire contracts of api/food (docs/food-log.md). */
 
 @Serializable
-enum class MealType(val label: String) {
-    @SerialName("breakfast") Breakfast("Breakfast"),
-    @SerialName("lunch") Lunch("Lunch"),
-    @SerialName("dinner") Dinner("Dinner"),
-    @SerialName("snack") Snack("Snack"),
+enum class MealType {
+    @SerialName("breakfast") Breakfast,
+    @SerialName("lunch") Lunch,
+    @SerialName("dinner") Dinner,
+    @SerialName("snack") Snack;
+
+    val label: String get() = when (this) {
+        Breakfast -> tr("Breakfast")
+        Lunch -> tr("Lunch")
+        Dinner -> tr("Dinner")
+        Snack -> tr("Snack")
+    }
 }
 
 /** What my partner sees of my food. */
