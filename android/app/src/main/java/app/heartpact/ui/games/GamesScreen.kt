@@ -81,12 +81,14 @@ data class GameActions(
     val onAbandon: (String) -> Unit = {},
     val onAct: (GameSession, String, String?, Int?) -> Unit = { _, _, _, _ -> },
     val onBack: () -> Unit = {},
+    /** Leave a finished game's final board for the picker. */
+    val onClose: (String) -> Unit = {},
 )
 
 /** Play together: start a game, accept one, play it, see how the last ones went. */
 @Composable
 fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }) {
-    val active = ui.active
+    val active = ui.active ?: ui.justFinished(now())
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         TopBar(active?.let { GamePlay.title(it) } ?: tr("Play together"), actions.onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
@@ -117,8 +119,8 @@ private fun Picker(ui: GamesUi, me: String, partnerName: String, actions: GameAc
         }
     }
     Text(tr("Pick a game and {partner} gets an invite. It starts when they join.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(bottom = 14.dp))
-    val region = ui.sessions.firstOrNull()?.let(GamePlay::region)
-    GamePlay.offered.forEach { type ->
+    val region = ui.region ?: ui.sessions.firstOrNull()?.let(GamePlay::region)
+    GamePlay.offered(region).forEach { type ->
         StickerCard(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Text(GamePlay.title(type, region), style = Heartpact.type.title, color = colors.ink)
@@ -195,9 +197,11 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
+        GameType.AfterRound -> AfterRoundBoard(s, me, partnerName, busy, actions, now)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
+    if (s.status == GameStatus.Completed) HeartButton(tr("Back to games"), { actions.onClose(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Tonal)
 }
 
 @Composable

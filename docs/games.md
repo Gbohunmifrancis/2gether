@@ -4,7 +4,8 @@ A couple has at most one open game. One partner invites (`POST api/game/sessions
 accepts (`POST .../{id}/accept`), a shared five-second countdown runs, then moves go to
 `POST .../{id}/actions {expectedStateVersion, action, value?, index?}`. Either partner can end a game, or decline or
 cancel an invite, with `POST .../{id}/abandon`. `GET api/game/sessions` returns the couple's last 30 games, newest
-first.
+first. `GET api/game/region` says whose versions the couple plays (`{"region":"ng"}` or `"global"`), and so which games
+the app offers. A game that finished in the last 15 minutes stays on screen with its final board until it's closed.
 
 Every response and the couple hub's `GameStarted`, `GameStateChanged` and `GameCompleted` events carry the whole
 session. `stateJson` is a JSON string of the public state (nothing hidden from the other player leaks into it);
@@ -45,6 +46,20 @@ is not needed: REST plus the couple hub covers everything.
   `undo`, `clear` and `pass`; the guesser sends `guess` (any case or accents, a leading "a"/"an"/"the" ignored, in
   English or their own language). A right guess gives both a point; three wrong ones or a pass end the round with
   none. Strokes and guesses cross, so the app queues its moves and resends one that gets `game.version_conflict`.
+
+- **After Round** (`afterRound`, Nigerian couples only; anyone else gets `422 game.not_offered`): the finger-count
+  game from After Round 1 (afterround1.tech), one on one. Each round both `call` a number (`index` 0–10) within 15
+  seconds; each number once a round, first come, and only totals the two hands can make (`reachable`). Calls are
+  public. Then both `lay` 0–5 fingers (`index`) within 10 seconds, never the value they laid last round
+  (`myFingers` lists what's legal); hands stay hidden until both are down, then `last` shows calls, fingers and the
+  total. Whoever called the total takes the round. When the clock runs out the server picks a legal call or hand for
+  whoever hasn't moved (`last.auto`); two rounds in a row with nobody moving end the game (`ended: "idle"`). First to
+  five (or the leader after 25 rounds) wins, then the slap duel: the winner slaps, the loser dodges. Each phone counts
+  in 3 seconds, sweeps a needle across the gauge (one sweep per `periodMs`, there and back) for `windowMs`, and sends
+  `press` with `index` = milliseconds since its needle started. Accuracy is how close the needle stopped to the
+  centre of the mark (`zone`); the defender dodges with a press more than 0.01 better, the slap glances within 0.01,
+  and otherwise lands. A slapper who never presses slaps weakly; a defender who never presses is frozen. No coins
+  move, so the phone's timing is trusted. The final board links to the live After Round.
 
 # Adding a game
 
@@ -91,6 +106,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
+| After Round (`afterRound`), Nigeria only | both at once, timed | Call a number, lay 0–5 fingers, whoever called the total takes the round. First to five, then a slap duel. | a point per round taken |
 
 ## Text
 

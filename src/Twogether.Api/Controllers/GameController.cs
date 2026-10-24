@@ -33,6 +33,11 @@ public sealed class GameController(
         return Ok(sessions.Select(ToDto).ToList());
     }
 
+    /// <summary>Whose versions of the games the couple plays ("ng" or "global"), and so which games the app offers.</summary>
+    [HttpGet("region")]
+    public async Task<ActionResult<GameRegionDto>> Region(CancellationToken cancellationToken)
+        => Ok(new GameRegionDto(currentUser.CoupleId is { } coupleId ? await CoupleRegion(coupleId, cancellationToken) : GameRegion.Global));
+
     [HttpPost("sessions")]
     public async Task<ActionResult<GameSessionDto>> Create(CreateGameSessionRequest request, CancellationToken cancellationToken)
     {
@@ -49,8 +54,10 @@ public sealed class GameController(
         if (!partnerId.HasValue) return Conflict(new ApiError("game.players_missing", Loc.T("Both partners must be linked before a game is invited.")));
 
         // Nigerian couples play the Naija versions: trivia, words and pictures (docs/games.md).
-        var countries = await db.Users.AsNoTracking().Where(user => user.CoupleId == currentUser.CoupleId.Value).Select(user => user.CountryCode).ToListAsync(cancellationToken);
-        var setupJson = await setupFactory.CreateAsync(request.GameType, GameRegion.For(countries), request.Letter, cancellationToken);
+        var region = await CoupleRegion(currentUser.CoupleId.Value, cancellationToken);
+        if (!GameRegion.Offers(request.GameType, region))
+            return UnprocessableEntity(new ApiError("game.not_offered", Loc.T("After Round is for couples in Nigeria.")));
+        var setupJson = await setupFactory.CreateAsync(request.GameType, region, request.Letter, cancellationToken);
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
         Notification notification;
         using (Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken)))
@@ -176,6 +183,9 @@ public sealed class GameController(
         return Ok(ToDto(session));
     }
 
+    private async Task<string> CoupleRegion(Guid coupleId, CancellationToken cancellationToken)
+        => GameRegion.For(await db.Users.AsNoTracking().Where(user => user.CoupleId == coupleId).Select(user => user.CountryCode).ToListAsync(cancellationToken));
+
     private Task<GameSession?> OwnedSession(Guid sessionId, CancellationToken cancellationToken)
         => currentUser.CoupleId.HasValue
             ? db.GameSessions.SingleOrDefaultAsync(session => session.Id == sessionId && session.CoupleId == currentUser.CoupleId.Value, cancellationToken)
@@ -200,10 +210,12 @@ public sealed class GameController(
         GameType.TicTacToe => Loc.T("{name} invited you to play Tic-tac-toe.", ("name", name)),
         GameType.ConnectFour => Loc.T("{name} invited you to play Connect four.", ("name", name)),
         GameType.Trivia => Loc.T("{name} invited you to play Trivia.", ("name", name)),
+        GameType.AfterRound => Loc.T("{name} invited you to play After Round.", ("name", name)),
         _ => Loc.T("{name} invited you to a game.", ("name", name)),
     };
 }
 
+public sealed record GameRegionDto(string Region);
 public sealed record CreateGameSessionRequest(GameType GameType, string? Letter = null);
 public sealed record ApplyGameActionRequest(long ExpectedStateVersion, string Action, string? Value, int? Index);
 public sealed record GameSessionDto(Guid Id, Guid CoupleId, GameType GameType, GameSessionStatus Status, DateTime? StartedAtUtc, DateTime? EndedAtUtc, Guid? CurrentTurnUserId, DateTime? DeadlineUtc, long StateVersion, string StateJson, Guid? InvitedByUserId, DateTime? InviteAcceptedAtUtc, DateTime? CountdownEndsAtUtc, Guid? EndedByUserId, string SetupJson);

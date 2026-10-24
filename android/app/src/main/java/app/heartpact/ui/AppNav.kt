@@ -389,6 +389,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     GamesScreen(state, me, partner, GameActions(
                         onInvite = { type, letter -> model.invite(type, letter) }, onAccept = { model.accept(it) }, onAbandon = { model.abandon(it) },
                         onAct = { s, action, value, index -> model.act(s, action, value, index) }, onBack = { nav.popBackStack() },
+                        onClose = { model.close(it) },
                     ))
                 }
                 composable(Routes.MAP) {

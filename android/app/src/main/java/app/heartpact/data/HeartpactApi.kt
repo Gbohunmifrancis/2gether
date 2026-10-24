@@ -209,6 +209,9 @@ interface HeartpactApi {
     @POST("api/auth/google")
     suspend fun googleSignIn(@Body request: GoogleSignInRequest): Response<AuthResponse>
 
+    @GET("api/game/region")
+    suspend fun gameRegion(): Response<GameRegionView>
+
     @GET("api/game/sessions")
     suspend fun gameSessions(): Response<List<GameSession>>
 

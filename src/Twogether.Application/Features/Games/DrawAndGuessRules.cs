@@ -177,6 +177,8 @@ public sealed class DrawAndGuessRules : IGameRules
     /// What a guess comes down to: no case, accents, punctuation or spaces, and no leading article, so "The Umbrella",
     /// "umbrella " and "Umbréllà" all match, and "ice-cream" matches "ice cream".
     /// </summary>
+    private const char ArabicTatweel = 'ـ';
+
     public static string Normalize(string text)
     {
         var decomposed = text.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
@@ -184,11 +186,14 @@ public sealed class DrawAndGuessRules : IGameRules
         foreach (var c in decomposed)
         {
             var category = CharUnicodeInfo.GetUnicodeCategory(c);
-            if (category == UnicodeCategory.NonSpacingMark) continue;
-            plain.Append(char.IsLetterOrDigit(c) ? c : ' ');
+            if (category == UnicodeCategory.NonSpacingMark || c == ArabicTatweel) continue;
+            // Arabic: taa marbuta and alif maqsura are often typed as haa and yaa (hamza forms already lost their hamza above).
+            plain.Append(c switch { 'ة' => 'ه', 'ى' => 'ي', _ => char.IsLetterOrDigit(c) ? c : ' ' });
         }
         var words = plain.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
         if (words.Count > 1 && Articles.Contains(words[0])) words.RemoveAt(0);
+        // Arabic writes "the" onto the word: «القطة» is a right guess for «قطة».
+        if (words.Count > 0 && words[0].StartsWith("ال", StringComparison.Ordinal) && words[0].Length > 3) words[0] = words[0][2..];
         return string.Concat(words).Normalize(NormalizationForm.FormC);
     }
 

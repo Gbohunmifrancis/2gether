@@ -9,6 +9,9 @@ import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
 import app.heartpact.data.OFFLINE_MESSAGE
+import app.heartpact.data.utc
+import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,11 +27,19 @@ data class GamesUi(
     val loaded: Boolean = false,
     /** Draw and guess moves on their way to the server (GameMoveQueue), shown on the board meanwhile. */
     val pending: List<PendingMove> = emptyList(),
+    /** The couple's game region from the server ("ng" or "global"); null until it has loaded. */
+    val region: String? = null,
+    /** Finished games the person has closed, so the picker shows again. */
+    val closed: Set<String> = emptySet(),
 ) {
     /** The couple's one open game, if any. */
     val active: GameSession? get() = sessions.firstOrNull { it.open }
     /** The game just finished, kept on screen until the next one starts. */
     val finished: GameSession? get() = sessions.firstOrNull()?.takeIf { it.status == GameStatus.Completed }
+    /** A game that finished in the last few minutes stays on screen, final board and all, until it's closed. */
+    fun justFinished(now: Instant): GameSession? = finished?.takeIf { s ->
+        s.id !in closed && s.endedAtUtc?.let { Duration.between(utc(it), now) < KEEP_FINISHED } == true
+    }
     val history: List<GameSession> get() = sessions.filter { it.status == GameStatus.Completed }.take(8)
 
     /** Newer state wins: an echo of my own move (or an out-of-order event) never rolls the board back. */
@@ -38,6 +49,8 @@ data class GamesUi(
         else copy(sessions = (listOf(session) + sessions.filterNot { it.id == session.id }).sortedWith(compareByDescending<GameSession> { it.open }))
     }
 }
+
+private val KEEP_FINISHED: Duration = Duration.ofMinutes(15)
 
 private fun <T> ApiResult<T>.note(): String? = when (this) {
     is ApiResult.Ok -> null
@@ -71,6 +84,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         load = { app.games.session(it) })
 
     fun refresh() = viewModelScope.launch {
+        (app.games.region() as? ApiResult.Ok)?.value?.let { found -> _ui.update { it.copy(region = found.region) } }
         when (val result = app.games.sessions()) {
             is ApiResult.Ok -> _ui.update { it.copy(sessions = result.value, loaded = true, note = null) }
             else -> _ui.update { it.copy(loaded = true, note = result.note()) }
@@ -98,6 +112,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun close(id: String) = _ui.update { it.copy(closed = it.closed + id) }
     fun dismissNote() = _ui.update { it.copy(note = null) }
 
     private fun call(block: suspend () -> ApiResult<GameSession>) {

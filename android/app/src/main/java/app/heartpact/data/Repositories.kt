@@ -112,6 +112,7 @@ class LocationRepository(private val api: HeartpactApi, private val json: Json) 
 
 class GameRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun sessions(): ApiResult<List<GameSession>> = apiCall(json) { api.gameSessions() }
+    suspend fun region(): ApiResult<GameRegionView> = apiCall(json) { api.gameRegion() }
     suspend fun session(id: String): ApiResult<GameSession> = apiCall(json) { api.gameSession(id) }
     suspend fun create(type: GameType, letter: String? = null): ApiResult<GameSession> = apiCall(json) { api.createGame(CreateGameRequest(type, letter)) }
     suspend fun accept(id: String): ApiResult<GameSession> = apiCall(json) { api.acceptGame(id) }

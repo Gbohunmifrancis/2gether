@@ -10,6 +10,7 @@ enum class GameType {
     @SerialName("coupleQuiz") CoupleQuiz, @SerialName("memoryMatch") MemoryMatch, @SerialName("iCallOn") ICallOn,
     @SerialName("guessMyAnswer") GuessMyAnswer, @SerialName("wordDash") WordDash, @SerialName("handwriting") Handwriting, @SerialName("truthOrDare") TruthOrDare,
     @SerialName("wouldYouRather") WouldYouRather, @SerialName("ticTacToe") TicTacToe, @SerialName("connectFour") ConnectFour, @SerialName("trivia") Trivia,
+    @SerialName("afterRound") AfterRound,
 }
 
 @Serializable
@@ -270,4 +271,65 @@ data class TriviaState(
     val myAnswer: Int? = null,
     val reveal: TriviaReveal? = null,
     val completed: Boolean = false,
+)
+
+/** Whose versions of the games the couple plays: "ng" for Nigerian couples (who also get After Round), else "global". */
+@Serializable
+data class GameRegionView(val region: String = "global")
+
+/** After Round's last round, shown to both once both hands are down. [auto] ran out of time and had a move chosen. */
+@Serializable
+data class AfterRoundReveal(
+    val round: Int = 0,
+    val calls: Map<String, Int> = emptyMap(),
+    val fingers: Map<String, Int> = emptyMap(),
+    val total: Int = 0,
+    val winner: String? = null,
+    val auto: List<String> = emptyList(),
+)
+
+/** One slap duel press: [accuracy] 0 to 1, [rating] "perfect", "great", "good", "weak" or "frozen". */
+@Serializable
+data class DuelPress(val accuracy: Double = 0.0, val rating: String = "frozen")
+
+/** [outcome] is "hit", "glancing" or "dodged". */
+@Serializable
+data class DuelResultView(val outcome: String = "hit", val slapper: DuelPress = DuelPress(), val defender: DuelPress = DuelPress())
+
+/** The slap duel after After Round: [zone] is the centre of the mark on the gauge (0 to 1); the needle sweeps once per [periodMs]. */
+@Serializable
+data class SlapDuelState(
+    val slapper: String = "",
+    val defender: String = "",
+    val zone: Double = 0.5,
+    val periodMs: Int = 1100,
+    val windowMs: Int = 4000,
+    val pressed: List<String> = emptyList(),
+    val result: DuelResultView? = null,
+)
+
+/**
+ * After Round: [phase] is "calling" (both call a number from [reachable]; [calls] are public), "laying" (both lay one
+ * of [myFingers]; hands stay hidden until both are down), "duel" or "completed". [ended] is "idle" when nobody moved.
+ */
+@Serializable
+data class AfterRoundState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    val round: Int = 0,
+    val target: Int = 5,
+    val maxRounds: Int = 25,
+    val phase: String = "calling",
+    val callSeconds: Int = 15,
+    val laySeconds: Int = 10,
+    val calls: Map<String, Int> = emptyMap(),
+    val reachable: List<Int> = emptyList(),
+    val lastFingers: Map<String, Int> = emptyMap(),
+    val myFingers: List<Int> = emptyList(),
+    val laid: List<String> = emptyList(),
+    val myLay: Int? = null,
+    val last: AfterRoundReveal? = null,
+    val duel: SlapDuelState? = null,
+    val winnerUserId: String? = null,
+    val ended: String? = null,
 )

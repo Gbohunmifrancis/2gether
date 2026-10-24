@@ -289,4 +289,13 @@ public sealed class DrawAndGuessRulesTests
         public Task<IReadOnlyList<string>> GetQuestionsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
         public Task<IReadOnlyList<TriviaQuestion>> GetTriviaAsync(int amount, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TriviaQuestion>>([]);
     }
+
+    [Theory]
+    [InlineData("قطة", "القطة")]
+    [InlineData("قطة", "قطه")]
+    [InlineData("مستشفى", "مستشفي")]
+    [InlineData("أرنب", "ارنب")]
+    [InlineData("قمر", "قـمـر")]
+    public void Arabic_guesses_match_with_or_without_the_article_and_in_common_spellings(string word, string guess)
+        => Assert.Equal(DrawAndGuessRules.Normalize(word), DrawAndGuessRules.Normalize(guess));
 }
