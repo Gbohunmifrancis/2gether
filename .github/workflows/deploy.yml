@@ -227,6 +227,8 @@ jobs:
       SITE_URL: ${{ vars.SITE_URL }}
     steps:
       - uses: actions/checkout@v4
+      - name: Every page translated and built
+        run: python3 website/i18n/build.py check
       - id: ready
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$API_URL" ]; then
@@ -240,6 +242,8 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/site"
           cp -R website/. "$RUNNER_TEMP/site/"
+          # The translation sources aren't part of the site.
+          rm -rf "$RUNNER_TEMP/site/i18n"
           api="${API_URL%/}"
           # The script that calls the API, and the Content-Security-Policy that allows it.
           sed -i "s#https://api.heartpact.app#$api#g" "$RUNNER_TEMP/site/assets/config.js" "$RUNNER_TEMP/site/_headers"

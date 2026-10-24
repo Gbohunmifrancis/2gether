@@ -116,7 +116,7 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .side.theirs { background: var(--tint-2); }
 .side .eyebrow { color: var(--navy); }
 .side.theirs .eyebrow { color: var(--peri-ink); }
-.side ol { margin: 18px 0 0; padding-left: 22px; display: grid; gap: 14px; }
+.side ol { margin: 18px 0 0; padding-inline-start: 22px; display: grid; gap: 14px; }
 .side li span { color: var(--ink-2); }
 /* Waits for site.js to pick its region's image; without JavaScript the <noscript> copy shows instead. */
 .side img.phone:not([src]) { display: none; }
@@ -166,7 +166,7 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .features li { padding: 16px 0; border-top: 1px solid #E4E6F3; }
 .features b { display: block; }
 .features span { color: var(--ink-2); font-size: 15.5px; }
-.features em { font-style: normal; font-family: var(--display); font-weight: 700; color: var(--peri); margin-right: 8px; font-size: 14px; }
+.features em { font-style: normal; font-family: var(--display); font-weight: 700; color: var(--peri); margin-inline-end: 8px; font-size: 14px; }
 
 /* ---------- Plans: the fold again ---------- */
 .plans { display: flex; flex-wrap: wrap; overflow: hidden; }
@@ -175,9 +175,9 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .plan.plus { background: var(--peri); color: var(--ink); }
 .plan h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 28px; letter-spacing: -0.02em; }
 .plan .price { margin: 8px 0 4px; font-family: var(--display); font-weight: 800; font-size: clamp(48px, 5vw, 64px); letter-spacing: -0.04em; line-height: 1; }
-.plan .price small { font-size: 0.4em; letter-spacing: 0; margin-left: 4px; }
+.plan .price small { font-size: 0.4em; letter-spacing: 0; margin-inline-start: 4px; }
 .plan .per { margin: 0 0 22px; font-weight: 700; }
-.plan ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 420px; }
+.plan ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 8px; max-width: 420px; }
 .plan.free ul { color: var(--ink-2); }
 .plans-note { text-align: center; padding: 22px 24px 0; margin: 0; font-size: 15px; color: var(--ink-2); }
 
@@ -219,7 +219,7 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .doc p, .doc li { color: var(--ink-2); }
 .doc li { margin: 4px 0; }
 .doc table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 15px; }
-.doc th, .doc td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid #E4E6F3; }
+.doc th, .doc td { text-align: start; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid #E4E6F3; }
 .doc th { background: var(--wash); color: var(--ink); }
 .doc .table-scroll { overflow-x: auto; }
 .doc .updated { color: var(--ink-2); font-size: 15px; }
@@ -336,3 +336,16 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
   .motion .fold-heart .half { display: none; }
   .motion .fold-heart .whole { animation: dropIn .9s .5s var(--ease-out) both; }
 }
+
+/* ---------- Other languages (docs/translation.md) ---------- */
+/* The hero's halves are a picture of the couple, you on the left and them on the right, with the heart on their seam:
+   right-to-left pages keep them in place, and only the words inside read right to left. */
+[dir="rtl"] .hero { direction: ltr; }
+[dir="rtl"] .hero .half { direction: rtl; }
+/* Arabic and Devanagari come from the system fonts (the site's fonts are Latin only). Their letters join or stack,
+   so no tight letter spacing, and they stand taller. */
+:root:lang(ar), :root:lang(hi) { --display: system-ui, sans-serif; --body: system-ui, sans-serif; }
+:lang(ar) *, :lang(hi) * { letter-spacing: normal !important; }
+:lang(ar) .display, :lang(hi) .display { line-height: 1.2; }
+.footer .languages a[aria-current] { text-decoration: none; font-weight: 800; }
+.translation-note { padding: 12px 16px; border-radius: 12px; background: #F1F2FB; color: var(--ink-2); font-size: 15px; }
