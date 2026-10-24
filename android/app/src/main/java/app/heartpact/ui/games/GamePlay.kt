@@ -1,5 +1,6 @@
 package app.heartpact.ui.games
 
+import app.heartpact.data.DrawAndGuessState
 import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
@@ -23,8 +24,11 @@ object GamePlay {
     fun truthOrDare(s: GameSession): TruthOrDareState = runCatching { json.decodeFromString(TruthOrDareState.serializer(), s.stateJson) }.getOrDefault(TruthOrDareState())
     fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
     fun grid(s: GameSession): GridMatchState = runCatching { json.decodeFromString(GridMatchState.serializer(), s.stateJson) }.getOrDefault(GridMatchState())
+    fun drawAndGuess(s: GameSession): DrawAndGuessState = runCatching { json.decodeFromString(DrawAndGuessState.serializer(), s.stateJson) }.getOrDefault(DrawAndGuessState())
+
+    /** The games the app offers (docs/games.md). */
     val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.GuessMyAnswer, GameType.WouldYouRather,
-        GameType.TruthOrDare, GameType.WordDash, GameType.TicTacToe, GameType.ConnectFour)
+        GameType.TruthOrDare, GameType.WordDash, GameType.Handwriting, GameType.TicTacToe, GameType.ConnectFour)
 
     fun title(type: GameType) = when (type) {
         GameType.CoupleQuiz -> tr("Same answer")
@@ -32,7 +36,7 @@ object GamePlay {
         GameType.ICallOn -> tr("I call on")
         GameType.GuessMyAnswer -> tr("Guess my answer")
         GameType.WordDash -> tr("Word dash")
-        GameType.Handwriting -> tr("Handwriting")
+        GameType.Handwriting -> tr("Draw and guess")
         GameType.TruthOrDare -> tr("Truth or dare")
         GameType.WouldYouRather -> tr("Would you rather")
         GameType.TicTacToe -> tr("Tic-tac-toe")
@@ -47,7 +51,7 @@ object GamePlay {
         GameType.ICallOn -> tr("Play I call on")
         GameType.GuessMyAnswer -> tr("Play Guess my answer")
         GameType.WordDash -> tr("Play Word dash")
-        GameType.Handwriting -> tr("Play Handwriting")
+        GameType.Handwriting -> tr("Play Draw and guess")
         GameType.TruthOrDare -> tr("Play Truth or dare")
         GameType.WouldYouRather -> tr("Play Would you rather")
         GameType.TicTacToe -> tr("Play Tic-tac-toe")
@@ -65,6 +69,7 @@ object GamePlay {
         GameType.WouldYouRather -> tr("Two choices, you both pick at once. A heart each time you pick the same.")
         GameType.TicTacToe -> tr("Three in a row, your half of the heart against mine. First to win three games takes the match.")
         GameType.ConnectFour -> tr("Drop your discs and line up four. First to win two games takes the match.")
+        GameType.Handwriting -> tr("One draws a secret word, the other has three guesses. Swap each round, six rounds.")
         else -> tr("Take turns answering.")
     }
 
@@ -78,6 +83,7 @@ object GamePlay {
             GameType.GuessMyAnswer -> guessMyAnswer(s).scores
             GameType.WouldYouRather -> return trn(wouldYouRather(s).scores[me] ?: 0, "{count} matching pick", "{count} matching picks")
             GameType.TicTacToe, GameType.ConnectFour -> grid(s).scores
+            GameType.Handwriting -> return trn(drawAndGuess(s).scores[me] ?: 0, "{count} drawing guessed", "{count} drawings guessed")
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0

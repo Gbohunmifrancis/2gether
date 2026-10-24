@@ -67,6 +67,8 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
         GameType.GuessMyAnswer => GuessMyAnswerRules.CreateSetup(region),
         GameType.WouldYouRather => WouldYouRatherRules.CreateSetup(region),
         GameType.TicTacToe or GameType.ConnectFour => JsonSerializer.Serialize(new { region }),
+        // The words to draw are the drawer's secret: they stay in the setup on the server (GameRegion.PublicSetup).
+        GameType.Handwriting => JsonSerializer.Serialize(new { region, words = Content.DrawAndGuessWords.Pick(region, DrawAndGuessRules.Rounds) }),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };
 }

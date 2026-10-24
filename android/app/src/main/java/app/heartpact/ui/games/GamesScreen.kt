@@ -94,7 +94,7 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
             when {
                 active == null -> Picker(ui, me, partnerName, actions)
                 active.status == GameStatus.Waiting -> Waiting(active, me, partnerName, ui.busy, actions)
-                else -> Playing(active, me, partnerName, ui.busy, actions, now)
+                else -> Playing(active, me, partnerName, ui.busy, actions, now, ui.pending)
             }
         }
     }
@@ -173,7 +173,7 @@ internal fun secondsUntil(iso: String?, now: () -> Instant): Long {
 }
 
 @Composable
-private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant) {
+private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant, pending: List<PendingMove> = emptyList()) {
     val colors = Heartpact.colors
     val countdown = secondsUntil(s.countdownEndsAtUtc, now)
     if (s.status == GameStatus.InProgress && countdown > 0) {
@@ -192,6 +192,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.WouldYouRather -> WouldYouRatherBoard(s, me, partnerName, busy, actions)
         GameType.TicTacToe -> TicTacToeBoard(s, me, partnerName, busy, actions)
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
+        GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)

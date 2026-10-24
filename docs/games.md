@@ -37,6 +37,14 @@ is not needed: REST plus the couple hub covers everything.
 - **I call on**: 3 rounds of Name, Place, Thing and Food starting with a letter. The inviter may choose the first
   round's letter (`letter`); later rounds draw at random. Answers a checker can't confirm go to the partner to judge
   (`vet`). A unique answer scores 2, a shared one 1 each.
+- **Draw and guess** (`handwriting`): 6 rounds, the drawer alternates (round 0: the first player). Each round's word
+  comes from the setup (a global bank written with `Loc.N`, or a Naija one) and is the drawer's alone (`word` is null
+  for everyone else until the round ends; then `lastRound` shows it, the outcome and the drawing to both). Both may
+  move at once. The drawer sends `stroke` (`value` `{"points":[[x,y],...],"width":w}`: coordinates and width as
+  fractions of the canvas, 1 to 200 points, width 0.001 to 0.1, nothing else; at most 250 strokes on the canvas),
+  `undo`, `clear` and `pass`; the guesser sends `guess` (any case or accents, a leading "a"/"an"/"the" ignored, in
+  English or their own language). A right guess gives both a point; three wrong ones or a pass end the round with
+  none. Strokes and guesses cross, so the app queues its moves and resends one that gets `game.version_conflict`.
 
 # Adding a game
 
@@ -80,7 +88,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | I call on (`iCallOn`) | both at once, timed | A letter and four categories, 15 seconds; partners vet unknown words. | 2 unique, 1 shared |
 | Truth or dare (`truthOrDare`) | in turn, no clock | Pick truth or dare, get a couple-safe prompt, the partner marks it done or skipped. | a point per done |
 | Word dash (`wordDash`) | in turn, timed | Word chain: each word starts with the last letter of the one before, no repeats, 20 seconds a turn. A refused word may be retried while the time lasts. First to five. | the other partner, when time runs out |
-| Draw and guess (`handwriting`) | in turn | One draws a secret word, the other has three guesses. Swap each round. | both, when guessed |
+| Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
 

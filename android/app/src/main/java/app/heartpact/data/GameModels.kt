@@ -211,3 +211,39 @@ data class GridMatchState(
     val results: List<String?> = emptyList(),
     val winnerUserId: String? = null,
 )
+
+/** Draw and guess (`handwriting` on the wire): one stroke, coordinates as fractions of the canvas (0 to 1). */
+@Serializable
+data class DrawStroke(val points: List<List<Double>> = emptyList(), val width: Double = 0.012)
+
+/** A finished round, shown to both: the word, how it went and the drawing. */
+@Serializable
+data class DrawRound(
+    val round: Int = 0,
+    val drawer: String = "",
+    val word: String = "",
+    /** "guessed", "missed" or "passed". */
+    val outcome: String = "",
+    val guess: String? = null,
+    val strokes: List<DrawStroke> = emptyList(),
+    val wrongGuesses: List<String> = emptyList(),
+)
+
+@Serializable
+data class DrawAndGuessState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    val round: Int = 0,
+    val totalRounds: Int = 6,
+    /** "drawing" or "completed". */
+    val phase: String = "drawing",
+    val drawer: String? = null,
+    val guesser: String? = null,
+    /** The word to draw: only the drawer gets it. */
+    val word: String? = null,
+    val strokes: List<DrawStroke> = emptyList(),
+    val wrongGuesses: List<String> = emptyList(),
+    val guessesLeft: Int = 3,
+    val maxGuesses: Int = 3,
+    val lastRound: DrawRound? = null,
+)

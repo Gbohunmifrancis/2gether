@@ -22,12 +22,21 @@ data class GamesUi(
     val busy: Boolean = false,
     val note: String? = null,
     val loaded: Boolean = false,
+    /** Draw and guess moves on their way to the server (GameMoveQueue), shown on the board meanwhile. */
+    val pending: List<PendingMove> = emptyList(),
 ) {
     /** The couple's one open game, if any. */
     val active: GameSession? get() = sessions.firstOrNull { it.open }
     /** The game just finished, kept on screen until the next one starts. */
     val finished: GameSession? get() = sessions.firstOrNull()?.takeIf { it.status == GameStatus.Completed }
     val history: List<GameSession> get() = sessions.filter { it.status == GameStatus.Completed }.take(8)
+
+    /** Newer state wins: an echo of my own move (or an out-of-order event) never rolls the board back. */
+    fun withSession(session: GameSession): GamesUi {
+        val current = sessions.firstOrNull { it.id == session.id }
+        return if (current != null && current.stateVersion > session.stateVersion) this
+        else copy(sessions = (listOf(session) + sessions.filterNot { it.id == session.id }).sortedWith(compareByDescending<GameSession> { it.open }))
+    }
 }
 
 private fun <T> ApiResult<T>.note(): String? = when (this) {
@@ -54,12 +63,12 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Newer state wins: an echo of my own move (or an out-of-order event) never rolls the board back. */
-    private fun upsert(session: GameSession) = _ui.update { state ->
-        val current = state.sessions.firstOrNull { it.id == session.id }
-        if (current != null && current.stateVersion > session.stateVersion) state
-        else state.copy(sessions = (listOf(session) + state.sessions.filterNot { it.id == session.id }).sortedWith(compareByDescending<GameSession> { it.open }))
-    }
+    private fun upsert(session: GameSession) = _ui.update { it.withSession(session) }
+
+    /** Draw and guess: both move at once, so its moves queue and retry on a version conflict. */
+    private val moves = GameMoveQueue(viewModelScope, _ui,
+        send = { s, move -> app.games.act(s.id, s.stateVersion, move.action, move.value) },
+        load = { app.games.session(it) })
 
     fun refresh() = viewModelScope.launch {
         when (val result = app.games.sessions()) {
@@ -74,6 +83,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
     /** A move at the version on screen; if the partner moved first, reload and let the person try again. */
     fun act(session: GameSession, action: String, value: String? = null, index: Int? = null) {
+        if (session.gameType == GameType.Handwriting) return moves.add(session, action, value)
         _ui.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             val result = app.games.act(session.id, session.stateVersion, action, value, index)

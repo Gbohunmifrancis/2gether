@@ -43,6 +43,7 @@ public sealed class GameEngine : IGameEngine
         new WouldYouRatherRules(),
         new TicTacToeRules(),
         new ConnectFourRules(),
+        new DrawAndGuessRules(),
     }.ToDictionary(rules => rules.Type);
 
     public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);
