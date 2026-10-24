@@ -7,8 +7,7 @@ app, then the API, then the website.
 
 ## The app
 
-The Android app It follows
-the phone's language; on Android 13 and later people can also pick a language for Heartpact alone in the system
+The Android app follows the phone's language; on Android 13 and later people can also pick a language for Heartpact alone in the system
 settings (`res/xml/locales_config.xml`).
 
 ### How it works
