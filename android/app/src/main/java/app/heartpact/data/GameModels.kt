@@ -139,4 +139,50 @@ data class WordDashState(
     val timedOut: String? = null,
     val lastChain: List<String>? = null,
     val winnerUserId: String? = null,
+/** Guess my answer's last round, shown to both once the guess is in. */
+@Serializable
+data class GuessReveal(
+    val round: Int = 0,
+    val subject: String = "",
+    val guesser: String = "",
+    val question: String = "",
+    val choices: List<String> = emptyList(),
+    val answer: Int = 0,
+    val guess: Int = 0,
+    val right: Boolean = false,
+)
+
+@Serializable
+data class GuessMyAnswerState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    val round: Int = 0,
+    val totalRounds: Int = 8,
+    val phase: String = "answering",
+    val subject: String? = null,
+    val guesser: String? = null,
+    val question: String? = null,
+    val choices: List<String> = emptyList(),
+    val answered: Boolean = false,
+    /** The subject's own answer while their partner guesses; null for the guesser. */
+    val answer: Int? = null,
+    val last: GuessReveal? = null,
+)
+
+/** Would you rather's last round: both picks (0 for a, 1 for b), shown once both are in. */
+@Serializable
+data class RatherReveal(val round: Int = 0, val a: String = "", val b: String = "", val picks: Map<String, Int> = emptyMap(), val match: Boolean = false)
+
+@Serializable
+data class WouldYouRatherState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    val round: Int = 0,
+    val totalRounds: Int = 10,
+    val phase: String = "picking",
+    val a: String? = null,
+    val b: String? = null,
+    val picked: List<String> = emptyList(),
+    val myPick: Int? = null,
+    val last: RatherReveal? = null,
 )

@@ -188,6 +188,8 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.ICallOn -> ICallOnBoard(s, me, partnerName, busy, actions, now)
         GameType.TruthOrDare -> TruthOrDareBoard(s, me, partnerName, busy, actions)
         GameType.WordDash -> WordDashBoard(s, me, partnerName, busy, actions, now)
+        GameType.GuessMyAnswer -> GuessMyAnswerBoard(s, me, partnerName, busy, actions)
+        GameType.WouldYouRather -> WouldYouRatherBoard(s, me, partnerName, busy, actions)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)

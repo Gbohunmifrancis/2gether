@@ -38,6 +38,9 @@ public sealed class GameEngine : IGameEngine
     {
         new TruthOrDareRules(),
         new WordDashRules(),
+        new SameAnswerRules(),
+        new GuessMyAnswerRules(),
+        new WouldYouRatherRules(),
     }.ToDictionary(rules => rules.Type);
 
     public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);

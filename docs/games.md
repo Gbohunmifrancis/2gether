@@ -23,8 +23,15 @@ is not needed: REST plus the couple hub covers everything.
 
 ## The games
 
-- **Same answer**: 20 prompts. Whoever's turn it is answers; when both have, matching answers (trimmed, any case)
-  give each partner a point. Cooperative: the score is how many you matched.
+- **Same answer**: 10 prompts about the two of you ("What's our song?"), drawn from its own bank when the game is
+  invited (`SameAnswerBank`). Whoever's turn it is answers; when both have, matching answers (trimmed, any case)
+  give each partner a point. Cooperative: the score is how many you matched. Games started with trivia prompts
+  before the bank existed carry on with them.
+- **Guess my answer**: 8 rounds; the subject alternates, the first player first. The subject answers a question about
+  themselves (`answer`, `index` 0–3), then the other guesses (`guess`, `index`). The answer is the subject's secret
+  until the guess is in; `last` then shows both to both. A right guess is a point for the guesser.
+- **Would you rather**: 10 rounds, both at once (`pick`, `index` 0 for `a`, 1 for `b`). `picked` says who has picked
+  and `myPick` is your own; both picks show in `last` once both are in. Matching picks give each partner a point.
 - **Memory match**: 12 cards, 6 pairs. A matching pair scores and the same player goes again; a miss passes the turn.
   After a miss, `lastPair` shows both cards (index and value) to both players until the next flip.
 - **I call on**: 3 rounds of Name, Place, Thing and Food starting with a letter. The inviter may choose the first

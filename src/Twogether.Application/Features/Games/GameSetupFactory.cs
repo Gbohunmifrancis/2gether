@@ -63,6 +63,9 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
         GameType.MemoryMatch => JsonSerializer.Serialize(new { region }),
         GameType.TruthOrDare => JsonSerializer.Serialize(new { region }),
         GameType.WordDash => JsonSerializer.Serialize(new { region }),
+        GameType.CoupleQuiz => SameAnswerRules.CreateSetup(region),
+        GameType.GuessMyAnswer => GuessMyAnswerRules.CreateSetup(region),
+        GameType.WouldYouRather => WouldYouRatherRules.CreateSetup(region),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };
 }

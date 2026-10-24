@@ -23,10 +23,8 @@ object GamePlay {
     fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
 
     /** The games the app offers; the server's other types play like the quiz. */
-    val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn,
-        GameType.TruthOrDare,
-        GameType.WordDash,
-    )
+    val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.GuessMyAnswer, GameType.WouldYouRather,
+        GameType.TruthOrDare, GameType.WordDash)
 
     fun title(type: GameType) = when (type) {
         GameType.CoupleQuiz -> tr("Same answer")
@@ -63,6 +61,8 @@ object GamePlay {
         GameType.ICallOn -> tr("A letter, four categories, 15 seconds. Judge each other's answers.")
         GameType.TruthOrDare -> tr("Ten turns. Pick truth or dare, and your partner says if you did it. A point for each one done.")
         GameType.WordDash -> tr("A word chain against the clock: each word starts with the last letter of the one before. 20 seconds a turn, first to five.")
+        GameType.GuessMyAnswer -> tr("Answer about yourself, then guess your partner's answers. A point for every right guess.")
+        GameType.WouldYouRather -> tr("Two choices, you both pick at once. A heart each time you pick the same.")
         else -> tr("Take turns answering.")
     }
 
@@ -73,6 +73,8 @@ object GamePlay {
             GameType.ICallOn -> iCallOn(s).scores
             GameType.TruthOrDare -> truthOrDare(s).scores
             GameType.WordDash -> wordDash(s).scores
+            GameType.GuessMyAnswer -> guessMyAnswer(s).scores
+            GameType.WouldYouRather -> return trn(wouldYouRather(s).scores[me] ?: 0, "{count} matching pick", "{count} matching picks")
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0
