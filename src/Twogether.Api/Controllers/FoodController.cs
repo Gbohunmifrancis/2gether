@@ -81,7 +81,7 @@ public sealed class FoodController(
         FoodPartnerDayDto? partner = null;
         if (couple is not null && PartnerOf(couple, userId) is { } partnerId)
         {
-            var partnerName = await db.Users.AsNoTracking().Where(user => user.Id == partnerId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? "Your partner";
+            var partnerName = await db.Users.AsNoTracking().Where(user => user.Id == partnerId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? Loc.T("Your partner");
             var theirs = targets.FirstOrDefault(item => item.UserId == partnerId);
             var share = theirs?.ShareLevel ?? FoodShareLevel.TotalsOnly;
             var partnerEntries = share == FoodShareLevel.None

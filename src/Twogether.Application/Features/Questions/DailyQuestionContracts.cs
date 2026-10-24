@@ -49,5 +49,5 @@ public static class DailyQuestionMapper
     }
 
     private static DailyAnswerDto ToDto(DailyAnswer answer, IReadOnlyDictionary<Guid, string> names)
-        => new(answer.UserId, names.GetValueOrDefault(answer.UserId, "Your partner"), answer.Body, answer.CreatedAtUtc, answer.UpdatedAtUtc);
+        => new(answer.UserId, (names.GetValueOrDefault(answer.UserId) ?? Loc.T("Your partner")), answer.Body, answer.CreatedAtUtc, answer.UpdatedAtUtc);
 }

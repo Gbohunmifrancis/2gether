@@ -10,6 +10,7 @@ using Twogether.Api.Realtime;
 using Twogether.Application.Features.Exercise;
 using Twogether.Application.Features.Location;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Hubs;
 
@@ -52,7 +53,7 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
             var stillOnline = presence.IsOnline(coupleId, userId);
             if (!stillOnline)
             {
-                var displayName = await db.Users.AsNoTracking().Where(item => item.Id == userId).Select(item => item.DisplayName).SingleOrDefaultAsync() ?? "Your partner";
+                var displayName = await db.Users.AsNoTracking().Where(item => item.Id == userId).Select(item => item.DisplayName).SingleOrDefaultAsync() ?? Loc.T("Your partner");
                 await Clients.OthersInGroup(GroupName(coupleId)).SendAsync("PresenceChanged", false);
                 await Clients.OthersInGroup(GroupName(coupleId)).SendAsync("PartnerPresenceChanged", new PartnerPresenceDto(userId, displayName, false, false));
             }

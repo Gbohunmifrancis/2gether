@@ -107,7 +107,7 @@ public sealed class ExerciseAlarmWorker(
         var names = await NamesAsync(db, opened.Select(item => item.Occurrence.UserId), cancellationToken);
         foreach (var (occurrence, notification) in opened)
         {
-            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.AlarmStarted, ExerciseMapper.ToDto(occurrence, names.GetValueOrDefault(occurrence.UserId, "Your partner")), cancellationToken);
+            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.AlarmStarted, ExerciseMapper.ToDto(occurrence, (names.GetValueOrDefault(occurrence.UserId) ?? Loc.T("Your partner"))), cancellationToken);
             await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
         }
         logger.LogInformation("Opened {Count} exercise alarm(s).", opened.Count);
@@ -145,7 +145,7 @@ public sealed class ExerciseAlarmWorker(
         await db.SaveChangesAsync(cancellationToken);
 
         foreach (var occurrence in expired)
-            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Missed, ExerciseMapper.ToDto(occurrence, names.GetValueOrDefault(occurrence.UserId, "Your partner")), cancellationToken);
+            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Missed, ExerciseMapper.ToDto(occurrence, (names.GetValueOrDefault(occurrence.UserId) ?? Loc.T("Your partner"))), cancellationToken);
         foreach (var notification in notifications)
             await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
         logger.LogInformation("Marked {Count} exercise alarm(s) missed.", expired.Count);

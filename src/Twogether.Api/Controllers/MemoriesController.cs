@@ -384,7 +384,7 @@ public sealed partial class MemoriesController(
         return new MemoryDto(
             memory.Id,
             memory.UploadedByUserId,
-            names.GetValueOrDefault(memory.UploadedByUserId, "Your partner"),
+            (names.GetValueOrDefault(memory.UploadedByUserId) ?? Loc.T("Your partner")),
             memory.ContentType,
             memory.IsVideo,
             memory.SizeBytes,

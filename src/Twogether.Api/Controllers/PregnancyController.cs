@@ -253,7 +253,7 @@ public sealed class PregnancyController(
             .Where(item => item.PregnancyId == pregnancy.Id && item.AtUtc >= now)
             .OrderBy(item => item.AtUtc)
             .FirstOrDefaultAsync(cancellationToken);
-        var name = await db.Users.AsNoTracking().Where(user => user.Id == pregnancy.UserId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? "Your partner";
+        var name = await db.Users.AsNoTracking().Where(user => user.Id == pregnancy.UserId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? Loc.T("Your partner");
         return PregnancyMapper.ToDto(pregnancy, name, pregnancy.UserId == (currentUser.UserId ?? viewerId), today, next);
     }
 
