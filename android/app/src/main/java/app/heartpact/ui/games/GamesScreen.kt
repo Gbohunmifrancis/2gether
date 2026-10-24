@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -120,7 +121,8 @@ private fun Picker(ui: GamesUi, me: String, partnerName: String, actions: GameAc
     }
     Text(tr("Pick a game and {partner} gets an invite. It starts when they join.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(bottom = 14.dp))
     val region = ui.region ?: ui.sessions.firstOrNull()?.let(GamePlay::region)
-    GamePlay.offered(region).forEach { type ->
+    if (region == "ng") AfterRoundCard()
+    GamePlay.offered.forEach { type ->
         StickerCard(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Text(GamePlay.title(type, region), style = Heartpact.type.title, color = colors.ink)
@@ -197,7 +199,6 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
-        GameType.AfterRound -> AfterRoundBoard(s, me, partnerName, busy, actions, now)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
@@ -339,6 +340,23 @@ private fun ICallOnBoard(s: GameSession, me: String, partnerName: String, busy: 
                 val value = buildJsonObject { c.categories.forEach { put(it, JsonPrimitive(answers[it].orEmpty().trim())) } }.toString()
                 actions.onAct(s, "submit", value, null)
             }, Modifier.padding(top = 12.dp), enabled = complete, busy = busy)
+        }
+    }
+}
+
+/** After Round 1 on Google Play: a Naija finger-count game for playing with friends, shown to Nigerian couples. */
+private const val AFTER_ROUND_PLAY_URL = "https://play.google.com/store/apps/details?id=com.afterround1.com"
+
+@Composable
+private fun AfterRoundCard() {
+    val colors = Heartpact.colors
+    val uri = LocalUriHandler.current
+    StickerCard(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Text(tr("After Round 1"), style = Heartpact.type.title, color = colors.ink)
+            Text(tr("The Naija finger-count game: call a number, lay your fingers, and the winner slaps. Play it with friends."),
+                style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+            HeartButton(tr("Get it on Google Play"), { runCatching { uri.openUri(AFTER_ROUND_PLAY_URL) } }, Modifier.padding(top = 12.dp), kind = ButtonKind.Tonal)
         }
     }
 }

@@ -33,7 +33,7 @@ public sealed class GameController(
         return Ok(sessions.Select(ToDto).ToList());
     }
 
-    /// <summary>Whose versions of the games the couple plays ("ng" or "global"), and so which games the app offers.</summary>
+    /// <summary>Whose versions of the games the couple plays: "ng" (Naija content) or "global".</summary>
     [HttpGet("region")]
     public async Task<ActionResult<GameRegionDto>> Region(CancellationToken cancellationToken)
         => Ok(new GameRegionDto(currentUser.CoupleId is { } coupleId ? await CoupleRegion(coupleId, cancellationToken) : GameRegion.Global));
@@ -55,8 +55,6 @@ public sealed class GameController(
 
         // Nigerian couples play the Naija versions: trivia, words and pictures (docs/games.md).
         var region = await CoupleRegion(currentUser.CoupleId.Value, cancellationToken);
-        if (!GameRegion.Offers(request.GameType, region))
-            return UnprocessableEntity(new ApiError("game.not_offered", Loc.T("After Round is for couples in Nigeria.")));
         var setupJson = await setupFactory.CreateAsync(request.GameType, region, request.Letter, cancellationToken);
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
         Notification notification;
@@ -210,7 +208,6 @@ public sealed class GameController(
         GameType.TicTacToe => Loc.T("{name} invited you to play Tic-tac-toe.", ("name", name)),
         GameType.ConnectFour => Loc.T("{name} invited you to play Connect four.", ("name", name)),
         GameType.Trivia => Loc.T("{name} invited you to play Trivia.", ("name", name)),
-        GameType.AfterRound => Loc.T("{name} invited you to play After Round.", ("name", name)),
         _ => Loc.T("{name} invited you to a game.", ("name", name)),
     };
 }

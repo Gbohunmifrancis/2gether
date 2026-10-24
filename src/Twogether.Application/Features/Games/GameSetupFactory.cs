@@ -32,9 +32,6 @@ public static class GameRegion
         return letter is null ? JsonSerializer.Serialize(new { region = Of(setupJson) }) : JsonSerializer.Serialize(new { region = Of(setupJson), letter });
     }
 
-    /// <summary>Whether a couple in <paramref name="region"/> may play <paramref name="gameType"/>: After Round is for Nigerian couples only.</summary>
-    public static bool Offers(GameType gameType, string region) => gameType != GameType.AfterRound || region == Nigeria;
-
     /// <summary>The region a game was set up with; "global" for games set up before regions existed.</summary>
     public static string Of(string? setupJson)
     {
@@ -69,7 +66,7 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
         GameType.CoupleQuiz => SameAnswerRules.CreateSetup(region),
         GameType.GuessMyAnswer => GuessMyAnswerRules.CreateSetup(region),
         GameType.WouldYouRather => WouldYouRatherRules.CreateSetup(region),
-        GameType.TicTacToe or GameType.ConnectFour or GameType.AfterRound => JsonSerializer.Serialize(new { region }),
+        GameType.TicTacToe or GameType.ConnectFour => JsonSerializer.Serialize(new { region }),
         // The words to draw are the drawer's secret: they stay in the setup on the server (GameRegion.PublicSetup).
         GameType.Handwriting => JsonSerializer.Serialize(new { region, words = Content.DrawAndGuessWords.Pick(region, DrawAndGuessRules.Rounds) }),
         GameType.Trivia => JsonSerializer.Serialize(new { region, trivia = await TriviaRules.QuestionsFor(region, questions, cancellationToken) }),

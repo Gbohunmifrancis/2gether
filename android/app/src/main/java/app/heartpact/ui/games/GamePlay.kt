@@ -1,6 +1,5 @@
 package app.heartpact.ui.games
 
-import app.heartpact.data.AfterRoundState
 import app.heartpact.data.DrawAndGuessState
 import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
@@ -29,14 +28,11 @@ object GamePlay {
     fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
     fun grid(s: GameSession): GridMatchState = runCatching { json.decodeFromString(GridMatchState.serializer(), s.stateJson) }.getOrDefault(GridMatchState())
     fun drawAndGuess(s: GameSession): DrawAndGuessState = runCatching { json.decodeFromString(DrawAndGuessState.serializer(), s.stateJson) }.getOrDefault(DrawAndGuessState())
-    fun afterRound(s: GameSession): AfterRoundState = runCatching { json.decodeFromString(AfterRoundState.serializer(), s.stateJson) }.getOrDefault(AfterRoundState())
     fun trivia(s: GameSession): TriviaState = runCatching { json.decodeFromString(TriviaState.serializer(), s.stateJson) }.getOrDefault(TriviaState())
     /** The session's content region from its setup: "ng" for Nigerian couples, else "global". */
     fun region(s: GameSession): String = runCatching { json.parseToJsonElement(s.setupJson).jsonObject["region"]?.jsonPrimitive?.content }.getOrNull() ?: "global"
 
-    /** The games the app offers (docs/games.md); Nigerian couples also get After Round, first. */
-    fun offered(region: String?) = if (region == "ng") listOf(GameType.AfterRound) + offered else offered
-
+    /** The games the app offers (docs/games.md). */
     val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
         GameType.TruthOrDare, GameType.WordDash, GameType.Handwriting, GameType.TicTacToe, GameType.ConnectFour)
 
@@ -55,7 +51,6 @@ object GamePlay {
         GameType.TicTacToe -> tr("Tic-tac-toe")
         GameType.ConnectFour -> tr("Connect four")
         GameType.Trivia -> if (region == "ng") tr("Naija trivia") else tr("Trivia")
-        GameType.AfterRound -> tr("After Round")
     }
 
     /** The button that accepts an invite: one whole phrase per game. */
@@ -71,7 +66,6 @@ object GamePlay {
         GameType.TicTacToe -> tr("Play Tic-tac-toe")
         GameType.ConnectFour -> tr("Play Connect four")
         GameType.Trivia -> if (region == "ng") tr("Play Naija trivia") else tr("Play Trivia")
-        GameType.AfterRound -> tr("Play After Round")
     }
 
     fun blurb(type: GameType, region: String? = null) = when (type) {
@@ -87,7 +81,6 @@ object GamePlay {
         GameType.Handwriting -> tr("One draws a secret word, the other has three guesses. Swap each round, six rounds.")
         GameType.Trivia -> if (region == "ng") tr("Ten questions on Naija music, Nollywood, food and more. You both answer, then see who got it.")
             else tr("Ten questions, four choices each. You both answer, then the right one shows.")
-        GameType.AfterRound -> tr("The finger-count game from After Round. Call a number, lay 0 to 5 fingers, and whoever called the total takes the round. First to five, then the winner slaps.")
         else -> tr("Take turns answering.")
     }
 
@@ -103,7 +96,6 @@ object GamePlay {
             GameType.TicTacToe, GameType.ConnectFour -> grid(s).scores
             GameType.Handwriting -> return trn(drawAndGuess(s).scores[me] ?: 0, "{count} drawing guessed", "{count} drawings guessed")
             GameType.Trivia -> trivia(s).scores
-            GameType.AfterRound -> afterRound(s).scores
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0

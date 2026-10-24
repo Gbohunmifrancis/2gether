@@ -12,6 +12,5 @@ public enum GameType
     WouldYouRather,
     TicTacToe,
     ConnectFour,
-    Trivia,
-    AfterRound
+    Trivia
 }

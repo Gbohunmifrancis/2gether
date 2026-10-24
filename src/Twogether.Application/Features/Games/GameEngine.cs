@@ -45,7 +45,6 @@ public sealed class GameEngine : IGameEngine
         new ConnectFourRules(),
         new DrawAndGuessRules(),
         new TriviaRules(),
-        new AfterRoundRules(),
     }.ToDictionary(rules => rules.Type);
 
     public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);
