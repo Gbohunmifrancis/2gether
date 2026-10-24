@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>حذف حسابك في Heartpact</title>
+<meta name="description" content="احذف حسابك في Heartpact وبياناته، بالتطبيق أو من دونه.">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.app/ar/delete-account/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/delete.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.app/delete-account/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.app/fr/delete-account/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.app/pt/delete-account/">
+<link rel="alternate" hreflang="es" href="https://heartpact.app/es/delete-account/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.app/ar/delete-account/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.app/hi/delete-account/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.app/delete-account/">
+<script type="application/json" id="strings">{"Checking your account…": "جارٍ التحقق من حسابك…", "Email or password is incorrect. If you signed up with Google, email support@heartpact.app from that address and we’ll delete it.": "البريد الإلكتروني أو كلمة المرور غير صحيحة. إذا سجّلت عبر Google، فراسل support@heartpact.app من ذلك البريد وسنحذف الحساب.", "Something went wrong. Try again, or email support@heartpact.app.": "حدث خطأ ما. حاول مجددًا، أو راسل support@heartpact.app.", "The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera": "شاشة التمرين تعدّ القفز المفتوح، 12 من 20، مع رسم الوضعية فوق صورة الكاميرا", "The workout screen counting squats, 9 of 15, with the pose drawn over the camera": "شاشة التمرين تعدّ السكوات، 9 من 15، مع رسم الوضعية فوق صورة الكاميرا", "Tick the box to confirm you understand this can't be undone.": "ضع علامة في المربع لتأكيد فهمك أن هذا لا يمكن التراجع عنه.", "Too many attempts. Wait a few minutes and try again.": "محاولات كثيرة جدًا. انتظر بضع دقائق ثم حاول مجددًا.", "We couldn't reach Heartpact. Check your connection and try again.": "تعذّر الوصول إلى Heartpact. تحقق من الاتصال وحاول مجددًا.", "You have a Heartpact Plus subscription that will keep renewing. Cancel it in Google Play first, or tick the box below and delete anyway.": "لديك اشتراك Heartpact Plus سيستمر في التجدد. ألغِه من Google Play أولًا، أو ضع علامة في المربع أدناه واحذف على أي حال.", "Your account and everything in it has been deleted. If you were linked, your partner has been unlinked.": "تم حذف حسابك وكل ما فيه. وإذا كان مرتبطًا، فقد فُصل شريكك."}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">تخطَّ إلى المحتوى</a>
+<header class="page-head">
+  <div class="wrap">
+    <a class="brand" href="/ar/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+    <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">حمّل التطبيق</a>
+  </div>
+</header>
+
+<main id="main" class="doc">
+  <h1>حذف حسابك</h1>
+  <p class="updated">الحذف فوري ونهائي، ولا يمكن التراجع عنه.</p>
+
+  <h2>من التطبيق</h2>
+  <p>افتح Heartpact، وانتقل إلى <b>نحن</b>، واضغط على <b>حذف حسابي</b>، ثم أدخل كلمة المرور.</p>
+
+  <h2>من هنا، دون التطبيق</h2>
+  <p>للحسابات التي أُنشئت ببريد إلكتروني وكلمة مرور. هل سجّلت عبر Google؟ راسلنا من ذلك البريد (أدناه) وسنحذف الحساب.</p>
+  <form id="delete-form" class="form" novalidate>
+    <label>البريد الإلكتروني <input name="email" type="email" autocomplete="email" required></label>
+    <label>كلمة المرور <input name="password" type="password" autocomplete="current-password" required></label>
+    <label class="check"><input name="sure" type="checkbox"> أفهم أن حسابي وكل ما فيه سيُحذف نهائيًا.</label>
+    <div id="renew-box" hidden>
+      <label class="check"><input id="renew-ack" type="checkbox"> احذف على أي حال. أعلم أن اشتراك Plus سيستمر في التجدد إلى أن <a href="https://play.google.com/store/account/subscriptions">ألغيه من Google Play</a>.</label>
+    </div>
+    <button type="submit">حذف حسابي</button>
+  </form>
+  <p id="delete-status" class="status" role="status" tabindex="-1" hidden></p>
+
+  <h2>ما الذي يُحذف</h2>
+  <ul>
+    <li>ملفك الشخصي وبيانات تسجيل الدخول.</li>
+    <li>سجلات الدورة والحمل، وسجل الطعام، والتحديات ونتائجها، والإجابات اليومية، والرسائل التي أرسلتها، والأجهزة والإشعارات.</li>
+    <li>الصور والفيديوهات التي أضفتها إلى الألبوم المشترك. وتُزال من التخزين خلال دقائق.</li>
+    <li>الألعاب التي لعبتماها معًا.</li>
+  </ul>
+  <p>إذا كان حسابك مرتبطًا، يُفصل شريكك ويُبلَّغ بمغادرتك. وما أضافه الشريك بنفسه (صوره وإجاباته ورسائله) يبقى له.</p>
+  <p><b>الحذف لا يُلغي Heartpact Plus.</b> يستمر Google Play في تحصيل الرسوم إلى أن <a href="https://play.google.com/store/account/subscriptions">تلغي الاشتراك</a>.</p>
+
+  <h2>تعذّر تسجيل الدخول؟</h2>
+  <p>راسل <a href="mailto:support@heartpact.app?subject=Delete%20my%20account">support@heartpact.app</a> من البريد المرتبط بحسابك، وسنحذفه لك.</p>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="الشؤون القانونية">
+      <a href="/ar/privacy/">سياسة الخصوصية</a>
+      <a href="/ar/terms/">شروط الاستخدام</a>
+      <a href="/ar/delete-account/">حذف حسابك</a>
+      <a href="mailto:support@heartpact.app">تواصل معنا</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="اللغة">
+      <a href="/delete-account/" lang="en" hreflang="en" data-lang="en">English</a>
+      <a href="/fr/delete-account/" lang="fr" hreflang="fr" data-lang="fr">Français</a>
+      <a href="/pt/delete-account/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/delete-account/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/delete-account/" lang="ar" hreflang="ar" data-lang="ar" aria-current="true">العربية</a>
+      <a href="/hi/delete-account/" lang="hi" hreflang="hi" data-lang="hi">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

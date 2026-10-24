@@ -58,7 +58,8 @@ public readonly record struct ExerciseCheckCounts(
             });
         }
         if (parts.Count == 0) return null;
-        var text = string.Join(", ", parts);
-        return char.ToUpperInvariant(text[0]) + text[1..] + ".";
+        // The list's comma and the closing full stop differ by language (Arabic "،", Hindi "।").
+        var text = string.Join(Loc.T(", "), parts);
+        return Loc.T("{flags}.", ("flags", char.ToUpperInvariant(text[0]) + text[1..]));
     }
 }

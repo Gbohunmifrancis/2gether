@@ -12,6 +12,7 @@ pages, with internal links kept in that language, hreflang links, a language swi
     python3 website/i18n/build.py prune           # drops translations whose English has gone
     python3 website/i18n/build.py build           # writes the language pages (and the English pages' language links)
     python3 website/i18n/build.py check           # every string translated, same tags, pages up to date; CI runs it
+    python3 website/i18n/build.py fill "[COMPANY NAME]" "Heartpact Ltd"   # a legal placeholder, in every language
 """
 import html
 import json
@@ -187,18 +188,18 @@ def head_block(page, language, words):
     return "\n".join(lines)
 
 
-def languages_block(page, language):
+def languages_block(page, language, words):
     links = []
     for code in ["en"] + LANGUAGES:
         current = ' aria-current="true"' if code == language else ""
         links.append(f'<a href="{url(code, page).removeprefix(ORIGIN)}" lang="{code}" hreflang="{code}" data-lang="{code}"{current}>{NAMES[code]}</a>')
-    return ('<!-- i18n:languages (website/i18n/build.py) -->\n    <nav class="languages" aria-label="Language">\n      '
+    return ('<!-- i18n:languages (website/i18n/build.py) -->\n    <nav class="languages" aria-label="' + words.get("Language", "Language") + '">\n      '
             + "\n      ".join(links) + "\n    </nav>\n    <!-- /i18n:languages -->")
 
 
 def fill_markers(text, page, language, words):
     text = re.sub(r"<!-- i18n:head.*?<!-- /i18n:head -->", lambda _: head_block(page, language, words), text, flags=re.S)
-    return re.sub(r"<!-- i18n:languages.*?<!-- /i18n:languages -->", lambda _: languages_block(page, language), text, flags=re.S)
+    return re.sub(r"<!-- i18n:languages.*?<!-- /i18n:languages -->", lambda _: languages_block(page, language, words), text, flags=re.S)
 
 
 def translate(page, language, words):
@@ -269,6 +270,20 @@ def main():
             print("not a key on the site (copy it exactly from the todo file):", repr(k))
         for k in bad:
             print("tags differ from the English (keep every tag exactly):", repr(k))
+        return
+    elif command == "fill":
+        # Names and addresses read the same in every language, so a placeholder is replaced everywhere at once,
+        # keys included, and the translations stay matched to the English.
+        placeholder, value = sys.argv[2], sys.argv[3]
+        pages = [page for page in PAGES if placeholder in (SITE / page).read_text(encoding="utf-8")]
+        for page in pages:
+            path = SITE / page
+            path.write_text(path.read_text(encoding="utf-8").replace(placeholder, html.escape(value, quote=False)), encoding="utf-8")
+        for language in LANGUAGES:
+            words = catalog(language)
+            filled = {k.replace(placeholder, html.escape(value, quote=False)): v.replace(placeholder, html.escape(value, quote=False)) for k, v in words.items()}
+            (HERE / f"{language}.json").write_text(json.dumps(filled, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        print(f"{placeholder} -> {value} in {', '.join(pages) or 'no page'} and every language; run build next")
         return
     elif command == "prune":
         for language in LANGUAGES:

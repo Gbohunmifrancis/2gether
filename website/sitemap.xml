@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://heartpact.app/</loc></url>
+  <url><loc>https://heartpact.app/fr/</loc></url>
+  <url><loc>https://heartpact.app/pt/</loc></url>
+  <url><loc>https://heartpact.app/es/</loc></url>
+  <url><loc>https://heartpact.app/ar/</loc></url>
+  <url><loc>https://heartpact.app/hi/</loc></url>
   <url><loc>https://heartpact.app/privacy/</loc></url>
+  <url><loc>https://heartpact.app/fr/privacy/</loc></url>
+  <url><loc>https://heartpact.app/pt/privacy/</loc></url>
+  <url><loc>https://heartpact.app/es/privacy/</loc></url>
+  <url><loc>https://heartpact.app/ar/privacy/</loc></url>
+  <url><loc>https://heartpact.app/hi/privacy/</loc></url>
   <url><loc>https://heartpact.app/terms/</loc></url>
+  <url><loc>https://heartpact.app/fr/terms/</loc></url>
+  <url><loc>https://heartpact.app/pt/terms/</loc></url>
+  <url><loc>https://heartpact.app/es/terms/</loc></url>
+  <url><loc>https://heartpact.app/ar/terms/</loc></url>
+  <url><loc>https://heartpact.app/hi/terms/</loc></url>
   <url><loc>https://heartpact.app/delete-account/</loc></url>
+  <url><loc>https://heartpact.app/fr/delete-account/</loc></url>
+  <url><loc>https://heartpact.app/pt/delete-account/</loc></url>
+  <url><loc>https://heartpact.app/es/delete-account/</loc></url>
+  <url><loc>https://heartpact.app/ar/delete-account/</loc></url>
+  <url><loc>https://heartpact.app/hi/delete-account/</loc></url>
 </urlset>

@@ -101,7 +101,8 @@ public sealed class AlbumSyncReminderWorker(
                 }
                 try
                 {
-                    var partnerName = candidate.PartnerId is { } partner ? partnerNames.GetValueOrDefault(partner, "your partner") : "your partner";
+                    // Null: the reminder says "your partner" in the reader's own language.
+                    var partnerName = candidate.PartnerId is { } partner ? partnerNames.GetValueOrDefault(partner) : null;
                     var notice = await TryRemindAsync(db, candidate, partnerName, now, cancellationToken);
                     if (notice is null) claimedElsewhere++;
                     else
@@ -167,7 +168,7 @@ public sealed class AlbumSyncReminderWorker(
     /// outbox) in the same transaction. Null when another instance claimed it first, or the
     /// person synced in the meantime.
     /// </summary>
-    private static async Task<Notification?> TryRemindAsync(ApplicationDbContext db, Candidate candidate, string partnerName, DateTime now, CancellationToken cancellationToken)
+    private static async Task<Notification?> TryRemindAsync(ApplicationDbContext db, Candidate candidate, string? partnerName, DateTime now, CancellationToken cancellationToken)
     {
         var userId = candidate.State.UserId;
         var promptedBefore = now - AlbumSyncRules.ReminderInterval;
@@ -181,7 +182,7 @@ public sealed class AlbumSyncReminderWorker(
         var pending = candidate.State.PendingCount;
         using var _ = Loc.Use(await db.LanguageOfAsync(userId, cancellationToken));
         var notice = Notification.Create(userId, candidate.CoupleId, NotificationType.AlbumSyncReminder, MemorySyncText.ReminderTitle,
-            MemorySyncText.ReminderBody(pending, partnerName),
+            MemorySyncText.ReminderBody(pending, partnerName ?? Loc.T("your partner")),
             JsonSerializer.Serialize(new { pendingCount = pending, preferWifi = true }), now);
         db.Notifications.Add(notice);
         await db.SaveChangesAsync(cancellationToken);

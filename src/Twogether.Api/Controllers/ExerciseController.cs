@@ -322,7 +322,7 @@ public sealed class ExerciseController(
                 var flagged = occurrence.Checks.Summary(occurrence.Integrity);
                 var done = Loc.T("{name} finished {dare}: {target}.", ("name", Name(names, occurrence.UserId)),
                     ("dare", ExerciseText.Title(occurrence.Title, occurrence.ExerciseType)), ("target", ExerciseText.Target(occurrence.Target, occurrence.ExerciseType)));
-                notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T("Goal done") : Loc.T("Goal done, worth a look"),
+                notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T("Dare done") : Loc.T("Dare done, worth a look"),
                     flagged is null ? done : done + " " + flagged,
                     System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
             }
@@ -484,11 +484,11 @@ public sealed class ExerciseController(
         var forThemselves = goal.AssignedUserId == actorId;
         var (title, body) = change switch
         {
-            GoalChange.Set => (Loc.T("Goal set"), forYou ? Loc.T("{name} set {dare} for you: {target} at {time}.", args)
+            GoalChange.Set => (Loc.T("Dare set"), forYou ? Loc.T("{name} set {dare} for you: {target} at {time}.", args)
                 : forThemselves ? Loc.T("{name} set {dare} for themselves: {target} at {time}.", args) : Loc.T("{name} set {dare}: {target} at {time}.", args)),
-            GoalChange.Updated => (Loc.T("Goal updated"), forYou ? Loc.T("{name} updated {dare} for you: {target} at {time}.", args)
+            GoalChange.Updated => (Loc.T("Dare updated"), forYou ? Loc.T("{name} updated {dare} for you: {target} at {time}.", args)
                 : forThemselves ? Loc.T("{name} updated {dare} for themselves: {target} at {time}.", args) : Loc.T("{name} updated {dare}: {target} at {time}.", args)),
-            _ => (Loc.T("Goal paused"), forYou ? Loc.T("{name} paused {dare} for you: {target} at {time}.", args)
+            _ => (Loc.T("Dare paused"), forYou ? Loc.T("{name} paused {dare} for you: {target} at {time}.", args)
                 : forThemselves ? Loc.T("{name} paused {dare} for themselves: {target} at {time}.", args) : Loc.T("{name} paused {dare}: {target} at {time}.", args)),
         };
         return Notification.Create(partnerId.Value, couple.Id, NotificationType.ExerciseGoalChanged, title, body,

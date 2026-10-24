@@ -30,8 +30,9 @@ img { display: block; max-width: 100%; height: auto; }
 a { color: var(--navy); }
 a:hover { color: var(--peri-ink); }
 :focus-visible { outline: 3px solid var(--peri); outline-offset: 3px; border-radius: 6px; }
-.skip { position: absolute; left: -9999px; top: 8px; z-index: 100; padding: 10px 16px; border-radius: 10px; background: #FFFFFF; }
-.skip:focus { left: 8px; }
+/* Hidden above the page rather than far to the left, which right-to-left pages would turn into scrollable width. */
+.skip { position: absolute; inset-inline-start: 8px; top: -100px; z-index: 100; padding: 10px 16px; border-radius: 10px; background: #FFFFFF; }
+.skip:focus { top: 8px; }
 .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -342,6 +343,11 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
    right-to-left pages keep them in place, and only the words inside read right to left. */
 [dir="rtl"] .hero { direction: ltr; }
 [dir="rtl"] .hero .half { direction: rtl; }
+/* Side by side, each half's words hug its outer edge, clear of the heart on the seam, as in English. */
+@media (min-width: 861px) {
+  [dir="rtl"] .hero .half.you .copy { direction: ltr; }
+  [dir="rtl"] .hero .half.you .copy > * { direction: rtl; text-align: left; }
+}
 /* Arabic and Devanagari come from the system fonts (the site's fonts are Latin only). Their letters join or stack,
    so no tight letter spacing, and they stand taller. */
 :root:lang(ar), :root:lang(hi) { --display: system-ui, sans-serif; --body: system-ui, sans-serif; }

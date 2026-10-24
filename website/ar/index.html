@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heartpact: تحديات لشخصين، تعدّها الكاميرا</title>
+<meta name="description" content="تطبيق الأزواج الذي يضع فيه شريكك التحدي، ويرنّ هاتفك حتى تعدّ الكاميرا تكراراتك، ولا يكتمل القلب إلا حين يفي كلاكما بوعده. مجاني على Google Play.">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.app/ar/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Heartpact: نصفٌ لك، ونصفٌ للشريك">
+<meta property="og:description" content="شريكك يضع التحدي. وهاتفك يرنّ حتى تعدّ الكاميرا تكراراتك. مجاني على Google Play.">
+<meta property="og:url" content="https://heartpact.app/ar/">
+<meta property="og:image" content="https://heartpact.app/assets/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/site.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.app/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.app/fr/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.app/pt/">
+<link rel="alternate" hreflang="es" href="https://heartpact.app/es/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.app/ar/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.app/hi/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.app/">
+<script type="application/json" id="strings">{"Checking your account…": "جارٍ التحقق من حسابك…", "Email or password is incorrect. If you signed up with Google, email support@heartpact.app from that address and we’ll delete it.": "البريد الإلكتروني أو كلمة المرور غير صحيحة. إذا سجّلت عبر Google، فراسل support@heartpact.app من ذلك البريد وسنحذف الحساب.", "Something went wrong. Try again, or email support@heartpact.app.": "حدث خطأ ما. حاول مجددًا، أو راسل support@heartpact.app.", "The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera": "شاشة التمرين تعدّ القفز المفتوح، 12 من 20، مع رسم الوضعية فوق صورة الكاميرا", "The workout screen counting squats, 9 of 15, with the pose drawn over the camera": "شاشة التمرين تعدّ السكوات، 9 من 15، مع رسم الوضعية فوق صورة الكاميرا", "Tick the box to confirm you understand this can't be undone.": "ضع علامة في المربع لتأكيد فهمك أن هذا لا يمكن التراجع عنه.", "Too many attempts. Wait a few minutes and try again.": "محاولات كثيرة جدًا. انتظر بضع دقائق ثم حاول مجددًا.", "We couldn't reach Heartpact. Check your connection and try again.": "تعذّر الوصول إلى Heartpact. تحقق من الاتصال وحاول مجددًا.", "You have a Heartpact Plus subscription that will keep renewing. Cancel it in Google Play first, or tick the box below and delete anyway.": "لديك اشتراك Heartpact Plus سيستمر في التجدد. ألغِه من Google Play أولًا، أو ضع علامة في المربع أدناه واحذف على أي حال.", "Your account and everything in it has been deleted. If you were linked, your partner has been unlinked.": "تم حذف حسابك وكل ما فيه. وإذا كان مرتبطًا، فقد فُصل شريكك."}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">تخطَّ إلى المحتوى</a>
+
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- The fold heart: one shape, each half in the other side's colour. Across for side by side, down when stacked. -->
+    <linearGradient id="foldAcross" x1="0" y1="0" x2="100" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
+    <linearGradient id="foldDown" x1="0" y1="15" x2="0" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="topbar" aria-hidden="true" inert>
+  <a class="brand" href="#top"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+  <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">حمّل التطبيق</a>
+</div>
+
+<header class="hero" id="top">
+  <div class="half you">
+    <div class="bar">
+      <a class="brand" href="/ar/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+      <a class="pill phone-only" href="https://play.google.com/store/apps/details?id=app.heartpact">حمّل التطبيق</a>
+    </div>
+    <div class="copy">
+      <p class="eyebrow">أنت</p>
+      <h1 class="display"><span class="line"><span>نصفٌ</span></span><span class="line"><span>لك.</span></span><span class="visually-hidden"> ونصفٌ للشريك.</span></h1>
+      <p class="lede">ضع لشريكك تحديًا الليلة: تمرين، وعدد، وموعد. ونصفك من القلب يُلصق أولًا.</p>
+    </div>
+  </div>
+  <div class="half them">
+    <nav aria-label="القائمة الرئيسية">
+      <a href="#how">كيف يعمل</a>
+      <a href="#plans">الخطط</a>
+      <a href="#faq">الأسئلة الشائعة</a>
+      <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">حمّل التطبيق</a>
+    </nav>
+    <div class="copy">
+      <p class="eyebrow">الشريك</p>
+      <p class="h1 display" aria-hidden="true"><span class="line"><span>ونصفٌ</span></span><span class="line"><span>للشريك.</span></span></p>
+      <p class="lede">عند 7:00 يرنّ هاتف الشريك حتى تعدّ الكاميرا كل تكرار. ثم يُلصق النصف الثاني، ويكتمل القلب.</p>
+    </div>
+    <div class="fold-heart" aria-hidden="true">
+      <svg viewBox="-8 -2 116 112">
+        <!-- Two halves stick together, then hand over to the seamless whole, which beats. -->
+        <path class="whole" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z"/>
+        <path class="half l" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z"/>
+        <path class="half r" d="M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z"/>
+      </svg>
+    </div>
+  </div>
+  <div class="float f1" aria-hidden="true" data-parallax="0.12">
+    <i><svg viewBox="0 0 24 24"><path d="M12 3 L13.8 9 H20 L15 12.8 L16.8 19 L12 15.3 L7.2 19 L9 12.8 L4 9 H10.2 Z" fill="none" stroke="#1F2557" stroke-width="1.8" stroke-linejoin="round"/></svg></i>
+    <span><b>وُضع التحدي · 22:14</b><small>سكوات × 20 لـTheo عند 7:00</small></span>
+  </div>
+  <div class="float f2" aria-hidden="true" data-parallax="0.2">
+    <i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7" fill="none" stroke="#1F2557" stroke-width="1.8"/><path d="M12 10 V13 L14 14.5 M4.5 5.5 L7 3.5 M19.5 5.5 L17 3.5" fill="none" stroke="#1F2557" stroke-width="1.8" stroke-linecap="round"/></svg></i>
+    <span><b>يرنّ على هاتف Theo</b><small>يتوقف عند 20 تكرارًا محتسبًا</small></span>
+  </div>
+  <div class="float f3" aria-hidden="true" data-parallax="0.08">
+    <i><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#1F2557" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+    <span><b>20 من 20 · 7:04</b><small>النصفان في مكانهما</small></span>
+  </div>
+</header>
+
+<main id="main">
+  <section class="statement" aria-labelledby="what">
+    <h2 id="what" class="visually-hidden">ما هو Heartpact</h2>
+    <p data-words>Heartpact تطبيق للأزواج ترنّ فيه الوعود. الكاميرا تعدّ التكرارات، والقلب لا يكتمل إلا حين يفي كلاكما بوعده.</p>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact" data-reveal><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="احصل عليه من Google Play"></a>
+    <p class="note" data-reveal>مجاني لكليكما، على Android.</p>
+  </section>
+
+  <section class="story" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 id="how-title" class="display" data-reveal>تحدٍّ واحد، وهاتفان</h2>
+      <div class="sides">
+        <article class="side mine" data-reveal>
+          <p class="eyebrow">على هاتفك</p>
+          <ol data-stagger>
+            <li><b>اختر التحدي.</b> <span>سكوات × 20 عند 7:00، أو بلانك 60 ثانية.</span></li>
+            <li><b>تابِع مباشرةً.</b> <span>يرتفع العدّ على هاتفك مع كل تكرار.</span></li>
+            <li><b>الإعفاء بيدك.</b> <span>الموافقة لك وحدك حين يصلك الطلب.</span></li>
+          </ol>
+          <img class="phone" src="/assets/img/today.webp" width="600" height="1298" loading="lazy" alt="شاشة «اليوم» في Heartpact: تحدي الغد وأسبوع من القلوب" data-parallax="0.06">
+        </article>
+        <article class="side theirs d1" data-reveal>
+          <p class="eyebrow">على هاتف الشريك</p>
+          <ol data-stagger>
+            <li><b>يرنّ.</b> <span>منبّه حقيقي، فوق شاشة القفل.</span></li>
+            <li><b>الكاميرا تعدّ.</b> <span>التكرارات الصحيحة فقط، مع نصيحة حين لا يُحتسب أحدها.</span></li>
+            <li><b>القلب يلتصق.</b> <span>النصف الثاني يحطّ بجانب نصفك.</span></li>
+          </ol>
+          <img class="phone" width="620" height="1342" loading="lazy" alt="شاشة التمرين تعدّ رفع الذراعين، 9 من 15، مع رسم الوضعية فوق صورة الكاميرا" data-parallax="0.1" data-regional="workout">
+          <noscript><img class="phone" src="/assets/img/workout.webp" width="620" height="1342" alt="شاشة التمرين تعدّ رفع الذراعين، 9 من 15، مع رسم الوضعية فوق صورة الكاميرا"></noscript>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="fair" aria-labelledby="fair-title">
+    <div class="wrap">
+      <div class="text">
+        <h2 id="fair-title" class="display" data-reveal>لعب نظيف، من الأساس.</h2>
+        <p class="lede" data-reveal>تُعدّ التكرارات على الهاتف، ولا تُسجَّل أبدًا. أنصاف التكرارات لا تُحتسب. وإن بدا شيء غير طبيعي، يعلم به النصف الآخر من القلب.</p>
+        <ul data-stagger>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#A9B1F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>أداء صحيح، لا عشوائية</b><span>«انزل أكثر.» «أبقِ جسمك في خط مستقيم واحد.» التكرار الخاطئ لا يُحتسب، والنصيحة تشرح السبب.</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#A9B1F2" stroke-width="2.2"/><path d="M12 7.5 V12 L15 14" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linecap="round"/></svg><div><b>فحوصات مفاجئة</b><span>في منتصف التمرين تقول الشاشة «ثبات!». ولا يستطيع فيديو على شاشة أخرى أن يستجيب في اللحظة نفسها.</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L20 6.5 V12 C20 16.5 16.5 19.8 12 21 C7.5 19.8 4 16.5 4 12 V6.5 Z" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linejoin="round"/></svg><div><b>لا شيء يغادر الهاتف</b><span>تقرأ الكاميرا وضعيتك ثم تتخلص من كل لقطة. لا فيديو، ولا صور، ولا رفع.</span></div></li>
+        </ul>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <div class="counter" data-parallax="-0.05">
+          <div class="head"><span>Theo · رفع الذراعين</span><span>7:03</span></div>
+          <p class="big" data-count="15">15</p>
+          <p class="of">محتسبة من أصل 15</p>
+          <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="foot"><svg viewBox="-8 -2 116 112"><path d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z" fill="url(#foldAcross)"/></svg><span>النصفان في مكانهما. العدّ على هاتف Theo.</span></div>
+        </div>
+        <div class="chip c1" data-parallax="0.12"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#A9B1F2" stroke-width="2.2"/><path d="M12 7.5 V12 L15 14" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linecap="round"/></svg><span><b>فحص: ثبات!</b><small>تم الاجتياز في ثانيتين</small></span></div>
+        <div class="chip c2" data-parallax="0.2"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#161A3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>أُنجز التحدي</b><small>يظهر لـMaya اجتياز كل الفحوصات</small></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="corner-shell">
+    <section class="corner" data-progress aria-labelledby="corner-title">
+      <div class="wrap">
+        <div class="shot"><img src="/assets/img/album.webp" width="600" height="1298" loading="lazy" alt="الألبوم المشترك، بصور من الهاتفين" data-parallax="0.08"></div>
+        <div class="text">
+          <h2 id="corner-title" class="display" data-reveal>ركنٌ خاص بكما</h2>
+          <p class="lede" data-reveal>التحديات نبض التطبيق. والباقي مكان هادئ لا يفتحه سواكما.</p>
+          <ul class="features" data-stagger>
+            <li><em>01</em><b>الألبوم المشترك</b><span>صور وفيديوهات الهاتفين.</span></li>
+            <li><em>02</em><b>سجل الطعام</b><span>صوّر وجبة واحصل على تقدير. يظهر لشريكك المجموع، لا طبقك أبدًا.</span></li>
+            <li><em>03</em><b>سؤال كل يوم</b><span>أجب أولًا، ثم اطّلع على إجابة الشريك.</span></li>
+            <li><em>04</em><b>ألعاب لشخصين</b><span>دورًا بدور، على الهاتفين.</span></li>
+            <li><em>05</em><b>الدورة والحمل</b><span>المشاركة باختيارك فقط.</span></li>
+            <li><em>06</em><b>الموقع</b><span>مباشر فقط ما دام مفعّلًا لدى كليكما.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section id="plans" aria-labelledby="plans-title">
+    <h2 id="plans-title" class="visually-hidden">الخطط</h2>
+    <div class="plans" data-progress>
+      <div class="plan free">
+        <h3>مجاني</h3>
+        <p class="price">$0</p>
+        <p class="per">لكليكما، دائمًا</p>
+        <ul>
+          <li>تحديات ومنبّهات وعدّ بالكاميرا بلا حدود</li>
+          <li>3 تحليلات لصور الطعام يوميًا</li>
+          <li>ألبوم مشترك بسعة 500 ميغابايت</li>
+          <li>الأسئلة والألعاب والدورة والموقع</li>
+        </ul>
+      </div>
+      <div class="plan plus">
+        <h3>Plus، لكليكما</h3>
+        <!-- Prices: keep in step with the base plans in Play Console. -->
+        <p class="price">$5.99<small>/شهر</small></p>
+        <p class="per">أو $39.99 سنويًا · ويمكن لأيٍّ منكما الدفع</p>
+        <ul>
+          <li>20 تحليلًا لصور الطعام يوميًا</li>
+          <li>ألبوم مشترك بسعة 2 غيغابايت</li>
+          <li>سجل أسئلة لمدة 90 يومًا</li>
+          <li>اشتراك واحد يفعّله على الهاتفين</li>
+        </ul>
+      </div>
+    </div>
+    <p class="plans-note">الأسعار بالدولار الأمريكي، ويعرض Google Play السعر بعملتك المحلية. يمكن الإلغاء في أي وقت من Google Play.</p>
+  </section>
+
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <h2 id="faq-title" class="display" data-reveal>أسئلة</h2>
+      <details><summary>هل تسجّلني الكاميرا؟</summary><p>لا. يقرأ الهاتف وضعيتك لقطةً بلقطة لعدّ التكرارات، ثم يتخلص من كل لقطة. لا يغادر هاتفك أي فيديو أو صورة من التمرين.</p></details>
+      <details><summary>وماذا عن المرض أو الإصابة؟</summary><p>اطلب من شريكك الإلغاء من شاشة المنبّه، مع ملاحظة. وعند الموافقة، يتوقف لكليكما. ويمكنك أيضًا إسكات المنبّه على هاتفك.</p></details>
+      <details><summary>هل يرى شريكي كل ما أفعله في التطبيق؟</summary><p>يرى ما تتشاركانه معًا: التحديات، والألبوم، والإجابات بعد أن تجيبا كلاكما. ويظهر الطعام كمجاميع، أما الدورة والموقع فلا يظهران إلا عند تفعيل المشاركة.</p></details>
+      <details><summary>هل نحتاج كلانا إلى Android؟</summary><p>نعم، حاليًا: Heartpact متاح على Google Play.</p></details>
+      <details><summary>من يدفع اشتراك Plus؟</summary><p>أيٌّ منكما. اشتراك واحد يشمل الشريكين، فيحصل الهاتف الآخر على Plus فورًا.</p></details>
+      <details><summary>كيف أحذف حسابي؟</summary><p>من التطبيق في قسم «نحن»، أو عبر <a href="/ar/delete-account/">صفحة حذف الحساب</a>. الحذف فوري ونهائي.</p></details>
+    </div>
+  </section>
+
+  <section class="cta" data-progress aria-labelledby="cta-title">
+    <h2 id="cta-title" class="display"><span class="you">نصفٌ منك.</span><span class="them">ونصفٌ من الشريك.</span></h2>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact"><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="احصل عليه من Google Play"></a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="الشؤون القانونية">
+      <a href="/ar/privacy/">سياسة الخصوصية</a>
+      <a href="/ar/terms/">شروط الاستخدام</a>
+      <a href="/ar/delete-account/">حذف حسابك</a>
+      <a href="mailto:support@heartpact.app">تواصل معنا</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="اللغة">
+      <a href="/" lang="en" hreflang="en" data-lang="en">English</a>
+      <a href="/fr/" lang="fr" hreflang="fr" data-lang="fr">Français</a>
+      <a href="/pt/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/" lang="ar" hreflang="ar" data-lang="ar" aria-current="true">العربية</a>
+      <a href="/hi/" lang="hi" hreflang="hi" data-lang="hi">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

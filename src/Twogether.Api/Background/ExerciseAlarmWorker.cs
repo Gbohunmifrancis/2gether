@@ -138,7 +138,7 @@ public sealed class ExerciseAlarmWorker(
                 var body = userId == occurrence.UserId
                     ? Loc.T("You missed {dare} today.", ("dare", dare))
                     : Loc.T("{name} missed {dare} today.", ("name", names.GetValueOrDefault(occurrence.UserId) ?? Loc.T("Your partner")), ("dare", dare));
-                notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, Loc.T("Goal missed"), body, data, now));
+                notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, Loc.T("Dare missed"), body, data, now));
             }
         }
         foreach (var notification in notifications) db.Notifications.Add(notification);
