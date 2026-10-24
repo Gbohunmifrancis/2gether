@@ -306,7 +306,6 @@
  "{name} finished {dare}: {target}.": "{name} की चुनौती पूरी: {dare}, {target}।",
  "{name} invited you to a game.": "{name} ने तुम्हें गेम खेलने बुलाया है।",
  "{name} invited you to play Guess my answer.": "{name} ने तुम्हें ‘मेरा जवाब बूझो’ खेलने बुलाया है।",
- "{name} invited you to play Handwriting.": "{name} ने तुम्हें ‘लिखावट’ खेलने बुलाया है।",
  "{name} invited you to play I call on.": "{name} ने तुम्हें ‘नाम-जगह-चीज़’ खेलने बुलाया है।",
  "{name} invited you to play Memory match.": "{name} ने तुम्हें ‘मेमोरी मैच’ खेलने बुलाया है।",
  "{name} invited you to play Same answer.": "{name} ने तुम्हें ‘एक जैसा जवाब’ खेलने बुलाया है।",

@@ -338,7 +338,6 @@
  "{name} finished {dare}: {target}.": "إنجاز جديد من {name}: {dare}، {target}.",
  "{name} invited you to a game.": "دعوة للعب من {name}.",
  "{name} invited you to play Guess my answer.": "دعوة للعب من {name}: «خمّن إجابتي».",
- "{name} invited you to play Handwriting.": "دعوة للعب من {name}: «خط اليد».",
  "{name} invited you to play I call on.": "دعوة للعب من {name}: «إنسان حيوان نبات».",
  "{name} invited you to play Memory match.": "دعوة للعب من {name}: «لعبة الذاكرة».",
  "{name} invited you to play Same answer.": "دعوة للعب من {name}: «الإجابة نفسها».",
