@@ -1,5 +1,44 @@
 // Runs before first paint: turns on the hidden-until-revealed states only when the page can reveal them,
 // and only for visitors who haven't asked for reduced motion.
+
+// The page's language (docs/translation.md). An English page sends a first-time visitor whose browser prefers one of
+// our other languages to that version; choosing a language in the footer is remembered and wins from then on.
+(function () {
+  var supported = ["en", "fr", "pt", "es", "ar", "hi"];
+  var page = document.documentElement.lang || "en";
+  var saved = null;
+  try { saved = window.localStorage.getItem("hp-lang"); } catch (e) { saved = null; }
+  // A language picked in the footer is remembered, so English pages stop sending this visitor elsewhere.
+  document.addEventListener("click", function (event) {
+    var link = event.target.closest && event.target.closest("a[data-lang]");
+    if (link) { try { window.localStorage.setItem("hp-lang", link.getAttribute("data-lang")); } catch (e) { /* private mode */ } }
+  });
+  if (page !== "en") return;
+  var wanted = saved;
+  if (!wanted) {
+    var preferred = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+    for (var i = 0; i < preferred.length && !wanted; i++) {
+      var code = String(preferred[i]).slice(0, 2).toLowerCase();
+      if (supported.indexOf(code) >= 0) wanted = code;
+    }
+  }
+  if (wanted && wanted !== "en" && supported.indexOf(wanted) >= 0) {
+    window.location.replace("/" + wanted + window.location.pathname + window.location.search + window.location.hash);
+  }
+})();
+
+/** The scripts' words in the page's language: website/i18n/build.py puts them in #strings. English is the key. */
+window.T = (function () {
+  var strings = null;
+  return function (english) {
+    if (strings === null) {
+      var block = document.getElementById("strings");
+      try { strings = block ? JSON.parse(block.textContent) : {}; } catch (e) { strings = {}; }
+    }
+    return strings[english] || english;
+  };
+})();
+
 document.documentElement.classList.add("js");
 if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("motion");
 

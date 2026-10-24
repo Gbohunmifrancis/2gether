@@ -9,10 +9,10 @@
   /** Regions with their own image so far; the rest show the default. */
   var READY = ["africa", "mena", "latam", "eastasia"];
   var ALT = {
-    africa: "The workout screen counting squats, 9 of 15, with the pose drawn over the camera",
-    mena: "The workout screen counting arm raises, 9 of 15, with the pose drawn over the camera",
-    latam: "The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera",
-    eastasia: "The workout screen counting squats, 9 of 15, with the pose drawn over the camera",
+    africa: T("The workout screen counting squats, 9 of 15, with the pose drawn over the camera"),
+    mena: T("The workout screen counting arm raises, 9 of 15, with the pose drawn over the camera"),
+    latam: T("The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera"),
+    eastasia: T("The workout screen counting squats, 9 of 15, with the pose drawn over the camera"),
   };
   // The image has no src until now, so only one version is ever downloaded.
   (function showRegionalImages() {
