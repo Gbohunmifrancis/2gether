@@ -6,6 +6,7 @@ using Twogether.Api.Controllers;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Games;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Hubs;
 
@@ -41,13 +42,13 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         if (session.Status != GameSessionStatus.InProgress) throw new HubException("The game is not in progress.");
         if (session.CountdownEndsAtUtc > clock.UtcNow) throw new HubException("Wait for the countdown to finish.");
         if (session.StateVersion != expectedStateVersion) throw new HubException("The game state changed. Reload before acting.");
-        if (session.GameType != GameType.ICallOn && session.CurrentTurnUserId != currentUser.UserId!.Value) throw new HubException("It is not this player's turn.");
+        if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId!.Value) throw new HubException(Loc.T("It is not this player's turn."));
         GameEngineResult next;
         var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
-        if (expired && session.GameType != GameType.ICallOn) throw new HubException("This round expired. Start another game.");
+        if (expired && !engine.IsTimed(session.GameType)) throw new HubException(Loc.T("This round expired. Start another game."));
         if (GameEngine.IsServerOnlyAction(action) || string.IsNullOrWhiteSpace(action) || action.Length > 40 || value?.Length > GameEngine.MaxActionValueLength)
             throw new HubException("That action is not available.");
-        action = expired && session.GameType == GameType.ICallOn ? GameEngine.TimeoutAction : action;
+        action = expired && engine.IsTimed(session.GameType) ? GameEngine.TimeoutAction : action;
         IReadOnlyDictionary<string, bool?>? validations = null;
         if (session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
             validations = await wordValidator.ValidateAsync(session.StateJson, value, Context.ConnectionAborted);
@@ -66,10 +67,10 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         // Same event names and same payload shape as GameController and
         // GameTimeoutWorker, so a client can handle a game update from any
         // source with one code path.
-        var result = GameController.ToDto(session, engine);
+        // Everyone in the session's group gets the state with no secrets; the mover gets their own view back.
         var eventName = session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged";
-        await Clients.Group(GroupName(session.Id)).SendAsync(eventName, result, Context.ConnectionAborted);
-        return result;
+        await Clients.Group(GroupName(session.Id)).SendAsync(eventName, GameController.ToDto(session, engine, null), Context.ConnectionAborted);
+        return GameController.ToDto(session, engine, currentUser.UserId);
     }
 
     private async Task<Twogether.Core.Entities.GameSession> GetOwnedSession(Guid sessionId)

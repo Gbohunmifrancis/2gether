@@ -29,6 +29,10 @@ object GamePlay {
         GameType.WordDash -> tr("Word dash")
         GameType.Handwriting -> tr("Handwriting")
         GameType.TruthOrDare -> tr("Truth or dare")
+        GameType.WouldYouRather -> tr("Would you rather")
+        GameType.TicTacToe -> tr("Tic-tac-toe")
+        GameType.ConnectFour -> tr("Connect four")
+        GameType.Trivia -> tr("Trivia")
     }
 
     /** The button that accepts an invite: one whole phrase per game. */
@@ -40,6 +44,10 @@ object GamePlay {
         GameType.WordDash -> tr("Play Word dash")
         GameType.Handwriting -> tr("Play Handwriting")
         GameType.TruthOrDare -> tr("Play Truth or dare")
+        GameType.WouldYouRather -> tr("Play Would you rather")
+        GameType.TicTacToe -> tr("Play Tic-tac-toe")
+        GameType.ConnectFour -> tr("Play Connect four")
+        GameType.Trivia -> tr("Play Trivia")
     }
 
     fun blurb(type: GameType) = when (type) {

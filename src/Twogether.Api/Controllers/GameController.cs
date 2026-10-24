@@ -22,7 +22,7 @@ public sealed class GameController(
     IDateTimeProvider clock,
     IGameEngine engine,
     IGameWordValidator wordValidator,
-    IGameQuestionProvider questionProvider,
+    IGameSetupFactory setupFactory,
     IHubContext<CoupleHub> hub) : ApiControllerBase
 {
     [HttpGet("sessions")]
@@ -48,9 +48,9 @@ public sealed class GameController(
         var partnerId = await db.Users.AsNoTracking().Where(user => user.CoupleId == currentUser.CoupleId.Value && user.Id != inviter.Id).Select(user => (Guid?)user.Id).SingleOrDefaultAsync(cancellationToken);
         if (!partnerId.HasValue) return Conflict(new ApiError("game.players_missing", Loc.T("Both partners must be linked before a game is invited.")));
 
-        var setupJson = request.GameType == GameType.ICallOn
-            ? JsonSerializer.Serialize(new { letter = request.Letter?.ToUpperInvariant() })
-            : JsonSerializer.Serialize(new { questions = await questionProvider.GetQuestionsAsync(cancellationToken) });
+        // Nigerian couples play the Naija versions: trivia, words and pictures (docs/games.md).
+        var countries = await db.Users.AsNoTracking().Where(user => user.CoupleId == currentUser.CoupleId.Value).Select(user => user.CountryCode).ToListAsync(cancellationToken);
+        var setupJson = await setupFactory.CreateAsync(request.GameType, GameRegion.For(countries), request.Letter, cancellationToken);
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
         Notification notification;
         using (Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken)))
@@ -88,10 +88,9 @@ public sealed class GameController(
         session.Start(initial.CurrentTurnUserId!.Value, initial.DeadlineUtc, initial.StateJson, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
 
-        var result = ToDto(session);
         await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameCountdown", new GameCountdownDto(session.Id, countdownEnds), cancellationToken);
-        await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameStarted", result, cancellationToken);
-        return Ok(result);
+        await GameEvents.SendAsync(hub, engine, session, await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken), "GameStarted", cancellationToken);
+        return Ok(ToDto(session));
     }
 
     [HttpPost("sessions/{sessionId:guid}/start")]
@@ -114,11 +113,11 @@ public sealed class GameController(
         if (session.CountdownEndsAtUtc > clock.UtcNow) return Conflict(new ApiError("game.countdown", Loc.T("Wait for the countdown to finish.")));
         if (session.StateVersion != request.ExpectedStateVersion)
             return Conflict(new ApiError("game.version_conflict", Loc.T("The game state changed. The latest board has been loaded.")));
-        if (session.GameType != GameType.ICallOn && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
+        if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
         try
         {
-            // Only I call on has a clock; turn-by-turn games wait for the player whose turn it is.
-            var expired = session.GameType == GameType.ICallOn && session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
+            // Timed games play the server's timeout once the clock runs out; the rest wait for the player whose turn it is.
+            var expired = engine.IsTimed(session.GameType) && session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
             if (GameEngine.IsServerOnlyAction(request.Action))
                 return UnprocessableEntity(new ApiError("game.invalid_action", Loc.T("That action is not available.")));
             var action = expired ? GameEngine.TimeoutAction : request.Action;
@@ -145,9 +144,9 @@ public sealed class GameController(
         {
             return Conflict(new ApiError("game.version_conflict", Loc.T("Your partner just updated the game. The latest board has been loaded.")));
         }
-        var result = ToDto(session);
-        await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync(session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged", result, cancellationToken);
-        return Ok(result);
+        var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
+        await GameEvents.SendAsync(hub, engine, session, players, session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged", cancellationToken);
+        return Ok(ToDto(session));
     }
 
     [HttpPost("sessions/{sessionId:guid}/abandon")]
@@ -179,8 +178,11 @@ public sealed class GameController(
             ? db.GameSessions.SingleOrDefaultAsync(session => session.Id == sessionId && session.CoupleId == currentUser.CoupleId.Value, cancellationToken)
             : Task.FromResult<GameSession?>(null);
 
-    private GameSessionDto ToDto(GameSession session) => ToDto(session, engine);
-    internal static GameSessionDto ToDto(GameSession session, IGameEngine gameEngine) => new(session.Id, session.CoupleId, session.GameType, session.Status, session.StartedAtUtc, session.EndedAtUtc, session.CurrentTurnUserId, session.DeadlineUtc, session.StateVersion, gameEngine.ToPublicState(session.GameType, session.StateJson), session.InvitedByUserId, session.InviteAcceptedAtUtc, session.CountdownEndsAtUtc, session.EndedByUserId, session.SetupJson);
+    /// <summary>The session as the signed-in partner may see it.</summary>
+    private GameSessionDto ToDto(GameSession session) => ToDto(session, engine, currentUser.UserId);
+    /// <summary>The session as <paramref name="viewer"/> may see it; a null viewer sees no secrets. The setup isn't sent:
+    /// it can hold what one partner mustn't see yet (the words to draw).</summary>
+    internal static GameSessionDto ToDto(GameSession session, IGameEngine gameEngine, Guid? viewer) => new(session.Id, session.CoupleId, session.GameType, session.Status, session.StartedAtUtc, session.EndedAtUtc, session.CurrentTurnUserId, session.DeadlineUtc, session.StateVersion, gameEngine.ToPublicState(session.GameType, session.StateJson, viewer), session.InvitedByUserId, session.InviteAcceptedAtUtc, session.CountdownEndsAtUtc, session.EndedByUserId, GameRegion.PublicSetup(session.SetupJson));
     /// <summary>One whole sentence per game, so each language can name it its own way.</summary>
     private static string Invited(GameType game, string name) => game switch
     {

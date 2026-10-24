@@ -30,3 +30,56 @@ is not needed: REST plus the couple hub covers everything.
 - **I call on**: 3 rounds of Name, Place, Thing and Food starting with a letter. The inviter may choose the first
   round's letter (`letter`); later rounds draw at random. Answers a checker can't confirm go to the partner to judge
   (`vet`). A unique answer scores 2, a shared one 1 each.
+
+# Adding a game
+
+## How a game works
+
+- **Rules:** one class per game implementing `IGameRules` (`src/Twogether.Application/Features/Games/`), registered in
+  `GameEngine.Registered`. `Start` makes the first state from the two player ids and the setup; `Apply` takes one
+  move (`action`, optional `value` string and `index` int) and returns the next state, whose turn it is, an optional
+  deadline, and whether the game is over. A move that isn't allowed throws `InvalidOperationException` with a
+  `Loc.T("...")` message: the app shows it as is.
+- **Turns:** by default only `CurrentTurnUserId` may move. A game where both answer at once sets `AnyoneMayAct`.
+  A game with a clock sets `Timed`; when its deadline passes the server plays `GameEngine.TimeoutAction` for it (the
+  timeout worker, or the next move that arrives late). Turn-by-turn games without a clock may be played hours apart.
+- **Secrets:** `ToPublicState(state, viewer)` returns what that partner may see. The word to draw is the drawer's
+  alone; an answer stays hidden from the partner until both are in. A null viewer sees no secrets. Updates go to each
+  partner separately (`GameEvents`), each with their own view and in their own language, so content written with
+  `Loc.T` reaches each partner translated.
+- **Setup:** `GameSetupFactory` builds the setup when a game is invited: always the `region`, plus anything chosen
+  or fetched up front (I call on's letter, trivia questions). The app sees only the region and the letter
+  (`GameRegion.PublicSetup`); the rest stays on the server.
+- **Scores:** `Summarise` gives each player's score and the rounds played; the result is kept for the couple's game
+  history. A heart is a point.
+
+## Nigerian couples
+
+A couple plays the Nigerian versions when either partner's country is Nigeria (`GameRegion.For`, region `"ng"`;
+everyone else is `"global"`). Nigerian versions swap content, not rules: Naija trivia (music, Nollywood, Super Eagles,
+food, history, places, Pidgin), I call on with Nigerian names, places, foods and animals, memory cards with Naija
+pictures, prompts that mention jollof, owambe, danfo and so on. Keep it warm and inclusive across regions and
+ethnic groups; no politics, religion or tribal jokes.
+
+## The line-up
+
+| Game (`GameType`) | Who moves | What happens | Score |
+|---|---|---|---|
+| Same answer (`coupleQuiz`) | in turn, no clock | Both answer the same question about the two of them; answers are compared. | a heart each per match |
+| Guess my answer (`guessMyAnswer`) | in turn, no clock | One answers a question about themselves from four choices, the other guesses. Swap each round. | the guesser, per right guess |
+| Would you rather (`wouldYouRather`) | both at once | Both pick A or B; picks are revealed together. | a heart each per match |
+| Trivia (`trivia`) | both at once | Ten multiple-choice questions; both answer, then the right answer shows. Global: Open Trivia DB. Nigeria: Naija trivia. | a point per right answer |
+| Memory match (`memoryMatch`) | in turn | Twelve cards, six pairs. | a point per pair |
+| I call on (`iCallOn`) | both at once, timed | A letter and four categories, 15 seconds; partners vet unknown words. | 2 unique, 1 shared |
+| Truth or dare (`truthOrDare`) | in turn, no clock | Pick truth or dare, get a couple-safe prompt, the partner marks it done or skipped. | a point per done |
+| Word dash (`wordDash`) | in turn, timed | Word chain: each word starts with the last letter of the one before, no repeats, 20 seconds a turn. | the other partner scores when time runs out or a word is refused |
+| Draw and guess (`handwriting`) | in turn | One draws a secret word, the other has three guesses. Swap each round. | both, when guessed |
+| Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
+| Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
+
+## Text
+
+Every word a person reads goes through `Loc.T`/`Loc.Plural` on the server and `tr`/`trn` in the app
+(docs/translation.md). Content banks (questions, prompts, words) are written in English with `Loc.N("...")` and shown
+with `Loc.T(text)` in `ToPublicState`, so each partner reads them in their own language. Naija content is English and
+Pidgin by design and isn't marked for translation.

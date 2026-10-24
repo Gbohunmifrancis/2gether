@@ -30,8 +30,30 @@ public sealed class GameEngine : IGameEngine
         "What is your favorite way for us to reconnect?"
     ];
 
+    /// <summary>
+    /// Games with their own rules class. Same answer, memory match and I call on are still built in below; a type with
+    /// no rules yet plays as Same answer.
+    /// </summary>
+    private static readonly Dictionary<GameType, IGameRules> Registered = new IGameRules[]
+    {
+    }.ToDictionary(rules => rules.Type);
+
+    public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);
+
+    public bool AnyoneMayAct(GameType gameType) => RulesFor(gameType)?.AnyoneMayAct ?? gameType == GameType.ICallOn;
+
+    public bool IsTimed(GameType gameType) => RulesFor(gameType)?.Timed ?? gameType == GameType.ICallOn;
+
+    public string ToPublicState(GameType gameType, string stateJson, Guid? viewer)
+        => RulesFor(gameType) is { } rules ? rules.ToPublicState(stateJson, viewer) : ToPublicState(gameType, stateJson);
+
     public GameEngineResult Start(GameType gameType, IReadOnlyList<Guid> playerIds, DateTime utcNow, string? setupJson = null)
     {
+        if (RulesFor(gameType) is { } rules)
+        {
+            if (playerIds.Count == 0) throw new InvalidOperationException("At least one player is required.");
+            return rules.Start(playerIds, utcNow, setupJson);
+        }
         if (playerIds.Count == 0) throw new InvalidOperationException("At least one player is required.");
         var stateJson = gameType == GameType.MemoryMatch
             ? JsonSerializer.Serialize(CreateMemoryState(playerIds))
@@ -44,7 +66,9 @@ public sealed class GameEngine : IGameEngine
     }
 
     public GameEngineResult Apply(GameType gameType, string stateJson, Guid actorUserId, string action, string? value, int? index, DateTime utcNow, IReadOnlyDictionary<string, bool?>? validations = null, IReadOnlyDictionary<Guid, CoSubmission>? coSubmissions = null)
-        => gameType == GameType.MemoryMatch
+        => RulesFor(gameType) is { } rules
+            ? rules.Apply(new GameMove(stateJson, actorUserId, action, value, index, utcNow, validations, coSubmissions))
+            : gameType == GameType.MemoryMatch
             ? ApplyMemory(stateJson, actorUserId, action, index, utcNow)
             : gameType == GameType.ICallOn
                 ? ApplyICallOn(stateJson, actorUserId, action, value, utcNow, validations, coSubmissions)
@@ -52,6 +76,7 @@ public sealed class GameEngine : IGameEngine
 
     public string ToPublicState(GameType gameType, string stateJson)
     {
+        if (RulesFor(gameType) is { } rules) return rules.ToPublicState(stateJson, null);
         if (gameType != GameType.MemoryMatch && gameType != GameType.ICallOn)
         {
             var quiz = Deserialize<QuizState>(stateJson);
@@ -107,6 +132,7 @@ public sealed class GameEngine : IGameEngine
     {
         try
         {
+            if (RulesFor(gameType) is { } rules) return rules.Summarise(stateJson);
             if (gameType == GameType.MemoryMatch)
             {
                 var memory = Deserialize<MemoryState>(stateJson);

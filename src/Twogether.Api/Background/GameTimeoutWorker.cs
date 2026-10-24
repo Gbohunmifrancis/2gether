@@ -80,12 +80,14 @@ public sealed class GameTimeoutWorker(
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
         var now = clock.UtcNow;
-        var sessions = await db.GameSessions
+        // Only timed games set a deadline, so an expired deadline is always a timed game's.
+        var sessions = (await db.GameSessions
             .Where(session => session.Status == GameSessionStatus.InProgress
-                && session.GameType == GameType.ICallOn
                 && session.DeadlineUtc != null
                 && session.DeadlineUtc <= now)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken))
+            .Where(session => engine.IsTimed(session.GameType))
+            .ToList();
         if (sessions.Count == 0) return;
 
         foreach (var session in sessions)
@@ -99,8 +101,8 @@ public sealed class GameTimeoutWorker(
         foreach (var session in sessions)
         {
             var eventName = session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged";
-            await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId))
-                .SendAsync(eventName, GameController.ToDto(session, engine), cancellationToken);
+            var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
+            await GameEvents.SendAsync(hub, engine, session, players, eventName, cancellationToken);
         }
     }
 }
