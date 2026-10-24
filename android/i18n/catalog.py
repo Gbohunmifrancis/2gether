@@ -7,7 +7,8 @@
     python3 android/i18n/catalog.py merge fr batch.json   # adds a batch of translations to fr.json, sorted
     python3 android/i18n/catalog.py prune    # drops translations whose English is no longer in the app
 
-CatalogTest.kt does the same check in the unit tests, so CI fails on a string without translations.
+Add --server to any command to work on the API's text instead (Loc.T / Loc.N / Loc.Plural in src/, catalogs in
+src/Twogether.Shared/Localization/i18n). CI runs `check` for both.
 """
 import json
 import pathlib
@@ -15,17 +16,35 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SOURCES = ROOT / "app/src/main/java"
-CATALOGS = ROOT / "app/src/main/assets/i18n"
+SERVER = "--server" in sys.argv
+if SERVER:
+    sys.argv.remove("--server")
+    REPO = ROOT.parent
+    SOURCES = REPO / "src"
+    CATALOGS = REPO / "src/Twogether.Shared/Localization/i18n"
+    SOURCE_LIST = REPO / "src/Twogether.Shared/Localization/source.json"
+    PATTERN, SKIP = "*.cs", {"Loc.cs"}
+else:
+    SOURCES = ROOT / "app/src/main/java"
+    CATALOGS = ROOT / "app/src/main/assets/i18n"
+    SOURCE_LIST = ROOT / "i18n/source.json"
+    PATTERN, SKIP = "*.kt", {"Tr.kt"}
 LANGUAGES = ["fr", "pt", "es", "ar", "hi"]
 # CLDR categories each language needs for whole numbers (see Tr.category).
 PLURAL_FORMS = {"fr": ["one", "other"], "pt": ["one", "other"], "es": ["one", "other"], "hi": ["one", "other"],
                 "ar": ["zero", "one", "two", "few", "many", "other"]}
 
 LIT = r'"((?:[^"\\\n]|\\.)*)"'
-TR = re.compile(r'\btr\(\s*' + LIT)
-TRN = re.compile(r'\btrn\(([^"()]*(?:\([^()]*\)[^"()]*)*),\s*' + LIT + r'\s*,\s*' + LIT)
-CALL = re.compile(r'\btrn?\(')
+COUNT = r'([^"()]*(?:\([^()]*\)[^"()]*)*)'
+if SERVER:
+    # Loc.T(definition.Text) translates text marked with Loc.N elsewhere, so only interpolation ($"...") is refused.
+    TR = re.compile(r'\bLoc\.[TN]\(\s*' + LIT)
+    TRN = re.compile(r'\bLoc\.Plural\(' + COUNT + r',\s*' + LIT + r'\s*,\s*' + LIT)
+    CALL = re.compile(r'\bLoc\.(?:T|N|Plural)\([^"$]*\$"')
+else:
+    TR = re.compile(r'\btr\(\s*' + LIT)
+    TRN = re.compile(r'\btrn\(' + COUNT + r',\s*' + LIT + r'\s*,\s*' + LIT)
+    CALL = re.compile(r'\btrn?\(')
 PLACEHOLDER = re.compile(r'\{[a-zA-Z][a-zA-Z0-9]*\}')
 
 
@@ -50,8 +69,8 @@ def unescape(literal):
 def extract():
     """{key: {"plural": bool, "one": str?, "other": str?, "uses": [file:line ...], "code": first line of code}}."""
     found, problems = {}, []
-    for path in sorted(SOURCES.rglob("*.kt")):
-        if path.name == "Tr.kt":
+    for path in sorted(SOURCES.rglob(PATTERN)):
+        if path.name in SKIP or "/bin/" in path.as_posix() or "/obj/" in path.as_posix():
             continue
         text = path.read_text(encoding="utf-8")
         rel = path.relative_to(SOURCES).as_posix()
@@ -64,7 +83,7 @@ def extract():
             one, other = unescape(m.group(2)), unescape(m.group(3))
             add(found, problems, one + "|" + other, (one, other), text, m.start(), rel, m.group(2) + m.group(3))
         for m in CALL.finditer(text):
-            if m.start() not in spans and not text[:m.start()].rstrip().endswith("fun"):
+            if (SERVER or m.start() not in spans) and not text[:m.start()].rstrip().endswith("fun"):
                 problems.append(f"{rel}:{line(text, m.start())}: tr()/trn() needs plain string literals")
     return found, problems
 
@@ -124,7 +143,7 @@ def main():
     command = sys.argv[1] if len(sys.argv) > 1 else "check"
     found, problems = extract()
     if command == "export":
-        out = ROOT / "i18n/source.json"
+        out = SOURCE_LIST
         out.write_text(json.dumps(found, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
         print(f"{len(found)} strings ({sum(e['plural'] for e in found.values())} counts) -> {out}")
     elif command == "merge":

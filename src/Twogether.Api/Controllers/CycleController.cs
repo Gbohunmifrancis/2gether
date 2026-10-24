@@ -6,6 +6,7 @@ using Twogether.Api.Common;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -31,7 +32,7 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         if (actor.Gender != Gender.Female)
             return Forbid();
         if (currentUser.CoupleId.HasValue && await db.Users.AsNoTracking().AnyAsync(item => item.CoupleId == currentUser.CoupleId.Value && item.Id != actor.Id && item.CycleOwner, cancellationToken))
-            return Conflict(new ApiError("cycle.owner_exists", "Your partner already owns the shared cycle calendar."));
+            return Conflict(new ApiError("cycle.owner_exists", Loc.T("Your partner already owns the shared cycle calendar.")));
         actor.ClaimCycleOwnership(clock.UtcNow);
         var profile = await db.CycleProfiles.SingleOrDefaultAsync(item => item.UserId == actor.Id, cancellationToken);
         if (profile is null) { profile = CycleProfile.Create(actor.Id, clock.UtcNow); db.CycleProfiles.Add(profile); }
@@ -47,7 +48,7 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (actor is null || !actor.CycleOwner) return Forbid();
         if (request.AverageCycleLengthDays is < 15 or > 60 || request.AveragePeriodLengthDays is < 1 or > 14)
-            return UnprocessableEntity(new ApiError("cycle.invalid_profile", "Cycle lengths are outside the supported range."));
+            return UnprocessableEntity(new ApiError("cycle.invalid_profile", Loc.T("Cycle lengths are outside the supported range.")));
         var profile = await db.CycleProfiles.SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value, cancellationToken);
         if (profile is null) { profile = CycleProfile.Create(currentUser.UserId.Value, clock.UtcNow); db.CycleProfiles.Add(profile); }
         profile.SetCycleSettings(request.AverageCycleLengthDays, request.AveragePeriodLengthDays, request.LastPeriodStartDate, clock.UtcNow);
@@ -79,9 +80,9 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (actor is null || !actor.CycleOwner) return Forbid();
         if (request.Notes?.Length > MaxNotesLength)
-            return UnprocessableEntity(new ApiError("cycle.invalid_notes", $"Notes are at most {MaxNotesLength} characters."));
+            return UnprocessableEntity(new ApiError("cycle.invalid_notes", Loc.T("Notes are at most {max} characters.", ("max", MaxNotesLength))));
         if (request.Symptoms is { } symptoms && (symptoms.Count > MaxSymptoms || symptoms.Any(symptom => string.IsNullOrWhiteSpace(symptom) || symptom.Length > MaxSymptomLength)))
-            return UnprocessableEntity(new ApiError("cycle.invalid_symptoms", $"Up to {MaxSymptoms} symptoms of at most {MaxSymptomLength} characters each."));
+            return UnprocessableEntity(new ApiError("cycle.invalid_symptoms", Loc.T("Up to {symptoms} symptoms of at most {characters} characters each.", ("symptoms", MaxSymptoms), ("characters", MaxSymptomLength))));
         var log = await db.CycleDayLogs.SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value && item.LogDate == date, cancellationToken);
         if (log is null) { log = CycleDayLog.Create(currentUser.UserId.Value, date, request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow); db.CycleDayLogs.Add(log); }
         else log.Update(request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow);

@@ -8,6 +8,7 @@ using Twogether.Application.Features.Auth;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Users;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -23,9 +24,9 @@ public sealed class AuthController(
     Twogether.Api.Presence.HubConnectionRegistry hubConnections,
     ILogger<AuthController> logger) : ApiControllerBase
 {
-    private static readonly ApiError ResetSent = new("auth.reset_sent", "If an account uses that email, a code is on its way. It works for 15 minutes.");
-    private static readonly ApiError BadResetCode = new("auth.invalid_reset_code", "That code is wrong or has expired. Ask for a new one.");
-    private static readonly ApiError BadCountry = new("auth.invalid_country", "Choose your country from the list.");
+    private static ApiError ResetSent => new("auth.reset_sent", Loc.T("If an account uses that email, a code is on its way. It works for 15 minutes."));
+    private static ApiError BadResetCode => new("auth.invalid_reset_code", Loc.T("That code is wrong or has expired. Ask for a new one."));
+    private static ApiError BadCountry => new("auth.invalid_country", Loc.T("Choose your country from the list."));
 
     /// <summary>
     /// Emails a six-digit code. The answer is the same whether or not the account exists, so the
@@ -35,9 +36,9 @@ public sealed class AuthController(
     [HttpPost("password/forgot")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
-        if (!email.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("auth.email_unavailable", "Password reset isn't set up on this server yet."));
+        if (!email.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("auth.email_unavailable", Loc.T("Password reset isn't set up on this server yet.")));
         var address = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
-        if (address.Length is 0 or > 320 || !address.Contains('@')) return UnprocessableEntity(new ApiError("auth.invalid_email", "Enter the email you signed up with."));
+        if (address.Length is 0 or > 320 || !address.Contains('@')) return UnprocessableEntity(new ApiError("auth.invalid_email", Loc.T("Enter the email you signed up with.")));
         if (Blocked(limiter, (AttemptRules.ResetRequestPerEmail, address), (AttemptRules.ResetRequestPerIp, ClientIp)) is { } wait)
             return TooManyAttempts(wait, "Too many codes asked for. Wait a little and try again.");
         limiter.RecordFailure(AttemptRules.ResetRequestPerEmail, address);
@@ -71,7 +72,7 @@ public sealed class AuthController(
         if (Blocked(limiter, (AttemptRules.ResetCodePerEmail, address), (AttemptRules.ResetCodePerIp, ClientIp)) is { } wait)
             return TooManyAttempts(wait, "Too many wrong codes. Wait a few minutes and try again.");
         if (string.IsNullOrEmpty(request.NewPassword) || request.NewPassword.Length < PasswordResetRules.MinPasswordLength)
-            return UnprocessableEntity(new ApiError("auth.invalid_password", $"Use at least {PasswordResetRules.MinPasswordLength} characters."));
+            return UnprocessableEntity(new ApiError("auth.invalid_password", Loc.T("Use at least {min} characters.", ("min", PasswordResetRules.MinPasswordLength))));
 
         var now = clock.UtcNow;
         var user = await db.Users.SingleOrDefaultAsync(candidate => candidate.Email == address, cancellationToken);
@@ -113,14 +114,14 @@ public sealed class AuthController(
     [HttpPost("google")]
     public async Task<ActionResult<AuthResponse>> Google(GoogleSignInRequest request, CancellationToken cancellationToken)
     {
-        if (!google.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("auth.google_unavailable", "Google sign-in isn't set up on this server yet."));
+        if (!google.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("auth.google_unavailable", Loc.T("Google sign-in isn't set up on this server yet.")));
         if (Blocked(limiter, (AttemptRules.GooglePerIp, ClientIp)) is { } wait)
             return TooManyAttempts(wait, "Too many sign-in attempts. Wait a few minutes and try again.");
         var identity = string.IsNullOrWhiteSpace(request.IdToken) ? null : await google.VerifyAsync(request.IdToken, cancellationToken);
         if (identity is null || !identity.EmailVerified)
         {
             limiter.RecordFailure(AttemptRules.GooglePerIp, ClientIp);
-            return Unauthorized(new ApiError("auth.invalid_google_token", "Google sign-in didn't work. Try again."));
+            return Unauthorized(new ApiError("auth.invalid_google_token", Loc.T("Google sign-in didn't work. Try again.")));
         }
 
         var now = clock.UtcNow;
@@ -131,7 +132,7 @@ public sealed class AuthController(
         {
             if (user.DisabledAtUtc is not null) return Disabled();
             if (user.GoogleId is null) user.LinkGoogle(identity.Subject, now);
-            else if (user.GoogleId != identity.Subject) return Conflict(new ApiError("auth.google_mismatch", "This email is linked to a different Google account."));
+            else if (user.GoogleId != identity.Subject) return Conflict(new ApiError("auth.google_mismatch", Loc.T("This email is linked to a different Google account.")));
             await db.SaveChangesAsync(cancellationToken);
             await EnsureFemaleCycleOwnerAsync(user, cancellationToken);
             return Ok(ToResponse(user, tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, now)));
@@ -140,7 +141,7 @@ public sealed class AuthController(
         if (request.DateOfBirth is null)
             return UnprocessableEntity(new GoogleProfileRequired("auth.profile_required", "Tell us your birthday to finish signing up.", identity.Email, identity.Name));
         if (!Enum.IsDefined(request.Gender))
-            return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
+            return UnprocessableEntity(new ApiError("auth.invalid_gender", Loc.T("Choose the option that best describes you.")));
         if (!TryCountry(request.CountryCode, out var googleCountry)) return UnprocessableEntity(BadCountry);
         var name = (string.IsNullOrWhiteSpace(request.DisplayName) ? identity.Name : request.DisplayName)?.Trim();
         if (string.IsNullOrWhiteSpace(name) || name.Length > 100) name = address.Split('@')[0];
@@ -165,13 +166,13 @@ public sealed class AuthController(
             return TooManyAttempts(wait, "Too many sign-ups from this network. Try again later.");
         limiter.RecordFailure(AttemptRules.RegisterPerIp, ClientIp);
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
-            return UnprocessableEntity(new ApiError("auth.invalid_registration", "Email and a password of at least 8 characters are required."));
+            return UnprocessableEntity(new ApiError("auth.invalid_registration", Loc.T("Email and a password of at least 8 characters are required.")));
         if (await db.Users.AnyAsync(user => user.Email == request.Email.Trim().ToLower(), cancellationToken))
-            return Conflict(new ApiError("auth.email_exists", "An account with this email already exists."));
+            return Conflict(new ApiError("auth.email_exists", Loc.T("An account with this email already exists.")));
 
         var now = clock.UtcNow;
         if (!Enum.IsDefined(request.Gender))
-            return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
+            return UnprocessableEntity(new ApiError("auth.invalid_gender", Loc.T("Choose the option that best describes you.")));
         if (!TryCountry(request.CountryCode, out var country)) return UnprocessableEntity(BadCountry);
         var user = Twogether.Core.Entities.User.Create(
             request.Email,
@@ -204,7 +205,7 @@ public sealed class AuthController(
             // Counted for unknown emails too, so the limit does not reveal which accounts exist.
             limiter.RecordFailure(AttemptRules.LoginPerEmail, email);
             limiter.RecordFailure(AttemptRules.LoginPerIp, ClientIp);
-            return Unauthorized(new ApiError("auth.invalid_credentials", "Email or password is incorrect."));
+            return Unauthorized(new ApiError("auth.invalid_credentials", Loc.T("Email or password is incorrect.")));
         }
         limiter.Reset(AttemptRules.LoginPerEmail, email);
         if (user.DisabledAtUtc is not null) return Disabled();
@@ -229,22 +230,22 @@ public sealed class AuthController(
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
         if (string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Trim().Length > 100)
-            return UnprocessableEntity(new ApiError("profile.invalid_name", "Nickname must be between 1 and 100 characters."));
+            return UnprocessableEntity(new ApiError("profile.invalid_name", Loc.T("Nickname must be between 1 and 100 characters.")));
         // The partner's app loads this image, so only an https address is accepted: no tracking
         // over plain http, no javascript: or data: tricks, nothing the database would cut off.
         var avatar = string.IsNullOrWhiteSpace(request.AvatarUrl) ? null : request.AvatarUrl.Trim();
         var mapColor = string.IsNullOrWhiteSpace(request.MapColor) ? "#f45c91" : request.MapColor.Trim();
         if (!System.Text.RegularExpressions.Regex.IsMatch(mapColor, "^#[0-9a-fA-F]{6}$"))
-            return UnprocessableEntity(new ApiError("profile.invalid_color", "Map color must be a six-digit hex color."));
+            return UnprocessableEntity(new ApiError("profile.invalid_color", Loc.T("Map color must be a six-digit hex color.")));
         // Left out by app versions from before the country was asked: then it stays as it is.
         if (!TryCountry(request.CountryCode, out var country)) return UnprocessableEntity(BadCountry);
         if (request.Gender is { } gender && !Enum.IsDefined(gender))
-            return UnprocessableEntity(new ApiError("auth.invalid_gender", "Choose the option that best describes you."));
+            return UnprocessableEntity(new ApiError("auth.invalid_gender", Loc.T("Choose the option that best describes you.")));
         var user = await db.Users.SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user is null) return NotFound();
         // An unchanged avatar is let through: the profile screen sends it back with every edit.
         if (avatar is not null && avatar != user.AvatarUrl && (avatar.Length > 500 || !Uri.TryCreate(avatar, UriKind.Absolute, out var avatarUri) || avatarUri.Scheme != Uri.UriSchemeHttps))
-            return UnprocessableEntity(new ApiError("profile.invalid_avatar", "The avatar must be an https link of at most 500 characters."));
+            return UnprocessableEntity(new ApiError("profile.invalid_avatar", Loc.T("The avatar must be an https link of at most 500 characters.")));
         user.UpdateProfile(request.DisplayName.Trim(), avatar, mapColor, clock.UtcNow);
         if (country is not null) user.SetCountry(country, clock.UtcNow);
         if (request.Gender is { } newGender && newGender != user.Gender) user.SetGender(newGender, clock.UtcNow);
@@ -256,7 +257,7 @@ public sealed class AuthController(
         return Ok(new AuthResponse(token, ToUser(user)));
     }
 
-    private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError("auth.account_disabled", "This account has been disabled. Contact support if you think this is a mistake."));
+    private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError("auth.account_disabled", Loc.T("This account has been disabled. Contact support if you think this is a mistake.")));
 
     private static AuthResponse ToResponse(User user, string token) => new(token, ToUser(user));
     private static AuthUserDto ToUser(User user) => new(user.Id, user.Email, user.DisplayName, user.CoupleId, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender,

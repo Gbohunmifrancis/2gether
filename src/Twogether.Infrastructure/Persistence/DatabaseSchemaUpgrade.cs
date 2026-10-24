@@ -40,6 +40,7 @@ public static class DatabaseSchemaUpgrade
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "DisabledReason" character varying(500) NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "LastActiveAtUtc" timestamp with time zone NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "CountryCode" character varying(2) NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "Language" character varying(8) NOT NULL DEFAULT 'en';
         CREATE TABLE IF NOT EXISTS admin_accounts (
             "Id" uuid NOT NULL,
             "UserId" uuid NOT NULL,

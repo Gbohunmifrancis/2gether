@@ -3,6 +3,7 @@ using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Exercise;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Exercise;
 
@@ -16,22 +17,22 @@ public static class ExerciseGoalRules
         if (!string.IsNullOrWhiteSpace(value)
             && TimeOnly.TryParseExact(value.Trim(), TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
             return new TimeOnly(time.Hour, time.Minute);
-        return Error.Validation("exercise.invalid_time", "Scheduled time must look like HH:mm.");
+        return Error.Validation("exercise.invalid_time", Loc.T("Scheduled time must look like HH:mm."));
     }
 
     public static Result Validate(ExerciseType type, string? title, int target, string? timeZoneId, int graceMinutes)
     {
         if (!Enum.IsDefined(type))
-            return Error.Validation("exercise.invalid_target", "Unknown exercise.");
+            return Error.Validation("exercise.invalid_target", Loc.T("Unknown exercise."));
         var definition = ExerciseCatalog.Get(type);
         if (target < definition.MinTarget || target > definition.MaxTarget)
-            return Error.Validation("exercise.invalid_target", $"{definition.DisplayName} target must be between {definition.MinTarget} and {definition.MaxTarget}.");
+            return Error.Validation("exercise.invalid_target", Loc.T("The target must be between {min} and {max}.", ("min", definition.MinTarget), ("max", definition.MaxTarget)));
         if (!string.IsNullOrWhiteSpace(title) && title.Trim().Length > ExerciseGoal.MaxTitleLength)
-            return Error.Validation("exercise.invalid_title", $"Title must be at most {ExerciseGoal.MaxTitleLength} characters.");
+            return Error.Validation("exercise.invalid_title", Loc.T("Title must be at most {max} characters.", ("max", ExerciseGoal.MaxTitleLength)));
         if (string.IsNullOrWhiteSpace(timeZoneId) || timeZoneId.Trim().Length > ExerciseGoal.MaxTimeZoneIdLength || !ExerciseSchedule.IsKnownTimeZone(timeZoneId))
-            return Error.Validation("exercise.invalid_time_zone", "Time zone is not recognised.");
+            return Error.Validation("exercise.invalid_time_zone", Loc.T("Time zone is not recognised."));
         if (graceMinutes is < ExerciseGoal.MinGraceMinutes or > ExerciseGoal.MaxGraceMinutes)
-            return Error.Validation("exercise.invalid_grace", $"Grace must be between {ExerciseGoal.MinGraceMinutes} and {ExerciseGoal.MaxGraceMinutes} minutes.");
+            return Error.Validation("exercise.invalid_grace", Loc.T("Grace must be between {min} and {max} minutes.", ("min", ExerciseGoal.MinGraceMinutes), ("max", ExerciseGoal.MaxGraceMinutes)));
         return Result.Success();
     }
 
@@ -40,7 +41,7 @@ public static class ExerciseGoalRules
     {
         var clean = ExerciseOccurrence.NormalizeCallOffNote(note);
         if (clean is not null && clean.Length > ExerciseOccurrence.MaxCallOffNoteLength)
-            return Error.Validation("exercise.invalid_note", $"The note must be at most {ExerciseOccurrence.MaxCallOffNoteLength} characters.");
+            return Error.Validation("exercise.invalid_note", Loc.T("The note must be at most {max} characters.", ("max", ExerciseOccurrence.MaxCallOffNoteLength)));
         return clean;
     }
 }

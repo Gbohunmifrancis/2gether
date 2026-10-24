@@ -8,6 +8,8 @@ using Twogether.Application.Features.Memories;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -18,8 +20,8 @@ namespace Twogether.Api.Controllers;
 /// </summary>
 public sealed partial class MemoriesController
 {
-    private static readonly ApiError SyncInProgress = new("memories.sync_in_progress", "Another sync from your account is running. Try again in a moment.");
-    private static readonly ApiError ClientIdTaken = new("memories.client_id_taken", "This photo was already shared in an earlier album.");
+    private static ApiError SyncInProgress => new("memories.sync_in_progress", Loc.T("Another sync from your account is running. Try again in a moment."));
+    private static ApiError ClientIdTaken => new("memories.client_id_taken", Loc.T("This photo was already shared in an earlier album."));
 
     /// <summary>What the phone has waiting. Called whenever its queue changes and on app start.</summary>
     [HttpPut("sync/pending")]
@@ -187,8 +189,9 @@ public sealed partial class MemoriesController
             if (synced > 0 && partnerId is { } partner)
             {
                 // The notification row is the push outbox: saved together with the memories it announces.
+                using var _ = Loc.Use(await db.LanguageOfAsync(partner, cancellationToken));
                 notice = Notification.Create(partner, couple.Id, NotificationType.MemoriesSynced, MemorySyncText.SyncedTitle,
-                    MemorySyncText.SyncedBody(names.GetValueOrDefault(userId, "Your partner"), synced),
+                    MemorySyncText.SyncedBody(names.GetValueOrDefault(userId) ?? Loc.T("Your partner"), synced),
                     JsonSerializer.Serialize(new { count = synced }), now);
                 db.Notifications.Add(notice);
             }

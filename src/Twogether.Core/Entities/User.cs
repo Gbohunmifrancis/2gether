@@ -23,6 +23,8 @@ public sealed class User : BaseEntity
     public string TimeZoneId { get; private set; } = "UTC";
     /// <summary>ISO 3166-1 alpha-2, chosen at sign-up; picks regional content. Null for accounts made before it was asked.</summary>
     public string? CountryCode { get; private set; }
+    /// <summary>The app's language (en, fr, pt, es, ar, hi), from its requests: notifications and emails are written in it.</summary>
+    public string Language { get; private set; } = "en";
     /// <summary>Tokens issued before this are rejected: set when the password is reset, to end every other session.</summary>
     public DateTime? SessionsValidFromUtc { get; private set; }
     /// <summary>Set by an admin: the account can't sign in and its sessions end.</summary>
@@ -43,6 +45,8 @@ public sealed class User : BaseEntity
             CycleOwner = cycleOwner,
             Gender = gender,
             EmailVerified = googleId is not null,
+            // The language the app signed up in (Accept-Language); later requests keep it current.
+            Language = Twogether.Shared.Localization.Loc.Language,
             CreatedAtUtc = utcNow,
             UpdatedAtUtc = utcNow
         };
@@ -71,6 +75,12 @@ public sealed class User : BaseEntity
     public void SetCountry(string countryCode, DateTime utcNow)
     {
         CountryCode = ContentRegions.Normalize(countryCode) ?? throw new ArgumentException($"'{countryCode}' is not an ISO 3166-1 alpha-2 country code.", nameof(countryCode));
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void SetLanguage(string language, DateTime utcNow)
+    {
+        Language = Twogether.Shared.Localization.Loc.Normalize(language) ?? "en";
         UpdatedAtUtc = utcNow;
     }
 

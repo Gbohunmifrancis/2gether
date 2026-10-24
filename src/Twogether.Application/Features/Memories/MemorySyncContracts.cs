@@ -1,6 +1,7 @@
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Memories;
 
@@ -65,11 +66,11 @@ public sealed record CompleteSyncResponse(IReadOnlyList<SyncCompleteItemDto> Ite
 
 public static class MemorySyncRules
 {
-    public static readonly Error InvalidPending = Error.Validation("memories.invalid_pending",
-        $"Pending photos must be between 0 and {AlbumSyncRules.MaxPendingCount}, with a size that fits that many files.");
+    public static Error InvalidPending => Error.Validation("memories.invalid_pending",
+        Loc.T("Pending photos must be between 0 and {max}, with a size that fits that many files.", ("max", AlbumSyncRules.MaxPendingCount)));
 
-    public static readonly Error InvalidBatch = Error.Validation("memories.invalid_batch",
-        $"Send between 1 and {AlbumSyncRules.MaxBatchItems} items, each with its own id.");
+    public static Error InvalidBatch => Error.Validation("memories.invalid_batch",
+        Loc.T("Send between 1 and {max} items, each with its own id.", ("max", AlbumSyncRules.MaxBatchItems)));
 
     public static Result ValidatePending(ReportPendingRequest request)
         => AlbumSyncRules.IsValidPending(request.PendingCount, request.PendingBytes) ? Result.Success() : InvalidPending;
@@ -92,15 +93,14 @@ public static class MemorySyncRules
 /// <summary>Notification wording for sync, in one place so the worker and the endpoint agree.</summary>
 public static class MemorySyncText
 {
-    public const string SyncedTitle = "New photos in your album";
-    public const string ReminderTitle = "Photos waiting to sync";
+    // In the reader's language: build these inside Loc.Use(recipient's language).
+    public static string SyncedTitle => Loc.T("New photos in your album");
+    public static string ReminderTitle => Loc.T("Photos waiting to sync");
 
-    public static string Photos(int count) => count == 1 ? "1 photo" : $"{count} photos";
-
-    public static string SyncedBody(string uploaderName, int count) => $"{uploaderName} added {Photos(count)} to your album.";
+    public static string SyncedBody(string uploaderName, int count)
+        => Loc.Plural(count, "{name} added {count} photo to your album.", "{name} added {count} photos to your album.", ("name", uploaderName));
 
     public static string ReminderBody(int pendingCount, string partnerName)
-        => pendingCount == 1
-            ? $"1 photo is waiting on this phone. Sync it to share with {partnerName}."
-            : $"{pendingCount} photos are waiting on this phone. Sync them to share with {partnerName}.";
+        => Loc.Plural(pendingCount, "{count} photo is waiting on this phone. Sync it to share with {partner}.",
+            "{count} photos are waiting on this phone. Sync them to share with {partner}.", ("partner", partnerName));
 }

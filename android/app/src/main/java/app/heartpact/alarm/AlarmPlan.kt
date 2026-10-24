@@ -46,7 +46,7 @@ object AlarmPlan {
                 .forEach { occurrence ->
                     val deadline = utc(occurrence.completeByUtc ?: occurrence.deadlineUtc)
                     if (deadline.isAfter(now)) {
-                        slots += AlarmSlot(goal.id, occurrence.title, occurrence.exerciseType, occurrence.target,
+                        slots += AlarmSlot(goal.id, occurrence.exerciseType.titleOf(occurrence.title), occurrence.exerciseType, occurrence.target,
                             utc(occurrence.scheduledAtUtc).toEpochMilli(), deadline.toEpochMilli(), setBy, occurrence.id)
                     }
                 }
@@ -54,7 +54,7 @@ object AlarmPlan {
             // Done or called off before it rang: today's alarm is cancelled even if the pointer lags.
             val settled = today.occurrences.any { it.goalId == goal.id && !it.status.ringing && utc(it.scheduledAtUtc) == next }
             if (next.isAfter(now) && !settled) {
-                slots += AlarmSlot(goal.id, goal.title, goal.exerciseType, goal.target, next.toEpochMilli(),
+                slots += AlarmSlot(goal.id, goal.exerciseType.titleOf(goal.title), goal.exerciseType, goal.target, next.toEpochMilli(),
                     next.plus(Duration.ofMinutes(goal.graceMinutes.toLong())).toEpochMilli(), setBy)
             }
         }

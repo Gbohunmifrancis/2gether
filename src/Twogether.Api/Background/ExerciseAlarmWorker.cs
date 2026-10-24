@@ -5,7 +5,9 @@ using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Exercise;
+using Twogether.Application.Features.Notifications;
 using Twogether.Core.Entities;
+using Twogether.Shared.Localization;
 using Twogether.Core.Enums;
 using Twogether.Core.Exercise;
 
@@ -84,9 +86,12 @@ public sealed class ExerciseAlarmWorker(
                 // Downtime never counts against anyone: a window the server slept through is skipped.
                 var occurrence = ExerciseOccurrence.Open(goal, localDate, scheduledAtUtc, now);
                 db.ExerciseOccurrences.Add(occurrence);
-                var notification = Notification.Create(goal.AssignedUserId, goal.CoupleId, NotificationType.ExerciseDue, "Time to move",
-                    $"{goal.Title}: {FormatTarget(goal)}. The alarm stops when the camera counts you in.",
-                    System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = goal.Id }), now);
+                Notification notification;
+                using (Loc.Use(await db.LanguageOfAsync(goal.AssignedUserId, cancellationToken)))
+                    notification = Notification.Create(goal.AssignedUserId, goal.CoupleId, NotificationType.ExerciseDue, Loc.T("Time to move"),
+                        Loc.T("{dare}: {target}. The alarm stops when the camera counts you in.", ("dare", ExerciseText.Title(goal.Title, goal.ExerciseType)),
+                            ("target", ExerciseText.Target(goal.Target, goal.ExerciseType))),
+                        System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = goal.Id }), now);
                 db.Notifications.Add(notification);
                 opened.Add((occurrence, notification));
             }
@@ -119,19 +124,21 @@ public sealed class ExerciseAlarmWorker(
         var coupleIds = expired.Select(item => item.CoupleId).Distinct().ToList();
         var couples = await db.Couples.AsNoTracking().Where(couple => coupleIds.Contains(couple.Id)).ToDictionaryAsync(couple => couple.Id, cancellationToken);
         var names = await NamesAsync(db, couples.Values.SelectMany(Members), cancellationToken);
+        var languages = await db.LanguagesOfAsync(couples.Values.SelectMany(Members), cancellationToken);
         var notifications = new List<Notification>();
         foreach (var occurrence in expired)
         {
             occurrence.Miss(now);
             if (!couples.TryGetValue(occurrence.CoupleId, out var couple)) continue;
-            var who = names.GetValueOrDefault(occurrence.UserId, "Your partner");
             var data = System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId });
             foreach (var userId in Members(couple))
             {
+                using var _ = Loc.Use(languages.GetValueOrDefault(userId));
+                var dare = ExerciseText.Title(occurrence.Title, occurrence.ExerciseType);
                 var body = userId == occurrence.UserId
-                    ? $"You missed {occurrence.Title} today."
-                    : $"{who} missed {occurrence.Title} today.";
-                notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, "Goal missed", body, data, now));
+                    ? Loc.T("You missed {dare} today.", ("dare", dare))
+                    : Loc.T("{name} missed {dare} today.", ("name", names.GetValueOrDefault(occurrence.UserId) ?? Loc.T("Your partner")), ("dare", dare));
+                notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, Loc.T("Goal missed"), body, data, now));
             }
         }
         foreach (var notification in notifications) db.Notifications.Add(notification);
@@ -156,6 +163,5 @@ public sealed class ExerciseAlarmWorker(
         if (couple.UserBId.HasValue) yield return couple.UserBId.Value;
     }
 
-    private static string FormatTarget(ExerciseGoal goal)
-        => ExerciseCatalog.MeasureOf(goal.ExerciseType) == ExerciseMeasure.Seconds ? $"{goal.Target} s" : $"{goal.Target} reps";
+
 }

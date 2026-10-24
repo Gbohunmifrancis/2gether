@@ -4,6 +4,7 @@ using Twogether.Application.Features.Account;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Infrastructure.Persistence;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Infrastructure.Account;
 
@@ -100,7 +101,9 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
 
         var partner = await db.Users.SingleAsync(item => item.Id == linkedPartnerId, cancellationToken);
         partner.SetCouple(null, now);
-        var notice = Notification.Create(linkedPartnerId, coupleId, NotificationType.Breakup, "Your couple space was ended", $"{user.DisplayName} deleted their account.", null, now);
+        using var _ = Loc.Use(partner.Language);
+        var notice = Notification.Create(linkedPartnerId, coupleId, NotificationType.Breakup, Loc.T("Your couple space was ended"),
+            Loc.T("{name} deleted their account.", ("name", user.DisplayName)), null, now);
         db.Notifications.Add(notice);
         return (linkedPartnerId, notice, ringing);
     }

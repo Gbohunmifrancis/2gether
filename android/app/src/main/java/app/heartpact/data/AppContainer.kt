@@ -37,6 +37,7 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(bearer(session))
+        .addInterceptor(language())
         .apply {
             // Bodies carry passwords and tokens: log only method, URL and status, and only in debug.
             if (BuildConfig.DEBUG) addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
@@ -85,6 +86,11 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
 
     /** Google Play, connected on first use. */
     val playStore: PlayStore by lazy { GooglePlayStore(appContext) }
+}
+
+/** Tells the API the phone's language, so its messages, notifications and emails come back in it (docs/translation.md). */
+fun language() = Interceptor { chain ->
+    chain.proceed(chain.request().newBuilder().header("Accept-Language", java.util.Locale.getDefault().toLanguageTag()).build())
 }
 
 /** Adds the signed-in person's token to every request that does not set its own Authorization. */

@@ -9,6 +9,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Location;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -51,11 +52,11 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
     public async Task<ActionResult<LocationSharingStatusDto>> Pause(PauseLocationRequest request, CancellationToken cancellationToken)
     {
         var context = await LoadAsync(cancellationToken, track: true);
-        if (context is null) return BadRequest(new ApiError("location.no_couple", "Link your partner before sharing location."));
+        if (context is null) return BadRequest(new ApiError("location.no_couple", Loc.T("Link your partner before sharing location.")));
         var now = clock.UtcNow;
         var until = LocationSharingRules.PauseUntil(request.Minutes, now);
         if (until.IsFailure) return UnprocessableEntity(new ApiError(until.Error.Code, until.Error.Message));
-        if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError("location.not_sharing", "You are not sharing your location."));
+        if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError("location.not_sharing", Loc.T("You are not sharing your location.")));
 
         var couldSeeEachOther = LocationSharingRules.CanSee(context.Mine, context.Theirs, now);
         context.Mine.Pause(until.Value, now);
@@ -76,8 +77,8 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
     public async Task<ActionResult<LocationSharingStatusDto>> Resume(CancellationToken cancellationToken)
     {
         var context = await LoadAsync(cancellationToken, track: true);
-        if (context is null) return BadRequest(new ApiError("location.no_couple", "Link your partner before sharing location."));
-        if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError("location.not_sharing", "You are not sharing your location."));
+        if (context is null) return BadRequest(new ApiError("location.no_couple", Loc.T("Link your partner before sharing location.")));
+        if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError("location.not_sharing", Loc.T("You are not sharing your location.")));
         var now = clock.UtcNow;
         context.Mine.Resume(now);
         await db.SaveChangesAsync(cancellationToken);

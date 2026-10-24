@@ -9,6 +9,7 @@ using Twogether.Api.Common;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Billing;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -41,10 +42,10 @@ public sealed class BillingController(
     public async Task<ActionResult<EntitlementDto>> VerifyGoogle(VerifyGooglePurchaseRequest request, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
-        if (!store.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("billing.unavailable", "Purchases are not set up on this server."));
-        if (string.IsNullOrWhiteSpace(request.PurchaseToken)) return UnprocessableEntity(new ApiError("billing.invalid_token", "The purchase token is missing."));
+        if (!store.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("billing.unavailable", Loc.T("Purchases are not set up on this server.")));
+        if (string.IsNullOrWhiteSpace(request.PurchaseToken)) return UnprocessableEntity(new ApiError("billing.invalid_token", Loc.T("The purchase token is missing.")));
         if (!settings.ProductIds.Contains(request.ProductId, StringComparer.Ordinal))
-            return UnprocessableEntity(new ApiError("billing.unknown_product", "That product does not unlock Heartpact Plus."));
+            return UnprocessableEntity(new ApiError("billing.unknown_product", Loc.T("That product does not unlock Heartpact Plus.")));
 
         Result<SyncOutcome> result;
         try { result = await sync.SyncAsync(request.PurchaseToken, currentUser.UserId.Value, cancellationToken); }

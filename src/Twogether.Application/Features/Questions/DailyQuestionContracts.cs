@@ -1,6 +1,7 @@
 using System.Globalization;
 using Twogether.Core.Entities;
 using Twogether.Core.Questions;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Questions;
 
@@ -27,7 +28,7 @@ public sealed record DailyQuestionAnsweredDto(Guid DailyQuestionId, string Local
 
 public static class DailyQuestionMapper
 {
-    public const string RetiredText = "This question is no longer in the bank.";
+    public static string RetiredText => Loc.T("This question is no longer in the bank.");
 
     /// <summary>Answer to unlock: the partner's answer is included only when the viewer has answered.</summary>
     public static DailyQuestionDto ToDto(DailyQuestion question, Guid viewerId, IReadOnlyList<DailyAnswer> answers, IReadOnlyDictionary<Guid, string> names, int streakDays)
@@ -40,7 +41,7 @@ public static class DailyQuestionMapper
             question.LocalDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             question.QuestionKey,
             definition?.Category ?? "retired",
-            definition?.Text ?? RetiredText,
+            definition is null ? RetiredText : Loc.T(definition.Text),
             mine is null ? null : ToDto(mine, names),
             theirs is not null,
             mine is not null && theirs is not null ? ToDto(theirs, names) : null,

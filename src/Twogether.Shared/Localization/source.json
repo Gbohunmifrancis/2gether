@@ -1,0 +1,2146 @@
+{
+ "Time to move": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:91"
+  ],
+  "code": "notification = Notification.Create(goal.AssignedUserId, goal.CoupleId, NotificationType.ExerciseDue, Loc.T(\"Time to move\"),"
+ },
+ "{dare}: {target}. The alarm stops when the camera counts you in.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:92"
+  ],
+  "code": "Loc.T(\"{dare}: {target}. The alarm stops when the camera counts you in.\", (\"dare\", ExerciseText.Title(goal.Title, goal.ExerciseType)),"
+ },
+ "You missed {dare} today.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:139"
+  ],
+  "code": "? Loc.T(\"You missed {dare} today.\", (\"dare\", dare))"
+ },
+ "{name} missed {dare} today.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:140"
+  ],
+  "code": ": Loc.T(\"{name} missed {dare} today.\", (\"name\", names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\")), (\"dare\", dare));"
+ },
+ "Your partner": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:140",
+   "Twogether.Api/Controllers/ExerciseController.cs:527",
+   "Twogether.Api/Controllers/MemoriesController.Sync.cs:194",
+   "Twogether.Api/Controllers/PregnancyController.cs:278",
+   "Twogether.Api/Controllers/QuestionsController.cs:80"
+  ],
+  "code": ": Loc.T(\"{name} missed {dare} today.\", (\"name\", names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\")), (\"dare\", dare));"
+ },
+ "Goal missed": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:141"
+  ],
+  "code": "notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, Loc.T(\"Goal missed\"), body, data, now));"
+ },
+ "Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AccountController.cs:57"
+  ],
+  "code": "Loc.T(\"Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.\")));"
+ },
+ "If an account uses that email, a code is on its way. It works for 15 minutes.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:27"
+  ],
+  "code": "private static ApiError ResetSent => new(\"auth.reset_sent\", Loc.T(\"If an account uses that email, a code is on its way. It works for 15 minutes.\"));"
+ },
+ "That code is wrong or has expired. Ask for a new one.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:28"
+  ],
+  "code": "private static ApiError BadResetCode => new(\"auth.invalid_reset_code\", Loc.T(\"That code is wrong or has expired. Ask for a new one.\"));"
+ },
+ "Choose your country from the list.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:29"
+  ],
+  "code": "private static ApiError BadCountry => new(\"auth.invalid_country\", Loc.T(\"Choose your country from the list.\"));"
+ },
+ "Password reset isn't set up on this server yet.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:39"
+  ],
+  "code": "if (!email.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"auth.email_unavailable\", Loc.T(\"Password reset isn't set up on this server yet.\")));"
+ },
+ "Enter the email you signed up with.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:41"
+  ],
+  "code": "if (address.Length is 0 or > 320 || !address.Contains('@')) return UnprocessableEntity(new ApiError(\"auth.invalid_email\", Loc.T(\"Enter the email you signed up with.\")));"
+ },
+ "Use at least {min} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:75"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_password\", Loc.T(\"Use at least {min} characters.\", (\"min\", PasswordResetRules.MinPasswordLength))));"
+ },
+ "Google sign-in isn't set up on this server yet.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:117"
+  ],
+  "code": "if (!google.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"auth.google_unavailable\", Loc.T(\"Google sign-in isn't set up on this server yet.\")));"
+ },
+ "Google sign-in didn't work. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:124"
+  ],
+  "code": "return Unauthorized(new ApiError(\"auth.invalid_google_token\", Loc.T(\"Google sign-in didn't work. Try again.\")));"
+ },
+ "This email is linked to a different Google account.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:135"
+  ],
+  "code": "else if (user.GoogleId != identity.Subject) return Conflict(new ApiError(\"auth.google_mismatch\", Loc.T(\"This email is linked to a different Google account.\")));"
+ },
+ "Choose the option that best describes you.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:144",
+   "Twogether.Api/Controllers/AuthController.cs:175",
+   "Twogether.Api/Controllers/AuthController.cs:243"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_gender\", Loc.T(\"Choose the option that best describes you.\")));"
+ },
+ "Email and a password of at least 8 characters are required.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:169"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_registration\", Loc.T(\"Email and a password of at least 8 characters are required.\")));"
+ },
+ "An account with this email already exists.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:171"
+  ],
+  "code": "return Conflict(new ApiError(\"auth.email_exists\", Loc.T(\"An account with this email already exists.\")));"
+ },
+ "Email or password is incorrect.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:208"
+  ],
+  "code": "return Unauthorized(new ApiError(\"auth.invalid_credentials\", Loc.T(\"Email or password is incorrect.\")));"
+ },
+ "Nickname must be between 1 and 100 characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:233"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_name\", Loc.T(\"Nickname must be between 1 and 100 characters.\")));"
+ },
+ "Map color must be a six-digit hex color.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:239"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_color\", Loc.T(\"Map color must be a six-digit hex color.\")));"
+ },
+ "The avatar must be an https link of at most 500 characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:248"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_avatar\", Loc.T(\"The avatar must be an https link of at most 500 characters.\")));"
+ },
+ "This account has been disabled. Contact support if you think this is a mistake.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:260"
+  ],
+  "code": "private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError(\"auth.account_disabled\", Loc.T(\"This account has been disabled. Contact support if you think this is a mistak"
+ },
+ "Purchases are not set up on this server.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/BillingController.cs:45"
+  ],
+  "code": "if (!store.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"billing.unavailable\", Loc.T(\"Purchases are not set up on this server.\")));"
+ },
+ "The purchase token is missing.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/BillingController.cs:46"
+  ],
+  "code": "if (string.IsNullOrWhiteSpace(request.PurchaseToken)) return UnprocessableEntity(new ApiError(\"billing.invalid_token\", Loc.T(\"The purchase token is missing.\")));"
+ },
+ "That product does not unlock Heartpact Plus.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/BillingController.cs:48",
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:28"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"billing.unknown_product\", Loc.T(\"That product does not unlock Heartpact Plus.\")));"
+ },
+ "This couple is already linked.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:62"
+  ],
+  "code": "return Conflict(new ApiError(\"couple.already_linked\", Loc.T(\"This couple is already linked.\")));"
+ },
+ "This invitation is invalid or expired.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:110",
+   "Twogether.Api/Controllers/CoupleController.cs:121"
+  ],
+  "code": "return NotFound(new ApiError(\"invite.invalid\", Loc.T(\"This invitation is invalid or expired.\")));"
+ },
+ "You cannot accept your own invitation.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:112"
+  ],
+  "code": "if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError(\"invite.self\", Loc.T(\"You cannot accept your own invitation.\")));"
+ },
+ "You are already linked to a partner.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:127"
+  ],
+  "code": "if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError(\"couple.already_linked\", Loc.T(\"You are already linked to a partner.\")));"
+ },
+ "You are connected": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:137"
+  ],
+  "code": "connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, Loc.T(\"You are connected\"),"
+ },
+ "{name} joined your private space.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:138"
+  ],
+  "code": "Loc.T(\"{name} joined your private space.\", (\"name\", user.DisplayName)), null, clock.UtcNow);"
+ },
+ "Your couple space was ended": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:170",
+   "Twogether.Infrastructure/Account/AccountEraser.cs:105"
+  ],
+  "code": "var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T(\"Your couple space was ended\"),"
+ },
+ "{name} ended the connection.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:171"
+  ],
+  "code": "Loc.T(\"{name} ended the connection.\", (\"name\", actor.DisplayName)), null, clock.UtcNow);"
+ },
+ "Your partner already owns the shared cycle calendar.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CycleController.cs:35"
+  ],
+  "code": "return Conflict(new ApiError(\"cycle.owner_exists\", Loc.T(\"Your partner already owns the shared cycle calendar.\")));"
+ },
+ "Cycle lengths are outside the supported range.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CycleController.cs:51"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"cycle.invalid_profile\", Loc.T(\"Cycle lengths are outside the supported range.\")));"
+ },
+ "Notes are at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CycleController.cs:83"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"cycle.invalid_notes\", Loc.T(\"Notes are at most {max} characters.\", (\"max\", MaxNotesLength))));"
+ },
+ "Up to {symptoms} symptoms of at most {characters} characters each.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CycleController.cs:85"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"cycle.invalid_symptoms\", Loc.T(\"Up to {symptoms} symptoms of at most {characters} characters each.\", (\"symptoms\", MaxSymptoms), (\"characters\", MaxSymptomLength"
+ },
+ "The push token is missing or too long.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/DevicesController.cs:34"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"devices.invalid_token\", Loc.T(\"The push token is missing or too long.\")));"
+ },
+ "Unknown platform, token kind or app version.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/DevicesController.cs:36"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"devices.invalid_device\", Loc.T(\"Unknown platform, token kind or app version.\")));"
+ },
+ "Link your partner before setting goals.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:29"
+  ],
+  "code": "private static ApiError NoCouple => new(\"exercise.no_couple\", Loc.T(\"Link your partner before setting goals.\"));"
+ },
+ "This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:30"
+  ],
+  "code": "private static ApiError AlarmActive => new(\"exercise.alarm_active\", Loc.T(\"This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today.\"));"
+ },
+ "This alarm is no longer active.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:31"
+  ],
+  "code": "private static ApiError NotActive => new(\"exercise.not_active\", Loc.T(\"This alarm is no longer active.\"));"
+ },
+ "Only the person this alarm is for can do that.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:32"
+  ],
+  "code": "private static ApiError NotAssignee => new(\"exercise.not_assignee\", Loc.T(\"Only the person this alarm is for can do that.\"));"
+ },
+ "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:33"
+  ],
+  "code": "private static ApiError NotDueToday => new(\"exercise.not_due_today\", Loc.T(\"Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.\"));"
+ },
+ "You already asked to call off today.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:34"
+  ],
+  "code": "private static ApiError AlreadyAsked => new(\"exercise.already_asked\", Loc.T(\"You already asked to call off today.\"));"
+ },
+ "Someone else just changed this. Refresh and try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:35"
+  ],
+  "code": "private static ApiError VersionConflict => new(\"exercise.version_conflict\", Loc.T(\"Someone else just changed this. Refresh and try again.\"));"
+ },
+ "Goals can only be assigned to you or your partner.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:64",
+   "Twogether.Api/Controllers/ExerciseController.cs:91"
+  ],
+  "code": "if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError(\"exercise.invalid_assignee\", Loc.T(\"Goals can only be assigned to you or your partner.\")));"
+ },
+ "{name} finished {dare}: {target}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:323"
+  ],
+  "code": "var done = Loc.T(\"{name} finished {dare}: {target}.\", (\"name\", Name(names, occurrence.UserId)),"
+ },
+ "Goal done": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:325"
+  ],
+  "code": "notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T(\"Goal done\") : Loc.T(\"Goal done, worth a look\"),"
+ },
+ "Goal done, worth a look": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:325"
+  ],
+  "code": "notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T(\"Goal done\") : Loc.T(\"Goal done, worth a look\"),"
+ },
+ "{name} asks to call off today's {dare}": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:400"
+  ],
+  "code": "Loc.T(\"{name} asks to call off today's {dare}\", (\"name\", asker), (\"dare\", ExerciseText.InSentence(occurrence.Title, occurrence.ExerciseType))),"
+ },
+ "Let {name} off today, or keep the alarm ringing.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:401"
+  ],
+  "code": "note.Value ?? Loc.T(\"Let {name} off today, or keep the alarm ringing.\", (\"name\", asker)),"
+ },
+ "Goal set": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:487"
+  ],
+  "code": "GoalChange.Set => (Loc.T(\"Goal set\"), forYou ? Loc.T(\"{name} set {dare} for you: {target} at {time}.\", args)"
+ },
+ "{name} set {dare} for you: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:487"
+  ],
+  "code": "GoalChange.Set => (Loc.T(\"Goal set\"), forYou ? Loc.T(\"{name} set {dare} for you: {target} at {time}.\", args)"
+ },
+ "{name} set {dare} for themselves: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:488"
+  ],
+  "code": ": forThemselves ? Loc.T(\"{name} set {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} set {dare}: {target} at {time}.\", args)),"
+ },
+ "{name} set {dare}: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:488"
+  ],
+  "code": ": forThemselves ? Loc.T(\"{name} set {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} set {dare}: {target} at {time}.\", args)),"
+ },
+ "Goal updated": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:489"
+  ],
+  "code": "GoalChange.Updated => (Loc.T(\"Goal updated\"), forYou ? Loc.T(\"{name} updated {dare} for you: {target} at {time}.\", args)"
+ },
+ "{name} updated {dare} for you: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:489"
+  ],
+  "code": "GoalChange.Updated => (Loc.T(\"Goal updated\"), forYou ? Loc.T(\"{name} updated {dare} for you: {target} at {time}.\", args)"
+ },
+ "{name} updated {dare} for themselves: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:490"
+  ],
+  "code": ": forThemselves ? Loc.T(\"{name} updated {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} updated {dare}: {target} at {time}.\", args)),"
+ },
+ "{name} updated {dare}: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:490"
+  ],
+  "code": ": forThemselves ? Loc.T(\"{name} updated {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} updated {dare}: {target} at {time}.\", args)),"
+ },
+ "Goal paused": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:491"
+  ],
+  "code": "_ => (Loc.T(\"Goal paused\"), forYou ? Loc.T(\"{name} paused {dare} for you: {target} at {time}.\", args)"
+ },
+ "{name} paused {dare} for you: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:491"
+  ],
+  "code": "_ => (Loc.T(\"Goal paused\"), forYou ? Loc.T(\"{name} paused {dare} for you: {target} at {time}.\", args)"
+ },
+ "{name} paused {dare} for themselves: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:492"
+  ],
+  "code": ": forThemselves ? Loc.T(\"{name} paused {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} paused {dare}: {target} at {time}.\", args)),"
+ },
+ "{name} paused {dare}: {target} at {time}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:492"
+  ],
+  "code": ": forThemselves ? Loc.T(\"{name} paused {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} paused {dare}: {target} at {time}.\", args)),"
+ },
+ "{dare} was changed while it was ringing, so today does not count.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:504"
+  ],
+  "code": "? Loc.T(\"{dare} was changed while it was ringing, so today does not count.\", (\"dare\", dare))"
+ },
+ "{name} let you off {dare} today.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:505"
+  ],
+  "code": ": Loc.T(\"{name} let you off {dare} today.\", (\"name\", Name(names, actorId)), (\"dare\", dare));"
+ },
+ "Skipped today": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:506"
+  ],
+  "code": "return Notification.Create(occurrence.UserId, couple.Id, NotificationType.ExerciseCancelled, Loc.T(\"Skipped today\"), body,"
+ },
+ "Link your partner before logging food.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:30"
+  ],
+  "code": "private static ApiError NoCouple => new(\"food.no_couple\", Loc.T(\"Link your partner before logging food.\"));"
+ },
+ "Date must look like yyyy-MM-dd.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:67",
+   "Twogether.Api/Controllers/MemoriesController.cs:194",
+   "Twogether.Api/Controllers/PregnancyController.cs:45",
+   "Twogether.Application/Features/Food/FoodRules.cs:17"
+  ],
+  "code": "if (localDate == default) return UnprocessableEntity(new ApiError(\"food.invalid_date\", Loc.T(\"Date must look like yyyy-MM-dd.\")));"
+ },
+ "That scan does not exist or is not yours.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:127"
+  ],
+  "code": "if (scan is null) return UnprocessableEntity(new ApiError(\"food.scan_not_found\", Loc.T(\"That scan does not exist or is not yours.\")));"
+ },
+ "Photo estimates are not set up on this server. Log the meal by hand.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:235"
+  ],
+  "code": "return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"food.estimation_unavailable\", Loc.T(\"Photo estimates are not set up on this server. Log the meal by hand.\")));"
+ },
+ "That does not look like food. Try a photo of the meal.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:268"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"food.not_food\", Loc.T(\"That does not look like food. Try a photo of the meal.\")));"
+ },
+ "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.|You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand.": {
+  "plural": true,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:244"
+  ],
+  "code": "? Loc.Plural(limit, \"You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.\",",
+  "one": "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.",
+  "other": "You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand."
+ },
+ "You have used today's {count} photo scan. Log this one by hand.|You have used today's {count} photo scans. Log this one by hand.": {
+  "plural": true,
+  "uses": [
+   "Twogether.Api/Controllers/FoodController.cs:246"
+  ],
+  "code": ": Loc.Plural(limit, \"You have used today's {count} photo scan. Log this one by hand.\", \"You have used today's {count} photo scans. Log this one by hand.\")));",
+  "one": "You have used today's {count} photo scan. Log this one by hand.",
+  "other": "You have used today's {count} photo scans. Log this one by hand."
+ },
+ "Pick a single letter from A to Z.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:40"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"game.invalid_letter\", Loc.T(\"Pick a single letter from A to Z.\")));"
+ },
+ "Link a partner before starting a game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:41",
+   "Twogether.Api/Controllers/GameController.cs:43"
+  ],
+  "code": "if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return BadRequest(new ApiError(\"game.no_couple\", Loc.T(\"Link a partner before starting a game.\")));"
+ },
+ "Your couple already has an active game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:45"
+  ],
+  "code": "if (active) return Conflict(new ApiError(\"game.active_session\", Loc.T(\"Your couple already has an active game.\")));"
+ },
+ "Both partners must be linked before a game is invited.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:49"
+  ],
+  "code": "if (!partnerId.HasValue) return Conflict(new ApiError(\"game.players_missing\", Loc.T(\"Both partners must be linked before a game is invited.\")));"
+ },
+ "A game is waiting": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:57"
+  ],
+  "code": "notification = Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameInvite, Loc.T(\"A game is waiting\"),"
+ },
+ "This game is no longer waiting for a partner.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:80"
+  ],
+  "code": "if (session.Status != GameSessionStatus.WaitingForPartner) return Conflict(new ApiError(\"game.not_waiting\", Loc.T(\"This game is no longer waiting for a partner.\")));"
+ },
+ "The inviting partner cannot accept their own invitation.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:81"
+  ],
+  "code": "if (session.InvitedByUserId == currentUser.UserId.Value) return Conflict(new ApiError(\"game.self_accept\", Loc.T(\"The inviting partner cannot accept their own invitation.\")));"
+ },
+ "Both partners must be linked before the game starts.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:84"
+  ],
+  "code": "if (players.Count != 2) return Conflict(new ApiError(\"game.players_missing\", Loc.T(\"Both partners must be linked before the game starts.\")));"
+ },
+ "The invited partner must accept the game first.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:103"
+  ],
+  "code": "return Conflict(new ApiError(\"game.accept_required\", Loc.T(\"The invited partner must accept the game first.\")));"
+ },
+ "That action is not available.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:110",
+   "Twogether.Api/Controllers/GameController.cs:123"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"game.invalid_action\", Loc.T(\"That action is not available.\")));"
+ },
+ "The game is not in progress.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:113"
+  ],
+  "code": "if (session.Status != GameSessionStatus.InProgress) return Conflict(new ApiError(\"game.not_in_progress\", Loc.T(\"The game is not in progress.\")));"
+ },
+ "Wait for the countdown to finish.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:114"
+  ],
+  "code": "if (session.CountdownEndsAtUtc > clock.UtcNow) return Conflict(new ApiError(\"game.countdown\", Loc.T(\"Wait for the countdown to finish.\")));"
+ },
+ "The game state changed. The latest board has been loaded.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:116"
+  ],
+  "code": "return Conflict(new ApiError(\"game.version_conflict\", Loc.T(\"The game state changed. The latest board has been loaded.\")));"
+ },
+ "This game session is corrupted. End it and start a new game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:134"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"game.invalid_state\", Loc.T(\"This game session is corrupted. End it and start a new game.\")));"
+ },
+ "Your partner just updated the game. The latest board has been loaded.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:146"
+  ],
+  "code": "return Conflict(new ApiError(\"game.version_conflict\", Loc.T(\"Your partner just updated the game. The latest board has been loaded.\")));"
+ },
+ "This game has already ended.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:158"
+  ],
+  "code": "if (!session.IsOpen) return Conflict(new ApiError(\"game.already_ended\", Loc.T(\"This game has already ended.\")));"
+ },
+ "Game ended": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:166"
+  ],
+  "code": "notification = Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameEnded, Loc.T(\"Game ended\"),"
+ },
+ "{name} ended your game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:167"
+  ],
+  "code": "Loc.T(\"{name} ended your game.\", (\"name\", endedBy.DisplayName)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);"
+ },
+ "{name} invited you to play Same answer.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:187"
+  ],
+  "code": "GameType.CoupleQuiz => Loc.T(\"{name} invited you to play Same answer.\", (\"name\", name)),"
+ },
+ "{name} invited you to play Memory match.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:188"
+  ],
+  "code": "GameType.MemoryMatch => Loc.T(\"{name} invited you to play Memory match.\", (\"name\", name)),"
+ },
+ "{name} invited you to play I call on.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:189"
+  ],
+  "code": "GameType.ICallOn => Loc.T(\"{name} invited you to play I call on.\", (\"name\", name)),"
+ },
+ "{name} invited you to play Guess my answer.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:190"
+  ],
+  "code": "GameType.GuessMyAnswer => Loc.T(\"{name} invited you to play Guess my answer.\", (\"name\", name)),"
+ },
+ "{name} invited you to play Word dash.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:191"
+  ],
+  "code": "GameType.WordDash => Loc.T(\"{name} invited you to play Word dash.\", (\"name\", name)),"
+ },
+ "{name} invited you to play Handwriting.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:192"
+  ],
+  "code": "GameType.Handwriting => Loc.T(\"{name} invited you to play Handwriting.\", (\"name\", name)),"
+ },
+ "{name} invited you to play Truth or dare.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:193"
+  ],
+  "code": "GameType.TruthOrDare => Loc.T(\"{name} invited you to play Truth or dare.\", (\"name\", name)),"
+ },
+ "{name} invited you to a game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:194"
+  ],
+  "code": "_ => Loc.T(\"{name} invited you to a game.\", (\"name\", name)),"
+ },
+ "Link your partner before sharing location.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/LocationController.cs:55",
+   "Twogether.Api/Controllers/LocationController.cs:80"
+  ],
+  "code": "if (context is null) return BadRequest(new ApiError(\"location.no_couple\", Loc.T(\"Link your partner before sharing location.\")));"
+ },
+ "You are not sharing your location.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/LocationController.cs:59",
+   "Twogether.Api/Controllers/LocationController.cs:81"
+  ],
+  "code": "if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError(\"location.not_sharing\", Loc.T(\"You are not sharing your location.\")));"
+ },
+ "Another sync from your account is running. Try again in a moment.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.Sync.cs:23"
+  ],
+  "code": "private static ApiError SyncInProgress => new(\"memories.sync_in_progress\", Loc.T(\"Another sync from your account is running. Try again in a moment.\"));"
+ },
+ "This photo was already shared in an earlier album.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.Sync.cs:24"
+  ],
+  "code": "private static ApiError ClientIdTaken => new(\"memories.client_id_taken\", Loc.T(\"This photo was already shared in an earlier album.\"));"
+ },
+ "Link your partner to start your shared album.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:34"
+  ],
+  "code": "private static ApiError NoCouple => new(\"memories.no_couple\", Loc.T(\"Link your partner to start your shared album.\"));"
+ },
+ "Photo storage is not set up on this server.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:35"
+  ],
+  "code": "private static ApiError Unavailable => new(\"memories.storage_unavailable\", Loc.T(\"Photo storage is not set up on this server.\"));"
+ },
+ "Only the person who added this memory can change it.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:36"
+  ],
+  "code": "private static ApiError NotUploader => new(\"memories.not_uploader\", Loc.T(\"Only the person who added this memory can change it.\"));"
+ },
+ "The file has not finished uploading yet.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:127"
+  ],
+  "code": "private static ApiError NotUploaded => new(\"memories.not_uploaded\", Loc.T(\"The file has not finished uploading yet.\"));"
+ },
+ "The uploaded file did not match what was declared. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:128"
+  ],
+  "code": "private static ApiError UploadRejected => new(\"memories.upload_rejected\", Loc.T(\"The uploaded file did not match what was declared. Try again.\"));"
+ },
+ "That page cursor is not valid.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:174",
+   "Twogether.Api/Controllers/MemoriesController.cs:220"
+  ],
+  "code": "if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError(\"memories.invalid_cursor\", Loc.T(\"That page cursor is not valid.\")));"
+ },
+ "The thumbnail has not finished uploading yet.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:297"
+  ],
+  "code": "if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError(\"memories.thumbnail_not_uploaded\", Loc.T(\"The thumbnail has not finished uploading yet.\")));"
+ },
+ "Thumbnails must be JPEG or WebP and at most {kilobytes} KB.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:301"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"memories.thumbnail_rejected\", Loc.T(\"Thumbnails must be JPEG or WebP and at most {kilobytes} KB.\", (\"kilobytes\", MemoryRules.MaxThumbnailBytes / 1024))));"
+ },
+ "Link a partner before sending messages.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MessageController.cs:30",
+   "Twogether.Api/Controllers/MessageController.cs:32"
+  ],
+  "code": "if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return BadRequest(new ApiError(\"message.no_couple\", Loc.T(\"Link a partner before sending messages.\")));"
+ },
+ "Message must be between 1 and 4000 characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MessageController.cs:33",
+   "Twogether.Api/Controllers/MessageController.cs:60"
+  ],
+  "code": "if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Length > 4000) return UnprocessableEntity(new ApiError(\"message.invalid_body\", Loc.T(\"Message must be between 1 and 4000 characters.\")));"
+ },
+ "A private message": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MessageController.cs:43"
+  ],
+  "code": "request.IsPrivate ? Loc.T(\"A private message\") : Loc.T(\"New message from {name}\", (\"name\", senderName)),"
+ },
+ "New message from {name}": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MessageController.cs:43"
+  ],
+  "code": "request.IsPrivate ? Loc.T(\"A private message\") : Loc.T(\"New message from {name}\", (\"name\", senderName)),"
+ },
+ "{name} sent something just for you.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MessageController.cs:44"
+  ],
+  "code": "request.IsPrivate ? Loc.T(\"{name} sent something just for you.\", (\"name\", senderName)) : message.Body[..Math.Min(message.Body.Length, 140)], null, clock.UtcNow);"
+ },
+ "Link your partner before starting pregnancy mode.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:32"
+  ],
+  "code": "private static ApiError NoCouple => new(\"pregnancy.no_couple\", Loc.T(\"Link your partner before starting pregnancy mode.\"));"
+ },
+ "Only the person who is pregnant can change this.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:33"
+  ],
+  "code": "private static ApiError NotOwner => new(\"pregnancy.not_owner\", Loc.T(\"Only the person who is pregnant can change this.\"));"
+ },
+ "Only the person who is pregnant, or whoever added this appointment, can change it.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:34"
+  ],
+  "code": "private static ApiError NotAppointmentAuthor => new(\"pregnancy.not_appointment_author\", Loc.T(\"Only the person who is pregnant, or whoever added this appointment, can change it.\"));"
+ },
+ "This pregnancy has ended.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:35"
+  ],
+  "code": "private static ApiError Ended => new(\"pregnancy.ended\", Loc.T(\"This pregnancy has ended.\"));"
+ },
+ "Pregnancy mode is already on.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:70",
+   "Twogether.Api/Controllers/PregnancyController.cs:79"
+  ],
+  "code": "return Conflict(new ApiError(\"pregnancy.already_active\", Loc.T(\"Pregnancy mode is already on.\")));"
+ },
+ "Count must be between 0 and {max}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:241"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"pregnancy.invalid_kicks\", Loc.T(\"Count must be between 0 and {max}.\", (\"max\", KickSession.MaxCount))));"
+ },
+ "This kick session has already ended.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:242"
+  ],
+  "code": "if (!session.IsOpen) return Conflict(new ApiError(\"pregnancy.session_closed\", Loc.T(\"This kick session has already ended.\")));"
+ },
+ "Pregnancy mode": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:279"
+  ],
+  "code": "return Notification.Create(partnerId, couple.Id, NotificationType.PregnancyUpdated, Loc.T(\"Pregnancy mode\"),"
+ },
+ "{name} shared pregnancy mode with you.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/PregnancyController.cs:280"
+  ],
+  "code": "Loc.T(\"{name} shared pregnancy mode with you.\", (\"name\", name)), JsonSerializer.Serialize(new { pregnancyId = pregnancy.Id }), now);"
+ },
+ "Link your partner to get daily questions.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:36"
+  ],
+  "code": "private static ApiError NoCouple => new(\"questions.no_couple\", Loc.T(\"Link your partner to get daily questions.\"));"
+ },
+ "Date must be yesterday, today or tomorrow in yyyy-MM-dd.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:45"
+  ],
+  "code": "if (localDate is null) return UnprocessableEntity(new ApiError(\"questions.invalid_date\", Loc.T(\"Date must be yesterday, today or tomorrow in yyyy-MM-dd.\")));"
+ },
+ "This question has closed. Answer today's instead.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:63"
+  ],
+  "code": "return Conflict(new ApiError(\"questions.closed\", Loc.T(\"This question has closed. Answer today's instead.\")));"
+ },
+ "An answer is 1 to {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:65"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"questions.invalid_answer\", Loc.T(\"An answer is 1 to {max} characters.\", (\"max\", DailyAnswer.MaxBodyLength))));"
+ },
+ "You can both see your answers": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:82"
+  ],
+  "code": "partnerAnswered ? Loc.T(\"You can both see your answers\") : Loc.T(\"Your turn\"),"
+ },
+ "Your turn": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:82"
+  ],
+  "code": "partnerAnswered ? Loc.T(\"You can both see your answers\") : Loc.T(\"Your turn\"),"
+ },
+ "{name} answered today's question too.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:83"
+  ],
+  "code": "partnerAnswered ? Loc.T(\"{name} answered today's question too.\", (\"name\", me)) : Loc.T(\"{name} answered today's question. Answer yours to see theirs.\", (\"name\", me)),"
+ },
+ "{name} answered today's question. Answer yours to see theirs.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/QuestionsController.cs:83"
+  ],
+  "code": "partnerAnswered ? Loc.T(\"{name} answered today's question too.\", (\"name\", me)) : Loc.T(\"{name} answered today's question. Answer yours to see theirs.\", (\"name\", me)),"
+ },
+ "Your password is incorrect.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Account/AccountContracts.cs:41"
+  ],
+  "code": ": Error.Unauthorized(\"account.confirmation_failed\", Loc.T(\"Your password is incorrect.\"));"
+ },
+ "Type your account email to confirm.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Account/AccountContracts.cs:44"
+  ],
+  "code": ": Error.Validation(\"account.confirmation_failed\", Loc.T(\"Type your account email to confirm.\"));"
+ },
+ "Your Heartpact code: {code}": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:62"
+  ],
+  "code": "Loc.T(\"Your Heartpact code: {code}\", (\"code\", code)),"
+ },
+ "Your code to reset your Heartpact password is {code}.\n\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:64"
+  ],
+  "code": "Loc.T(\"Your code to reset your Heartpact password is {code}.\\n\\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.\", (\"code\", code)));"
+ },
+ "The purchase token is missing or too long.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:23"
+  ],
+  "code": "if (token.Length is 0 or > StoreSubscription.MaxTokenLength) return Error.Validation(\"billing.invalid_token\", Loc.T(\"The purchase token is missing or too long.\"));"
+ },
+ "This purchase was not made from Heartpact. Update the app and try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:36"
+  ],
+  "code": "if (accountUser is null) return Error.Validation(\"billing.account_missing\", Loc.T(\"This purchase was not made from Heartpact. Update the app and try again.\"));"
+ },
+ "This purchase belongs to another account.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:38"
+  ],
+  "code": "return Error.Forbidden(\"billing.not_your_purchase\", Loc.T(\"This purchase belongs to another account.\"));"
+ },
+ "No Heartpact account matches this purchase.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:43"
+  ],
+  "code": "return Error.NotFound(\"billing.unknown_purchase\", Loc.T(\"No Heartpact account matches this purchase.\"));"
+ },
+ "Scheduled time must look like HH:mm.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:20"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_time\", Loc.T(\"Scheduled time must look like HH:mm.\"));"
+ },
+ "Unknown exercise.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:26"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_target\", Loc.T(\"Unknown exercise.\"));"
+ },
+ "The target must be between {min} and {max}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:29"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_target\", Loc.T(\"The target must be between {min} and {max}.\", (\"min\", definition.MinTarget), (\"max\", definition.MaxTarget)));"
+ },
+ "Title must be at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:31"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_title\", Loc.T(\"Title must be at most {max} characters.\", (\"max\", ExerciseGoal.MaxTitleLength)));"
+ },
+ "Time zone is not recognised.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:33"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_time_zone\", Loc.T(\"Time zone is not recognised.\"));"
+ },
+ "Grace must be between {min} and {max} minutes.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:35"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_grace\", Loc.T(\"Grace must be between {min} and {max} minutes.\", (\"min\", ExerciseGoal.MinGraceMinutes), (\"max\", ExerciseGoal.MaxGraceMinutes)));"
+ },
+ "The note must be at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:44"
+  ],
+  "code": "return Error.Validation(\"exercise.invalid_note\", Loc.T(\"The note must be at most {max} characters.\", (\"max\", ExerciseOccurrence.MaxCallOffNoteLength)));"
+ },
+ "{count} s": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseText.cs:20"
+  ],
+  "code": "=> ExerciseCatalog.MeasureOf(type) == ExerciseMeasure.Seconds ? Loc.T(\"{count} s\", (\"count\", target)) : Loc.Plural(target, \"{count} rep\", \"{count} reps\");"
+ },
+ "{count} rep|{count} reps": {
+  "plural": true,
+  "uses": [
+   "Twogether.Application/Features/Exercise/ExerciseText.cs:20"
+  ],
+  "code": "=> ExerciseCatalog.MeasureOf(type) == ExerciseMeasure.Seconds ? Loc.T(\"{count} s\", (\"count\", target)) : Loc.Plural(target, \"{count} rep\", \"{count} reps\");",
+  "one": "{count} rep",
+  "other": "{count} reps"
+ },
+ "The estimate could not be read. Try another photo.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodEstimateParser.cs:97"
+  ],
+  "code": "private static Result<FoodEstimate> Unreadable() => Error.Failure(\"food.estimation_unreadable\", Loc.T(\"The estimate could not be read. Try another photo.\"));"
+ },
+ "A portion adjustment needs a photo estimate.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:26"
+  ],
+  "code": "if (!fromScan) return Error.Validation(\"food.invalid_portion\", Loc.T(\"A portion adjustment needs a photo estimate.\"));"
+ },
+ "Portion must be between {min}x and {max}x the photo.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:28"
+  ],
+  "code": "return Error.Validation(\"food.invalid_portion\", Loc.T(\"Portion must be between {min}x and {max}x the photo.\", (\"min\", MinPortionFactor), (\"max\", MaxPortionFactor)));"
+ },
+ "Unknown meal type.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:38"
+  ],
+  "code": "if (!Enum.IsDefined(mealType)) return Error.Validation(\"food.invalid_meal\", Loc.T(\"Unknown meal type.\"));"
+ },
+ "Say what you ate.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:39"
+  ],
+  "code": "if (string.IsNullOrWhiteSpace(description)) return Error.Validation(\"food.invalid_description\", Loc.T(\"Say what you ate.\"));"
+ },
+ "Description must be at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:40"
+  ],
+  "code": "if (description.Trim().Length > FoodEntry.MaxDescriptionLength) return Error.Validation(\"food.invalid_description\", Loc.T(\"Description must be at most {max} characters.\", (\"max\", FoodEntry.MaxDescript"
+ },
+ "Calories must be between 0 and {max}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:41"
+  ],
+  "code": "if (calories is < 0 or > FoodEntry.MaxCalories) return Error.Validation(\"food.invalid_calories\", Loc.T(\"Calories must be between 0 and {max}.\", (\"max\", FoodEntry.MaxCalories)));"
+ },
+ "Macros must be between 0 and {max} g.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:44"
+  ],
+  "code": "return Error.Validation(\"food.invalid_macros\", Loc.T(\"Macros must be between 0 and {max} g.\", (\"max\", FoodEntry.MaxGrams)));"
+ },
+ "Daily calories must be between {min} and {max}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:51"
+  ],
+  "code": "return Error.Validation(\"food.invalid_target\", Loc.T(\"Daily calories must be between {min} and {max}.\", (\"min\", NutritionTarget.MinDailyCalories), (\"max\", NutritionTarget.MaxDailyCalories)));"
+ },
+ "Macro targets must be between 0 and {max} g.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:54"
+  ],
+  "code": "return Error.Validation(\"food.invalid_macros\", Loc.T(\"Macro targets must be between 0 and {max} g.\", (\"max\", NutritionTarget.MaxGrams)));"
+ },
+ "Unknown share level.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:55"
+  ],
+  "code": "if (!Enum.IsDefined(shareLevel)) return Error.Validation(\"food.invalid_share_level\", Loc.T(\"Unknown share level.\"));"
+ },
+ "Send a JPEG, PNG, WebP or GIF image.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:63"
+  ],
+  "code": "return Error.Validation(\"food.image_type\", Loc.T(\"Send a JPEG, PNG, WebP or GIF image.\"));"
+ },
+ "The image is empty.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:65",
+   "Twogether.Application/Features/Food/FoodRules.cs:75"
+  ],
+  "code": "return Error.Validation(\"food.image_invalid\", Loc.T(\"The image is empty.\"));"
+ },
+ "The image must be under {megabytes} MB.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:71",
+   "Twogether.Application/Features/Food/FoodRules.cs:76"
+  ],
+  "code": "return Error.Validation(\"food.image_too_large\", Loc.T(\"The image must be under {megabytes} MB.\", (\"megabytes\", maxBytes / (1024 * 1024))));"
+ },
+ "The image is not valid base64.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Food/FoodRules.cs:74"
+  ],
+  "code": "catch (FormatException) { return Error.Validation(\"food.image_invalid\", Loc.T(\"The image is not valid base64.\")); }"
+ },
+ "A pause lasts between {minutes} minutes and {hours} hours.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Location/LocationSharing.cs:22"
+  ],
+  "code": "? Error.Validation(\"location.invalid_pause\", Loc.T(\"A pause lasts between {minutes} minutes and {hours} hours.\", (\"minutes\", MinPauseMinutes), (\"hours\", MaxPauseMinutes / 60)))"
+ },
+ "Photos must be JPEG, PNG, WebP or HEIC; videos MP4 or MOV.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:74"
+  ],
+  "code": "if (kind is null) return Error.Validation(\"memories.unsupported_type\", Loc.T(\"Photos must be JPEG, PNG, WebP or HEIC; videos MP4 or MOV.\"));"
+ },
+ "The file is empty.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:75"
+  ],
+  "code": "if (request.SizeBytes <= 0) return Error.Validation(\"memories.invalid_size\", Loc.T(\"The file is empty.\"));"
+ },
+ "Videos must be under {megabytes} MB.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:76"
+  ],
+  "code": "if (request.SizeBytes > kind.MaxBytes) return Error.Validation(\"memories.too_large\", (kind.IsVideo ? Loc.T(\"Videos must be under {megabytes} MB.\", (\"megabytes\", kind.MaxBytes / (1024 * 1024))) : Loc.T"
+ },
+ "Photos must be under {megabytes} MB.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:76"
+  ],
+  "code": "if (request.SizeBytes > kind.MaxBytes) return Error.Validation(\"memories.too_large\", (kind.IsVideo ? Loc.T(\"Videos must be under {megabytes} MB.\", (\"megabytes\", kind.MaxBytes / (1024 * 1024))) : Loc.T"
+ },
+ "Unknown source.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:77"
+  ],
+  "code": "if (!Enum.IsDefined(request.Source)) return Error.Validation(\"memories.invalid_source\", Loc.T(\"Unknown source.\"));"
+ },
+ "Thumbnails must be JPEG or WebP.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:82"
+  ],
+  "code": "public static Error InvalidThumbnailType => Error.Validation(\"memories.unsupported_thumbnail\", Loc.T(\"Thumbnails must be JPEG or WebP.\"));"
+ },
+ "Captions are at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:86"
+  ],
+  "code": "if (caption?.Trim().Length > MemoryRules.MaxCaptionLength) return Error.Validation(\"memories.invalid_caption\", Loc.T(\"Captions are at most {max} characters.\", (\"max\", MemoryRules.MaxCaptionLength)));"
+ },
+ "The date taken is out of range.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemoryContracts.cs:87"
+  ],
+  "code": "if (takenAtUtc is { } taken && (taken.Year < 1900 || taken > utcNow.AddDays(1))) return Error.Validation(\"memories.invalid_taken_at\", Loc.T(\"The date taken is out of range.\"));"
+ },
+ "Pending photos must be between 0 and {max}, with a size that fits that many files.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemorySyncContracts.cs:70"
+  ],
+  "code": "Loc.T(\"Pending photos must be between 0 and {max}, with a size that fits that many files.\", (\"max\", AlbumSyncRules.MaxPendingCount)));"
+ },
+ "Send between 1 and {max} items, each with its own id.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemorySyncContracts.cs:73"
+  ],
+  "code": "Loc.T(\"Send between 1 and {max} items, each with its own id.\", (\"max\", AlbumSyncRules.MaxBatchItems)));"
+ },
+ "New photos in your album": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemorySyncContracts.cs:97"
+  ],
+  "code": "public static string SyncedTitle => Loc.T(\"New photos in your album\");"
+ },
+ "Photos waiting to sync": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemorySyncContracts.cs:98"
+  ],
+  "code": "public static string ReminderTitle => Loc.T(\"Photos waiting to sync\");"
+ },
+ "{name} added {count} photo to your album.|{name} added {count} photos to your album.": {
+  "plural": true,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemorySyncContracts.cs:101"
+  ],
+  "code": "=> Loc.Plural(count, \"{name} added {count} photo to your album.\", \"{name} added {count} photos to your album.\", (\"name\", uploaderName));",
+  "one": "{name} added {count} photo to your album.",
+  "other": "{name} added {count} photos to your album."
+ },
+ "{count} photo is waiting on this phone. Sync it to share with {partner}.|{count} photos are waiting on this phone. Sync them to share with {partner}.": {
+  "plural": true,
+  "uses": [
+   "Twogether.Application/Features/Memories/MemorySyncContracts.cs:104"
+  ],
+  "code": "=> Loc.Plural(pendingCount, \"{count} photo is waiting on this phone. Sync it to share with {partner}.\",",
+  "one": "{count} photo is waiting on this phone. Sync it to share with {partner}.",
+  "other": "{count} photos are waiting on this phone. Sync them to share with {partner}."
+ },
+ "Quiet hours use 24-hour times like 22:00.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Notifications/NotificationPreferenceContracts.cs:50"
+  ],
+  "code": "return Error.Validation(\"notifications.invalid_time\", Loc.T(\"Quiet hours use 24-hour times like 22:00.\"));"
+ },
+ "Quiet hours must start and end at different times.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Notifications/NotificationPreferenceContracts.cs:52"
+  ],
+  "code": "return Error.Validation(\"notifications.empty_window\", Loc.T(\"Quiet hours must start and end at different times.\"));"
+ },
+ "That time zone is not recognised.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Notifications/NotificationPreferenceContracts.cs:57"
+  ],
+  "code": "return Error.Validation(\"notifications.invalid_time_zone\", Loc.T(\"That time zone is not recognised.\"));"
+ },
+ "Title is required, at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:72"
+  ],
+  "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Title is required, at most {max} characters.\", (\"max\", PregnancyAppointment.MaxTitleLength)));"
+ },
+ "Location must be at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:74"
+  ],
+  "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Location must be at most {max} characters.\", (\"max\", PregnancyAppointment.MaxLocationLength)));"
+ },
+ "Notes must be at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:76"
+  ],
+  "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Notes must be at most {max} characters.\", (\"max\", PregnancyAppointment.MaxNotesLength)));"
+ },
+ "Appointment time is out of range.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:78"
+  ],
+  "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Appointment time is out of range.\"));"
+ },
+ "This question is no longer in the bank.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Questions/DailyQuestionContracts.cs:31"
+  ],
+  "code": "public static string RetiredText => Loc.T(\"This question is no longer in the bank.\");"
+ },
+ "Squats": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:27"
+  ],
+  "code": "new(ExerciseType.Squat, Loc.N(\"Squats\"), ExerciseMeasure.Reps, 15, 1, 200, 0.8, \"Turn sideways. Lower until your thighs are parallel, then stand tall.\"),"
+ },
+ "Push-ups": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:28"
+  ],
+  "code": "new(ExerciseType.PushUp, Loc.N(\"Push-ups\"), ExerciseMeasure.Reps, 10, 1, 200, 0.7, \"Turn sideways. Chest to the floor, elbows locked at the top.\"),"
+ },
+ "Jumping jacks": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:29"
+  ],
+  "code": "new(ExerciseType.JumpingJack, Loc.N(\"Jumping jacks\"), ExerciseMeasure.Reps, 20, 1, 300, 0.4, \"Face the camera. Hands above your head, feet wide, then back together.\"),"
+ },
+ "Plank hold": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:30"
+  ],
+  "code": "new(ExerciseType.Plank, Loc.N(\"Plank hold\"), ExerciseMeasure.Seconds, 30, 5, 600, 0.9, \"Turn sideways. Keep a straight line from shoulders to ankles.\"),"
+ },
+ "Overhead arm raises": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:31"
+  ],
+  "code": "new(ExerciseType.ArmRaise, Loc.N(\"Overhead arm raises\"), ExerciseMeasure.Reps, 15, 1, 300, 0.5, \"Face the camera. Both hands above your head, then down to your sides.\"),"
+ },
+ "High knees": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:32"
+  ],
+  "code": "new(ExerciseType.HighKnees, Loc.N(\"High knees\"), ExerciseMeasure.Reps, 30, 1, 400, 0.25, \"Face the camera. Drive each knee up to hip height.\"),"
+ },
+ "Sit-ups": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:33"
+  ],
+  "code": "new(ExerciseType.SitUp, Loc.N(\"Sit-ups\"), ExerciseMeasure.Reps, 10, 1, 200, 0.8, \"Turn sideways. Sit all the way up, then lower back down.\")"
+ },
+ "the app couldn't be verified": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseChecks.cs:57"
+  ],
+  "code": "_ => Loc.T(\"the app couldn't be verified\")"
+ },
+ "missed a camera check-in|missed {count} camera check-ins": {
+  "plural": true,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseChecks.cs:54"
+  ],
+  "code": "ExerciseFlag.MissedCheckIn => Loc.Plural(ChallengesMissed, \"missed a camera check-in\", \"missed {count} camera check-ins\"),",
+  "one": "missed a camera check-in",
+  "other": "missed {count} camera check-ins"
+ },
+ "the phone was moving during {count} rep|the phone was moving during {count} reps": {
+  "plural": true,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseChecks.cs:55"
+  ],
+  "code": "ExerciseFlag.PhoneMoved => Loc.Plural(PhoneMovedReps, \"the phone was moving during {count} rep\", \"the phone was moving during {count} reps\"),",
+  "one": "the phone was moving during {count} rep",
+  "other": "the phone was moving during {count} reps"
+ },
+ "out of view for {count} second|out of view for {count} seconds": {
+  "plural": true,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseChecks.cs:56"
+  ],
+  "code": "ExerciseFlag.LeftFrame => Loc.Plural(OutOfFrameSeconds, \"out of view for {count} second\", \"out of view for {count} seconds\"),",
+  "one": "out of view for {count} second",
+  "other": "out of view for {count} seconds"
+ },
+ "Open the camera and start the exercise first.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseVerification.cs:22"
+  ],
+  "code": "return Error.Validation(\"exercise.not_started\", Loc.T(\"Open the camera and start the exercise first.\"));"
+ },
+ "Keep going: {achieved} of {target} so far.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseVerification.cs:24"
+  ],
+  "code": "return Error.Validation(\"exercise.target_not_met\", Loc.T(\"Keep going: {achieved} of {target} so far.\", (\"achieved\", achievedCount), (\"target\", target)));"
+ },
+ "The camera could not see you clearly. Step into better light and keep your whole body in frame.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseVerification.cs:26"
+  ],
+  "code": "return Error.Validation(\"exercise.low_confidence\", Loc.T(\"The camera could not see you clearly. Step into better light and keep your whole body in frame.\"));"
+ },
+ "That was faster than the exercise can be done. Keep going until the time is up.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseVerification.cs:30"
+  ],
+  "code": "return Error.Validation(\"exercise.too_fast\", Loc.T(\"That was faster than the exercise can be done. Keep going until the time is up.\"));"
+ },
+ "What was the best part of your day today, even if it was small?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:18"
+  ],
+  "code": "Q(\"everyday-01\", \"everyday\", Loc.N(\"What was the best part of your day today, even if it was small?\")),"
+ },
+ "What is one thing I could take off your plate this week?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:19"
+  ],
+  "code": "Q(\"everyday-02\", \"everyday\", Loc.N(\"What is one thing I could take off your plate this week?\")),"
+ },
+ "What song has been stuck in your head lately?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:20"
+  ],
+  "code": "Q(\"everyday-03\", \"everyday\", Loc.N(\"What song has been stuck in your head lately?\")),"
+ },
+ "What are you looking forward to tomorrow?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:21"
+  ],
+  "code": "Q(\"everyday-04\", \"everyday\", Loc.N(\"What are you looking forward to tomorrow?\")),"
+ },
+ "What did you eat today that you would happily eat again?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:22"
+  ],
+  "code": "Q(\"everyday-05\", \"everyday\", Loc.N(\"What did you eat today that you would happily eat again?\")),"
+ },
+ "If you could skip one chore forever, which one would it be?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:23"
+  ],
+  "code": "Q(\"everyday-06\", \"everyday\", Loc.N(\"If you could skip one chore forever, which one would it be?\")),"
+ },
+ "What made you laugh today?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:24"
+  ],
+  "code": "Q(\"everyday-07\", \"everyday\", Loc.N(\"What made you laugh today?\")),"
+ },
+ "What is something you noticed about me recently that you never mentioned?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:25"
+  ],
+  "code": "Q(\"everyday-08\", \"everyday\", Loc.N(\"What is something you noticed about me recently that you never mentioned?\")),"
+ },
+ "Which part of our evening routine do you like most?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:26"
+  ],
+  "code": "Q(\"everyday-09\", \"everyday\", Loc.N(\"Which part of our evening routine do you like most?\")),"
+ },
+ "What is one small habit of mine that you secretly like?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:27"
+  ],
+  "code": "Q(\"everyday-10\", \"everyday\", Loc.N(\"What is one small habit of mine that you secretly like?\")),"
+ },
+ "When did you last feel really appreciated by me?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:29"
+  ],
+  "code": "Q(\"feelings-01\", \"feelings\", Loc.N(\"When did you last feel really appreciated by me?\")),"
+ },
+ "What is something that has been on your mind that you have not said out loud yet?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:30"
+  ],
+  "code": "Q(\"feelings-02\", \"feelings\", Loc.N(\"What is something that has been on your mind that you have not said out loud yet?\")),"
+ },
+ "What does a good day between us look like to you?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:31"
+  ],
+  "code": "Q(\"feelings-03\", \"feelings\", Loc.N(\"What does a good day between us look like to you?\")),"
+ },
+ "When you are stressed, what helps more: space or company?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:32"
+  ],
+  "code": "Q(\"feelings-04\", \"feelings\", Loc.N(\"When you are stressed, what helps more: space or company?\")),"
+ },
+ "What is one thing I do that makes you feel safe?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:33"
+  ],
+  "code": "Q(\"feelings-05\", \"feelings\", Loc.N(\"What is one thing I do that makes you feel safe?\")),"
+ },
+ "Is there anything I said recently that stayed with you, good or bad?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:34"
+  ],
+  "code": "Q(\"feelings-06\", \"feelings\", Loc.N(\"Is there anything I said recently that stayed with you, good or bad?\")),"
+ },
+ "What is a worry you would like me to help carry?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:35"
+  ],
+  "code": "Q(\"feelings-07\", \"feelings\", Loc.N(\"What is a worry you would like me to help carry?\")),"
+ },
+ "How do you like to be comforted when you are sad?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:36"
+  ],
+  "code": "Q(\"feelings-08\", \"feelings\", Loc.N(\"How do you like to be comforted when you are sad?\")),"
+ },
+ "What is one thing you are proud of yourself for this month?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:37"
+  ],
+  "code": "Q(\"feelings-09\", \"feelings\", Loc.N(\"What is one thing you are proud of yourself for this month?\")),"
+ },
+ "When did you last feel really proud of us?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:38"
+  ],
+  "code": "Q(\"feelings-10\", \"feelings\", Loc.N(\"When did you last feel really proud of us?\")),"
+ },
+ "What is your favourite memory of us from this year?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:40"
+  ],
+  "code": "Q(\"memories-01\", \"memories\", Loc.N(\"What is your favourite memory of us from this year?\")),"
+ },
+ "What did you think of me the first time we met?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:41"
+  ],
+  "code": "Q(\"memories-02\", \"memories\", Loc.N(\"What did you think of me the first time we met?\")),"
+ },
+ "Which trip or outing with me would you relive tomorrow?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:42"
+  ],
+  "code": "Q(\"memories-03\", \"memories\", Loc.N(\"Which trip or outing with me would you relive tomorrow?\")),"
+ },
+ "What is a moment you knew this was serious?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:43"
+  ],
+  "code": "Q(\"memories-04\", \"memories\", Loc.N(\"What is a moment you knew this was serious?\")),"
+ },
+ "What is the funniest thing that has happened to us?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:44"
+  ],
+  "code": "Q(\"memories-05\", \"memories\", Loc.N(\"What is the funniest thing that has happened to us?\")),"
+ },
+ "Which photo of us do you like most, and why?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:45"
+  ],
+  "code": "Q(\"memories-06\", \"memories\", Loc.N(\"Which photo of us do you like most, and why?\")),"
+ },
+ "What is a meal we shared that you still think about?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:46"
+  ],
+  "code": "Q(\"memories-07\", \"memories\", Loc.N(\"What is a meal we shared that you still think about?\")),"
+ },
+ "What was the hardest moment we got through together?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:47"
+  ],
+  "code": "Q(\"memories-08\", \"memories\", Loc.N(\"What was the hardest moment we got through together?\")),"
+ },
+ "What is a gift, big or small, that meant a lot to you?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:48"
+  ],
+  "code": "Q(\"memories-09\", \"memories\", Loc.N(\"What is a gift, big or small, that meant a lot to you?\")),"
+ },
+ "Which childhood memory do you wish I had been part of?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:49"
+  ],
+  "code": "Q(\"memories-10\", \"memories\", Loc.N(\"Which childhood memory do you wish I had been part of?\")),"
+ },
+ "If we had one extra free weekend a month, what would you want us to do with it?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:51"
+  ],
+  "code": "Q(\"future-01\", \"future\", Loc.N(\"If we had one extra free weekend a month, what would you want us to do with it?\")),"
+ },
+ "Where would you like us to be living in five years?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:52"
+  ],
+  "code": "Q(\"future-02\", \"future\", Loc.N(\"Where would you like us to be living in five years?\")),"
+ },
+ "What is one skill you would like us to learn together?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:53"
+  ],
+  "code": "Q(\"future-03\", \"future\", Loc.N(\"What is one skill you would like us to learn together?\")),"
+ },
+ "What tradition would you like us to start?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:54"
+  ],
+  "code": "Q(\"future-04\", \"future\", Loc.N(\"What tradition would you like us to start?\")),"
+ },
+ "What does a perfect slow Sunday look like for us a year from now?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:55"
+  ],
+  "code": "Q(\"future-05\", \"future\", Loc.N(\"What does a perfect slow Sunday look like for us a year from now?\")),"
+ },
+ "Which place in the world should be our next trip?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:56"
+  ],
+  "code": "Q(\"future-06\", \"future\", Loc.N(\"Which place in the world should be our next trip?\")),"
+ },
+ "What is one goal you would like me to cheer you on for?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:57"
+  ],
+  "code": "Q(\"future-07\", \"future\", Loc.N(\"What is one goal you would like me to cheer you on for?\")),"
+ },
+ "What would you like our home to feel like when people visit?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:58"
+  ],
+  "code": "Q(\"future-08\", \"future\", Loc.N(\"What would you like our home to feel like when people visit?\")),"
+ },
+ "What is something you want us to do before the end of this year?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:59"
+  ],
+  "code": "Q(\"future-09\", \"future\", Loc.N(\"What is something you want us to do before the end of this year?\")),"
+ },
+ "How do you picture an ordinary Tuesday when we are old?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:60"
+  ],
+  "code": "Q(\"future-10\", \"future\", Loc.N(\"How do you picture an ordinary Tuesday when we are old?\")),"
+ },
+ "What is one purchase you have never regretted?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:62"
+  ],
+  "code": "Q(\"money-01\", \"money\", Loc.N(\"What is one purchase you have never regretted?\")),"
+ },
+ "Are you more of a saver or a spender, and where did that come from?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:63"
+  ],
+  "code": "Q(\"money-02\", \"money\", Loc.N(\"Are you more of a saver or a spender, and where did that come from?\")),"
+ },
+ "What would you do with an unexpected bonus this month?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:64"
+  ],
+  "code": "Q(\"money-03\", \"money\", Loc.N(\"What would you do with an unexpected bonus this month?\")),"
+ },
+ "What is something worth spending more on, in your view?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:65"
+  ],
+  "code": "Q(\"money-04\", \"money\", Loc.N(\"What is something worth spending more on, in your view?\")),"
+ },
+ "What did your family teach you about money, on purpose or not?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:66"
+  ],
+  "code": "Q(\"money-05\", \"money\", Loc.N(\"What did your family teach you about money, on purpose or not?\")),"
+ },
+ "Is there a money conversation we keep putting off?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:67"
+  ],
+  "code": "Q(\"money-06\", \"money\", Loc.N(\"Is there a money conversation we keep putting off?\")),"
+ },
+ "What would financial freedom let you do that you cannot do now?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:68"
+  ],
+  "code": "Q(\"money-07\", \"money\", Loc.N(\"What would financial freedom let you do that you cannot do now?\")),"
+ },
+ "What is a cheap date idea you would genuinely enjoy?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:69"
+  ],
+  "code": "Q(\"money-08\", \"money\", Loc.N(\"What is a cheap date idea you would genuinely enjoy?\")),"
+ },
+ "Which of your friends do you wish I knew better?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:71"
+  ],
+  "code": "Q(\"family-01\", \"family\", Loc.N(\"Which of your friends do you wish I knew better?\")),"
+ },
+ "What is a family habit you want to keep, and one you want to drop?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:72"
+  ],
+  "code": "Q(\"family-02\", \"family\", Loc.N(\"What is a family habit you want to keep, and one you want to drop?\")),"
+ },
+ "How often would you like us to see family and friends?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:73"
+  ],
+  "code": "Q(\"family-03\", \"family\", Loc.N(\"How often would you like us to see family and friends?\")),"
+ },
+ "Who in your life taught you the most about love?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:74"
+  ],
+  "code": "Q(\"family-04\", \"family\", Loc.N(\"Who in your life taught you the most about love?\")),"
+ },
+ "What is something about my family that you appreciate?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:75"
+  ],
+  "code": "Q(\"family-05\", \"family\", Loc.N(\"What is something about my family that you appreciate?\")),"
+ },
+ "What kind of support do you want from me at big family events?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:76"
+  ],
+  "code": "Q(\"family-06\", \"family\", Loc.N(\"What kind of support do you want from me at big family events?\")),"
+ },
+ "Which couple we know do you admire, and why?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:77"
+  ],
+  "code": "Q(\"family-07\", \"family\", Loc.N(\"Which couple we know do you admire, and why?\")),"
+ },
+ "What does home mean to you?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:78"
+  ],
+  "code": "Q(\"family-08\", \"family\", Loc.N(\"What does home mean to you?\")),"
+ },
+ "What is a disagreement we had that you learned something from?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:80"
+  ],
+  "code": "Q(\"growth-01\", \"growth\", Loc.N(\"What is a disagreement we had that you learned something from?\")),"
+ },
+ "What is one thing you would like us to do better as a team?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:81"
+  ],
+  "code": "Q(\"growth-02\", \"growth\", Loc.N(\"What is one thing you would like us to do better as a team?\")),"
+ },
+ "What is a habit you are trying to build, and how can I help?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:82"
+  ],
+  "code": "Q(\"growth-03\", \"growth\", Loc.N(\"What is a habit you are trying to build, and how can I help?\")),"
+ },
+ "When I am upset, what is the most helpful thing you can do?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:83"
+  ],
+  "code": "Q(\"growth-04\", \"growth\", Loc.N(\"When I am upset, what is the most helpful thing you can do?\")),"
+ },
+ "What is something you have changed your mind about since we met?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:84"
+  ],
+  "code": "Q(\"growth-05\", \"growth\", Loc.N(\"What is something you have changed your mind about since we met?\")),"
+ },
+ "What do you need more of from me right now?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:85"
+  ],
+  "code": "Q(\"growth-06\", \"growth\", Loc.N(\"What do you need more of from me right now?\")),"
+ },
+ "What is something I do that you would like me to keep doing forever?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:86"
+  ],
+  "code": "Q(\"growth-07\", \"growth\", Loc.N(\"What is something I do that you would like me to keep doing forever?\")),"
+ },
+ "How can I make apologies easier for you to accept, or to give?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:87"
+  ],
+  "code": "Q(\"growth-08\", \"growth\", Loc.N(\"How can I make apologies easier for you to accept, or to give?\")),"
+ },
+ "What is a boundary that matters to you that I should know about?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:88"
+  ],
+  "code": "Q(\"growth-09\", \"growth\", Loc.N(\"What is a boundary that matters to you that I should know about?\")),"
+ },
+ "What would make our weekly check-ins feel worth it?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:89"
+  ],
+  "code": "Q(\"growth-10\", \"growth\", Loc.N(\"What would make our weekly check-ins feel worth it?\")),"
+ },
+ "If we swapped jobs for a day, how would you do mine?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:91"
+  ],
+  "code": "Q(\"fun-01\", \"fun\", Loc.N(\"If we swapped jobs for a day, how would you do mine?\")),"
+ },
+ "Which film character are we as a couple?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:92"
+  ],
+  "code": "Q(\"fun-02\", \"fun\", Loc.N(\"Which film character are we as a couple?\")),"
+ },
+ "What is a silly dare you would actually do with me?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:93"
+  ],
+  "code": "Q(\"fun-03\", \"fun\", Loc.N(\"What is a silly dare you would actually do with me?\")),"
+ },
+ "If we opened a small business together, what would it be?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:94"
+  ],
+  "code": "Q(\"fun-04\", \"fun\", Loc.N(\"If we opened a small business together, what would it be?\")),"
+ },
+ "What would our couple name be on a cooking show?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:95"
+  ],
+  "code": "Q(\"fun-05\", \"fun\", Loc.N(\"What would our couple name be on a cooking show?\")),"
+ },
+ "Which three songs belong on our soundtrack?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:96"
+  ],
+  "code": "Q(\"fun-06\", \"fun\", Loc.N(\"Which three songs belong on our soundtrack?\")),"
+ },
+ "If you could plan a surprise day for me, what would it include?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:97"
+  ],
+  "code": "Q(\"fun-07\", \"fun\", Loc.N(\"If you could plan a surprise day for me, what would it include?\")),"
+ },
+ "What is the most underrated snack, and will you share it with me?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:98"
+  ],
+  "code": "Q(\"fun-08\", \"fun\", Loc.N(\"What is the most underrated snack, and will you share it with me?\")),"
+ },
+ "What small gesture makes you feel loved the most?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:100"
+  ],
+  "code": "Q(\"close-01\", \"closeness\", Loc.N(\"What small gesture makes you feel loved the most?\")),"
+ },
+ "When do you feel closest to me?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:101"
+  ],
+  "code": "Q(\"close-02\", \"closeness\", Loc.N(\"When do you feel closest to me?\")),"
+ },
+ "What is your favourite way for us to reconnect after a busy week?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:102"
+  ],
+  "code": "Q(\"close-03\", \"closeness\", Loc.N(\"What is your favourite way for us to reconnect after a busy week?\")),"
+ },
+ "What is a compliment you would like to hear more often?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:103"
+  ],
+  "code": "Q(\"close-04\", \"closeness\", Loc.N(\"What is a compliment you would like to hear more often?\")),"
+ },
+ "Which of my hugs is your favourite: morning, goodbye, or after a long day?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:104"
+  ],
+  "code": "Q(\"close-05\", \"closeness\", Loc.N(\"Which of my hugs is your favourite: morning, goodbye, or after a long day?\")),"
+ },
+ "What does romance look like to you on an ordinary weeknight?": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Questions/DailyQuestionCatalog.cs:105"
+  ],
+  "code": "Q(\"close-06\", \"closeness\", Loc.N(\"What does romance look like to you on an ordinary weeknight?\"))"
+ },
+ "{name} deleted their account.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Account/AccountEraser.cs:106"
+  ],
+  "code": "Loc.T(\"{name} deleted their account.\", (\"name\", user.DisplayName)), null, now);"
+ },
+ "Google returned a subscription without a product or expiry.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:45"
+  ],
+  "code": "return Error.Failure(\"billing.unreadable\", Loc.T(\"Google returned a subscription without a product or expiry.\"));"
+ },
+ "Google does not know this purchase.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:57",
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:166"
+  ],
+  "code": "return Error.NotFound(\"billing.unknown_purchase\", Loc.T(\"Google does not know this purchase.\"));"
+ },
+ "Google Play could not be reached. Try again shortly.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:62",
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:67",
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:127"
+  ],
+  "code": "return new Error(\"billing.store_unavailable\", Loc.T(\"Google Play could not be reached. Try again shortly.\"), ErrorType.Network);"
+ },
+ "The purchase could not be acknowledged yet.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:82"
+  ],
+  "code": "return new Error(\"billing.acknowledge_failed\", Loc.T(\"The purchase could not be acknowledged yet.\"), ErrorType.Network);"
+ },
+ "Billing is not configured on this server.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:133",
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:141",
+   "Twogether.Infrastructure/Billing/GooglePlayBilling.cs:146"
+  ],
+  "code": "private static Error Unavailable() => new(\"billing.store_unavailable\", Loc.T(\"Billing is not configured on this server.\"), ErrorType.Failure);"
+ },
+ "Photo estimates are not configured.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:49"
+  ],
+  "code": "if (_client is null) return Error.Failure(\"food.estimation_unavailable\", Loc.T(\"Photo estimates are not configured.\"));"
+ },
+ "Unsupported image type.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:51"
+  ],
+  "code": "if (mediaType is null) return Error.Validation(\"food.image_type\", Loc.T(\"Unsupported image type.\"));"
+ },
+ "The estimate could not be produced for this photo. Try a clearer photo of the meal.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:85"
+  ],
+  "code": "return Error.Failure(\"food.estimation_refused\", Loc.T(\"The estimate could not be produced for this photo. Try a clearer photo of the meal.\"));"
+ },
+ "The estimator is busy. Try again in a moment.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:97"
+  ],
+  "code": "return new Error(\"food.estimation_busy\", Loc.T(\"The estimator is busy. Try again in a moment.\"), ErrorType.Network);"
+ },
+ "The estimator is unavailable right now. Try again later.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:102"
+  ],
+  "code": "return new Error(\"food.estimation_failed\", Loc.T(\"The estimator is unavailable right now. Try again later.\"), ErrorType.Network);"
+ },
+ "The estimate could not be produced. Log the meal by hand.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:108"
+  ],
+  "code": "return Error.Failure(\"food.estimation_failed\", Loc.T(\"The estimate could not be produced. Log the meal by hand.\"));"
+ },
+ "The estimator could not be reached. Try again later.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:113"
+  ],
+  "code": "return new Error(\"food.estimation_failed\", Loc.T(\"The estimator could not be reached. Try again later.\"), ErrorType.Network);"
+ },
+ "The estimate took too long. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:118"
+  ],
+  "code": "return new Error(\"food.estimation_timeout\", Loc.T(\"The estimate took too long. Try again.\"), ErrorType.Network);"
+ }
+}

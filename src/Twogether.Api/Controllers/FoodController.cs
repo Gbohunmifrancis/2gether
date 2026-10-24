@@ -12,6 +12,7 @@ using Twogether.Application.Features.Food;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -26,7 +27,7 @@ public sealed class FoodController(
     Twogether.Application.Features.Billing.IEntitlementService entitlements,
     ILogger<FoodController> logger) : ApiControllerBase
 {
-    private static readonly ApiError NoCouple = new("food.no_couple", "Link your partner before logging food.");
+    private static ApiError NoCouple => new("food.no_couple", Loc.T("Link your partner before logging food."));
     private static readonly JsonSerializerOptions ResultJson = new(JsonSerializerDefaults.Web);
 
     [HttpGet("targets")]
@@ -63,7 +64,7 @@ public sealed class FoodController(
         if (!currentUser.UserId.HasValue) return Unauthorized();
         var userId = currentUser.UserId.Value;
         var localDate = string.IsNullOrWhiteSpace(date) ? DateOnly.FromDateTime(clock.UtcNow) : FoodRules.ParseLocalDate(date) is { IsSuccess: true } parsed ? parsed.Value : default;
-        if (localDate == default) return UnprocessableEntity(new ApiError("food.invalid_date", "Date must look like yyyy-MM-dd."));
+        if (localDate == default) return UnprocessableEntity(new ApiError("food.invalid_date", Loc.T("Date must look like yyyy-MM-dd.")));
 
         var couple = await ActiveCoupleAsync(cancellationToken);
         var targets = await TargetsAsync(couple, userId, cancellationToken);
@@ -123,7 +124,7 @@ public sealed class FoodController(
         if (request.ScanId is { } scanId)
         {
             scan = await db.FoodScans.AsNoTracking().SingleOrDefaultAsync(item => item.Id == scanId && item.UserId == currentUser.UserId.Value && item.Succeeded, cancellationToken);
-            if (scan is null) return UnprocessableEntity(new ApiError("food.scan_not_found", "That scan does not exist or is not yours."));
+            if (scan is null) return UnprocessableEntity(new ApiError("food.scan_not_found", Loc.T("That scan does not exist or is not yours.")));
         }
         var portion = FoodRules.ValidatePortion(request.PortionFactor, request.ScanId is not null);
         if (portion.IsFailure) return Problem(portion.Error);
@@ -231,7 +232,7 @@ public sealed class FoodController(
         var couple = await ActiveCoupleAsync(cancellationToken);
         if (couple is null) return BadRequest(NoCouple);
         if (!estimator.IsConfigured)
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("food.estimation_unavailable", "Photo estimates are not set up on this server. Log the meal by hand."));
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("food.estimation_unavailable", Loc.T("Photo estimates are not set up on this server. Log the meal by hand.")));
         var photo = FoodRules.ValidateImage(request.ImageBase64, request.MediaType, settings.MaxImageBytes);
         if (photo.IsFailure) return Problem(photo.Error);
         var used = await ScansUsedTodayAsync(userId, cancellationToken);
@@ -240,8 +241,9 @@ public sealed class FoodController(
         if (used >= limit)
             return StatusCode(StatusCodes.Status429TooManyRequests, new ApiError("food.scan_limit",
                 entitlement.Plan == Core.Enums.Plan.Free
-                    ? $"You have used today's {limit} free photo scans. Heartpact Plus gives you more, or log this one by hand."
-                    : $"You have used today's {limit} photo scans. Log this one by hand."));
+                    ? Loc.Plural(limit, "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.",
+                        "You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand.")
+                    : Loc.Plural(limit, "You have used today's {count} photo scan. Log this one by hand.", "You have used today's {count} photo scans. Log this one by hand.")));
 
         var watch = Stopwatch.StartNew();
         var country = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.CountryCode).SingleOrDefaultAsync(cancellationToken);
@@ -263,7 +265,7 @@ public sealed class FoodController(
         {
             db.FoodScans.Add(FoodScan.Fail(userId, couple.Id, estimator.ModelName, photo.Value.MediaType, photo.Value.Bytes.Length, "food.not_food", latency, now));
             await db.SaveChangesAsync(cancellationToken);
-            return UnprocessableEntity(new ApiError("food.not_food", "That does not look like food. Try a photo of the meal."));
+            return UnprocessableEntity(new ApiError("food.not_food", Loc.T("That does not look like food. Try a photo of the meal.")));
         }
 
         var snapshot = new FoodEstimateSnapshot(estimate.Description, estimate.Calories, estimate.CaloriesLow, estimate.CaloriesHigh, estimate.ProteinGrams, estimate.CarbsGrams, estimate.FatGrams, estimate.Confidence,

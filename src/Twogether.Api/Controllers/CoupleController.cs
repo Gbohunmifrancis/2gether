@@ -13,6 +13,8 @@ using Twogether.Application.Features.Couple;
 using Twogether.Application.Features.Exercise;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -57,7 +59,7 @@ public sealed class CoupleController(
             actor.SetCouple(couple.Id, clock.UtcNow);
         }
         if (couple.Status != CoupleStatus.PendingInvite)
-            return Conflict(new ApiError("couple.already_linked", "This couple is already linked."));
+            return Conflict(new ApiError("couple.already_linked", Loc.T("This couple is already linked.")));
 
         var existing = await db.PartnerInvites.Where(invite => invite.CoupleId == couple.Id && invite.Status == PartnerInviteStatus.Pending).ToListAsync(cancellationToken);
         foreach (var invite in existing) invite.Revoke(clock.UtcNow);
@@ -105,9 +107,9 @@ public sealed class CoupleController(
                 if (limiter.RetryAfter(AttemptRules.InviteCodeGlobal, "all") is not null)
                     logger.LogError("Wrong invite codes reached the global budget of {Max} per hour; codes are paused. Possible guessing attack.", AttemptRules.InviteCodeGlobal.MaxFailures);
             }
-            return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+            return NotFound(new ApiError("invite.invalid", Loc.T("This invitation is invalid or expired.")));
         }
-        if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError("invite.self", "You cannot accept your own invitation."));
+        if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError("invite.self", Loc.T("You cannot accept your own invitation.")));
 
         var couple = await db.Couples.SingleAsync(item => item.Id == invite.CoupleId, cancellationToken);
         if (!couple.CanAcceptPartner)
@@ -116,13 +118,13 @@ public sealed class CoupleController(
             // it back with a stranger in it. Retire it so it fails the same way from now on.
             invite.Revoke(clock.UtcNow);
             await db.SaveChangesAsync(cancellationToken);
-            return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+            return NotFound(new ApiError("invite.invalid", Loc.T("This invitation is invalid or expired.")));
         }
         var user = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user.CoupleId.HasValue && user.CoupleId != couple.Id)
         {
             var previous = await db.Couples.SingleOrDefaultAsync(item => item.Id == user.CoupleId.Value, cancellationToken);
-            if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError("couple.already_linked", "You are already linked to a partner."));
+            if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError("couple.already_linked", Loc.T("You are already linked to a partner.")));
             previous.Dissolve(clock.UtcNow);
             await RevokePendingInvitesAsync(previous.Id, cancellationToken);
         }
@@ -130,7 +132,10 @@ public sealed class CoupleController(
         couple.LinkPartner(user.Id, clock.UtcNow);
         user.SetCouple(couple.Id, clock.UtcNow);
         invite.Accept(clock.UtcNow);
-        var connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, "You are connected", $"{user.DisplayName} joined your private space.", null, clock.UtcNow);
+        Notification connected;
+        using (Loc.Use(await db.LanguageOfAsync(invite.InviterUserId, cancellationToken)))
+            connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, Loc.T("You are connected"),
+                Loc.T("{name} joined your private space.", ("name", user.DisplayName)), null, clock.UtcNow);
         db.Notifications.Add(connected);
         await db.SaveChangesAsync(cancellationToken);
         await hub.Clients.Group(CoupleHub.UserGroupName(invite.InviterUserId)).SendAsync("CoupleConnected", new { userId = user.Id, displayName = user.DisplayName }, cancellationToken);
@@ -161,7 +166,9 @@ public sealed class CoupleController(
         {
             var partner = await db.Users.SingleAsync(item => item.Id == linkedPartnerId, cancellationToken);
             partner.SetCouple(null, clock.UtcNow);
-            var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, "Your couple space was ended", $"{actor.DisplayName} ended the connection.", null, clock.UtcNow);
+            using var _ = Loc.Use(partner.Language);
+            var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T("Your couple space was ended"),
+                Loc.T("{name} ended the connection.", ("name", actor.DisplayName)), null, clock.UtcNow);
             db.Notifications.Add(notification);
             await db.SaveChangesAsync(cancellationToken);
             await hub.Clients.Group(CoupleHub.UserGroupName(linkedPartnerId)).SendAsync("CoupleEnded", new CoupleEndedDto(actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);

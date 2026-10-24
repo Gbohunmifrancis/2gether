@@ -3,6 +3,7 @@ using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Pregnancy;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Pregnancy;
 
@@ -68,13 +69,13 @@ public static class PregnancyRules
     public static Result ValidateAppointment(string? title, DateTime atUtc, string? location, string? notes, DateTime utcNow)
     {
         if (string.IsNullOrWhiteSpace(title) || title.Trim().Length > PregnancyAppointment.MaxTitleLength)
-            return Error.Validation("pregnancy.invalid_appointment", $"Title is required, at most {PregnancyAppointment.MaxTitleLength} characters.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Title is required, at most {max} characters.", ("max", PregnancyAppointment.MaxTitleLength)));
         if (location?.Trim().Length > PregnancyAppointment.MaxLocationLength)
-            return Error.Validation("pregnancy.invalid_appointment", $"Location must be at most {PregnancyAppointment.MaxLocationLength} characters.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Location must be at most {max} characters.", ("max", PregnancyAppointment.MaxLocationLength)));
         if (notes?.Trim().Length > PregnancyAppointment.MaxNotesLength)
-            return Error.Validation("pregnancy.invalid_appointment", $"Notes must be at most {PregnancyAppointment.MaxNotesLength} characters.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Notes must be at most {max} characters.", ("max", PregnancyAppointment.MaxNotesLength)));
         if (atUtc < utcNow.AddYears(-1) || atUtc > utcNow.AddYears(2))
-            return Error.Validation("pregnancy.invalid_appointment", "Appointment time is out of range.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Appointment time is out of range."));
         return Result.Success();
     }
 

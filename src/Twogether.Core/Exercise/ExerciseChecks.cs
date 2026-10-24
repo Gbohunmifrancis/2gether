@@ -1,4 +1,5 @@
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Core.Exercise;
 
@@ -50,10 +51,10 @@ public readonly record struct ExerciseCheckCounts(
         {
             parts.Add(flag switch
             {
-                ExerciseFlag.MissedCheckIn => ChallengesMissed == 1 ? "missed a camera check-in" : $"missed {ChallengesMissed} camera check-ins",
-                ExerciseFlag.PhoneMoved => $"the phone was moving during {PhoneMovedReps} reps",
-                ExerciseFlag.LeftFrame => $"out of view for {OutOfFrameSeconds} seconds",
-                _ => "the app couldn't be verified"
+                ExerciseFlag.MissedCheckIn => Loc.Plural(ChallengesMissed, "missed a camera check-in", "missed {count} camera check-ins"),
+                ExerciseFlag.PhoneMoved => Loc.Plural(PhoneMovedReps, "the phone was moving during {count} rep", "the phone was moving during {count} reps"),
+                ExerciseFlag.LeftFrame => Loc.Plural(OutOfFrameSeconds, "out of view for {count} second", "out of view for {count} seconds"),
+                _ => Loc.T("the app couldn't be verified")
             });
         }
         if (parts.Count == 0) return null;

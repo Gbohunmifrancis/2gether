@@ -10,6 +10,8 @@ using Twogether.Core.Enums;
 using Twogether.Core.Memories;
 using Twogether.Core.Notifications;
 using Twogether.Infrastructure.Persistence;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Background;
 
@@ -177,6 +179,7 @@ public sealed class AlbumSyncReminderWorker(
         if (claimed != 1) return null;
 
         var pending = candidate.State.PendingCount;
+        using var _ = Loc.Use(await db.LanguageOfAsync(userId, cancellationToken));
         var notice = Notification.Create(userId, candidate.CoupleId, NotificationType.AlbumSyncReminder, MemorySyncText.ReminderTitle,
             MemorySyncText.ReminderBody(pending, partnerName),
             JsonSerializer.Serialize(new { pendingCount = pending, preferWifi = true }), now);

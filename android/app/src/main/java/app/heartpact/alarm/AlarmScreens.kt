@@ -121,7 +121,7 @@ fun AlarmRinging(
         Spacer(Modifier.weight(1f))
         StickerCard(shape = Shapes.Dare) {
             Column(Modifier.padding(20.dp)) {
-                Text(occurrence.title, style = Heartpact.type.title, color = Heartpact.colors.ink)
+                Text(occurrence.exerciseType.titleOf(occurrence.title), style = Heartpact.type.title, color = Heartpact.colors.ink)
                 Text(occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target), style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 Row(Modifier.padding(top = 14.dp).fillMaxWidth().clip(Shapes.Well).background(Heartpact.colors.sticker2).padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (mySide == Side.Left) HeartSticker(HalfState.Slot, HalfState.Stuck, 42.dp) else HeartSticker(HalfState.Stuck, HalfState.Slot, 42.dp)

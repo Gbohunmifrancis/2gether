@@ -1,6 +1,7 @@
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Location;
 
@@ -18,7 +19,7 @@ public static class LocationSharingRules
 
     public static Result<DateTime> PauseUntil(int minutes, DateTime utcNow)
         => minutes is < MinPauseMinutes or > MaxPauseMinutes
-            ? Error.Validation("location.invalid_pause", $"A pause lasts between {MinPauseMinutes} minutes and {MaxPauseMinutes / 60} hours.")
+            ? Error.Validation("location.invalid_pause", Loc.T("A pause lasts between {minutes} minutes and {hours} hours.", ("minutes", MinPauseMinutes), ("hours", MaxPauseMinutes / 60)))
             : utcNow.AddMinutes(minutes);
 
     public static LocationSharingStatus StatusOf(CoupleLocation? row, DateTime utcNow)

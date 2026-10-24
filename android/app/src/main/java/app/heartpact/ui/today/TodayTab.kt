@@ -104,7 +104,7 @@ fun TodayTab(
                 val next = v.partnerNext
                 val done = v.partnerDone
                 when {
-                    ringing != null -> CardRow(tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.title.lowercase()),
+                    ringing != null -> CardRow(tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.exerciseType.titleOf(ringing.title).lowercase()),
                         subtitle = tr("{progress} · rings until {time}", "progress" to ringing.exerciseType.progress(ringing.achievedCount, ringing.target),
                             "time" to time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))), icon = Icons.Rounded.Alarm)
                     done != null -> PartnerDone(done, partnerName)
@@ -204,7 +204,7 @@ private fun CallOffRequest(occurrence: ExerciseOccurrence, partnerName: String, 
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Character(if (LocalActor.current == Side.Left) Who.Right else Who.Left, Pose.Stand, 54.dp)
-                Text(tr("{partner} asks to call off today's {exercise}", "partner" to partnerName, "exercise" to occurrence.title.lowercase()), style = Heartpact.type.title, color = colors.ink)
+                Text(tr("{partner} asks to call off today's {exercise}", "partner" to partnerName, "exercise" to occurrence.exerciseType.titleOf(occurrence.title).lowercase()), style = Heartpact.type.title, color = colors.ink)
             }
             occurrence.callOffNote?.let {
                 Text("“$it”", style = Heartpact.type.body, color = colors.right.onSoft, modifier = Modifier.padding(top = 12.dp).fillMaxWidth().clip(Shapes.Well).background(colors.right.tint).padding(12.dp))

@@ -3,6 +3,7 @@ using System.Text;
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Memories;
 
@@ -70,20 +71,20 @@ public static class MemoryRequestRules
     public static Result<MemoryMediaKind> ValidateReserve(ReserveMemoryRequest request, DateTime utcNow)
     {
         var kind = MemoryRules.Kind(request.ContentType);
-        if (kind is null) return Error.Validation("memories.unsupported_type", "Photos must be JPEG, PNG, WebP or HEIC; videos MP4 or MOV.");
-        if (request.SizeBytes <= 0) return Error.Validation("memories.invalid_size", "The file is empty.");
-        if (request.SizeBytes > kind.MaxBytes) return Error.Validation("memories.too_large", $"{(kind.IsVideo ? "Videos" : "Photos")} must be under {kind.MaxBytes / (1024 * 1024)} MB.");
-        if (!Enum.IsDefined(request.Source)) return Error.Validation("memories.invalid_source", "Unknown source.");
+        if (kind is null) return Error.Validation("memories.unsupported_type", Loc.T("Photos must be JPEG, PNG, WebP or HEIC; videos MP4 or MOV."));
+        if (request.SizeBytes <= 0) return Error.Validation("memories.invalid_size", Loc.T("The file is empty."));
+        if (request.SizeBytes > kind.MaxBytes) return Error.Validation("memories.too_large", (kind.IsVideo ? Loc.T("Videos must be under {megabytes} MB.", ("megabytes", kind.MaxBytes / (1024 * 1024))) : Loc.T("Photos must be under {megabytes} MB.", ("megabytes", kind.MaxBytes / (1024 * 1024)))));
+        if (!Enum.IsDefined(request.Source)) return Error.Validation("memories.invalid_source", Loc.T("Unknown source."));
         if (request.ThumbnailContentType is not null && MemoryRules.ThumbnailType(request.ThumbnailContentType) is null) return InvalidThumbnailType;
         return ValidateDescription(request.Caption, request.TakenAtUtc, utcNow) is { IsFailure: true } bad ? Result.Failure<MemoryMediaKind>(bad.Error) : kind;
     }
 
-    public static readonly Error InvalidThumbnailType = Error.Validation("memories.unsupported_thumbnail", "Thumbnails must be JPEG or WebP.");
+    public static Error InvalidThumbnailType => Error.Validation("memories.unsupported_thumbnail", Loc.T("Thumbnails must be JPEG or WebP."));
 
     public static Result ValidateDescription(string? caption, DateTime? takenAtUtc, DateTime utcNow)
     {
-        if (caption?.Trim().Length > MemoryRules.MaxCaptionLength) return Error.Validation("memories.invalid_caption", $"Captions are at most {MemoryRules.MaxCaptionLength} characters.");
-        if (takenAtUtc is { } taken && (taken.Year < 1900 || taken > utcNow.AddDays(1))) return Error.Validation("memories.invalid_taken_at", "The date taken is out of range.");
+        if (caption?.Trim().Length > MemoryRules.MaxCaptionLength) return Error.Validation("memories.invalid_caption", Loc.T("Captions are at most {max} characters.", ("max", MemoryRules.MaxCaptionLength)));
+        if (takenAtUtc is { } taken && (taken.Year < 1900 || taken > utcNow.AddDays(1))) return Error.Validation("memories.invalid_taken_at", Loc.T("The date taken is out of range."));
         return Result.Success();
     }
 }

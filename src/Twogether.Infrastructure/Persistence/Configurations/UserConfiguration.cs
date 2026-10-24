@@ -22,6 +22,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         // No database default: Female is the enum's zero, so EF would leave it out of inserts and the default would replace it.
         builder.Property(user => user.Gender).HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.Property(user => user.CountryCode).HasMaxLength(2);
+        builder.Property(user => user.Language).HasMaxLength(8).IsRequired();
         builder.Property(user => user.TimeZoneId).HasMaxLength(100).IsRequired();
         builder.HasIndex(user => user.Email).IsUnique();
         builder.HasIndex(user => user.GoogleId).IsUnique().HasFilter("\"GoogleId\" IS NOT NULL");

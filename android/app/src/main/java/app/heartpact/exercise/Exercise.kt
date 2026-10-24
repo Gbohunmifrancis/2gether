@@ -43,6 +43,22 @@ enum class ExerciseType(val englishName: String, val measure: Measure, val defau
         SitUp -> tr("Side-on, lying down, whole body in frame.")
     }
 
+    /**
+     * A dare's title for people: the server stores its own English catalog name ("Plank hold") unless someone typed a
+     * title, so that name is shown as this exercise's name in the phone's language.
+     */
+    fun titleOf(title: String): String = if (title == serverName) displayName else title
+
+    private val serverName: String get() = when (this) {
+        Squat -> "Squats"
+        PushUp -> "Push-ups"
+        JumpingJack -> "Jumping jacks"
+        Plank -> "Plank hold"
+        ArmRaise -> "Overhead arm raises"
+        HighKnees -> "High knees"
+        SitUp -> "Sit-ups"
+    }
+
     /** "15 squats", "Plank, 30 seconds": one whole phrase per exercise, so every language can make the number agree. */
     fun label(target: Int): String = when (this) {
         Squat -> trn(target, "{count} squat", "{count} squats")

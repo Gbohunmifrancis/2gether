@@ -9,6 +9,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Exercise;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -53,7 +54,7 @@ public sealed class AccountController(
         var subscriptions = await db.StoreSubscriptions.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken);
         if (!request.AcknowledgeActiveSubscription && subscriptions.Any(AccountDeletionRules.WillRenew))
             return Conflict(new ApiError("account.subscription_renews",
-                "Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand."));
+                Loc.T("Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.")));
 
         var erased = await eraser.EraseAsync(userId, cancellationToken);
         if (erased is null) return NotFound();

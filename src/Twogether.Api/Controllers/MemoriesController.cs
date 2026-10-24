@@ -10,6 +10,7 @@ using Twogether.Application.Features.Memories;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -30,9 +31,9 @@ public sealed partial class MemoriesController(
     ILogger<MemoriesController> logger) : ApiControllerBase
 {
     public const string ChangedEvent = "MemoriesChanged";
-    private static readonly ApiError NoCouple = new("memories.no_couple", "Link your partner to start your shared album.");
-    private static readonly ApiError Unavailable = new("memories.storage_unavailable", "Photo storage is not set up on this server.");
-    private static readonly ApiError NotUploader = new("memories.not_uploader", "Only the person who added this memory can change it.");
+    private static ApiError NoCouple => new("memories.no_couple", Loc.T("Link your partner to start your shared album."));
+    private static ApiError Unavailable => new("memories.storage_unavailable", Loc.T("Photo storage is not set up on this server."));
+    private static ApiError NotUploader => new("memories.not_uploader", Loc.T("Only the person who added this memory can change it."));
 
     [HttpGet("usage")]
     public async Task<ActionResult<MemoryUsageDto>> Usage(CancellationToken cancellationToken)
@@ -123,8 +124,8 @@ public sealed partial class MemoriesController(
         }
     }
 
-    private static readonly ApiError NotUploaded = new("memories.not_uploaded", "The file has not finished uploading yet.");
-    private static readonly ApiError UploadRejected = new("memories.upload_rejected", "The uploaded file did not match what was declared. Try again.");
+    private static ApiError NotUploaded => new("memories.not_uploaded", Loc.T("The file has not finished uploading yet."));
+    private static ApiError UploadRejected => new("memories.upload_rejected", Loc.T("The uploaded file did not match what was declared. Try again."));
 
     private enum UploadOutcome { AlreadyReady, BecameReady, NotUploaded, Rejected }
 
@@ -170,7 +171,7 @@ public sealed partial class MemoriesController(
         if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
         limit = Math.Clamp(limit, 1, 100);
         var after = MemoryCursor.Decode(cursor);
-        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", "That page cursor is not valid."));
+        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", Loc.T("That page cursor is not valid.")));
         var query = db.Memories.AsNoTracking().Where(item => item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready);
         if (after is not null)
             query = query.Where(item => item.SortAtUtc < after.SortAtUtc || (item.SortAtUtc == after.SortAtUtc && item.Id.CompareTo(after.Id) < 0));
@@ -190,7 +191,7 @@ public sealed partial class MemoriesController(
         if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
         var today = DateOnly.FromDateTime(clock.UtcNow);
         if (!string.IsNullOrWhiteSpace(date) && !DateOnly.TryParseExact(date.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out today))
-            return UnprocessableEntity(new ApiError("memories.invalid_date", "Date must look like yyyy-MM-dd."));
+            return UnprocessableEntity(new ApiError("memories.invalid_date", Loc.T("Date must look like yyyy-MM-dd.")));
         var month = today.Month;
         var candidates = await db.Memories.AsNoTracking()
             .Where(item => item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready && item.SortAtUtc.Month == month && item.SortAtUtc.Year < today.Year)
@@ -216,7 +217,7 @@ public sealed partial class MemoriesController(
         if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
         limit = Math.Clamp(limit, 1, 100);
         var after = MemoryCursor.Decode(cursor);
-        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", "That page cursor is not valid."));
+        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", Loc.T("That page cursor is not valid.")));
 
         var cutoff = clock.UtcNow - settings.BreakupRetention;
         var query = db.Memories.AsNoTracking()
@@ -293,11 +294,11 @@ public sealed partial class MemoriesController(
         var (memory, error) = await OwnReadyMemoryAsync(memoryId, cancellationToken);
         if (memory is null) return error!;
         var outcome = await VerifyThumbnailAsync(memory, cancellationToken);
-        if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError("memories.thumbnail_not_uploaded", "The thumbnail has not finished uploading yet."));
+        if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError("memories.thumbnail_not_uploaded", Loc.T("The thumbnail has not finished uploading yet.")));
         // Saved either way: a rejected upload overwrote and removed any earlier thumbnail.
         await db.SaveChangesAsync(cancellationToken);
         if (outcome == ThumbnailOutcome.Rejected)
-            return UnprocessableEntity(new ApiError("memories.thumbnail_rejected", $"Thumbnails must be JPEG or WebP and at most {MemoryRules.MaxThumbnailBytes / 1024} KB."));
+            return UnprocessableEntity(new ApiError("memories.thumbnail_rejected", Loc.T("Thumbnails must be JPEG or WebP and at most {kilobytes} KB.", ("kilobytes", MemoryRules.MaxThumbnailBytes / 1024))));
         var couple = await db.Couples.AsNoTracking().SingleAsync(item => item.Id == memory.CoupleId, cancellationToken);
         await ChangedAsync(couple, memory.Id, "updated", cancellationToken);
         return Ok(ToDto(memory, await NamesAsync(couple, cancellationToken)));
