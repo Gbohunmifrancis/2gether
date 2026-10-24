@@ -160,7 +160,7 @@ private fun Waiting(s: GameSession, me: String, partnerName: String, busy: Boole
 
 /** Seconds left until [iso], ticking. */
 @Composable
-private fun secondsUntil(iso: String?, now: () -> Instant): Long {
+internal fun secondsUntil(iso: String?, now: () -> Instant): Long {
     var left by remember(iso) { mutableLongStateOf(iso?.let { (utc(it).toEpochMilli() - now().toEpochMilli() + 999) / 1000 } ?: 0) }
     LaunchedEffect(iso) {
         while (iso != null) {
@@ -186,13 +186,15 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
     when (s.gameType) {
         GameType.MemoryMatch -> MemoryBoard(s, me, partnerName, busy, actions)
         GameType.ICallOn -> ICallOnBoard(s, me, partnerName, busy, actions, now)
+        GameType.TruthOrDare -> TruthOrDareBoard(s, me, partnerName, busy, actions)
+        GameType.WordDash -> WordDashBoard(s, me, partnerName, busy, actions, now)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
 }
 
 @Composable
-private fun Scores(scores: Map<String, Int>, me: String, partnerName: String, count: (Int) -> String) {
+internal fun Scores(scores: Map<String, Int>, me: String, partnerName: String, count: (Int) -> String) {
     val colors = Heartpact.colors
     Row(Modifier.fillMaxWidth().padding(bottom = 14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(tr("You {score}", "score" to count(scores[me] ?: 0)), style = Heartpact.type.titleSmall, color = colors.ink)

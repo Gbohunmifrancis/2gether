@@ -61,6 +61,8 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
     {
         GameType.ICallOn => JsonSerializer.Serialize(new { region, letter = letter?.ToUpperInvariant() }),
         GameType.MemoryMatch => JsonSerializer.Serialize(new { region }),
+        GameType.TruthOrDare => JsonSerializer.Serialize(new { region }),
+        GameType.WordDash => JsonSerializer.Serialize(new { region }),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };
 }

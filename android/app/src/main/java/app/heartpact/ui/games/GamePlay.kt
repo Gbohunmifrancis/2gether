@@ -6,6 +6,8 @@ import app.heartpact.data.GameType
 import app.heartpact.data.ICallOnState
 import app.heartpact.data.MemoryState
 import app.heartpact.data.QuizState
+import app.heartpact.data.TruthOrDareState
+import app.heartpact.data.WordDashState
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import kotlinx.serialization.json.Json
@@ -17,9 +19,14 @@ object GamePlay {
     fun quiz(s: GameSession): QuizState = runCatching { json.decodeFromString(QuizState.serializer(), s.stateJson) }.getOrDefault(QuizState())
     fun memory(s: GameSession): MemoryState = runCatching { json.decodeFromString(MemoryState.serializer(), s.stateJson) }.getOrDefault(MemoryState())
     fun iCallOn(s: GameSession): ICallOnState = runCatching { json.decodeFromString(ICallOnState.serializer(), s.stateJson) }.getOrDefault(ICallOnState())
+    fun truthOrDare(s: GameSession): TruthOrDareState = runCatching { json.decodeFromString(TruthOrDareState.serializer(), s.stateJson) }.getOrDefault(TruthOrDareState())
+    fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
 
-    /** The three games the app offers; the server's other types play like the quiz. */
-    val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn)
+    /** The games the app offers; the server's other types play like the quiz. */
+    val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn,
+        GameType.TruthOrDare,
+        GameType.WordDash,
+    )
 
     fun title(type: GameType) = when (type) {
         GameType.CoupleQuiz -> tr("Same answer")
@@ -54,6 +61,8 @@ object GamePlay {
         GameType.CoupleQuiz -> tr("One question, two answers. A heart each time you both say the same thing.")
         GameType.MemoryMatch -> tr("Twelve cards, six pairs, your turn then mine. Most pairs wins.")
         GameType.ICallOn -> tr("A letter, four categories, 15 seconds. Judge each other's answers.")
+        GameType.TruthOrDare -> tr("Ten turns. Pick truth or dare, and your partner says if you did it. A point for each one done.")
+        GameType.WordDash -> tr("A word chain against the clock: each word starts with the last letter of the one before. 20 seconds a turn, first to five.")
         else -> tr("Take turns answering.")
     }
 
@@ -62,6 +71,8 @@ object GamePlay {
         val scores = when (s.gameType) {
             GameType.MemoryMatch -> memory(s).scores
             GameType.ICallOn -> iCallOn(s).scores
+            GameType.TruthOrDare -> truthOrDare(s).scores
+            GameType.WordDash -> wordDash(s).scores
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0

@@ -33,6 +33,33 @@ public sealed class PublicGameWordValidator(HttpClient client) : IGameWordValida
         return (await Task.WhenAll(checks)).ToDictionary(item => item.Category, item => item.Valid, StringComparer.OrdinalIgnoreCase);
     }
 
+    public async Task<bool?> IsWordAsync(string word, CancellationToken cancellationToken = default)
+    {
+        var normalized = word.Trim().ToLowerInvariant();
+        if (normalized.Length < 2 || !normalized.All(char.IsAsciiLetter)) return false;
+        var key = "word:" + normalized;
+        if (Cache.TryGetValue(key, out var cached)) return cached;
+        bool? valid;
+        try
+        {
+            // A turn lasts 20 seconds: a slow dictionary must not eat it. No answer in time means the word stands.
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(2.5));
+            using var response = await client.GetAsync("https://api.dictionaryapi.dev/api/v2/entries/en/" + Uri.EscapeDataString(normalized), timeout.Token);
+            valid = response.StatusCode == HttpStatusCode.NotFound ? false : response.IsSuccessStatusCode ? true : null;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            valid = null;
+        }
+        catch (HttpRequestException)
+        {
+            valid = null;
+        }
+        if (valid.HasValue) Cache[key] = valid;
+        return valid;
+    }
+
     private async Task<bool?> CheckAsync(string category, string answer, CancellationToken cancellationToken)
     {
         try

@@ -98,3 +98,45 @@ data class ICallOnState(
 
 @Serializable
 data class VetVerdict(val player: String, val category: String, val allow: Boolean)
+
+@Serializable
+data class TruthOrDareOutcome(val chooser: String, val choice: String, val prompt: String = "", val result: String = "done")
+
+@Serializable
+data class TruthOrDareState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    val turn: Int = 0,
+    val totalTurns: Int = 10,
+    /** "choosing", "judging" or "completed". */
+    val phase: String = "choosing",
+    val chooser: String? = null,
+    val judge: String? = null,
+    /** "truth" or "dare" once chosen. */
+    val choice: String? = null,
+    val prompt: String? = null,
+    val last: TruthOrDareOutcome? = null,
+)
+
+@Serializable
+data class WordLink(val player: String, val word: String)
+
+@Serializable
+data class WordDashState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    /** The letter the next word must start with; null once the game is over. */
+    val letter: String? = null,
+    val startLetter: String = "",
+    val chain: List<WordLink> = emptyList(),
+    val chainNumber: Int = 1,
+    val maxChains: Int = 15,
+    val target: Int = 5,
+    val turnSeconds: Int = 20,
+    val phase: String = "playing",
+    /** "timeout" right after a chain broke. */
+    val lastResult: String? = null,
+    val timedOut: String? = null,
+    val lastChain: List<String>? = null,
+    val winnerUserId: String? = null,
+)

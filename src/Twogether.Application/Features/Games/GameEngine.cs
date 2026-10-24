@@ -36,6 +36,8 @@ public sealed class GameEngine : IGameEngine
     /// </summary>
     private static readonly Dictionary<GameType, IGameRules> Registered = new IGameRules[]
     {
+        new TruthOrDareRules(),
+        new WordDashRules(),
     }.ToDictionary(rules => rules.Type);
 
     public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);
