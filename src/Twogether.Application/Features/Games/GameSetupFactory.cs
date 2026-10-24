@@ -66,6 +66,7 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
         GameType.CoupleQuiz => SameAnswerRules.CreateSetup(region),
         GameType.GuessMyAnswer => GuessMyAnswerRules.CreateSetup(region),
         GameType.WouldYouRather => WouldYouRatherRules.CreateSetup(region),
+        GameType.TicTacToe or GameType.ConnectFour => JsonSerializer.Serialize(new { region }),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };
 }

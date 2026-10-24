@@ -1,0 +1,92 @@
+package app.heartpact.ui.games
+
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import app.heartpact.data.GameSession
+import app.heartpact.i18n.tr
+import app.heartpact.ui.components.StickerCard
+import app.heartpact.ui.theme.Heartpact
+import app.heartpact.ui.theme.Shapes
+import app.heartpact.ui.theme.partner
+import kotlin.math.PI
+import kotlin.math.sin
+
+/** Connect four: tap a column and your disc drops to the lowest free hole; four in a row wins the game. */
+@Composable
+fun ConnectFourBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
+    GridMatchFrame(s, me, partnerName, busy, tr("Your turn: tap a column")) { g, shown ->
+        val columns = g.columns
+        val rows = g.rows
+        StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Well) {
+            Row(Modifier.padding(8.dp)) {
+                (0 until columns).forEach { column ->
+                    val cells = (0 until rows).map { row -> row * columns + column }
+                    val landing = cells.lastOrNull { shown.cells.getOrNull(it) == null }
+                    val label = if (landing == null) tr("Column {number}, full", "number" to column + 1) else tr("Column {number}", "number" to column + 1)
+                    Column(
+                        Modifier.weight(1f)
+                            .clickable(enabled = shown.canMove && landing != null, role = Role.Button) { actions.onAct(s, "drop", null, column) }
+                            .semantics { contentDescription = label },
+                    ) {
+                        cells.forEachIndexed { row, index ->
+                            Hole(row, shown.cells.getOrNull(index), index in shown.line, shown.line.isNotEmpty(), shown.canMove && index == landing, me)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Hole(row: Int, owner: String?, winning: Boolean, decided: Boolean, landing: Boolean, me: String) {
+    val colors = Heartpact.colors
+    // A new disc falls in from above the board and settles with a small bounce; a cleared board empties at once.
+    val dropped by animateFloatAsState(if (owner != null) 1f else 0f, if (owner != null) gentle(spring(0.55f, Spring.StiffnessMediumLow)) else snap(), label = "drop")
+    val lifted by animateFloatAsState(if (winning) 1f else 0f, gentle(tween(700)), label = "line")
+    val dimmed by animateFloatAsState(if (decided && !winning) 1f else 0f, gentle(tween(500)), label = "dim")
+    val side = owner?.let { sideOf(it, me) }
+    val hole = if (side != null) lerp(colors.page2, colors.partner(side).soft, lifted) else colors.page2
+    val slot = Heartpact.actor.action
+    Box(Modifier.fillMaxWidth().aspectRatio(1f).padding(3.dp), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(hole)
+            if (landing) drawCircle(slot.copy(alpha = 0.55f), size.minDimension / 2 - 3.dp.toPx(), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(7f, 6f))))
+        }
+        if (side != null) {
+            val pop = 1f + 0.1f * sin(PI.toFloat() * lifted)
+            HeartDisc(side, Modifier.fillMaxSize().padding(2.dp).graphicsLayer {
+                translationY = -(row + 1) * size.height * 1.1f * (1f - dropped)
+                scaleX = pop
+                scaleY = pop
+                alpha = 1f - 0.55f * dimmed
+            })
+        }
+    }
+}

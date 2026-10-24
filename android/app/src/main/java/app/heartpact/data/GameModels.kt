@@ -139,6 +139,8 @@ data class WordDashState(
     val timedOut: String? = null,
     val lastChain: List<String>? = null,
     val winnerUserId: String? = null,
+)
+
 /** Guess my answer's last round, shown to both once the guess is in. */
 @Serializable
 data class GuessReveal(
@@ -185,4 +187,27 @@ data class WouldYouRatherState(
     val picked: List<String> = emptyList(),
     val myPick: Int? = null,
     val last: RatherReveal? = null,
+)
+
+/**
+ * Tic-tac-toe and connect four: a short match of games on a grid. [cells] go row by row from the top and hold the
+ * player id that owns each one, or null. [phase] is "playing", "gameOver" (the finished board, with its [line], until
+ * the next starter moves) or "matchOver". [results] holds each finished game's winner, null for a draw.
+ */
+@Serializable
+data class GridMatchState(
+    val players: List<String> = emptyList(),
+    val columns: Int = 3,
+    val rows: Int = 3,
+    val cells: List<String?> = emptyList(),
+    val game: Int = 0,
+    val totalGames: Int = 1,
+    val winsNeeded: Int = 1,
+    val phase: String = "playing",
+    val lastMove: Int? = null,
+    val line: List<Int>? = null,
+    val scores: Map<String, Int> = emptyMap(),
+    val draws: Int = 0,
+    val results: List<String?> = emptyList(),
+    val winnerUserId: String? = null,
 )

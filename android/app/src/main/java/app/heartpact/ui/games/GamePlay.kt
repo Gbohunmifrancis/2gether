@@ -3,6 +3,7 @@ package app.heartpact.ui.games
 import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
+import app.heartpact.data.GridMatchState
 import app.heartpact.data.ICallOnState
 import app.heartpact.data.MemoryState
 import app.heartpact.data.QuizState
@@ -21,10 +22,9 @@ object GamePlay {
     fun iCallOn(s: GameSession): ICallOnState = runCatching { json.decodeFromString(ICallOnState.serializer(), s.stateJson) }.getOrDefault(ICallOnState())
     fun truthOrDare(s: GameSession): TruthOrDareState = runCatching { json.decodeFromString(TruthOrDareState.serializer(), s.stateJson) }.getOrDefault(TruthOrDareState())
     fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
-
-    /** The games the app offers; the server's other types play like the quiz. */
+    fun grid(s: GameSession): GridMatchState = runCatching { json.decodeFromString(GridMatchState.serializer(), s.stateJson) }.getOrDefault(GridMatchState())
     val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.GuessMyAnswer, GameType.WouldYouRather,
-        GameType.TruthOrDare, GameType.WordDash)
+        GameType.TruthOrDare, GameType.WordDash, GameType.TicTacToe, GameType.ConnectFour)
 
     fun title(type: GameType) = when (type) {
         GameType.CoupleQuiz -> tr("Same answer")
@@ -63,6 +63,8 @@ object GamePlay {
         GameType.WordDash -> tr("A word chain against the clock: each word starts with the last letter of the one before. 20 seconds a turn, first to five.")
         GameType.GuessMyAnswer -> tr("Answer about yourself, then guess your partner's answers. A point for every right guess.")
         GameType.WouldYouRather -> tr("Two choices, you both pick at once. A heart each time you pick the same.")
+        GameType.TicTacToe -> tr("Three in a row, your half of the heart against mine. First to win three games takes the match.")
+        GameType.ConnectFour -> tr("Drop your discs and line up four. First to win two games takes the match.")
         else -> tr("Take turns answering.")
     }
 
@@ -75,6 +77,7 @@ object GamePlay {
             GameType.WordDash -> wordDash(s).scores
             GameType.GuessMyAnswer -> guessMyAnswer(s).scores
             GameType.WouldYouRather -> return trn(wouldYouRather(s).scores[me] ?: 0, "{count} matching pick", "{count} matching picks")
+            GameType.TicTacToe, GameType.ConnectFour -> grid(s).scores
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0
