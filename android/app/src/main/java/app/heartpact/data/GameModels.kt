@@ -68,6 +68,8 @@ data class MemoryState(
     val revealed: List<Int> = emptyList(),
     val lastResult: String? = null,
     val lastPair: List<MemoryFlip>? = null,
+    /** The pictures on the cards: null for the classic six, "naija" for Nigerian couples. */
+    val theme: String? = null,
 )
 
 @Serializable
@@ -246,4 +248,26 @@ data class DrawAndGuessState(
     val guessesLeft: Int = 3,
     val maxGuesses: Int = 3,
     val lastRound: DrawRound? = null,
+)
+
+/** A trivia question as shown: text and four options, never the answer until both have picked. */
+@Serializable
+data class TriviaQuestionView(val text: String = "", val options: List<String> = emptyList())
+
+/** The last question both answered: the right option and what each partner picked. */
+@Serializable
+data class TriviaReveal(val round: Int = 0, val question: TriviaQuestionView = TriviaQuestionView(), val answer: Int = 0, val picks: Map<String, Int> = emptyMap())
+
+@Serializable
+data class TriviaState(
+    val players: List<String> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    val round: Int = 0,
+    val totalRounds: Int = 10,
+    val question: TriviaQuestionView? = null,
+    /** Who has answered the current question; their picks stay hidden until both have. */
+    val answered: List<String> = emptyList(),
+    val myAnswer: Int? = null,
+    val reveal: TriviaReveal? = null,
+    val completed: Boolean = false,
 )

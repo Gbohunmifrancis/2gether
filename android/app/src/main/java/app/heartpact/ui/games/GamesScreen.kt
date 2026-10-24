@@ -88,7 +88,7 @@ data class GameActions(
 fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }) {
     val active = ui.active
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-        TopBar(active?.let { GamePlay.title(it.gameType) } ?: tr("Play together"), actions.onBack)
+        TopBar(active?.let { GamePlay.title(it) } ?: tr("Play together"), actions.onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
             ui.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             when {
@@ -110,18 +110,19 @@ private fun Picker(ui: GamesUi, me: String, partnerName: String, actions: GameAc
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 HeartSticker(HalfState.Stuck, HalfState.Stuck, 32.dp)
                 Column {
-                    Text(tr("Last game: {game}", "game" to GamePlay.title(last.gameType)), style = Heartpact.type.label, color = colors.ink)
+                    Text(tr("Last game: {game}", "game" to GamePlay.title(last)), style = Heartpact.type.label, color = colors.ink)
                     Text(GamePlay.outcome(last, me, partnerName), style = Heartpact.type.body, color = colors.ink2)
                 }
             }
         }
     }
     Text(tr("Pick a game and {partner} gets an invite. It starts when they join.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(bottom = 14.dp))
+    val region = ui.sessions.firstOrNull()?.let(GamePlay::region)
     GamePlay.offered.forEach { type ->
         StickerCard(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
             Column(Modifier.padding(16.dp)) {
-                Text(GamePlay.title(type), style = Heartpact.type.title, color = colors.ink)
-                Text(GamePlay.blurb(type), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                Text(GamePlay.title(type, region), style = Heartpact.type.title, color = colors.ink)
+                Text(GamePlay.blurb(type, region), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 if (type == GameType.ICallOn) {
                     Text(tr("First letter"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 10.dp, bottom = 6.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -137,7 +138,7 @@ private fun Picker(ui: GamesUi, me: String, partnerName: String, actions: GameAc
     if (ui.history.size > 1) {
         Text(tr("Recent"), style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(top = 10.dp, bottom = 8.dp))
         StickerCard(Modifier.fillMaxWidth()) {
-            ui.history.drop(1).forEachIndexed { i, s -> CardRow(GamePlay.title(s.gameType), subtitle = GamePlay.outcome(s, me, partnerName), divider = i > 0) }
+            ui.history.drop(1).forEachIndexed { i, s -> CardRow(GamePlay.title(s), subtitle = GamePlay.outcome(s, me, partnerName), divider = i > 0) }
         }
     }
 }
@@ -149,11 +150,11 @@ private fun Waiting(s: GameSession, me: String, partnerName: String, busy: Boole
     Column(Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Character(Who.Both, if (mine) Pose.Stand else Pose.Wave, 130.dp)
         Text(if (mine) tr("Waiting for {partner} to join", "partner" to partnerName) else tr("{partner} invited you to play", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 16.dp), textAlign = TextAlign.Center)
-        Text(GamePlay.blurb(s.gameType), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 6.dp), textAlign = TextAlign.Center)
+        Text(GamePlay.blurb(s.gameType, GamePlay.region(s)), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 6.dp), textAlign = TextAlign.Center)
     }
     if (mine) HeartButton(tr("Cancel the invite"), { actions.onAbandon(s.id) }, Modifier.padding(top = 24.dp), kind = ButtonKind.Text)
     else {
-        HeartButton(GamePlay.play(s.gameType), { actions.onAccept(s.id) }, Modifier.padding(top = 24.dp), busy = busy)
+        HeartButton(GamePlay.play(s.gameType, GamePlay.region(s)), { actions.onAccept(s.id) }, Modifier.padding(top = 24.dp), busy = busy)
         HeartButton(tr("Not now"), { actions.onAbandon(s.id) }, Modifier.padding(top = 4.dp), kind = ButtonKind.Text)
     }
 }
@@ -193,6 +194,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.TicTacToe -> TicTacToeBoard(s, me, partnerName, busy, actions)
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
+        GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
@@ -259,10 +261,10 @@ private fun MemoryBoard(s: GameSession, me: String, partnerName: String, busy: B
                             .border(2.dp, colors.rule, Shapes.Tile)
                             .alpha(alpha)
                             .clickable(enabled = myTurn && !busy && value == null || myTurn && !busy && faded) { actions.onAct(s, "flip", null, card.index) }
-                            .semantics { contentDescription = value?.let { GamePlay.cardLabel(it) } ?: tr("Face-down card {number}", "number" to card.index + 1) },
+                            .semantics { contentDescription = value?.let { GamePlay.cardLabel(it, m.theme) } ?: tr("Face-down card {number}", "number" to card.index + 1) },
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (value != null) Icon(cardIcon(value), null, Modifier.size(34.dp), tint = Heartpact.actor.action)
+                        if (value != null) Icon(cardIcon(value, m.theme), null, Modifier.size(34.dp), tint = Heartpact.actor.action)
                         else HeartSticker(HalfState.Stuck, HalfState.Stuck, 26.dp, Modifier.alpha(0.35f))
                     }
                 }
@@ -271,7 +273,7 @@ private fun MemoryBoard(s: GameSession, me: String, partnerName: String, busy: B
     }
 }
 
-private fun cardIcon(value: Int) = when (value) {
+private fun cardIcon(value: Int, theme: String?) = if (theme == "naija") NaijaStickers.card(value) else when (value) {
     1 -> Icons.Rounded.Favorite
     2 -> Icons.Rounded.Star
     3 -> Icons.Rounded.LocalFlorist

@@ -287,5 +287,6 @@ public sealed class DrawAndGuessRulesTests
     private sealed class NoQuestions : IGameQuestionProvider
     {
         public Task<IReadOnlyList<string>> GetQuestionsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+        public Task<IReadOnlyList<TriviaQuestion>> GetTriviaAsync(int amount, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TriviaQuestion>>([]);
     }
 }
