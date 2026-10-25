@@ -50,7 +50,8 @@ import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.WidthClass
 import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.widthClass
-import app.heartpact.ui.graphics.LogoMark
+import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.Mood
@@ -59,6 +60,7 @@ import app.heartpact.ui.graphics.Who
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.Shapes
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 enum class Tab(val icon: ImageVector, val selectedIcon: ImageVector) {
@@ -160,6 +162,9 @@ private fun NavBar(current: Tab, onSelect: (Tab) -> Unit) {
     }
 }
 
+/** Between 11 at night and 6 in the morning the rail's mark sleeps. */
+private fun lateAtNight(now: LocalTime = LocalTime.now()) = now.hour >= 23 || now.hour < 6
+
 /** The navigation bar's tablet form: the same tabs down the start side, under the mark. */
 @Composable
 private fun NavRail(current: Tab, onSelect: (Tab) -> Unit) {
@@ -169,7 +174,7 @@ private fun NavRail(current: Tab, onSelect: (Tab) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        LogoMark(36.dp, night = colors.isNight, modifier = Modifier.padding(bottom = 18.dp))
+        LiveLogo(36.dp, if (lateAtNight()) LogoMood.Sleepy else LogoMood.Idle, night = colors.isNight, modifier = Modifier.padding(bottom = 18.dp))
         Tab.entries.forEach { tab ->
             val on = tab == current
             Column(

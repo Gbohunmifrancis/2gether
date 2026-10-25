@@ -47,8 +47,6 @@ fun HeartButton(
     fillWidth: Boolean = true,
     /** Overrides the label colour, for text buttons on dark grounds such as the alarm. */
     contentColor: Color? = null,
-    /** Draws [icon] in its own colours: a brand mark such as Google's "G". */
-    keepIconColors: Boolean = false,
 ) {
     val colors = Heartpact.colors
     val actor = Heartpact.actor
@@ -70,7 +68,7 @@ fun HeartButton(
             CircularProgressIndicator(Modifier.size(22.dp), color = content, strokeWidth = 2.5.dp)
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                icon?.let { Icon(it, null, Modifier.size(20.dp), tint = if (keepIconColors) Color.Unspecified else content) }
+                icon?.let { Icon(it, null, Modifier.size(20.dp), tint = content) }
                 Text(text, style = Heartpact.type.button, color = if (enabled) content else colors.sticker)
                 trailingIcon?.let { Icon(it, null, Modifier.size(20.dp), tint = content) }
             }

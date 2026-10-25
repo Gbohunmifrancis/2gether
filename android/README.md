@@ -31,7 +31,10 @@ Push (Firebase), release signing and the release API URL come from environment v
 
 ## What is wired
 
-- Walk-together splash (`ui/splash`): the halves walk in, meet and become the mark. A pure function of time, so frames are tested; tap to skip; with animations off it shows the last frame.
+- Walk-together splash (`ui/splash`): the halves walk in, meet and become the mark; the mark opens its eyes, its heart beats twice and it blinks. A pure function of time, so frames are tested; tap to skip; with animations off it shows the last frame, silently.
+  - Its sound (`res/raw/splash_love.ogg`, 16 KB) is made from scratch by `tools/splash_sound.py` on the same timeline: two soft boops as the halves meet, a music-box arpeggio as the tick cuts in, two heartbeats. It plays only when the ringer is on (not silent or vibrate), on the system sounds volume; a tap stops it.
+- Live logo (`ui/graphics/LiveLogo.kt`): the mark with a face, hopping and blinking by where it is. Welcome: happy hops. Sign in: hello and a wink, worried after an error. Sign up and reset password: happy or hello, worried on errors. Pairing: glancing about, waiting. Tablet rail: idle breathing, asleep from 11 pm to 6 am. Still when animations are off, and in screenshot tests (`LocalStillLogo`).
+- Google button (`ui/auth/GoogleButton.kt`): Google's own sign-in button style (the official "G" from Google's branding pack, `drawable-nodpi/google_g.png`), labelled "Continue with Google", "Sign up with Google" or "Sign in with Google" by screen.
 - Onboarding (three pages), welcome, sign up and sign in against `api/auth`.
 - Forgot password (an emailed six-digit code, then a new password; it signs out every other session) and "Continue with Google" through Credential Manager when the build has `GOOGLE_WEB_CLIENT_ID`; a new Google account is asked only for a birthday and gender.
 - Pairing against `api/couple`: invite code and link, share and copy, enter a partner's code, accept an invite link (`https://heartpact.app/invite/{token}`), and moving on when the partner joins.

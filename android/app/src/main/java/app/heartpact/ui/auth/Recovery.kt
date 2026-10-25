@@ -52,17 +52,19 @@ import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.TopBar
+import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.theme.Heartpact
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 private fun <T> ApiResult<T>.note(): String? = when (this) {
     is ApiResult.Ok -> null
@@ -122,7 +124,7 @@ class ForgotViewModel(private val auth: AuthRepository, email: String = "") : Vi
 fun ForgotPasswordScreen(state: ForgotState, onEmail: (String) -> Unit, onCode: (String) -> Unit, onPassword: (String) -> Unit, onSend: () -> Unit, onReset: () -> Unit, onBack: () -> Unit) {
     val colors = Heartpact.colors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar(tr("Reset your password"), onBack)
+        TopBar(tr("Reset your password"), onBack) { LiveLogo(30.dp, if (state.error != null) LogoMood.Worried else LogoMood.Hello, night = colors.isNight) }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (!state.sent) {
                 Text(tr("We'll email you a six-digit code. Your pact, dares and photos stay just as they are."), style = Heartpact.type.bodyLarge, color = colors.ink2)

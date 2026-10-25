@@ -1,29 +1,64 @@
 package app.heartpact.ui.auth
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.heartpact.R
 import app.heartpact.i18n.tr
-import app.heartpact.ui.components.ButtonKind
-import app.heartpact.ui.components.HeartButton
+import app.heartpact.ui.theme.Heartpact
+import app.heartpact.ui.theme.Shapes
 
-/** Google's "G" in its own four colours, as Google's sign-in branding asks: never tinted. */
-private val GoogleG: ImageVector by lazy {
-    ImageVector.Builder("GoogleG", 48.dp, 48.dp, 48f, 48f).apply {
-        listOf(
-            0xFFEA4335 to "M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z",
-            0xFF4285F4 to "M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z",
-            0xFFFBBC05 to "M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z",
-            0xFF34A853 to "M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z",
-        ).forEach { (color, path) -> addPath(PathParser().parsePathString(path).toNodes(), fill = SolidColor(Color(color))) }
-    }.build()
-}
+/** Which of Google's approved button texts a screen uses. */
+enum class GoogleAction { Continue, SignUp, SignIn }
 
-/** "Continue with Google": signs in, or signs up and asks for what Google doesn't tell us (GoogleFinishScreen). */
+/**
+ * Google's own sign-in button (developers.google.com/identity/branding-guidelines): the official "G" from Google's
+ * asset pack, untouched; white with a grey outline by day and the dark theme at night; Roboto Medium, the phone's own
+ * font; a pill, one of the two shapes Google allows.
+ */
 @Composable
-fun GoogleButton(onClick: () -> Unit, modifier: Modifier = Modifier, busy: Boolean = false) =
-    HeartButton(tr("Continue with Google"), onClick, modifier, kind = ButtonKind.Outline, icon = GoogleG, keepIconColors = true, busy = busy)
+fun GoogleButton(onClick: () -> Unit, modifier: Modifier = Modifier, action: GoogleAction = GoogleAction.Continue, busy: Boolean = false) {
+    val night = Heartpact.colors.isNight
+    val fill = if (night) Color(0xFF131314) else Color.White
+    val outline = if (night) Color(0xFF8E918F) else Color(0xFF747775)
+    val ink = if (night) Color(0xFFE3E3E3) else Color(0xFF1F1F1F)
+    val label = when (action) {
+        GoogleAction.Continue -> tr("Continue with Google")
+        GoogleAction.SignUp -> tr("Sign up with Google")
+        GoogleAction.SignIn -> tr("Sign in with Google")
+    }
+    Box(
+        modifier.fillMaxWidth().height(48.dp).clip(Shapes.Pill).background(fill).border(BorderStroke(1.dp, outline), Shapes.Pill)
+            .clickable(enabled = !busy, role = Role.Button, onClick = onClick).padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (busy) CircularProgressIndicator(Modifier.size(20.dp), color = ink, strokeWidth = 2.dp)
+        else Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Image(painterResource(R.drawable.google_g), null, Modifier.size(20.dp))
+            Text(label, style = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.25.sp), color = ink)
+        }
+    }
+}

@@ -32,7 +32,8 @@ import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.TopBar
-import app.heartpact.ui.graphics.LogoMark
+import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.theme.Heartpact
 
 @Composable
@@ -51,7 +52,8 @@ fun SignInScreen(
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         TopBar(onBack = onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
-            LogoMark(44.dp, night = colors.isNight, modifier = Modifier.padding(top = 8.dp))
+            // It says hello, and looks worried when something went wrong.
+            LiveLogo(48.dp, if (state.error != null || state.note != null) LogoMood.Worried else LogoMood.Hello, night = colors.isNight, modifier = Modifier.padding(top = 8.dp))
             Text(tr("Welcome back"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 18.dp))
             Text(tr("Sign in to pick up where you and your partner left off."), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 8.dp, bottom = 24.dp))
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -64,7 +66,7 @@ fun SignInScreen(
             }
             state.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             HeartButton(tr("Sign in"), onSubmit, Modifier.padding(top = 6.dp), busy = state.busy)
-            onGoogle?.let { GoogleButton(it, Modifier.padding(top = 8.dp), busy = googleBusy) }
+            onGoogle?.let { GoogleButton(it, Modifier.padding(top = 8.dp), GoogleAction.SignIn, busy = googleBusy) }
         }
         Row(Modifier.fillMaxWidth().padding(bottom = 24.dp, top = 8.dp), horizontalArrangement = Arrangement.Center) {
             Text(

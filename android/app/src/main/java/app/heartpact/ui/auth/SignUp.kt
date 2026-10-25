@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +20,7 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SelectableDates
@@ -34,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
@@ -50,6 +50,8 @@ import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.TopBar
+import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.theme.Heartpact
 import java.time.Instant
 import java.time.LocalDate
@@ -71,11 +73,11 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
     val guess = remember { Countries.guess(context) }
     LaunchedEffect(guess) { if (form.country == null && guess != null) onEdit { it.copy(country = guess) } }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar(tr("Create your account"), onBack)
+        TopBar(tr("Create your account"), onBack) { LiveLogo(30.dp, if (errors.isNotEmpty()) LogoMood.Worried else LogoMood.Happy, night = colors.isNight) }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The quickest way in first: Google fills the name and email; the rest is asked on the next screen.
             onGoogle?.let {
-                GoogleButton(it, Modifier.padding(top = 4.dp), busy = googleBusy)
+                GoogleButton(it, Modifier.padding(top = 4.dp), GoogleAction.SignUp, busy = googleBusy)
                 googleNote?.let { note -> NoteCard(note) }
                 OrDivider()
             }

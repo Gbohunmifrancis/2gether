@@ -21,7 +21,8 @@ import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.graphics.Character
-import app.heartpact.ui.graphics.LogoMark
+import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.graphics.Pose
 import app.heartpact.ui.graphics.Who
 import app.heartpact.ui.theme.Heartpact
@@ -31,7 +32,7 @@ fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (
     val colors = Heartpact.colors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp)) {
         Row(Modifier.height(56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LogoMark(28.dp, night = colors.isNight)
+            LiveLogo(30.dp, LogoMood.Happy, night = colors.isNight)
             Text("heartpact", style = Heartpact.type.wordmark, color = colors.ink)
         }
         Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {

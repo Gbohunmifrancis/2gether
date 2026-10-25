@@ -48,6 +48,8 @@ import app.heartpact.ui.components.TopBar
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.HalfState
 import app.heartpact.ui.graphics.HeartSticker
+import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.graphics.Pose
 import app.heartpact.ui.graphics.Who
 import app.heartpact.ui.theme.Heartpact
@@ -70,7 +72,7 @@ fun PairScreen(
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar(tr("Find your other half"))
+        TopBar(tr("Find your other half"), trailing = { LiveLogo(30.dp, LogoMood.Waiting, night = colors.isNight) })
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                 Character(Who.Left, Pose.Wave, 124.dp)
