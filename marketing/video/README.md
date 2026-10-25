@@ -4,8 +4,8 @@ A 37-second launch ad, in two formats:
 
 | File | Size | For |
 | --- | --- | --- |
-| `out/heartpact-launch-9x16.mp4` | 1080 × 1920, 30 fps | Reels, TikTok, Shorts, Stories, vertical feed ads |
-| `out/heartpact-launch-16x9.mp4` | 1920 × 1080, 30 fps | YouTube, X, LinkedIn, the website, Play's promo video |
+| `heartpact-launch-9x16.mp4` | 1080 × 1920, 30 fps | Reels, TikTok, Shorts, Stories, vertical feed ads |
+| `heartpact-launch-16x9.mp4` | 1920 × 1080, 30 fps | YouTube, X, LinkedIn, the website, Play's promo video |
 
 H.264 and AAC, loudness -14 LUFS (the social platforms' target), the moov atom up front for streaming.
 

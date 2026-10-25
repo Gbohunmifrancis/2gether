@@ -1,7 +1,7 @@
 """
 Builds the launch video from the app's own screens and animations:
 
-    python3 marketing/video/tools/build.py            # both formats: out/heartpact-launch-9x16.mp4 and -16x9.mp4
+    python3 marketing/video/tools/build.py            # both formats: heartpact-launch-9x16.mp4 and -16x9.mp4
     python3 marketing/video/tools/build.py 9x16       # one format
     python3 marketing/video/tools/build.py stills     # a few key frames per format, as JPEGs, for checking the design
 
@@ -85,7 +85,7 @@ def render(name: str, audio: pathlib.Path, plan: dict) -> pathlib.Path:
     width, height = FORMATS[name]
     silent = BUILD / f"video-{name}.mp4"
     subprocess.run(["node", str(TOOLS / "render.cjs"), str(TOOLS / "video.html"), str(width), str(height), str(FPS), str(plan["length"]), str(silent)], check=True)
-    out = HERE / f"out/heartpact-launch-{name}.mp4"
+    out = HERE / f"heartpact-launch-{name}.mp4"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(silent), "-i", str(audio), "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                     "-shortest", "-movflags", "+faststart", str(out)], check=True)
     return out
