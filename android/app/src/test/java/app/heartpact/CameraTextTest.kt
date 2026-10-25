@@ -4,6 +4,8 @@ import app.heartpact.exercise.CounterState
 import app.heartpact.exercise.ExerciseType
 import app.heartpact.ui.camera.CameraText
 import app.heartpact.ui.camera.CameraUi
+import app.heartpact.ui.camera.FinishOutcome
+import app.heartpact.ui.camera.finishBackoffMs
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -31,5 +33,21 @@ class CameraTextTest {
         assertEquals("6", CameraText.toGo(CameraUi(ExerciseType.ArmRaise, 15, CounterState(count = 9))))
         assertEquals("0", CameraText.toGo(CameraUi(ExerciseType.ArmRaise, 15, CounterState(count = 17))))
         assertEquals("12s", CameraText.toGo(CameraUi(ExerciseType.Plank, 30, CounterState(count = 18))))
+    }
+
+    @Test fun aFinishThatFailsOnTheWayRetriesByItself() {
+        assertEquals(FinishOutcome.Retry("Busy"), FinishOutcome.of("unknown", 503, "Busy"))
+        assertEquals(FinishOutcome.Retry("Raced"), FinishOutcome.of("exercise.version_conflict", 409, "Raced"))
+        // The server's clock a second behind the phone's: wait and send again.
+        assertEquals(FinishOutcome.Retry("Too fast"), FinishOutcome.of("exercise.too_fast", 422, "Too fast"))
+    }
+
+    @Test fun aFinishRefusedForAReasonWaitsForThePerson() {
+        assertEquals(FinishOutcome.Refused("Closed"), FinishOutcome.of("exercise.not_active", 409, "Closed"))
+        assertEquals(FinishOutcome.Refused("Light"), FinishOutcome.of("exercise.low_confidence", 422, "Light"))
+    }
+
+    @Test fun retriesWaitLongerEachTimeUpToHalfAMinute() {
+        assertEquals(listOf(2_000L, 4_000L, 8_000L, 16_000L, 30_000L, 30_000L), (0..5).map(::finishBackoffMs))
     }
 }

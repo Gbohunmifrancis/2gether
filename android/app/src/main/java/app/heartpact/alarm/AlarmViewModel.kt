@@ -11,6 +11,7 @@ import app.heartpact.data.OccurrenceStatus
 import app.heartpact.data.PlayIntegrity
 import app.heartpact.exercise.ExerciseChecks
 import app.heartpact.i18n.tr
+import app.heartpact.ui.camera.FinishOutcome
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,16 +39,21 @@ data class AlarmUi(
     val partnerName: String = tr("your partner"),
     /** Silenced on this phone: the dare stays open, the sound stops. */
     val silenced: Boolean = false,
+    /** The dare's time has come, so the alarm may be ringing: the screen offers Silence. A dare done early isn't due yet. */
+    val dueNow: Boolean = true,
 )
 
 class AlarmViewModel(application: Application, private val slot: AlarmSlot) : AndroidViewModel(application) {
     private val app = (application as HeartpactApplication).container
-    private val _ui = MutableStateFlow(AlarmUi(partnerName = slot.setByName ?: tr("your partner"), silenced = slot.key in AlarmStore(application).silenced))
+    private val _ui = MutableStateFlow(AlarmUi(partnerName = slot.setByName ?: tr("your partner"), silenced = slot.key in AlarmStore(application).silenced,
+        dueNow = !slot.early || System.currentTimeMillis() >= slot.dueAtEpochMs))
     val ui: StateFlow<AlarmUi> = _ui.asStateFlow()
     private var watcher: Job? = null
 
     init {
         viewModelScope.launch { if (slot.early) startEarly() else load() }
+        // Done early and still going at the due time: the phone's own alarm rings then, so Silence appears.
+        if (!_ui.value.dueNow) viewModelScope.launch { delay(slot.dueAtEpochMs - System.currentTimeMillis()); _ui.update { it.copy(dueNow = true) } }
         // Warm Play Integrity up while the person exercises, so the token at the finish is quick.
         viewModelScope.launch { app.integrity.prepare() }
     }
@@ -158,20 +164,27 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
         app.live.reportExerciseProgress(occurrence.id, count, confidence)
     }
 
-    /** The camera counted the target; the server re-checks the count, the confidence and the time taken. */
-    fun complete(count: Int, confidence: Double, checks: ExerciseChecks, onRejected: (String) -> Unit) {
-        val occurrence = currentOccurrence() ?: return
-        viewModelScope.launch {
-            val token = app.integrity.token(PlayIntegrity.requestHash(occurrence.id, count, checks))
-            when (val result = app.exercise.complete(occurrence.id, count, confidence, checks, token)) {
-                is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) }; replan() }
-                is ApiResult.Failure -> onRejected(result.message)
-                ApiResult.Offline -> onRejected(OFFLINE_MESSAGE)
+    /**
+     * The camera counted the target; the server re-checks the count, the confidence and the time taken.
+     * Says whether the camera should try again by itself (offline, the server busy or racing) or show why.
+     */
+    suspend fun complete(count: Int, confidence: Double, checks: ExerciseChecks): FinishOutcome {
+        val occurrence = currentOccurrence() ?: return FinishOutcome.Saved
+        val token = app.integrity.token(PlayIntegrity.requestHash(occurrence.id, count, checks))
+        return when (val result = app.exercise.complete(occurrence.id, count, confidence, checks, token)) {
+            is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) }; replan(); FinishOutcome.Saved }
+            is ApiResult.Failure -> FinishOutcome.of(result.code, result.status, result.message).also {
+                // Closed meanwhile (missed, let off, or done on another phone): show how it ended.
+                if (result.code == "exercise.not_active") recheck(occurrence.id)
             }
+            ApiResult.Offline -> FinishOutcome.Retry(OFFLINE_MESSAGE)
         }
     }
 
-    fun showNote(message: String) = _ui.update { it.copy(note = message) }
+    private fun recheck(occurrenceId: String) = viewModelScope.launch {
+        val today = app.exercise.today() as? ApiResult.Ok ?: return@launch
+        today.value.occurrences.firstOrNull { it.id == occurrenceId }?.takeIf { !it.status.ringing }?.let(::show)
+    }
 
     fun backToAlarm() {
         val occurrence = currentOccurrence() ?: return

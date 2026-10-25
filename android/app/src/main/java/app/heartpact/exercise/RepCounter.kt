@@ -44,6 +44,12 @@ data class CounterState(
  * back ([FaultKind.Shallow]), starting the next rep without getting back ([FaultKind.NotAllTheWay]),
  * reaching the position out of line ([FaultKind.Posture]), or a rep quicker than [fastFactor] of the
  * exercise's minimum pace ([FaultKind.TooFast]). Each fault leaves a tip in [CounterState.cue].
+ *
+ * The signal alone can be faked by moving one joint, so each exercise also checks the body is
+ * where that exercise puts it ([FaultKind.Position]): a squat drops the hips, a push-up and a plank
+ * hold the body level with the shoulders up over the hands or elbows, a sit-up is done lying down.
+ * A frame out of position moves nothing. The checks are loose on purpose: real bodies and real
+ * camera angles vary, and they only need to rule out the cheats (a chair, standing, lying flat).
  */
 class RepCounter(
     val type: ExerciseType,
@@ -74,6 +80,8 @@ class RepCounter(
     private var fastReps = 0
     private var fault: RepFault? = null
     private var lastFrameMs = 0L
+    // Squat: where the hip was the last time the leg was straight, to tell a squat from a knee bent in a chair.
+    private var standingHipY: Float? = null
 
     private val minRepMs = (type.minSecondsPerUnit * 1_000 * fastFactor).toLong()
 
@@ -81,7 +89,7 @@ class RepCounter(
         count = 0; active = false; pending = 0
         visibilitySum = 0.0; visibleFrames = 0; inFrame = false; holdMs = 0; lastHoldFrameMs = null; heldSinceMs = null
         nearFrames = 0; reachedNear = false; retreated = false; postureFrames = 0; restSeenMs = null; repStartMs = null
-        lastRepStartMs = null; lastRepEndMs = null; formFaults = 0; fastReps = 0; fault = null; lastFrameMs = 0
+        lastRepStartMs = null; lastRepEndMs = null; formFaults = 0; fastReps = 0; fault = null; lastFrameMs = 0; standingHipY = null
     }
 
     val state: CounterState get() = CounterState(
@@ -111,6 +119,12 @@ class RepCounter(
         if (reading == null) {
             lastHoldFrameMs = null
             heldSinceMs = null
+            return state
+        }
+        if (!reading.inPosition) {
+            // In view but not in this exercise's position (standing for push-ups, a knee bent in a chair): nothing moves.
+            pending = 0
+            reading.fault?.let { fault = RepFault(it, now) }
             return state
         }
         visibilitySum += reading.visibility
@@ -190,8 +204,10 @@ class RepCounter(
         val visibility: Float,
         /** False on frames where the body is out of line for this exercise. */
         val postureOk: Boolean = true,
-        /** Plank: why the line is broken, when it is. */
+        /** Plank: why the line is broken, when it is. Out of position: the tip to show, if any. */
         val fault: FaultKind? = null,
+        /** False when the body isn't where this exercise puts it; such a frame moves nothing. */
+        val inPosition: Boolean = true,
     )
 
     private fun read(p: Pose): Reading? {
@@ -203,21 +219,39 @@ class RepCounter(
                     // Side-on, the trunk leaning more than [SQUAT_LEAN] degrees from upright means the chest has dropped.
                     val shoulder = if (s[0] == L_HIP) L_SHOULDER else R_SHOULDER
                     val upright = p.visibility(shoulder) < minVisibility || p.lean(s[0], shoulder) <= SQUAT_LEAN
-                    Reading(p.angle(s[0], s[1], s[2]), restEdge = 160f, activeEdge = 105f, activeIsLow = true, visibility = it, postureOk = upright)
+                    val knee = p.angle(s[0], s[1], s[2])
+                    // The hips must come down, not only the knee bend: sitting in a chair and swinging a leg moves the knee alone.
+                    val hipY = p[s[0]].y
+                    if (!active && knee >= SQUAT_REST) standingHipY = hipY
+                    val leg = p.distance(s[0], s[1]) + p.distance(s[1], s[2])
+                    val dropped = standingHipY?.let { hipY - it >= SQUAT_DROP * leg } == true
+                    Reading(knee, restEdge = SQUAT_REST, activeEdge = 105f, activeIsLow = true, visibility = it, postureOk = upright, inPosition = knee > 105f || dropped)
                 }
             }
             ExerciseType.PushUp -> {
                 val s = p.betterSide(intArrayOf(L_SHOULDER, L_ELBOW, L_WRIST), intArrayOf(R_SHOULDER, R_ELBOW, R_WRIST))
+                val (hip, ankle) = if (s[0] == L_SHOULDER) L_HIP to L_ANKLE else R_HIP to R_ANKLE
+                // The hip is needed to see that the body is level; without it the frame can't be judged.
+                if (p.visibility(hip) < minVisibility) return null
                 seen(*s)?.let {
                     // Shoulders, hips and ankles in a line; checked only when the camera sees them.
-                    val (hip, ankle) = if (s[0] == L_SHOULDER) L_HIP to L_ANKLE else R_HIP to R_ANKLE
                     val straight = p.visibility(hip, ankle) < minVisibility || p.angle(s[0], hip, ankle) >= PUSH_UP_LINE
-                    Reading(p.angle(s[0], s[1], s[2]), restEdge = 150f, activeEdge = 100f, activeIsLow = true, visibility = it, postureOk = straight)
+                    val elbow = p.angle(s[0], s[1], s[2])
+                    // Level (not standing side-on bending the elbows), and at the top the hands are under the
+                    // raised shoulders (not lying flat, not on the back pushing the arms up).
+                    val level = p.tilt(s[0], if (p.visibility(ankle) >= minVisibility) ankle else hip) <= BODY_TILT
+                    val shouldersUp = p[s[2]].y - p[s[0]].y >= ARMS_UNDER * (p.distance(s[0], s[1]) + p.distance(s[1], s[2]))
+                    Reading(elbow, restEdge = 150f, activeEdge = 100f, activeIsLow = true, visibility = it, postureOk = straight,
+                        fault = FaultKind.Position, inPosition = level && (elbow < 150f || shouldersUp))
                 }
             }
             ExerciseType.SitUp -> {
                 val s = p.betterSide(intArrayOf(L_SHOULDER, L_HIP, L_KNEE), intArrayOf(R_SHOULDER, R_HIP, R_KNEE))
-                seen(*s)?.let { Reading(p.angle(s[0], s[1], s[2]), restEdge = 125f, activeEdge = 80f, activeIsLow = true, visibility = it) }
+                seen(*s)?.let {
+                    // Lying down the knee is level with the hip or above it; standing and bending forward, it hangs below.
+                    val lying = p[s[2]].y - p[s[1]].y <= SIT_UP_KNEE_DROP * p.distance(s[1], s[2])
+                    Reading(p.angle(s[0], s[1], s[2]), restEdge = 125f, activeEdge = 80f, activeIsLow = true, visibility = it, fault = FaultKind.Position, inPosition = lying)
+                }
             }
             ExerciseType.ArmRaise -> {
                 val idx = intArrayOf(L_SHOULDER, R_SHOULDER, L_WRIST, R_WRIST, L_HIP, R_HIP)
@@ -253,9 +287,13 @@ class RepCounter(
                     val straight = p.angle(s[0], s[1], s[2]) >= 155f
                     // Horizontal-ish: the body's rise is small compared with its length.
                     val flat = kotlin.math.abs(p[s[0]].y - p[s[2]].y) <= 0.45f * p.distance(s[0], s[2])
+                    // Held up on the elbows or hands: lying flat, face down or on the back, is also straight and level.
+                    val (elbow, wrist) = if (s[0] == L_SHOULDER) L_ELBOW to L_WRIST else R_ELBOW to R_WRIST
+                    val prop = listOf(elbow, wrist).filter { p[it].visibility >= minVisibility }.maxOfOrNull { p[it].y - p[s[0]].y }
+                    val propped = prop != null && prop >= PLANK_PROP * p.distance(s[0], elbow)
                     val fault = when {
-                        straight && flat -> null
-                        !flat -> FaultKind.Posture
+                        straight && flat && propped -> null
+                        !flat || !propped -> FaultKind.Posture
                         // y grows downward: a hip below the shoulder-to-ankle line is sagging.
                         p[s[1]].y > p.lineY(s[0], s[2], p[s[1]].x) -> FaultKind.HipsLow
                         else -> FaultKind.HipsHigh
@@ -281,5 +319,17 @@ class RepCounter(
         const val NEAR = 0.45f
         const val SQUAT_LEAN = 60f
         const val PUSH_UP_LINE = 150f
+        /** Squat: the knee angle that counts as standing, where the standing hip height is taken. */
+        const val SQUAT_REST = 160f
+        /** Squat: how far the hips must sink below standing at the bottom, in leg lengths. A real squat to 105 degrees sinks about 0.2. */
+        const val SQUAT_DROP = 0.1f
+        /** Push-up: the most the shoulder-to-feet line may slope, in degrees (standing is about 90, an incline on a sofa about 40). */
+        const val BODY_TILT = 50f
+        /** Push-up: at the top the hands are below the shoulders by at least this share of the arm (straight down is 1). */
+        const val ARMS_UNDER = 0.5f
+        /** Plank: the elbow or hand is below the shoulder by at least this share of the upper arm (a forearm plank is about 1). */
+        const val PLANK_PROP = 0.5f
+        /** Sit-up: the knee may sit at most this share of the thigh below the hip (standing it hangs a whole thigh below). */
+        const val SIT_UP_KNEE_DROP = 0.5f
     }
 }

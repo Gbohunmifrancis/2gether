@@ -121,7 +121,7 @@ class ExerciseShotsTest {
     @Test fun cameraCheckIn() {
         val ui = workout.copy(
             counter = CounterState(count = 9, inFrame = true, confidence = 0.9, cue = "Both hands all the way above your head."),
-            challenge = app.heartpact.exercise.ChallengeUi(app.heartpact.exercise.ChallengeKind.Freeze, msLeft = 4_200, progress = 0.4f),
+            challenge = app.heartpact.exercise.ChallengeUi(app.heartpact.exercise.ChallengeKind.RaiseLeft, msLeft = 4_200, progress = 0.4f),
         )
         shot("camera-check-in") { CameraRepContent(ui, {}, {}) { CameraStandIn() } }
     }

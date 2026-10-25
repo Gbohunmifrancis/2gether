@@ -70,6 +70,17 @@ class AlarmPlanTest {
         assertTrue(AlarmPlan.plan(today, me, "Theo", now).isEmpty())
     }
 
+    @Test fun `a dare done this morning and then moved to tonight doesn't ring again today`() {
+        // Done at 07:00; the partner then moved it to 20:00, so the goal points at tonight. The server won't open
+        // another for the same day, so the phone mustn't ring for it either; tomorrow's still rings.
+        val today = ExerciseToday("x",
+            listOf(goal("mine", me, theo, "2026-10-11T20:00:00Z")),
+            listOf(occurrence("mine", me, OccurrenceStatus.Completed, "2026-10-11T07:00:00Z", "2026-10-11T07:30:00Z")))
+        assertTrue(AlarmPlan.plan(today, me, "Theo", now).isEmpty())
+        val tomorrow = today.copy(goals = listOf(goal("mine", me, theo, "2026-10-12T20:00:00Z")))
+        assertEquals(1, AlarmPlan.plan(tomorrow, me, "Theo", now).size)
+    }
+
     @Test fun `a dare started early and abandoned still rings at its time`() {
         val today = ExerciseToday("x",
             listOf(goal("mine", me, theo, "2026-10-11T08:00:00Z")),

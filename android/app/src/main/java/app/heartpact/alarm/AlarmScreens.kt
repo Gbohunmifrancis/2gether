@@ -232,10 +232,17 @@ fun AlarmEnded(reason: EndReason, partnerName: String, onDone: () -> Unit) {
     }
 }
 
+/**
+ * While the alarm finds its dare on the server (offline, this can last the whole window). It may be
+ * ringing meanwhile, so the way out is on screen here too unless [onSilence] is null.
+ */
 @Composable
-fun AlarmLoading(note: String?) {
-    Column(Modifier.fillMaxSize().background(Ink).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+fun AlarmLoading(note: String?, onSilence: (() -> Unit)? = null) {
+    Column(Modifier.fillMaxSize().background(Ink).readable().statusBarsPadding().navigationBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.weight(1f))
         CircularProgressIndicator(color = OnInk)
         Text(note ?: tr("Checking today's dare…"), style = Heartpact.type.body, color = OnInk, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 16.dp))
+        Spacer(Modifier.weight(1f))
+        onSilence?.let { HeartButton(tr("Silence on this phone"), it, kind = ButtonKind.Text, icon = Icons.Rounded.NotificationsOff, contentColor = OnInk) }
     }
 }

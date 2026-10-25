@@ -6,6 +6,7 @@ import app.heartpact.exercise.ExerciseType
 import kotlinx.serialization.Serializable
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 
 /**
  * One alarm the phone should ring: a dare of mine, when it is due and until when it may ring.
@@ -51,8 +52,10 @@ object AlarmPlan {
                     }
                 }
             val next = utc(goal.nextDueAtUtc)
-            // Done or called off before it rang: today's alarm is cancelled even if the pointer lags.
-            val settled = today.occurrences.any { it.goalId == goal.id && !it.status.ringing && utc(it.scheduledAtUtc) == next }
+            // Done or called off before it rang: today's alarm is cancelled even if the pointer lags. Matched by the
+            // day in the dare's zone, as the server does: a dare done this morning and then moved to tonight rings no more today.
+            val nextDay = runCatching { next.atZone(ZoneId.of(goal.timeZoneId)).toLocalDate().toString() }.getOrNull()
+            val settled = today.occurrences.any { it.goalId == goal.id && !it.status.ringing && (utc(it.scheduledAtUtc) == next || it.localDate == nextDay) }
             if (next.isAfter(now) && !settled) {
                 slots += AlarmSlot(goal.id, goal.exerciseType.titleOf(goal.title), goal.exerciseType, goal.target, next.toEpochMilli(),
                     next.plus(Duration.ofMinutes(goal.graceMinutes.toLong())).toEpochMilli(), setBy)

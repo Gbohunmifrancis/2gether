@@ -72,9 +72,11 @@ fun TodayTab(
     onKeep: (String) -> Unit,
     onNewDare: () -> Unit,
     now: Instant = Instant.now(),
+    onExactAlarmsAsked: () -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val view = ui.view
+    if (ui.askExactAlarms) ExactAlarmsAsk(onExactAlarmsAsked)
     // With room, my dare sits beside the rest: the week, my dare for my partner and a new one.
     AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
@@ -222,6 +224,28 @@ private fun CallOffRequest(occurrence: ExerciseOccurrence, partnerName: String, 
     }
 }
 
+/**
+ * Asked once, the first time I have a dare and the phone may not set exact alarms (Android 14 and later
+ * start with it off). Allow opens the system page for it; either answer stops this asking again.
+ */
+@Composable
+private fun ExactAlarmsAsk(onAnswered: () -> Unit) {
+    val context = LocalContext.current
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onAnswered,
+        icon = { androidx.compose.material3.Icon(Icons.Rounded.Alarm, null) },
+        title = { Text(tr("Let your dares ring on time")) },
+        text = { Text(tr("A dare rings at the minute it's due only if Heartpact may set alarms. Without that, Android can hold it back by up to an hour. Turn on \"Alarms & reminders\" for Heartpact on the next screen.")) },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = {
+                onAnswered()
+                app.heartpact.alarm.AlarmReadiness.exactAlarmSettings(context)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }) { Text(tr("Allow")) }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onAnswered) { Text(tr("Not now")) } },
+    )
+}
+
 @Composable
 private fun Readiness(ui: TodayUi) {
     val context = LocalContext.current
@@ -232,7 +256,7 @@ private fun Readiness(ui: TodayUi) {
         if (!r.notifications) CardRow(tr("Allow notifications"), subtitle = tr("So a dare can ring at all"), icon = Icons.Rounded.Notifications, onClick = {
             if (Build.VERSION.SDK_INT >= 33) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         })
-        if (!r.exactAlarms) CardRow(tr("Ring on time"), subtitle = tr("Allow exact alarms, or it may ring a few minutes late"), icon = Icons.Rounded.Alarm, divider = !r.notifications, onClick = {
+        if (!r.exactAlarms) CardRow(tr("Ring on time"), subtitle = tr("Allow exact alarms, or Android may ring it up to an hour late"), icon = Icons.Rounded.Alarm, divider = !r.notifications, onClick = {
             app.heartpact.alarm.AlarmReadiness.exactAlarmSettings(context)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         })
         if (!r.fullScreen) CardRow(tr("Ring over the lock screen"), subtitle = tr("Allow full-screen alarms, or it shows as a notification"), icon = Icons.Rounded.FullscreenExit, divider = true, onClick = {

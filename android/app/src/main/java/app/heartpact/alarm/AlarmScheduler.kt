@@ -38,7 +38,8 @@ object AlarmScheduler {
                 manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, slot.dueAtEpochMs, operation)
             }
         }
-        AlarmPlan.ringingNow(slots, store.silenced, now).forEach { AlarmNotifier.ring(context, it) }
+        // Every refresh re-plans (Today checks in every 15-60 s, even in the background), so only start what isn't ringing yet.
+        AlarmPlan.ringingNow(slots, store.silenced, now).filterNot { AlarmNotifier.isShowing(context, it) }.forEach { AlarmNotifier.ring(context, it) }
     }
 
     /** After a reboot or clock change: replan from what was stored, without the network. */

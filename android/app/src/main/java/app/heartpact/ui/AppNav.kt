@@ -374,6 +374,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onCallOff = todayModel::callOffTogether,
                             onKeep = todayModel::keepIt,
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
+                            onExactAlarmsAsked = todayModel::exactAlarmsAsked,
                         )
                     })
                 }

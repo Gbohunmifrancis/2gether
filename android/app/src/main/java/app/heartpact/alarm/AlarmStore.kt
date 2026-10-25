@@ -26,10 +26,16 @@ class AlarmStore(context: Context) {
         prefs.edit { putStringSet(SILENCED, keep) }
     }
 
+    /** Today explained exact alarms and asked once; after that only its card asks. */
+    var exactAlarmsAsked: Boolean
+        get() = prefs.getBoolean(EXACT_ASKED, false)
+        set(value) = prefs.edit { putBoolean(EXACT_ASKED, value) }
+
     fun clear() = prefs.edit { clear() }
 
     private companion object {
         const val SLOTS = "slots"
         const val SILENCED = "silenced"
+        const val EXACT_ASKED = "exact_alarms_asked"
     }
 }
