@@ -371,4 +371,148 @@ public sealed class ExerciseTests
         Assert.Equal("2026-02-03", ExerciseMapper.ToDto(occurrence, "Femi").LocalDate);
         Assert.Equal(7, ExerciseCatalog.All.Count);
     }
+
+    [Fact]
+    public void Restarting_the_camera_never_keeps_a_dare_open_past_deadline_plus_the_allowance()
+    {
+        var now = new DateTime(2026, 6, 1, 7, 0, 0, DateTimeKind.Utc);
+        var occurrence = Ringing(now); // deadline 07:30, hard end 07:40
+        Assert.Equal(now.AddMinutes(40), occurrence.LatestCompleteByUtc);
+
+        occurrence.Start(now.AddMinutes(29));
+        Assert.Equal(now.AddMinutes(39), occurrence.CompleteByUtc);
+        // "Leave for now", then start again every few minutes: the end stays at 07:40.
+        occurrence.Start(now.AddMinutes(36));
+        Assert.Equal(now.AddMinutes(40), occurrence.CompleteByUtc);
+        occurrence.Start(now.AddMinutes(39));
+        Assert.Equal(now.AddMinutes(40), occurrence.CompleteByUtc);
+        Assert.True(occurrence.IsOpenAt(now.AddMinutes(39).AddSeconds(59)));
+        Assert.False(occurrence.IsOpenAt(now.AddMinutes(40)));
+        Assert.Throws<InvalidOperationException>(() => occurrence.Start(now.AddMinutes(40)));
+    }
+
+    [Fact]
+    public void The_window_is_open_while_ringing_before_the_deadline_and_in_progress_before_complete_by()
+    {
+        var now = new DateTime(2026, 6, 1, 7, 0, 0, DateTimeKind.Utc);
+        var ringing = Ringing(now);
+        Assert.True(ringing.IsOpenAt(now.AddMinutes(29)));
+        Assert.False(ringing.IsOpenAt(now.AddMinutes(30))); // start is refused once the deadline passes while ringing
+
+        var started = Ringing(now);
+        started.Start(now.AddMinutes(5)); // complete by the deadline, 07:30
+        Assert.True(started.IsOpenAt(now.AddMinutes(29)));
+        Assert.False(started.IsOpenAt(now.AddMinutes(30))); // complete is refused here even before the worker marks it missed
+
+        started.Complete(15, 0.9, now.AddMinutes(10));
+        Assert.False(started.IsOpenAt(now.AddMinutes(11)));
+    }
+
+    [Fact]
+    public void Confidence_must_reach_what_the_phone_sends_for_visible_joints()
+    {
+        var started = DateTime.UtcNow;
+        var done = started.AddSeconds(30);
+        // The phone drops frames under 0.5 visibility, so 0.35 can only come from a made-up completion.
+        Assert.Equal("exercise.low_confidence", ExerciseVerification.Validate(ExerciseType.Squat, 15, 15, 0.35, started, done).Error.Code);
+        Assert.Equal("exercise.low_confidence", ExerciseVerification.Validate(ExerciseType.Squat, 15, 15, 0.49, started, done).Error.Code);
+        Assert.True(ExerciseVerification.Validate(ExerciseType.Squat, 15, 15, 0.5, started, done).IsSuccess);
+        // A mean of floats that are each at least 0.5 can round a hair under it.
+        Assert.True(ExerciseVerification.Validate(ExerciseType.Squat, 15, 15, 0.49999999, started, done).IsSuccess);
+    }
+
+    [Fact]
+    public void Streak_treats_a_called_off_day_as_neutral()
+    {
+        var today = new DateOnly(2026, 6, 10);
+        var days = new List<(DateOnly, ExerciseOccurrenceStatus)>
+        {
+            (today, ExerciseOccurrenceStatus.Completed),
+            (today.AddDays(-1), ExerciseOccurrenceStatus.Cancelled), // the partner let you off: neither counts nor breaks
+            (today.AddDays(-2), ExerciseOccurrenceStatus.Completed),
+            (today.AddDays(-3), ExerciseOccurrenceStatus.Cancelled),
+            (today.AddDays(-3), ExerciseOccurrenceStatus.Cancelled),
+            (today.AddDays(-4), ExerciseOccurrenceStatus.Completed),
+        };
+        Assert.Equal(3, ExerciseStreak.CurrentStreakDays(days, today));
+
+        // A called-off day today: the streak runs on from yesterday's.
+        Assert.Equal(1, ExerciseStreak.CurrentStreakDays([(today, ExerciseOccurrenceStatus.Cancelled), (today.AddDays(-1), ExerciseOccurrenceStatus.Completed)], today));
+        Assert.Equal(0, ExerciseStreak.CurrentStreakDays([(today, ExerciseOccurrenceStatus.Cancelled)], today));
+    }
+
+    [Fact]
+    public void Streak_skips_a_window_the_server_slept_through_but_ends_on_a_day_with_nothing_due()
+    {
+        var today = new DateOnly(2026, 6, 10);
+        var days = new List<(DateOnly, ExerciseOccurrenceStatus)>
+        {
+            (today, ExerciseOccurrenceStatus.Completed),
+            // day -1: the dare was due but the server was down through its window, so there is no occurrence
+            (today.AddDays(-2), ExerciseOccurrenceStatus.Completed),
+            // day -3: no dare existed yet
+            (today.AddDays(-4), ExerciseOccurrenceStatus.Completed),
+        };
+        bool Due(DateOnly date) => date >= today.AddDays(-2);
+        Assert.Equal(2, ExerciseStreak.CurrentStreakDays(days, today, Due));
+        Assert.Equal(1, ExerciseStreak.CurrentStreakDays(days, today)); // without the goals, an empty day still ends it
+        // A miss still ends it, neutral days or not.
+        days.Add((today.AddDays(-2), ExerciseOccurrenceStatus.Missed));
+        Assert.Equal(1, ExerciseStreak.CurrentStreakDays(days, today, Due));
+    }
+
+    [Fact]
+    public void Stats_take_downtime_days_from_the_user_s_goals()
+    {
+        var created = new DateTime(2026, 6, 1, 5, 0, 0, DateTimeKind.Utc);
+        var goal = Goal(created); // 07:00 Lagos daily, set on 1 June
+        var user = goal.AssignedUserId;
+        ExerciseOccurrence Done(int day)
+        {
+            var occurrence = ExerciseOccurrence.Open(goal, new DateOnly(2026, 6, day), new DateTime(2026, 6, day, 6, 0, 0, DateTimeKind.Utc), created);
+            occurrence.Start(new DateTime(2026, 6, day, 6, 1, 0, DateTimeKind.Utc));
+            occurrence.Complete(15, 0.9, new DateTime(2026, 6, day, 6, 5, 0, DateTimeKind.Utc));
+            return occurrence;
+        }
+        var occurrences = new List<ExerciseOccurrence> { Done(5), Done(3), Done(2) }; // 4 June skipped while the server was down
+        var today = new DateOnly(2026, 6, 5);
+        Assert.Equal(3, ExerciseStats.Compute(user, "Ada", occurrences, today, [goal]).CurrentStreakDays);
+        Assert.Equal(1, ExerciseStats.Compute(user, "Ada", occurrences, today).CurrentStreakDays);
+        // Someone else's goal says nothing about this user's days.
+        Assert.Equal(1, ExerciseStats.Compute(user, "Ada", occurrences, today, [Goal(created)]).CurrentStreakDays);
+    }
+
+    [Fact]
+    public void A_dare_set_by_the_partner_uses_the_assignee_s_saved_zone()
+    {
+        var setter = Guid.NewGuid();
+        var assignee = Guid.NewGuid();
+        Assert.Equal("America/New_York", ExerciseGoalRules.ZoneFor("Europe/London", setter, assignee, "America/New_York"));
+        // Your own dare follows your phone.
+        Assert.Equal("Europe/London", ExerciseGoalRules.ZoneFor(" Europe/London ", assignee, assignee, "America/New_York"));
+        // No zone saved yet ("UTC" is every account's default), or one the server doesn't know: the setter's zone.
+        Assert.Equal("Europe/London", ExerciseGoalRules.ZoneFor("Europe/London", setter, assignee, "UTC"));
+        Assert.Equal("Europe/London", ExerciseGoalRules.ZoneFor("Europe/London", setter, assignee, null));
+        Assert.Equal("Europe/London", ExerciseGoalRules.ZoneFor("Europe/London", setter, assignee, "Mars/Olympus_Mons"));
+    }
+
+    [Fact]
+    public void A_due_goal_opens_rings_an_early_start_or_skips_downtime()
+    {
+        var created = new DateTime(2026, 6, 1, 5, 0, 0, DateTimeKind.Utc);
+        var goal = Goal(created, new TimeOnly(19, 0), grace: 30); // due 18:00 UTC
+        var due = goal.NextDueAtUtc;
+        Assert.Equal(DueAction.Open, ExerciseAlarmRules.Decide(null, due, goal.GraceMinutes, due));
+        Assert.Equal(DueAction.SkipDowntime, ExerciseAlarmRules.Decide(null, due, goal.GraceMinutes, due.AddMinutes(31)));
+
+        // Started early and left: still pushed at the due time, so a phone without exact alarms rings on time.
+        var early = ExerciseOccurrence.OpenEarly(goal, due.AddHours(-3));
+        Assert.Equal(DueAction.RingStartedEarly, ExerciseAlarmRules.Decide(early, due, goal.GraceMinutes, due.AddSeconds(1)));
+        Assert.Equal(DueAction.None, ExerciseAlarmRules.Decide(early, due, goal.GraceMinutes, due.AddMinutes(31)));
+
+        // Already done early, or already opened by another instance: nothing more.
+        early.Complete(15, 0.9, due.AddHours(-2));
+        Assert.Equal(DueAction.None, ExerciseAlarmRules.Decide(early, due, goal.GraceMinutes, due));
+        Assert.Equal(DueAction.None, ExerciseAlarmRules.Decide(ExerciseOccurrence.Open(goal, goal.NextDueLocalDate(), due, due), due, goal.GraceMinutes, due));
+    }
 }

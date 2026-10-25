@@ -64,7 +64,8 @@ public sealed class ExerciseController(
         if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", Loc.T("Goals can only be assigned to you or your partner.")));
 
         var now = clock.UtcNow;
-        var goal = ExerciseGoal.Create(couple.Id, request.AssignedUserId, currentUser.UserId.Value, request.ExerciseType, request.Title, request.Target, time.Value, request.TimeZoneId.Trim(), request.GraceMinutes, now);
+        var zone = ExerciseGoalRules.ZoneFor(request.TimeZoneId, currentUser.UserId.Value, request.AssignedUserId, await AssigneeZoneAsync(request.AssignedUserId, cancellationToken));
+        var goal = ExerciseGoal.Create(couple.Id, request.AssignedUserId, currentUser.UserId.Value, request.ExerciseType, request.Title, request.Target, time.Value, zone, request.GraceMinutes, now);
         db.ExerciseGoals.Add(goal);
         var names = await NamesAsync(couple, cancellationToken);
         var notification = await GoalChangedNotificationAsync(couple, names, goal, GoalChange.Set, now, cancellationToken);
@@ -109,7 +110,8 @@ public sealed class ExerciseController(
             db.Notifications.Add(cancelled);
         }
 
-        goal.Update(request.AssignedUserId, request.ExerciseType, request.Title, request.Target, time.Value, request.TimeZoneId.Trim(), request.GraceMinutes, now);
+        var zone = ExerciseGoalRules.ZoneFor(request.TimeZoneId, currentUser.UserId.Value, request.AssignedUserId, await AssigneeZoneAsync(request.AssignedUserId, cancellationToken));
+        goal.Update(request.AssignedUserId, request.ExerciseType, request.Title, request.Target, time.Value, zone, request.GraceMinutes, now);
         if (!request.IsActive) goal.Deactivate(now);
         else if (!goal.IsActive) goal.Reactivate(now);
         var changed = await GoalChangedNotificationAsync(couple, names, goal, request.IsActive ? GoalChange.Updated : GoalChange.Paused, now, cancellationToken);
@@ -191,12 +193,15 @@ public sealed class ExerciseController(
             .Select(item => ExerciseMapper.ToDto(item, Name(names, item.UserId)))
             .ToList();
         var next = goals.MinBy(goal => goal.NextDueAtUtc);
+        var partnerId = PartnerOf(couple, currentUser.UserId!.Value);
+        var partnerZone = partnerId is { } partner ? await AssigneeZoneAsync(partner, cancellationToken) : null;
         return Ok(new ExerciseTodayDto(
             now,
             goals.Select(goal => ExerciseMapper.ToDto(goal, Name(names, goal.AssignedUserId))).ToList(),
             occurrences,
             next?.NextDueAtUtc,
-            next?.Id));
+            next?.Id,
+            ExerciseGoalRules.IsSavedZone(partnerZone) ? partnerZone : null));
     }
 
     [HttpGet("history")]
@@ -221,7 +226,7 @@ public sealed class ExerciseController(
         foreach (var userId in Members(couple))
         {
             var today = ExerciseStats.TodayFor(userId, goals, occurrences, now);
-            stats.Add(ExerciseStats.Compute(userId, Name(names, userId), occurrences, today));
+            stats.Add(ExerciseStats.Compute(userId, Name(names, userId), occurrences, today, goals));
         }
         return Ok(new ExerciseHistoryDto(days, occurrences.Select(item => ExerciseMapper.ToDto(item, Name(names, item.UserId))).ToList(), stats));
     }
@@ -236,8 +241,8 @@ public sealed class ExerciseController(
         if (occurrence is null) return NotFound();
         if (occurrence.UserId != currentUser.UserId.Value) return Forbid();
         var now = clock.UtcNow;
-        if (!occurrence.IsAlarmActive || (occurrence.Status == ExerciseOccurrenceStatus.Alarming && occurrence.DeadlineUtc <= now))
-            return Conflict(NotActive);
+        // Closed once ringing passes its deadline, or a camera session passes CompleteByUtc: restarting can't reopen it.
+        if (!occurrence.IsOpenAt(now)) return Conflict(NotActive);
 
         occurrence.Start(now);
         var conflict = await TrySaveAsync(cancellationToken);
@@ -271,7 +276,7 @@ public sealed class ExerciseController(
             occurrence = ExerciseOccurrence.OpenEarly(goal, now);
             db.ExerciseOccurrences.Add(occurrence);
         }
-        else if (occurrence.IsAlarmActive) occurrence.Start(now);
+        else if (occurrence.IsOpenAt(now)) occurrence.Start(now);
         else return Conflict(NotActive);
 
         var conflict = await TrySaveAsync(cancellationToken);
@@ -291,9 +296,10 @@ public sealed class ExerciseController(
         var occurrence = await db.ExerciseOccurrences.SingleOrDefaultAsync(item => item.Id == occurrenceId && item.CoupleId == couple.Id, cancellationToken);
         if (occurrence is null) return NotFound();
         if (occurrence.UserId != currentUser.UserId.Value) return Forbid();
-        if (occurrence.Status != ExerciseOccurrenceStatus.InProgress) return Conflict(NotActive);
-
         var now = clock.UtcNow;
+        // Past CompleteByUtc it is missed, even if the worker hasn't marked it yet.
+        if (occurrence.Status != ExerciseOccurrenceStatus.InProgress || !occurrence.IsOpenAt(now)) return Conflict(NotActive);
+
         var achieved = Math.Clamp(request.AchievedCount, 0, 10000);
         var confidence = Math.Clamp(request.Confidence, 0, 1);
         var verdict = ExerciseVerification.Validate(occurrence.ExerciseType, occurrence.Target, achieved, confidence, occurrence.StartedAtUtc, now);
@@ -433,6 +439,10 @@ public sealed class ExerciseController(
         logger.LogInformation("Exercise goal {GoalId} settled before it rang; next alarm {NextDueAtUtc:o}.", goal.Id, goal.NextDueAtUtc);
         return true;
     }
+
+    /// <summary>The zone the assignee's phone saved (with their notification settings); "UTC" until it has.</summary>
+    private Task<string?> AssigneeZoneAsync(Guid userId, CancellationToken cancellationToken)
+        => db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => (string?)user.TimeZoneId).SingleOrDefaultAsync(cancellationToken);
 
     private async Task<Dictionary<Guid, string>> NamesAsync(Couple couple, CancellationToken cancellationToken)
     {

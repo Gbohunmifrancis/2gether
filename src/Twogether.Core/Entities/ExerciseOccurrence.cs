@@ -25,7 +25,10 @@ public sealed class ExerciseOccurrence : BaseEntity
     public DateTime ScheduledAtUtc { get; private set; }
     /// <summary>Scheduled time plus grace. An alarming occurrence is missed here.</summary>
     public DateTime DeadlineUtc { get; private set; }
-    /// <summary>Set by Start. An in-progress occurrence is missed here.</summary>
+    /// <summary>
+    /// Set by Start. An in-progress occurrence is missed here. Never later than
+    /// <see cref="LatestCompleteByUtc"/>, however often the camera is restarted.
+    /// </summary>
     public DateTime? CompleteByUtc { get; private set; }
     public ExerciseOccurrenceStatus Status { get; private set; } = ExerciseOccurrenceStatus.Alarming;
     public DateTime AlarmStartedAtUtc { get; private set; }
@@ -52,6 +55,21 @@ public sealed class ExerciseOccurrence : BaseEntity
     public string? CallOffNote { get; private set; }
 
     public bool IsAlarmActive => Status is ExerciseOccurrenceStatus.Alarming or ExerciseOccurrenceStatus.InProgress;
+
+    /// <summary>The hard end of the day's window: the deadline plus one camera session's allowance.</summary>
+    public DateTime LatestCompleteByUtc => DeadlineUtc + ExerciseVerification.CompletionAllowance;
+
+    /// <summary>
+    /// Whether the window is still open at <paramref name="utcNow"/>: ringing until the deadline, in
+    /// progress until <see cref="CompleteByUtc"/>. The worker misses it at that instant, so start and
+    /// complete refuse from then on rather than relying on the worker to get there first.
+    /// </summary>
+    public bool IsOpenAt(DateTime utcNow) => Status switch
+    {
+        ExerciseOccurrenceStatus.Alarming => DeadlineUtc > utcNow,
+        ExerciseOccurrenceStatus.InProgress => (CompleteByUtc ?? DeadlineUtc) > utcNow && LatestCompleteByUtc > utcNow,
+        _ => false
+    };
 
     public static ExerciseOccurrence Open(ExerciseGoal goal, DateOnly localDate, DateTime scheduledAtUtc, DateTime utcNow) => new()
     {
@@ -85,18 +103,21 @@ public sealed class ExerciseOccurrence : BaseEntity
 
     /// <summary>
     /// Opens (or re-opens) the camera session. Progress always restarts from zero because the
-    /// counter on the device does, and the plausibility check measures from this instant.
+    /// counter on the device does, and the plausibility check measures from this instant. A session
+    /// started near the deadline gets the full allowance, but restarting never moves the end past
+    /// <see cref="LatestCompleteByUtc"/>, so leaving and starting again can't keep a dare open.
     /// </summary>
     public void Start(DateTime utcNow)
     {
         if (!IsAlarmActive) throw new InvalidOperationException("Only a ringing or in-progress exercise can be started.");
+        if (utcNow >= LatestCompleteByUtc) throw new InvalidOperationException("This exercise's window has closed.");
         Status = ExerciseOccurrenceStatus.InProgress;
         StartedAtUtc = utcNow;
         AchievedCount = 0;
         Confidence = 0;
         RecordChecks(default, ExerciseIntegrity.NotChecked);
         var allowance = utcNow + ExerciseVerification.CompletionAllowance;
-        CompleteByUtc = allowance > DeadlineUtc ? allowance : DeadlineUtc;
+        CompleteByUtc = allowance < DeadlineUtc ? DeadlineUtc : allowance > LatestCompleteByUtc ? LatestCompleteByUtc : allowance;
         StateVersion++;
         UpdatedAtUtc = utcNow;
     }

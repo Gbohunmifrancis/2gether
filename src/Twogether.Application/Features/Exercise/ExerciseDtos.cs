@@ -68,7 +68,9 @@ public sealed record ExerciseTodayDto(
     IReadOnlyList<ExerciseGoalDto> Goals,
     IReadOnlyList<ExerciseOccurrenceDto> Occurrences,
     DateTime? NextDueAtUtc,
-    Guid? NextDueGoalId);
+    Guid? NextDueGoalId,
+    /// <summary>The zone a dare set for the partner is read in, when the partner's phone has saved one; else null (the setter's zone).</summary>
+    string? PartnerTimeZoneId = null);
 
 public sealed record ExercisePartnerStatsDto(
     Guid UserId,
