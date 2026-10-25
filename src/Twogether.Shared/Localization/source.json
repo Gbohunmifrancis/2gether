@@ -27,11 +27,11 @@
    "Twogether.Api/Background/ExerciseAlarmWorker.cs:140",
    "Twogether.Api/Background/ExerciseAlarmWorker.cs:148",
    "Twogether.Api/Controllers/ExerciseController.cs:527",
-   "Twogether.Api/Controllers/FoodController.cs:84",
-   "Twogether.Api/Controllers/MemoriesController.Sync.cs:194",
-   "Twogether.Api/Controllers/MemoriesController.cs:387",
-   "Twogether.Api/Controllers/PregnancyController.cs:256",
-   "Twogether.Api/Controllers/PregnancyController.cs:278",
+   "Twogether.Api/Controllers/FoodController.cs:85",
+   "Twogether.Api/Controllers/MemoriesController.Sync.cs:201",
+   "Twogether.Api/Controllers/MemoriesController.cs:431",
+   "Twogether.Api/Controllers/PregnancyController.cs:262",
+   "Twogether.Api/Controllers/PregnancyController.cs:287",
    "Twogether.Api/Controllers/QuestionsController.cs:80",
    "Twogether.Api/Hubs/CoupleHub.cs:56",
    "Twogether.Application/Features/Questions/DailyQuestionContracts.cs:52"
@@ -66,145 +66,152 @@
   ],
   "code": "Loc.T(\"Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.\")));"
  },
+ "Your account changed while it was being deleted. Nothing was deleted. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AccountController.cs:75"
+  ],
+  "code": "private static ApiError ErasureConflict => new(\"account.delete_conflict\", Loc.T(\"Your account changed while it was being deleted. Nothing was deleted. Try again.\"));"
+ },
  "If an account uses that email, a code is on its way. It works for 15 minutes.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:27"
+   "Twogether.Api/Controllers/AuthController.cs:28"
   ],
   "code": "private static ApiError ResetSent => new(\"auth.reset_sent\", Loc.T(\"If an account uses that email, a code is on its way. It works for 15 minutes.\"));"
  },
  "That code is wrong or has expired. Ask for a new one.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:28"
+   "Twogether.Api/Controllers/AuthController.cs:29"
   ],
   "code": "private static ApiError BadResetCode => new(\"auth.invalid_reset_code\", Loc.T(\"That code is wrong or has expired. Ask for a new one.\"));"
  },
  "Choose your country from the list.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:29"
+   "Twogether.Api/Controllers/AuthController.cs:30"
   ],
   "code": "private static ApiError BadCountry => new(\"auth.invalid_country\", Loc.T(\"Choose your country from the list.\"));"
  },
  "Password reset isn't set up on this server yet.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:39"
+   "Twogether.Api/Controllers/AuthController.cs:40"
   ],
   "code": "if (!email.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"auth.email_unavailable\", Loc.T(\"Password reset isn't set up on this server yet.\")));"
  },
  "Enter the email you signed up with.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:41"
+   "Twogether.Api/Controllers/AuthController.cs:42"
   ],
   "code": "if (address.Length is 0 or > 320 || !address.Contains('@')) return UnprocessableEntity(new ApiError(\"auth.invalid_email\", Loc.T(\"Enter the email you signed up with.\")));"
  },
  "Use at least {min} characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:75"
+   "Twogether.Api/Controllers/AuthController.cs:76"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_password\", Loc.T(\"Use at least {min} characters.\", (\"min\", PasswordResetRules.MinPasswordLength))));"
  },
  "Google sign-in isn't set up on this server yet.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:117"
+   "Twogether.Api/Controllers/AuthController.cs:120"
   ],
   "code": "if (!google.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"auth.google_unavailable\", Loc.T(\"Google sign-in isn't set up on this server yet.\")));"
  },
  "Google sign-in didn't work. Try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:124"
+   "Twogether.Api/Controllers/AuthController.cs:127"
   ],
   "code": "return Unauthorized(new ApiError(\"auth.invalid_google_token\", Loc.T(\"Google sign-in didn't work. Try again.\")));"
  },
  "This email is linked to a different Google account.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:135"
+   "Twogether.Api/Controllers/AuthController.cs:138"
   ],
   "code": "else if (user.GoogleId != identity.Subject) return Conflict(new ApiError(\"auth.google_mismatch\", Loc.T(\"This email is linked to a different Google account.\")));"
  },
  "Tell us your birthday to finish signing up.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:142"
+   "Twogether.Api/Controllers/AuthController.cs:145"
   ],
   "code": "return UnprocessableEntity(new GoogleProfileRequired(\"auth.profile_required\", Loc.T(\"Tell us your birthday to finish signing up.\"), identity.Email, identity.Name));"
  },
  "Choose the option that best describes you.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:145",
-   "Twogether.Api/Controllers/AuthController.cs:177",
-   "Twogether.Api/Controllers/AuthController.cs:245"
+   "Twogether.Api/Controllers/AuthController.cs:148",
+   "Twogether.Api/Controllers/AuthController.cs:180",
+   "Twogether.Api/Controllers/AuthController.cs:248"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_gender\", Loc.T(\"Choose the option that best describes you.\")));"
  },
  "Email and a password of at least 8 characters are required.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:170"
+   "Twogether.Api/Controllers/AuthController.cs:173"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_registration\", Loc.T(\"Email and a password of at least 8 characters are required.\")));"
  },
  "An account with this email already exists.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:172"
+   "Twogether.Api/Controllers/AuthController.cs:175"
   ],
   "code": "return Conflict(new ApiError(\"auth.email_exists\", Loc.T(\"An account with this email already exists.\")));"
  },
  "Email or password is incorrect.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:210"
+   "Twogether.Api/Controllers/AuthController.cs:213"
   ],
   "code": "return Unauthorized(new ApiError(\"auth.invalid_credentials\", Loc.T(\"Email or password is incorrect.\")));"
  },
  "Nickname must be between 1 and 100 characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:235"
+   "Twogether.Api/Controllers/AuthController.cs:238"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_name\", Loc.T(\"Nickname must be between 1 and 100 characters.\")));"
  },
  "Map color must be a six-digit hex color.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:241"
+   "Twogether.Api/Controllers/AuthController.cs:244"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_color\", Loc.T(\"Map color must be a six-digit hex color.\")));"
  },
  "The avatar must be an https link of at most 500 characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:250"
+   "Twogether.Api/Controllers/AuthController.cs:253"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_avatar\", Loc.T(\"The avatar must be an https link of at most 500 characters.\")));"
  },
  "This account has been disabled. Contact support if you think this is a mistake.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:262"
+   "Twogether.Api/Controllers/AuthController.cs:265"
   ],
   "code": "private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError(\"auth.account_disabled\", Loc.T(\"This account has been disabled. Contact support if you think this is a mistak"
  },
  "That date doesn't look right.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:273"
+   "Twogether.Api/Controllers/AuthController.cs:276"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_birthday\", Loc.T(\"That date doesn't look right.\")));"
  },
  "Heartpact is for adults. You need to be 18 or over to sign up.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:275"
+   "Twogether.Api/Controllers/AuthController.cs:278"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.too_young\", Loc.T(\"Heartpact is for adults. You need to be 18 or over to sign up.\")));"
  },
@@ -233,88 +240,74 @@
  "This couple is already linked.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:62"
+   "Twogether.Api/Controllers/CoupleController.cs:63"
   ],
   "code": "return Conflict(new ApiError(\"couple.already_linked\", Loc.T(\"This couple is already linked.\")));"
  },
  "This invitation is invalid or expired.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:110",
-   "Twogether.Api/Controllers/CoupleController.cs:121"
+   "Twogether.Api/Controllers/CoupleController.cs:111",
+   "Twogether.Api/Controllers/CoupleController.cs:122"
   ],
   "code": "return NotFound(new ApiError(\"invite.invalid\", Loc.T(\"This invitation is invalid or expired.\")));"
  },
  "You cannot accept your own invitation.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:112"
+   "Twogether.Api/Controllers/CoupleController.cs:113"
   ],
   "code": "if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError(\"invite.self\", Loc.T(\"You cannot accept your own invitation.\")));"
  },
  "You are already linked to a partner.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:127"
+   "Twogether.Api/Controllers/CoupleController.cs:128"
   ],
   "code": "if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError(\"couple.already_linked\", Loc.T(\"You are already linked to a partner.\")));"
  },
  "You are connected": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:137"
+   "Twogether.Api/Controllers/CoupleController.cs:139"
   ],
   "code": "connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, Loc.T(\"You are connected\"),"
  },
  "{name} joined your private space.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:138"
+   "Twogether.Api/Controllers/CoupleController.cs:140"
   ],
   "code": "Loc.T(\"{name} joined your private space.\", (\"name\", user.DisplayName)), null, clock.UtcNow);"
+ },
+ "Something changed in your couple space just now. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:168"
+  ],
+  "code": "if (attempt > 0) return Conflict(new ApiError(\"couple.breakup_conflict\", Loc.T(\"Something changed in your couple space just now. Try again.\")));"
  },
  "Your couple space was ended": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:170",
-   "Twogether.Infrastructure/Account/AccountEraser.cs:105"
+   "Twogether.Api/Controllers/CoupleController.cs:197",
+   "Twogether.Infrastructure/Account/AccountEraser.cs:155"
   ],
   "code": "var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T(\"Your couple space was ended\"),"
  },
  "{name} ended the connection.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:171"
+   "Twogether.Api/Controllers/CoupleController.cs:198"
   ],
   "code": "Loc.T(\"{name} ended the connection.\", (\"name\", actor.DisplayName)), null, clock.UtcNow);"
  },
- "Your partner already owns the shared cycle calendar.": {
+ "Cycle tracking isn't available on this account.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CycleController.cs:35"
+   "Twogether.Api/Controllers/CycleController.cs:38"
   ],
-  "code": "return Conflict(new ApiError(\"cycle.owner_exists\", Loc.T(\"Your partner already owns the shared cycle calendar.\")));"
- },
- "Cycle lengths are outside the supported range.": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Controllers/CycleController.cs:51"
-  ],
-  "code": "return UnprocessableEntity(new ApiError(\"cycle.invalid_profile\", Loc.T(\"Cycle lengths are outside the supported range.\")));"
- },
- "Notes are at most {max} characters.": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Controllers/CycleController.cs:83"
-  ],
-  "code": "return UnprocessableEntity(new ApiError(\"cycle.invalid_notes\", Loc.T(\"Notes are at most {max} characters.\", (\"max\", MaxNotesLength))));"
- },
- "Up to {symptoms} symptoms of at most {characters} characters each.": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Controllers/CycleController.cs:85"
-  ],
-  "code": "return UnprocessableEntity(new ApiError(\"cycle.invalid_symptoms\", Loc.T(\"Up to {symptoms} symptoms of at most {characters} characters each.\", (\"symptoms\", MaxSymptoms), (\"characters\", MaxSymptomLength"
+  "code": "return Conflict(new ApiError(\"cycle.unavailable\", Loc.T(\"Cycle tracking isn't available on this account.\")));"
  },
  "The push token is missing or too long.": {
   "plural": false,
@@ -530,15 +523,15 @@
  "Link your partner before logging food.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:30"
+   "Twogether.Api/Controllers/FoodController.cs:31"
   ],
   "code": "private static ApiError NoCouple => new(\"food.no_couple\", Loc.T(\"Link your partner before logging food.\"));"
  },
  "Date must look like yyyy-MM-dd.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:67",
-   "Twogether.Api/Controllers/MemoriesController.cs:194",
+   "Twogether.Api/Controllers/FoodController.cs:68",
+   "Twogether.Api/Controllers/MemoriesController.cs:232",
    "Twogether.Api/Controllers/PregnancyController.cs:45",
    "Twogether.Application/Features/Food/FoodRules.cs:17"
   ],
@@ -547,28 +540,28 @@
  "That scan does not exist or is not yours.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:127"
+   "Twogether.Api/Controllers/FoodController.cs:128"
   ],
   "code": "if (scan is null) return UnprocessableEntity(new ApiError(\"food.scan_not_found\", Loc.T(\"That scan does not exist or is not yours.\")));"
  },
  "Photo estimates are not set up on this server. Log the meal by hand.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:235"
+   "Twogether.Api/Controllers/FoodController.cs:236"
   ],
   "code": "return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"food.estimation_unavailable\", Loc.T(\"Photo estimates are not set up on this server. Log the meal by hand.\")));"
  },
  "That does not look like food. Try a photo of the meal.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:268"
+   "Twogether.Api/Controllers/FoodController.cs:279"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"food.not_food\", Loc.T(\"That does not look like food. Try a photo of the meal.\")));"
  },
  "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.|You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand.": {
   "plural": true,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:244"
+   "Twogether.Api/Controllers/FoodController.cs:245"
   ],
   "code": "? Loc.Plural(limit, \"You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.\",",
   "one": "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.",
@@ -577,7 +570,7 @@
  "You have used today's {count} photo scan. Log this one by hand.|You have used today's {count} photo scans. Log this one by hand.": {
   "plural": true,
   "uses": [
-   "Twogether.Api/Controllers/FoodController.cs:246"
+   "Twogether.Api/Controllers/FoodController.cs:247"
   ],
   "code": ": Loc.Plural(limit, \"You have used today's {count} photo scan. Log this one by hand.\", \"You have used today's {count} photo scans. Log this one by hand.\")));",
   "one": "You have used today's {count} photo scan. Log this one by hand.",
@@ -802,86 +795,101 @@
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/LocationController.cs:55",
-   "Twogether.Api/Controllers/LocationController.cs:80"
+   "Twogether.Api/Controllers/LocationController.cs:106",
+   "Twogether.Api/Controllers/LocationController.cs:131"
   ],
   "code": "if (context is null) return BadRequest(new ApiError(\"location.no_couple\", Loc.T(\"Link your partner before sharing location.\")));"
  },
  "You are not sharing your location.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/LocationController.cs:59",
-   "Twogether.Api/Controllers/LocationController.cs:81"
+   "Twogether.Api/Controllers/LocationController.cs:110",
+   "Twogether.Api/Controllers/LocationController.cs:133"
   ],
-  "code": "if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError(\"location.not_sharing\", Loc.T(\"You are not sharing your location.\")));"
+  "code": "if (context.Mine is null || !context.Mine.IsLiveAt(now)) return Conflict(new ApiError(\"location.not_sharing\", Loc.T(\"You are not sharing your location.\")));"
  },
  "Another sync from your account is running. Try again in a moment.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.Sync.cs:23"
+   "Twogether.Api/Controllers/MemoriesController.Sync.cs:24"
   ],
   "code": "private static ApiError SyncInProgress => new(\"memories.sync_in_progress\", Loc.T(\"Another sync from your account is running. Try again in a moment.\"));"
  },
  "This photo was already shared in an earlier album.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.Sync.cs:24"
+   "Twogether.Api/Controllers/MemoriesController.Sync.cs:25"
   ],
   "code": "private static ApiError ClientIdTaken => new(\"memories.client_id_taken\", Loc.T(\"This photo was already shared in an earlier album.\"));"
  },
  "Link your partner to start your shared album.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:34"
+   "Twogether.Api/Controllers/MemoriesController.cs:36"
   ],
   "code": "private static ApiError NoCouple => new(\"memories.no_couple\", Loc.T(\"Link your partner to start your shared album.\"));"
  },
  "Photo storage is not set up on this server.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:35"
+   "Twogether.Api/Controllers/MemoriesController.cs:37"
   ],
   "code": "private static ApiError Unavailable => new(\"memories.storage_unavailable\", Loc.T(\"Photo storage is not set up on this server.\"));"
  },
  "Only the person who added this memory can change it.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:36"
+   "Twogether.Api/Controllers/MemoriesController.cs:38"
   ],
   "code": "private static ApiError NotUploader => new(\"memories.not_uploader\", Loc.T(\"Only the person who added this memory can change it.\"));"
+ },
+ "Your shared album is full. Heartpact Plus gives you more room, or remove some memories.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:65"
+  ],
+  "code": "? Loc.T(\"Your shared album is full. Heartpact Plus gives you more room, or remove some memories.\")"
+ },
+ "Your shared album is full. Remove some memories to add more.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/MemoriesController.cs:66"
+  ],
+  "code": ": Loc.T(\"Your shared album is full. Remove some memories to add more.\"));"
  },
  "The file has not finished uploading yet.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:127"
+   "Twogether.Api/Controllers/MemoriesController.cs:141"
   ],
   "code": "private static ApiError NotUploaded => new(\"memories.not_uploaded\", Loc.T(\"The file has not finished uploading yet.\"));"
  },
  "The uploaded file did not match what was declared. Try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:128"
+   "Twogether.Api/Controllers/MemoriesController.cs:142"
   ],
   "code": "private static ApiError UploadRejected => new(\"memories.upload_rejected\", Loc.T(\"The uploaded file did not match what was declared. Try again.\"));"
  },
  "That page cursor is not valid.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:174",
-   "Twogether.Api/Controllers/MemoriesController.cs:220"
+   "Twogether.Api/Controllers/MemoriesController.cs:212",
+   "Twogether.Api/Controllers/MemoriesController.cs:258"
   ],
   "code": "if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError(\"memories.invalid_cursor\", Loc.T(\"That page cursor is not valid.\")));"
  },
  "The thumbnail has not finished uploading yet.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:297"
+   "Twogether.Api/Controllers/MemoriesController.cs:335"
   ],
   "code": "if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError(\"memories.thumbnail_not_uploaded\", Loc.T(\"The thumbnail has not finished uploading yet.\")));"
  },
  "Thumbnails must be JPEG or WebP and at most {kilobytes} KB.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/MemoriesController.cs:301"
+   "Twogether.Api/Controllers/MemoriesController.cs:339"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"memories.thumbnail_rejected\", Loc.T(\"Thumbnails must be JPEG or WebP and at most {kilobytes} KB.\", (\"kilobytes\", MemoryRules.MaxThumbnailBytes / 1024))));"
  },
@@ -953,38 +961,38 @@
  "Pregnancy mode is already on.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/PregnancyController.cs:70",
-   "Twogether.Api/Controllers/PregnancyController.cs:79"
+   "Twogether.Api/Controllers/PregnancyController.cs:71",
+   "Twogether.Api/Controllers/PregnancyController.cs:80"
   ],
   "code": "return Conflict(new ApiError(\"pregnancy.already_active\", Loc.T(\"Pregnancy mode is already on.\")));"
  },
  "Count must be between 0 and {max}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/PregnancyController.cs:241"
+   "Twogether.Api/Controllers/PregnancyController.cs:247"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"pregnancy.invalid_kicks\", Loc.T(\"Count must be between 0 and {max}.\", (\"max\", KickSession.MaxCount))));"
  },
  "This kick session has already ended.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/PregnancyController.cs:242"
+   "Twogether.Api/Controllers/PregnancyController.cs:248"
   ],
   "code": "if (!session.IsOpen) return Conflict(new ApiError(\"pregnancy.session_closed\", Loc.T(\"This kick session has already ended.\")));"
  },
  "Pregnancy mode": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/PregnancyController.cs:279"
+   "Twogether.Api/Controllers/PregnancyController.cs:288"
   ],
   "code": "return Notification.Create(partnerId, couple.Id, NotificationType.PregnancyUpdated, Loc.T(\"Pregnancy mode\"),"
  },
  "{name} shared pregnancy mode with you.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/PregnancyController.cs:280"
+   "Twogether.Api/Controllers/PregnancyController.cs:289"
   ],
-  "code": "Loc.T(\"{name} shared pregnancy mode with you.\", (\"name\", name)), JsonSerializer.Serialize(new { pregnancyId = pregnancy.Id }), now);"
+  "code": "Loc.T(\"{name} shared pregnancy mode with you.\", (\"name\", name)), PregnancyNotices.SharedData(pregnancy.Id), now);"
  },
  "Link your partner to get daily questions.": {
   "plural": false,
@@ -1059,14 +1067,14 @@
  "Your password is incorrect.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Account/AccountContracts.cs:41"
+   "Twogether.Application/Features/Account/AccountContracts.cs:42"
   ],
   "code": ": Error.Unauthorized(\"account.confirmation_failed\", Loc.T(\"Your password is incorrect.\"));"
  },
  "Type your account email to confirm.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Account/AccountContracts.cs:44"
+   "Twogether.Application/Features/Account/AccountContracts.cs:45"
   ],
   "code": ": Error.Validation(\"account.confirmation_failed\", Loc.T(\"Type your account email to confirm.\"));"
  },
@@ -1111,6 +1119,94 @@
    "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:43"
   ],
   "code": "return Error.NotFound(\"billing.unknown_purchase\", Loc.T(\"No Heartpact account matches this purchase.\"));"
+ },
+ "Cycle lengths are outside the supported range.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:27"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_profile\", Loc.T(\"Cycle lengths are outside the supported range.\"));"
+ },
+ "Choose what your partner sees: nothing, predictions or everything.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:30"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_profile\", Loc.T(\"Choose what your partner sees: nothing, predictions or everything.\"));"
+ },
+ "The last period can't start in the future or more than a year ago.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:32"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_date\", Loc.T(\"The last period can't start in the future or more than a year ago.\"));"
+ },
+ "You can log today or a day in the past year.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:39"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_date\", Loc.T(\"You can log today or a day in the past year.\"));"
+ },
+ "Choose a flow and a mood from the list.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:41"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_log\", Loc.T(\"Choose a flow and a mood from the list.\"));"
+ },
+ "Notes are at most {max} characters.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:43"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_notes\", Loc.T(\"Notes are at most {max} characters.\", (\"max\", MaxNotesLength)));"
+ },
+ "Up to {symptoms} symptoms of at most {characters} characters each.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleRules.cs:45"
+  ],
+  "code": "return Error.Validation(\"cycle.invalid_symptoms\", Loc.T(\"Up to {symptoms} symptoms of at most {characters} characters each.\", (\"symptoms\", MaxSymptoms), (\"characters\", MaxSymptomLength)));"
+ },
+ "Cycle predictions paused": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleSharing.cs:49"
+  ],
+  "code": "if (pregnant) return (Loc.T(\"Cycle predictions paused\"), null);"
+ },
+ "No cycle tracked yet": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleSharing.cs:50"
+  ],
+  "code": "if (forecast is null) return (Loc.T(\"No cycle tracked yet\"), null);"
+ },
+ "Period expected today": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleSharing.cs:52"
+  ],
+  "code": "return (late == 0 ? Loc.T(\"Period expected today\") : Loc.Plural(late, \"Period late by {count} day\", \"Period late by {count} days\"), 0);"
+ },
+ "Period late by {count} day|Period late by {count} days": {
+  "plural": true,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleSharing.cs:52"
+  ],
+  "code": "return (late == 0 ? Loc.T(\"Period expected today\") : Loc.Plural(late, \"Period late by {count} day\", \"Period late by {count} days\"), 0);",
+  "one": "Period late by {count} day",
+  "other": "Period late by {count} days"
+ },
+ "{count} day until period|{count} days until period": {
+  "plural": true,
+  "uses": [
+   "Twogether.Application/Features/Cycle/CycleSharing.cs:54"
+  ],
+  "code": "return (Loc.Plural(days, \"{count} day until period\", \"{count} days until period\"), days);",
+  "one": "{count} day until period",
+  "other": "{count} days until period"
  },
  "Scheduled time must look like HH:mm.": {
   "plural": false,
@@ -6966,28 +7062,28 @@
  "Title is required, at most {max} characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:72"
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:80"
   ],
   "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Title is required, at most {max} characters.\", (\"max\", PregnancyAppointment.MaxTitleLength)));"
  },
  "Location must be at most {max} characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:74"
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:82"
   ],
   "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Location must be at most {max} characters.\", (\"max\", PregnancyAppointment.MaxLocationLength)));"
  },
  "Notes must be at most {max} characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:76"
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:84"
   ],
   "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Notes must be at most {max} characters.\", (\"max\", PregnancyAppointment.MaxNotesLength)));"
  },
  "Appointment time is out of range.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:78"
+   "Twogether.Application/Features/Pregnancy/PregnancyContracts.cs:86"
   ],
   "code": "return Error.Validation(\"pregnancy.invalid_appointment\", Loc.T(\"Appointment time is out of range.\"));"
  },
@@ -7683,10 +7779,17 @@
   ],
   "code": "Q(\"close-06\", \"closeness\", Loc.N(\"What does romance look like to you on an ordinary weeknight?\"))"
  },
+ "Appointment": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Account/AccountEraser.cs:98"
+  ],
+  "code": "using (Loc.Use(await db.LanguageOfAsync(ownerId, cancellationToken))) title = Loc.T(\"Appointment\");"
+ },
  "{name} deleted their account.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Account/AccountEraser.cs:106"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:156"
   ],
   "code": "Loc.T(\"{name} deleted their account.\", (\"name\", user.DisplayName)), null, now);"
  },
