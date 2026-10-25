@@ -60,10 +60,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
+import java.util.Locale
 
 data class NewDareState(
     val type: ExerciseType = ExerciseType.PushUp,
@@ -72,24 +75,41 @@ data class NewDareState(
     val window: Int = 30,
     val busy: Boolean = false,
     val note: String? = null,
+    /** The partner's own time zone, when the server knows it: the time is read there, since it rings on their phone. */
+    val partnerZone: String? = null,
 )
+
+/** The partner's zone when it is known and keeps a different clock from this phone's right now; else null (nothing to say). */
+fun otherZone(partnerZone: String?, mine: ZoneId = ZoneId.systemDefault(), now: Instant = Instant.now()): ZoneId? {
+    val zone = partnerZone?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: return null
+    return zone.takeIf { it.rules.getOffset(now) != mine.rules.getOffset(now) }
+}
 
 class NewDareViewModel(private val exercise: ExerciseRepository, private val partnerId: String) : ViewModel() {
     private val _state = MutableStateFlow(NewDareState())
     val state: StateFlow<NewDareState> = _state.asStateFlow()
+
+    init {
+        // Only to say which clock the time is on; the server picks the zone either way.
+        viewModelScope.launch { (exercise.today() as? ApiResult.Ok)?.value?.partnerTimeZoneId?.let { zone -> _state.update { it.copy(partnerZone = zone) } } }
+    }
 
     fun type(type: ExerciseType) = _state.update { it.copy(type = type, target = type.defaultTarget) }
     fun step(delta: Int) = _state.update { it.copy(target = (it.target + delta).coerceIn(it.type.minTarget, it.type.maxTarget)) }
     fun time(time: LocalTime) = _state.update { it.copy(time = time) }
     fun window(minutes: Int) = _state.update { it.copy(window = minutes) }
 
-    /** The dare rings on the partner's phone daily at this local time, in this phone's time zone. */
+    /**
+     * The dare rings on the partner's phone daily at this local time, in the partner's time zone when the server
+     * has it (it uses theirs anyway), else this phone's.
+     */
     fun send(onDone: () -> Unit) {
         val s = _state.value
         if (s.busy) return
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
-            val request = CreateGoalRequest(partnerId, s.type, null, s.target, s.time.format(DateTimeFormatter.ofPattern("HH:mm")), ZoneId.systemDefault().id, s.window)
+            val zone = s.partnerZone?.takeIf { runCatching { ZoneId.of(it) }.isSuccess } ?: ZoneId.systemDefault().id
+            val request = CreateGoalRequest(partnerId, s.type, null, s.target, s.time.format(DateTimeFormatter.ofPattern("HH:mm")), zone, s.window)
             when (val result = exercise.createGoal(request)) {
                 is ApiResult.Ok -> onDone()
                 is ApiResult.Failure -> _state.update { it.copy(busy = false, note = result.message) }
@@ -125,6 +145,11 @@ fun NewDareScreen(state: NewDareState, partnerName: String, onType: (ExerciseTyp
             }
             Text(tr("Rings every day at"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
             HeartButton(state.time.format(fmt), { picking = true }, kind = app.heartpact.ui.components.ButtonKind.Outline, icon = Icons.Rounded.Schedule, fillWidth = false)
+            otherZone(state.partnerZone)?.let { zone ->
+                Text(tr("That's {partner}'s time ({zone}), where it's {time} now.", "partner" to partnerName,
+                    "zone" to zone.getDisplayName(TextStyle.FULL, Locale.getDefault()), "time" to LocalTime.now(zone).format(fmt)),
+                    style = Heartpact.type.small, color = colors.ink2)
+            }
             Text(tr("Rings for up to"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(10, 20, 30).forEach { HeartChip(tr("{minutes} min", "minutes" to it), state.window == it, { onWindow(it) }) }

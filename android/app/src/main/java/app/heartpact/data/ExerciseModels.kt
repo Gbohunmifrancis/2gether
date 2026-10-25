@@ -110,6 +110,8 @@ data class ExerciseToday(
     val occurrences: List<ExerciseOccurrence> = emptyList(),
     val nextDueAtUtc: String? = null,
     val nextDueGoalId: String? = null,
+    /** The zone a dare set for the partner rings in, when their phone has saved one; null means this phone's own. */
+    val partnerTimeZoneId: String? = null,
 )
 
 @Serializable

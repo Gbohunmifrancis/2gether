@@ -16,6 +16,8 @@ enum class FaultKind {
     HipsLow,
     /** Plank: hips above it. */
     HipsHigh,
+    /** Not in the exercise's position at all (standing for push-ups, sitting up for sit-ups). Only a tip, not a fault count. */
+    Position,
 }
 
 /** The most recent fault and when it happened, in frame time. */
@@ -30,6 +32,12 @@ object FormCues {
         FaultKind.TooFast -> tr("Slow down: that one was too quick to count.")
         FaultKind.HipsLow -> tr("Lift your hips into a straight line.")
         FaultKind.HipsHigh -> tr("Lower your hips into a straight line.")
+        FaultKind.Position -> when (type) {
+            ExerciseType.PushUp -> tr("Get down into a push-up: body level, hands under your shoulders.")
+            ExerciseType.SitUp -> tr("Lie on your back with your knees bent.")
+            ExerciseType.Plank -> tr("Get down into a straight plank.")
+            else -> type.cue
+        }
         FaultKind.Shallow -> when (type) {
             ExerciseType.Squat -> tr("Go lower: hips down toward knee height.")
             ExerciseType.PushUp -> tr("Go lower: chest toward the floor.")

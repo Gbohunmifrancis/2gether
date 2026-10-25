@@ -43,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -127,7 +128,34 @@ data class CameraUi(
     val silenced: Boolean? = null,
     /** A surprise check-in on screen, or its result for a moment after. */
     val challenge: ChallengeUi? = null,
+    /** The target was reached but the finish didn't save yet; the counted reps are kept. */
+    val unsaved: Unsaved? = null,
 )
+
+/** A finish that didn't save: why, and whether it is being retried by itself. */
+data class Unsaved(val message: String, val retrying: Boolean)
+
+/** How sending a finish went: saved, worth retrying by itself (offline, the server busy), or refused for a reason to show. */
+sealed interface FinishOutcome {
+    data object Saved : FinishOutcome
+    data class Retry(val message: String) : FinishOutcome
+    data class Refused(val message: String) : FinishOutcome
+
+    companion object {
+        /**
+         * From the server's answer: trouble on the way or a race retries by itself (a server clock a second
+         * behind can make an honest finish "too fast"); a closed dare or a reason to fix waits for the person.
+         */
+        fun of(code: String, status: Int, message: String): FinishOutcome = when {
+            code == "exercise.not_active" -> Refused(message)
+            status >= 500 || status == 408 || status == 429 || code == "exercise.version_conflict" || code == "exercise.too_fast" -> Retry(message)
+            else -> Refused(message)
+        }
+    }
+}
+
+/** The wait before the next automatic try: 2 s, doubling, at most 30 s. */
+fun finishBackoffMs(attempt: Int): Long = (2_000L shl attempt.coerceIn(0, 4)).coerceAtMost(30_000L)
 
 /** The words and numbers on the camera screen, apart from layout. */
 object CameraText {
@@ -154,12 +182,12 @@ object CameraText {
  * the sheet beside the picture instead of under it.
  */
 @Composable
-fun CameraRepContent(ui: CameraUi, onFlip: () -> Unit, onStop: () -> Unit, onSilence: () -> Unit = {}, preview: @Composable () -> Unit) {
+fun CameraRepContent(ui: CameraUi, onFlip: () -> Unit, onStop: () -> Unit, onSilence: () -> Unit = {}, onRetry: () -> Unit = {}, preview: @Composable () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().background(Glass)) {
         val wide = maxWidth > maxHeight
         Layout(content = {
             Stage(ui, wide, onFlip, preview)
-            Sheet(ui, wide, onStop, onSilence)
+            Sheet(ui, wide, onStop, onSilence, onRetry)
         }) { measurables, constraints ->
             val overlap = Overlap.roundToPx()
             val width = constraints.maxWidth
@@ -285,7 +313,7 @@ private fun Chip(text: String, dot: Color, modifier: Modifier = Modifier) {
 
 /** The count and the clocks, then the way out. Sticker stock, so it follows day and night. */
 @Composable
-private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: () -> Unit) {
+private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: () -> Unit, onRetry: () -> Unit) {
     val colors = Heartpact.colors
     val shape = if (wide) RoundedCornerShape(topStart = 30.dp, bottomStart = 30.dp) else Shapes.Sheet
     val bars = if (wide) Modifier.statusBarsPadding().navigationBarsPadding() else Modifier.navigationBarsPadding()
@@ -311,7 +339,8 @@ private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: ()
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { left(Alignment.End) }
             }
         }
-        val note = ui.note ?: if (ui.sealing) tr("Sticking your half…") else ui.counter.cue
+        val unsaved = ui.unsaved?.let { if (it.retrying) tr("Couldn't save, retrying. Your reps are kept.") else it.message }
+        val note = ui.note ?: unsaved ?: if (ui.sealing) tr("Sticking your half…") else ui.counter.cue
         Text(
             note ?: ui.type.cue,
             style = if (note != null) Heartpact.type.label else Heartpact.type.small,
@@ -319,6 +348,7 @@ private fun Sheet(ui: CameraUi, wide: Boolean, onStop: () -> Unit, onSilence: ()
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
         )
+        if (ui.unsaved != null && !ui.sealing) HeartButton(tr("Try again"), onRetry, Modifier.padding(top = 10.dp), kind = app.heartpact.ui.components.ButtonKind.Tonal, height = 48.dp)
         if (wide) androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
         Row(
             Modifier.padding(top = 14.dp).fillMaxWidth().clip(Shapes.Pill).background(colors.page).padding(6.dp),
@@ -363,8 +393,10 @@ private fun Count(ui: CameraUi, modifier: Modifier) {
 
 /**
  * The live rep count: the front camera, the pose tracker, the counter. When the target is reached
- * (and the server's minimum time has passed, so an honest fast finish is never rejected) it calls
- * [onReached] once with the count and confidence.
+ * (and the server's minimum time has passed, so an honest fast finish is never rejected) it sends
+ * the finish with [onReached]. If that doesn't save, the reps as first counted are kept: it tries
+ * again by itself with a growing wait when it's worth it (offline, the server busy), and "Try
+ * again" sends it at once.
  */
 @Composable
 fun CameraRepScreen(
@@ -373,7 +405,7 @@ fun CameraRepScreen(
     /** When the alarm stops ringing; null when the dare is done early. */
     ringsUntil: Instant?,
     note: String?,
-    onReached: (Int, Double, ExerciseChecks) -> Unit,
+    onReached: suspend (Int, Double, ExerciseChecks) -> FinishOutcome,
     onStop: () -> Unit,
     onProgress: (Int, Double) -> Unit = { _, _ -> },
     mySide: Side = Side.Left,
@@ -405,22 +437,38 @@ fun CameraRepScreen(
     var clock by remember { mutableLongStateOf(startedAt) }
     LaunchedEffect(Unit) { while (true) { delay(1_000); clock = System.currentTimeMillis() } }
     val reached by rememberUpdatedState(onReached)
-    var sent by remember { mutableStateOf(false) }
+    // Each failed send bumps this, which runs the finish again; "Try again" bumps it too.
+    var attempt by remember { mutableIntStateOf(0) }
+    var unsaved by remember { mutableStateOf<Unsaved?>(null) }
+    // The finish as first counted, kept for every retry: stepping away to fix the Wi-Fi can't lose a rep or lower the confidence.
+    var finish by remember { mutableStateOf<Triple<Int, Double, ExerciseChecks>?>(null) }
 
     // Hold the finish until the minimum time the server checks for has passed.
-    LaunchedEffect(counted.count >= target) {
-        if (counted.count < target || sent) return@LaunchedEffect
+    LaunchedEffect(counted.count >= target, attempt) {
+        if (counted.count < target) return@LaunchedEffect
         sealing = true
         val wait = type.minimumMillis(target) - (System.currentTimeMillis() - startedAt) + 500
         if (wait > 0) delay(wait)
-        sent = true
-        reached(counted.count, counted.confidence, checks.report(counted))
+        val sending = finish ?: Triple(counted.count, counted.confidence, checks.report(counted)).also { finish = it }
+        when (val outcome = reached(sending.first, sending.second, sending.third)) {
+            FinishOutcome.Saved -> unsaved = null
+            is FinishOutcome.Retry -> {
+                unsaved = Unsaved(outcome.message, retrying = true)
+                sealing = false
+                delay(finishBackoffMs(attempt))
+                attempt++
+            }
+            is FinishOutcome.Refused -> {
+                // Something to fix first (the light, say): the next try counts afresh, when the person taps it.
+                unsaved = Unsaved(outcome.message, retrying = false)
+                sealing = false
+                finish = null
+            }
+        }
     }
     // Each new rep goes to the partner live (advisory: the server's completion check is what counts).
     val progress by rememberUpdatedState(onProgress)
     LaunchedEffect(counted.count) { if (counted.count > 0) progress(counted.count, counted.confidence) }
-    // A rejected completion comes back as a note: let the person keep going and try again.
-    LaunchedEffect(note) { if (note != null) { sent = false; sealing = false } }
 
     val shown = CameraUi(
         type, target, counted, pose,
@@ -432,8 +480,9 @@ fun CameraRepScreen(
         setBy = setBy,
         silenced = silenced,
         challenge = challenge,
+        unsaved = unsaved,
     )
-    CameraRepContent(shown, onFlip = { front = !front }, onStop = onStop, onSilence = onSilence) {
+    CameraRepContent(shown, onFlip = { front = !front }, onStop = onStop, onSilence = onSilence, onRetry = { attempt++ }) {
         if (granted) {
             val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
             AndroidView({ previewView }, Modifier.fillMaxSize())
@@ -442,7 +491,7 @@ fun CameraRepScreen(
                 val tracker = runCatching {
                     PoseTracker(context, onPose = { detected ->
                         val state = counter.update(detected)
-                        challenge = checks.update(detected, state, detected?.timestampMs ?: SystemClock.uptimeMillis())
+                        challenge = checks.update(detected, state, detected?.timestampMs ?: SystemClock.uptimeMillis(), mirrored = front)
                         counted = state
                         pose = detected
                     }, onError = { error = it })

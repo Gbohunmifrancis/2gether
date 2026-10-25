@@ -51,25 +51,69 @@ class SessionChecksTest {
         }
     }
 
-    @Test fun `holding still passes the freeze check-in`() {
-        val runner = ChallengeRunner(ExerciseType.Squat, 15, Random(1))
+    /** The standing body with one hand (by the model's landmarks) or both raised above the head. */
+    private fun raising(left: Boolean, right: Boolean, at: Long) = Pose(body(at = at).landmarks.toMutableList().apply {
+        if (left) this[Pose.L_WRIST] = Landmark(0.42f, 0.12f)
+        if (right) this[Pose.R_WRIST] = Landmark(0.58f, 0.12f)
+    }, at)
+
+    /** Opens the first check-in, then plays [frame] for up to the whole window; returns the last thing shown. */
+    private fun answer(runner: ChallengeRunner, mirrored: Boolean = false, frame: (ChallengeKind, Long) -> Pose): app.heartpact.exercise.ChallengeUi? {
         var t = untilOpen(runner, moving = true)
-        var last = runner.update(body(at = t), t)
-        while (last?.passed == null && t < 200_000) { t += frameMs; last = runner.update(body(at = t), t) }
-        assertEquals(true, last?.passed)
-        assertEquals("Check-in passed", last?.title)
-        assertEquals(1, runner.passed)
-        assertEquals(0, runner.missed)
+        var kind = runner.update(body(at = t), t)!!.kind
+        var last: app.heartpact.exercise.ChallengeUi? = null
+        repeat(80) { t += frameMs; last = runner.update(frame(kind, t), t, mirrored = mirrored) ?: last; kind = last?.kind ?: kind }
+        return last
     }
 
-    @Test fun `a recording that keeps moving misses the freeze check-in`() {
+    @Test fun `raising the asked-for hand passes the check-in`() {
+        repeat(6) { seed ->
+            val runner = ChallengeRunner(ExerciseType.Squat, 15, Random(seed))
+            val last = answer(runner) { kind, t -> raising(left = kind == ChallengeKind.RaiseLeft, right = kind == ChallengeKind.RaiseRight, at = t) }
+            assertEquals(true, last?.passed)
+            assertEquals("Check-in passed", last?.title)
+            assertEquals(1, runner.passed)
+            assertEquals(0, runner.missed)
+        }
+    }
+
+    @Test fun `the cue picks left or right at random`() {
+        val kinds = (0..20).map { seed ->
+            val runner = ChallengeRunner(ExerciseType.Squat, 15, Random(seed))
+            val t = untilOpen(runner, moving = true)
+            runner.update(body(at = t), t)!!.kind
+        }.toSet()
+        assertEquals(setOf(ChallengeKind.RaiseLeft, ChallengeKind.RaiseRight), kinds)
+    }
+
+    @Test fun `on the front camera the picture is mirrored, so the model's other hand is the one asked for`() {
+        val runner = ChallengeRunner(ExerciseType.Squat, 15, Random(1))
+        val last = answer(runner, mirrored = true) { kind, t -> raising(left = kind == ChallengeKind.RaiseRight, right = kind == ChallengeKind.RaiseLeft, at = t) }
+        assertEquals(true, last?.passed)
+    }
+
+    @Test fun `a paused recording misses the check-in`() {
         val runner = ChallengeRunner(ExerciseType.Squat, 15, Random(2))
-        var t = untilOpen(runner, moving = true)
-        var last: app.heartpact.exercise.ChallengeUi? = null
-        repeat(80) { t += frameMs; last = runner.update(body(((t / frameMs) % 2) * 0.1f, t), t) ?: last }
+        val last = answer(runner) { _, t -> body(at = t) }
         assertEquals(0, runner.passed)
         assertEquals(1, runner.missed)
         assertEquals("Missed the check-in", last?.title)
+    }
+
+    @Test fun `the wrong hand, or both hands up, misses the check-in`() {
+        val wrong = ChallengeRunner(ExerciseType.Squat, 15, Random(3))
+        answer(wrong) { kind, t -> raising(left = kind == ChallengeKind.RaiseRight, right = kind == ChallengeKind.RaiseLeft, at = t) }
+        assertEquals(1, wrong.missed)
+        // A clip of arm raises or jumping jacks lifts both hands.
+        val both = ChallengeRunner(ExerciseType.Squat, 15, Random(4))
+        answer(both) { _, t -> raising(left = true, right = true, at = t) }
+        assertEquals(1, both.missed)
+    }
+
+    @Test fun `a hand flicked up for one frame isn't enough`() {
+        val runner = ChallengeRunner(ExerciseType.Squat, 15, Random(5))
+        answer(runner) { kind, t -> if ((t / frameMs) % 5 == 0L) raising(kind == ChallengeKind.RaiseLeft, kind == ChallengeKind.RaiseRight, t) else body(at = t) }
+        assertEquals(1, runner.missed)
     }
 
     @Test fun `leaving the frame during a check-in misses it`() {

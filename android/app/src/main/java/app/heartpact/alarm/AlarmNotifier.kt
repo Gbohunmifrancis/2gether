@@ -47,6 +47,10 @@ object AlarmNotifier {
 
     fun notificationId(slot: AlarmSlot) = slot.goalId.hashCode()
 
+    /** Already ringing: posting it again would restart the sound and pop the full-screen alarm back up. */
+    fun isShowing(context: Context, slot: AlarmSlot): Boolean =
+        context.getSystemService(NotificationManager::class.java).activeNotifications.any { it.id == notificationId(slot) }
+
     fun ring(context: Context, slot: AlarmSlot) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= 33) return
         ensureChannel(context)

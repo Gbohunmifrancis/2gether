@@ -1,15 +1,11 @@
 package app.heartpact.exercise
 
 import app.heartpact.exercise.Pose.Companion.L_ANKLE
-import app.heartpact.exercise.Pose.Companion.L_ELBOW
 import app.heartpact.exercise.Pose.Companion.L_HIP
-import app.heartpact.exercise.Pose.Companion.L_KNEE
 import app.heartpact.exercise.Pose.Companion.L_SHOULDER
 import app.heartpact.exercise.Pose.Companion.L_WRIST
 import app.heartpact.exercise.Pose.Companion.R_ANKLE
-import app.heartpact.exercise.Pose.Companion.R_ELBOW
 import app.heartpact.exercise.Pose.Companion.R_HIP
-import app.heartpact.exercise.Pose.Companion.R_KNEE
 import app.heartpact.exercise.Pose.Companion.R_SHOULDER
 import app.heartpact.exercise.Pose.Companion.R_WRIST
 import app.heartpact.i18n.tr
@@ -56,9 +52,10 @@ class MotionLog(private val windowMs: Long = 30_000) {
 }
 
 enum class ChallengeKind {
-    /** Hold completely still: a recording carries on moving. */
-    Freeze,
-    /** Plank only, where everyone is already still: hips up, then back into the line. */
+    /** Raise the left hand, or the right, picked at random when it opens: a recording, playing or paused, can't follow the cue. */
+    RaiseLeft,
+    RaiseRight,
+    /** Plank only, where the hands hold the body up: hips up, then back into the line. */
     HipsUp,
 }
 
@@ -67,13 +64,15 @@ data class ChallengeUi(val kind: ChallengeKind, val msLeft: Long, val progress: 
     val title: String get() = when {
         passed == true -> tr("Check-in passed")
         passed == false -> tr("Missed the check-in")
-        kind == ChallengeKind.Freeze -> tr("Check-in: freeze!")
+        kind == ChallengeKind.RaiseLeft -> tr("Check-in: left hand up!")
+        kind == ChallengeKind.RaiseRight -> tr("Check-in: right hand up!")
         else -> tr("Check-in: hips up!")
     }
     val body: String get() = when {
         passed == true -> tr("Thanks. Keep going.")
         passed == false -> tr("Your partner will see that one was missed. Keep going.")
-        kind == ChallengeKind.Freeze -> tr("Hold completely still for 2 seconds.")
+        kind == ChallengeKind.RaiseLeft -> tr("Raise your left hand above your shoulder for a second.")
+        kind == ChallengeKind.RaiseRight -> tr("Raise your right hand above your shoulder for a second.")
         else -> tr("Raise your hips, then back into a straight line.")
     }
 }
@@ -83,17 +82,16 @@ data class ChallengeUi(val kind: ChallengeKind, val msLeft: Long, val progress: 
  * One for a short set, two for a long one, at random points in the middle of the set's expected length.
  * Time is frame time, from when the person first appears in frame.
  */
-class ChallengeRunner(private val type: ExerciseType, target: Int, random: Random = Random.Default) {
-    private val kind = if (type == ExerciseType.Plank) ChallengeKind.HipsUp else ChallengeKind.Freeze
+class ChallengeRunner(private val type: ExerciseType, target: Int, private val random: Random = Random.Default) {
+    private var kind = ChallengeKind.HipsUp
     private val schedule: List<Long>
     private var startedAtMs: Long? = null
     private var next = 0
     private var openedAtMs: Long? = null
     private var resultAtMs: Long? = null
     private var lastPassed: Boolean? = null
-    // Freeze: where the body was when the current still stretch began.
-    private var anchor: Pose? = null
-    private var stillSinceMs: Long? = null
+    // Raise a hand: since when the asked-for hand has been up on its own.
+    private var raisedSinceMs: Long? = null
     // Hips up: seen high, then seen back in line.
     private var hipsWentUp = false
 
@@ -108,22 +106,31 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, random: Rando
         schedule = List(count) { i -> (slot * i + slot * 3 / 10 + random.nextLong(slot * 4 / 10 + 1)).coerceAtLeast(FIRST_AFTER_MS) }
     }
 
-    /** Feed every frame (null pose: nobody in frame). Returns what to show, if anything. [opening]: false once the set is done. */
-    fun update(pose: Pose?, nowMs: Long, opening: Boolean = true): ChallengeUi? {
+    /**
+     * Feed every frame (null pose: nobody in frame). Returns what to show, if anything. [opening]: false once the set is done.
+     * [mirrored]: the picture was flipped before detection (the front camera), which swaps the model's left and right.
+     */
+    fun update(pose: Pose?, nowMs: Long, opening: Boolean = true, mirrored: Boolean = false): ChallengeUi? {
         if (startedAtMs == null) { if (pose == null) return null; startedAtMs = nowMs }
         val elapsed = nowMs - startedAtMs!!
         val open = openedAtMs
         if (open == null) {
             resultAtMs?.let { if (nowMs - it < RESULT_MS) return ChallengeUi(kind, 0, 1f, lastPassed) else resultAtMs = null }
             if (opening && next < schedule.size && elapsed >= schedule[next]) {
-                next++; openedAtMs = nowMs; anchor = null; stillSinceMs = null; hipsWentUp = false
+                next++; openedAtMs = nowMs; raisedSinceMs = null; hipsWentUp = false
+                kind = when {
+                    type == ExerciseType.Plank -> ChallengeKind.HipsUp
+                    random.nextBoolean() -> ChallengeKind.RaiseLeft
+                    else -> ChallengeKind.RaiseRight
+                }
                 return ChallengeUi(kind, WINDOW_MS, 0f)
             }
             return null
         }
         val left = WINDOW_MS - (nowMs - open)
         val progress = when (kind) {
-            ChallengeKind.Freeze -> freeze(pose, nowMs)
+            ChallengeKind.RaiseLeft -> raise(pose, nowMs, left = !mirrored)
+            ChallengeKind.RaiseRight -> raise(pose, nowMs, left = mirrored)
             ChallengeKind.HipsUp -> hipsUp(pose)
         }
         return when {
@@ -139,17 +146,23 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, random: Rando
         return ChallengeUi(kind, 0, 1f, ok)
     }
 
-    private fun freeze(pose: Pose?, nowMs: Long): Float {
-        if (pose == null) { anchor = null; stillSinceMs = null; return 0f }
-        val base = anchor
-        if (base == null || drift(base, pose) > STILL) { anchor = pose; stillSinceMs = nowMs; return 0f }
-        return ((nowMs - stillSinceMs!!).toFloat() / HOLD_MS).coerceIn(0f, 1f)
+    /**
+     * The asked-for hand (by the model's [left] landmarks) above its shoulder, held for [RAISE_HOLD_MS], with the
+     * other hand not up too: a clip of arm raises or jumping jacks lifts both. A hand the camera can't see isn't up.
+     */
+    private fun raise(pose: Pose?, nowMs: Long, left: Boolean): Float {
+        fun up(wrist: Int, shoulder: Int) = pose != null && pose[wrist].visibility >= MIN_VISIBILITY && pose[shoulder].visibility >= MIN_VISIBILITY && pose[wrist].y < pose[shoulder].y
+        val asked = if (left) up(L_WRIST, L_SHOULDER) else up(R_WRIST, R_SHOULDER)
+        val other = if (left) up(R_WRIST, R_SHOULDER) else up(L_WRIST, L_SHOULDER)
+        if (!asked || other) { raisedSinceMs = null; return 0f }
+        val since = raisedSinceMs ?: nowMs.also { raisedSinceMs = it }
+        return ((nowMs - since).toFloat() / RAISE_HOLD_MS).coerceIn(0f, 1f)
     }
 
     private fun hipsUp(pose: Pose?): Float {
         if (pose == null) return if (hipsWentUp) 0.5f else 0f
         val s = pose.betterSide(intArrayOf(L_SHOULDER, L_HIP, L_ANKLE), intArrayOf(R_SHOULDER, R_HIP, R_ANKLE))
-        if (pose.visibility(*s) < 0.5f) return if (hipsWentUp) 0.5f else 0f
+        if (pose.visibility(*s) < MIN_VISIBILITY) return if (hipsWentUp) 0.5f else 0f
         val angle = pose.angle(s[0], s[1], s[2])
         val above = pose[s[1]].y < pose.lineY(s[0], s[2], pose[s[1]].x)
         if (above && angle <= 150f) hipsWentUp = true
@@ -157,23 +170,13 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, random: Rando
         return if (hipsWentUp) 0.5f else 0f
     }
 
-    /** The largest joint movement since [from], in units of the person's own trunk length. */
-    private fun drift(from: Pose, to: Pose): Float {
-        val scale = maxOf(to.distance(L_SHOULDER, L_HIP), to.distance(R_SHOULDER, R_HIP), 0.05f)
-        return JOINTS.maxOf { j ->
-            val dx = (to[j].x - from[j].x) * to.aspect; val dy = to[j].y - from[j].y
-            kotlin.math.hypot(dx, dy)
-        } / scale
-    }
-
     companion object {
         const val WINDOW_MS = 6_000L
-        const val HOLD_MS = 2_000L
+        /** How long the asked-for hand stays up: long enough that one stray frame can't pass. */
+        const val RAISE_HOLD_MS = 1_000L
         const val RESULT_MS = 1_800L
         const val FIRST_AFTER_MS = 5_000L
-        /** Joint movement under this share of the trunk length counts as still. */
-        const val STILL = 0.2f
-        private val JOINTS = intArrayOf(L_SHOULDER, R_SHOULDER, L_ELBOW, R_ELBOW, L_WRIST, R_WRIST, L_HIP, R_HIP, L_KNEE, R_KNEE, L_ANKLE, R_ANKLE)
+        private const val MIN_VISIBILITY = 0.5f
     }
 }
 
@@ -189,7 +192,8 @@ class SessionChecks(type: ExerciseType, private val target: Int, private val mot
     private var seen = false
     private var lastFrameMs: Long? = null
 
-    fun update(pose: Pose?, state: CounterState, nowMs: Long): ChallengeUi? {
+    /** [mirrored]: the front camera's picture, flipped before detection (see [ChallengeRunner.update]). */
+    fun update(pose: Pose?, state: CounterState, nowMs: Long, mirrored: Boolean = false): ChallengeUi? {
         val last = lastFrameMs
         if (seen && !state.inFrame && last != null) outOfFrameMs += (nowMs - last).coerceIn(0, MAX_GAP_MS)
         if (state.inFrame) seen = true
@@ -199,7 +203,7 @@ class SessionChecks(type: ExerciseType, private val target: Int, private val mot
             if (motion != null && start != null && end != null && motion.movedBetween(start, end)) phoneMovedReps += state.count - lastCount
             lastCount = state.count
         }
-        return challenges.update(pose?.takeIf { state.inFrame }, nowMs, opening = state.count < target)
+        return challenges.update(pose?.takeIf { state.inFrame }, nowMs, opening = state.count < target, mirrored = mirrored)
     }
 
     fun report(state: CounterState) = ExerciseChecks(

@@ -39,6 +39,13 @@ class Pose(val landmarks: List<Landmark>, val timestampMs: Long, val aspect: Flo
         return Math.toDegrees(kotlin.math.atan2(abs(dx).toDouble(), dy.toDouble())).toFloat()
     }
 
+    /** How far the segment from [a] to [b] slopes away from level, in degrees (0 flat, 90 upright). */
+    fun tilt(a: Int, b: Int): Float {
+        val dx = abs(px(this[b]) - px(this[a])); val dy = abs(this[b].y - this[a].y)
+        if (hypot(dx, dy) < 1e-6f) return 0f
+        return Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+    }
+
     /** The height of the line from [a] to [b] at horizontal position [x] (normalised). */
     fun lineY(a: Int, b: Int, x: Float): Float {
         val span = this[b].x - this[a].x

@@ -36,6 +36,23 @@ public static class ExerciseGoalRules
         return Result.Success();
     }
 
+    /// <summary>
+    /// The zone a dare's time is read in. A dare rings on the assignee's phone, so one set by the
+    /// partner uses the assignee's saved zone; the zone the setter's phone sent is only the fallback
+    /// (setting your own dare, or no zone saved yet: "UTC" is the account default, not a choice).
+    /// </summary>
+    public static string ZoneFor(string sentTimeZoneId, Guid actorId, Guid assigneeId, string? assigneeSavedTimeZoneId)
+    {
+        var sent = sentTimeZoneId.Trim();
+        if (actorId == assigneeId || !IsSavedZone(assigneeSavedTimeZoneId)) return sent;
+        return assigneeSavedTimeZoneId!.Trim();
+    }
+
+    /// <summary>A zone the person's phone actually saved: known, and not the "UTC" every account starts with.</summary>
+    public static bool IsSavedZone(string? timeZoneId)
+        => ExerciseSchedule.IsKnownTimeZone(timeZoneId) && timeZoneId!.Trim().Length <= ExerciseGoal.MaxTimeZoneIdLength
+            && !string.Equals(timeZoneId.Trim(), "UTC", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>Trims the call-off note; empty becomes null. The entity re-checks the length as a programmer error.</summary>
     public static Result<string?> CallOffNote(string? note)
     {

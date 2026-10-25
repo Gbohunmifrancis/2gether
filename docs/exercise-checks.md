@@ -18,14 +18,25 @@ counting: the partner decides what to make of a flag.
 | Posture | squat: trunk leaning more than 60 degrees from upright at the bottom. Push-up: shoulder, hip and ankle out of line by more than 30 degrees | "Keep your chest up as you go down." |
 | Too fast | one rep quicker than 60 percent of the exercise's minimum pace (the server's `MinSecondsPerUnit`) | "Slow down: that one was too quick to count." |
 | Plank | the line from shoulders to ankles breaks after at least a second held: the clock stops and the tip says which way to move the hips | "Lift your hips into a straight line." |
+| Position | the body isn't where the exercise puts it, so the frame moves nothing (see below); a tip only, not a fault count | "Get down into a push-up: body level, hands under your shoulders." |
 
 Every exercise has its own tip for each fault. Posture is only judged when the camera can see the joints it needs.
+
+Moving one joint can fake the signal, so the counter also checks the body's position. The limits are loose on
+purpose, for real bodies and camera angles; they only rule out the cheats:
+
+| Exercise | Required | Rules out |
+|---|---|---|
+| Squat | at the bottom, the hips sink at least 0.1 leg lengths below where they were standing (a real squat to 105 degrees sinks about 0.2) | sitting in a chair swinging a leg; standing on one leg bending the other back |
+| Push-up | the shoulder-to-feet line slopes 50 degrees or less (to the hips when the feet are out of view); at the top, the hands are below the shoulders by half an arm or more | standing side-on bending the elbows; lying flat, face down or on the back |
+| Plank | as before, plus an elbow or hand below the shoulder by half an upper arm or more | lying flat, face down or on the back (and with it a glute bridge for the hips-up check-in) |
+| Sit-up | the knee no more than half a thigh below the hip | standing forward bends |
 
 ## Cheating
 
 | Check | How | Where |
 |---|---|---|
-| Surprise check-ins | at a random moment in the middle of the set (one for a set expected under 40 seconds, two otherwise, never in the first 5 seconds) the screen says "Freeze! Hold still for 2 seconds". A recording carries on moving. Plank, where everyone is already still, asks for hips up and back into line. Six seconds to do it; out of frame counts as missed. No new check-in opens once the target is reached | `exercise/Checks.kt`, `ChallengeRunner` |
+| Surprise check-ins | at a random moment in the middle of the set (one for a set expected under 40 seconds, two otherwise, never in the first 5 seconds) the screen asks for the left hand or the right, picked at random: that wrist above its shoulder for a second, with the other hand not up (a clip of arm raises lifts both). A recording, playing or paused, can't follow a cue it didn't know. On the front camera the picture is mirrored before detection, which swaps the model's left and right, so the check swaps them back. Plank, where the hands hold the body up, asks for hips up and back into line. Six seconds to do it; out of frame counts as missed. No new check-in opens once the target is reached | `exercise/Checks.kt`, `ChallengeRunner` |
 | Phone moving | the gyroscope (or linear accelerometer) while the camera counts. A rep counted while a quarter or more of the readings show the phone clearly moving is reported; a single nudge isn't | `ui/camera/PhoneMotion.kt`, `MotionLog` |
 | Out of frame | seconds out of view after first appearing | `SessionChecks` |
 | Genuine app | Google Play Integrity: the app asks Google for a token bound to this occurrence, the count and the six check numbers (`SHA-256("heartpact:exercise:<id>:<count>:<formFaults>:<fastReps>:<passed>:<missed>:<phoneMoved>:<outOfFrame>")`), so a genuine token can't carry made-up numbers; the server has Google decode it and requires the request hash, package, a token under 10 minutes old, `PLAY_RECOGNIZED`, and `MEETS_DEVICE_INTEGRITY` (or strong) | `data/PlayIntegrity.kt`; server `PlayIntegrityRules`, `PlayIntegrityVerifier` |
