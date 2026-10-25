@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
@@ -41,7 +38,9 @@ import app.heartpact.exercise.Measure
 import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.ButtonKind
+import app.heartpact.ui.components.CardColumns
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.StickerCard
@@ -102,11 +101,13 @@ fun PactsTab(ui: PactsUi, partnerName: String, onStop: (String) -> Unit, onNewDa
     val colors = Heartpact.colors
     var forMe by remember { mutableStateOf(initialForMe) }
     var stopping by remember { mutableStateOf<PactCard?>(null) }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+    // With room, the dares lay out in columns, like a sticker book.
+    AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)) {
             Text(tr("Pacts"), style = Heartpact.type.headline, color = colors.ink)
             Text(trn(ui.view?.hearts ?: 0, "Your sticker page · {count} heart in 30 days", "Your sticker page · {count} hearts in 30 days"), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
+    }, second = null, wide = true) {
         Segmented(listOf(tr("Dares for you"), tr("Dares you set")), if (forMe) 0 else 1) { forMe = it == 0 }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
         val cards = ui.view?.let { if (forMe) it.forMe else it.bySet }
@@ -119,7 +120,7 @@ fun PactsTab(ui: PactsUi, partnerName: String, onStop: (String) -> Unit, onNewDa
                 }
             }
         }
-        cards?.forEach { card -> PactCardView(card, partnerName, forMe, onStopRequest = { stopping = card }) }
+        CardColumns(cards.orEmpty(), most = 2) { card -> PactCardView(card, partnerName, forMe, onStopRequest = { stopping = card }) }
         Legend()
         HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
     }

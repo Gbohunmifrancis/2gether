@@ -11,13 +11,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Alarm
@@ -39,6 +36,7 @@ import app.heartpact.data.utc
 import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -77,26 +75,15 @@ fun TodayTab(
 ) {
     val colors = Heartpact.colors
     val view = ui.view
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+    // With room, my dare sits beside the rest: the week, my dare for my partner and a new one.
+    AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
             Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
             val date = LocalDate.now().format(Dates.formatter("EEEE d MMMM"))
             Text(if (view != null) trn(view.hearts, "{date} · {count} heart this week", "{date} · {count} hearts this week", "date" to date) else date,
                 style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
-        ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp)) }
-        if (!ui.readiness.ready) Readiness(ui)
-        view?.partnerRinging?.takeIf { it.callOffRequestedAtUtc != null && it.id !in ui.kept }?.let { CallOffRequest(it, partnerName, ui.busy, onCallOff, onKeep) }
-        when {
-            view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera, onDoItNow)
-            view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
-                Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Character(Who.Both, Pose.Wave, 100.dp)
-                    Text(tr("No dare for you yet"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
-                    Text(tr("When {partner} sets you one, their half of the heart lands here first.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
-                }
-            }
-        }
+    }, second = {
         view?.let { Week(it) }
         view?.let { v ->
             StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) {
@@ -115,6 +102,20 @@ fun TodayTab(
             }
         }
         HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
+    }) {
+        ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp)) }
+        if (!ui.readiness.ready) Readiness(ui)
+        view?.partnerRinging?.takeIf { it.callOffRequestedAtUtc != null && it.id !in ui.kept }?.let { CallOffRequest(it, partnerName, ui.busy, onCallOff, onKeep) }
+        when {
+            view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera, onDoItNow)
+            view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
+                Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Character(Who.Both, Pose.Wave, 100.dp)
+                    Text(tr("No dare for you yet"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
+                    Text(tr("When {partner} sets you one, their half of the heart lands here first.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        }
     }
 }
 

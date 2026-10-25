@@ -7,6 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -42,6 +48,7 @@ import app.heartpact.exercise.Landmark
 import app.heartpact.exercise.Pose
 import app.heartpact.i18n.Tr
 import app.heartpact.ui.album.AlbumTab
+import app.heartpact.ui.components.ReadableScreen
 import app.heartpact.ui.album.AlbumUi
 import app.heartpact.ui.album.PhotoSlot
 import app.heartpact.ui.camera.CameraRepContent
@@ -62,6 +69,17 @@ import app.heartpact.ui.today.NewDareState
 import app.heartpact.ui.today.TodayBuilder
 import app.heartpact.ui.today.TodayTab
 import app.heartpact.ui.today.TodayUi
+import app.heartpact.data.Gender
+import app.heartpact.data.LocationPoint
+import app.heartpact.data.NotificationPreferences
+import app.heartpact.data.SharingState
+import app.heartpact.data.SharingStatus
+import app.heartpact.data.SharingStatusView
+import app.heartpact.ui.map.LocationUi
+import app.heartpact.ui.map.MapActions
+import app.heartpact.ui.map.MapScreen
+import app.heartpact.ui.us.UsTab
+import app.heartpact.ui.us.UsUi
 import app.heartpact.ui.us.QuestionScreen
 import app.heartpact.ui.us.QuestionUi
 import kotlinx.serialization.json.Json
@@ -111,6 +129,10 @@ class StoreShotsTest {
     @Test @Config(qualifiers = "w600dp-h960dp-xhdpi") fun tablet7() = LANGUAGES.forEach { screens(it, "store-tablet7") }
     @Test @Config(qualifiers = "w800dp-h1280dp-xhdpi") fun tablet10() = LANGUAGES.forEach { screens(it, "store-tablet10") }
 
+    /** Lying down: two panes on the tabs, the rail down the side. */
+    @Test @Config(qualifiers = "w960dp-h600dp-land-xhdpi") fun tablet7Landscape() = LANGUAGES.forEach { screens(it, "store-tablet7-land") }
+    @Test @Config(qualifiers = "w1280dp-h800dp-land-xhdpi") fun tablet10Landscape() = LANGUAGES.forEach { screens(it, "store-tablet10-land") }
+
     /** What the two of them typed: people write in their own language. */
     private val typed = mapOf(
         "en" to listOf("Somewhere with no signal. A cabin, a lake, and no alarms at all, not even yours.", "Learn to sail, badly, and laugh about it.", "French toast, berries", "Chickpea salad bowl", "kite"),
@@ -150,7 +172,7 @@ class StoreShotsTest {
         })
         val view = TodayBuilder.build(ExerciseToday("x", listOf(goal, hisGoal), listOf(ringing)), history, "maya", now, ZoneOffset.UTC)
         at("today") { HomeScreen("Maya", "Theo", {}, today = { TodayTab(TodayUi(view = view, loading = false), "Theo", {}, onCallOff = {}, onKeep = {}, onNewDare = {}, now = now) }) }
-        at("new-dare") { NewDareScreen(NewDareState(type = ExerciseType.Squat, target = 20), "Theo", {}, {}, {}, {}, {}, {}) }
+        at("new-dare") { ReadableScreen { NewDareScreen(NewDareState(type = ExerciseType.Squat, target = 20), "Theo", {}, {}, {}, {}, {}, {}) } }
         at("alarm") { AlarmRinging(ringing, "Theo", setByPartner = true, mySide = Side.Left, busy = false, note = null, {}, {}, {}, now = { now }) }
 
         // Squats in front of the camera, Theo watching. The photo is cropped to the camera area (1170 × 1868 px).
@@ -162,10 +184,18 @@ class StoreShotsTest {
             this[Pose.L_KNEE] = Landmark(0.546f, 0.643f, 0.83f); this[Pose.R_KNEE] = Landmark(0.243f, 0.676f, 0.99f)
             this[Pose.L_ANKLE] = Landmark(0.408f, 0.811f, 0.84f); this[Pose.R_ANKLE] = Landmark(0.143f, 0.871f, 0.99f)
         }
-        val workout = CameraUi(ExerciseType.Squat, 20, CounterState(count = 14, inFrame = true, confidence = 0.9), Pose(squat, 0, 1170f / 1868f),
-            secondsLeft = 24 * 60 + 10, elapsedSeconds = 96, setBy = "Theo", silenced = false)
         val squatPhoto = photo("camera-squat.jpg")
-        at("camera") { CameraRepContent(workout, {}, {}) { Image(squatPhoto, null, Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds) } }
+        at("camera") {
+            // The photo fills the camera area as a camera preview does (cropped, never stretched), and the pose points
+            // move with it. The area's size is only known after layout, so the first pass measures it.
+            var area by remember { mutableStateOf(IntSize(1170, 1868)) }
+            val workout = CameraUi(ExerciseType.Squat, 20, CounterState(count = 14, inFrame = true, confidence = 0.9),
+                Pose(cropped(squat, squatPhoto.width, squatPhoto.height, area), 0, area.width.toFloat() / area.height),
+                secondsLeft = 24 * 60 + 10, elapsedSeconds = 96, setBy = "Theo", silenced = false)
+            CameraRepContent(workout, {}, {}) {
+                Image(squatPhoto, null, Modifier.fillMaxSize().onSizeChanged { if (it.width > 0 && it.height > 0) area = it }, contentScale = ContentScale.Crop)
+            }
+        }
 
         val done = ringing.copy(status = OccurrenceStatus.Completed, achievedCount = 20, completedAtUtc = "2026-10-11T07:52:00Z")
         at("heart-complete") { HeartComplete(done, "Theo", onDone = {}, frozenAtMs = app.heartpact.ui.graphics.StickTimeline.END_MS) }
@@ -179,7 +209,7 @@ class StoreShotsTest {
         val question = DailyQuestion("q", "2026-10-11", "future-01", "future", srv("If we had one extra free weekend a month, what would you want us to do with it?"),
             partnerAnswered = true, streakDays = 14, myAnswer = mine, partnerAnswer = theirs)
         val yesterday = DailyQuestion("y", "2026-10-10", "everyday-10", "everyday", srv("What is one small habit of mine that you secretly like?"), myAnswer = mine, partnerAnswered = true, partnerAnswer = theirs)
-        at("question") { QuestionScreen(QuestionUi(today = question, earlier = listOf(yesterday)), "Theo", {}, {}, {}, {}, today = LocalDate.of(2026, 10, 11)) }
+        at("question") { ReadableScreen { QuestionScreen(QuestionUi(today = question, earlier = listOf(yesterday)), "Theo", {}, {}, {}, {}, today = LocalDate.of(2026, 10, 11)) } }
 
         // Draw and guess: Maya draws an umbrella; Theo has tried one word.
         val umbrella = listOf(
@@ -219,6 +249,29 @@ class StoreShotsTest {
         val day = FoodDay("2026-10-10", NutritionTarget(dailyCalories = 1900), FoodTotals(1240, entryCount = 2, caloriesLow = 1020, caloriesHigh = 1460), 660, listOf(toast, bowl),
             FoodPartnerDay("theo", "Theo", FoodShareLevel.TotalsOnly, 2400, FoodTotals(1610, entryCount = 3, caloriesLow = 1370, caloriesHigh = 1850)), scansUsedToday = 1, scanLimitPerDay = 3)
         at("food") { HomeScreen("Maya", "Theo", {}, initialTab = Tab.Food, food = { FoodTab(FoodUi(day), "Theo", {}, {}, {}, {}, { _, _ -> }, today = LocalDate.of(2026, 10, 10)) }) }
+
+        at("us") {
+            HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "2 March", {}, {}, {}, {}, {}, {},
+                    country = "NG", onCountry = {}, gender = Gender.Female, onGender = {})
+            })
+        }
+
+        // The map, both sharing: Lagos, a couple of kilometres apart.
+        val points = listOf(
+            LocationPoint("maya", "Maya", latitude = 6.4300, longitude = 3.4200, updatedAtUtc = "2026-10-11T07:47:00Z", isCurrentUser = true),
+            LocationPoint("theo", "Theo", latitude = 6.4400, longitude = 3.4350, updatedAtUtc = "2026-10-11T07:46:00Z"),
+        )
+        val sharing = SharingStatusView(SharingState("maya", "Maya", SharingStatus.Sharing), SharingState("theo", "Theo", SharingStatus.Sharing), mutual = true)
+        at("map") { MapScreen(LocationUi(sharing, points, sendingHere = true), "Theo", MapActions(), now, drawn = true, myName = "Maya") }
+    }
+
+    /** Pose points found on a photo, moved to where they land once the photo is centre-cropped to fill [area]. */
+    private fun cropped(points: List<Landmark>, photoWidth: Int, photoHeight: Int, area: IntSize): List<Landmark> {
+        val scale = maxOf(area.width.toFloat() / photoWidth, area.height.toFloat() / photoHeight)
+        val left = (area.width - photoWidth * scale) / 2
+        val top = (area.height - photoHeight * scale) / 2
+        return points.map { Landmark((left + it.x * photoWidth * scale) / area.width, (top + it.y * photoHeight * scale) / area.height, it.visibility) }
     }
 
     private fun photo(name: String): ImageBitmap =

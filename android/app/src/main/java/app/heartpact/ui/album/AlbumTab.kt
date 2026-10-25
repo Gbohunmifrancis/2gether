@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -72,6 +73,8 @@ import app.heartpact.data.utc
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
+import app.heartpact.ui.components.TwoPaneWidth
+import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.HalfState
@@ -128,9 +131,10 @@ fun AlbumTab(
     var openShared by remember { mutableStateOf<Memory?>(null) }
 
     Box(Modifier.fillMaxSize()) {
+        // Three photos across on a phone; as many as fit on a tablet.
         LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Adaptive(112.dp),
+            modifier = Modifier.fillMaxSize().readable(TwoPaneWidth),
             contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 104.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -324,7 +328,8 @@ private fun OnThisDay(memories: List<Memory>, image: PhotoSlot, onOpen: (Memory)
     StickerCard(Modifier.padding(bottom = 14.dp).fillMaxWidth(), shape = Shapes.Dare, lift = 6.dp) {
         Column(Modifier.padding(16.dp)) {
             Text(tr("On this day"), style = Heartpact.type.titleSmall, color = colors.ink)
-            Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Three across, and no bigger than on a large phone, however wide the album gets.
+            Row(Modifier.padding(top = 10.dp).widthIn(max = 480.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 memories.take(3).forEach { memory ->
                     val years = today.year - utc(memory.sortAtUtc).atZone(ZoneId.systemDefault()).year
                     Column(Modifier.weight(1f).clickable { onOpen(memory) }) {

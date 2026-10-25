@@ -328,12 +328,15 @@ def feature(lang: str, art: Path) -> None:
     Image.open(png).convert("RGB").save(out / "feature-graphic-1024x500.png", optimize=True)  # 24-bit, no alpha
 
 
-# Tablets: the screens that still read well on the phone layout the app uses on tablets.
-TABLET_SCREENS = [("alarm", 2), ("camera", 3), ("games-draw", 6), ("album", 7), ("food", "food")]
+# Tablets: the screens that show the tablet layout best (the rail, two panes, the columns), lying down.
+TABLET_SCREENS = [("today", 0), ("food", "food"), ("question", 5), ("games", 6), ("album", 7)]
 
 
 def tablets(lang: str, art: Path) -> None:
-    """Landscape 16:9 screenshots for 7-inch (1920 × 1080) and 10-inch (2560 × 1440) tablets, from screens rendered at those sizes."""
+    """
+    Landscape 16:9 screenshots for 7-inch (1920 × 1080) and 10-inch (2560 × 1440) tablets, from the screens rendered on
+    a tablet lying down (960 × 600 dp and 1280 × 800 dp): the caption on one side, the tablet's screen on the other.
+    """
     for kind, W, H in (("tablet7", 1920, 1080), ("tablet10", 2560, 1440)):
         s = H / 1080
         out = OUT / "screenshots" / kind / lang
@@ -342,13 +345,12 @@ def tablets(lang: str, art: Path) -> None:
         files = []
         for n, (name, key) in enumerate(TABLET_SCREENS):
             head, sub = CAPTIONS[lang]["panels"][key] if isinstance(key, int) else CAPTIONS[lang][key]
-            body = [ribbon(W, H, base=820 * s, amplitude=60 * s, wavelength=1900 * s, band=70 * s, phase=n * 1.3)]
-            body.append(caption(lang, head, sub, mirror(lang, W, 110 * s, 760 * s), 180 * s, 760 * s, 84 * s, 38 * s))
-            body.append(sticker(SCREENS.parent / f"store-{kind}" / lang / f"{name}.png", mirror(lang, W, 1080 * s, 640 * s), 110 * s, 640 * s,
-                                1.6 if n % 2 else -1.6, border=14 * s, radius=56 * s))
+            body = [ribbon(W, H, base=860 * s, amplitude=50 * s, wavelength=1900 * s, band=64 * s, phase=n * 1.3)]
+            body.append(caption(lang, head, sub, mirror(lang, W, 90 * s, 450 * s), 150 * s, 450 * s, 70 * s, 32 * s))
+            body.append(sticker(SCREENS.parent / f"store-{kind}-land" / lang / f"{name}.png", mirror(lang, W, 600 * s, 1240 * s), 140 * s, 1240 * s,
+                                1.2 if n % 2 else -1.2, border=12 * s, radius=40 * s))
             character = ["maya-wave", "theo-walk", "both-cheer", "maya-walk", "theo-stand"][n]
-            body.append(art_tag(art, character, mirror(lang, W, 330 * s, 0), 860 * s, 300 * s))
-            body.append(art_tag(art, "heart-full", mirror(lang, W, 900 * s, 0), 700 * s, 120 * s, 12))
+            body.append(art_tag(art, character, mirror(lang, W, 300 * s, 0), 880 * s, 260 * s))
             html = WORK / f"{kind}-{lang}-{n}.html"
             html.write_text(page("".join(body), W, H, lang))
             png = WORK / f"{kind}-{lang}-{n}.png"

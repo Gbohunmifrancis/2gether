@@ -6,14 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BakeryDining
 import androidx.compose.material.icons.rounded.DinnerDining
@@ -55,6 +54,7 @@ import app.heartpact.data.FoodShareLevel
 import app.heartpact.data.MealType
 import app.heartpact.data.utc
 import app.heartpact.i18n.tr
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
@@ -90,36 +90,37 @@ fun FoodTab(
     var editingAim by remember { mutableStateOf(false) }
     val day = ui.day
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 104.dp)) {
+        // With room, the day's total sits beside what was logged.
+        AdaptivePage(header = {
             Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)) {
                 Text(tr("Food"), style = Heartpact.type.headline, color = colors.ink)
                 Text(tr("{weekday} · photo estimates run about ±30%", "weekday" to today.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
             }
-            ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
-            if (day != null) {
-                Summary(day) { editingAim = true }
-                SectionHeader(tr("Logged today"), Modifier.padding(horizontal = 8.dp).padding(top = 14.dp))
-                if (day.entries.isEmpty()) {
-                    StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
-                        Text(tr("Nothing yet. Snap your next meal, or log it by hand."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(18.dp))
-                    }
-                } else {
-                    StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
-                        day.entries.forEachIndexed { index, entry ->
-                            if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 0.dp), color = colors.rule)
-                            EntryRow(entry) { onOpenEntry(entry) }
-                        }
-                    }
+        }, second = if (day == null) null else ({
+            SectionHeader(tr("Logged today"), Modifier.padding(horizontal = 8.dp).padding(top = 14.dp))
+            if (day.entries.isEmpty()) {
+                StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
+                    Text(tr("Nothing yet. Snap your next meal, or log it by hand."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(18.dp))
                 }
-                day.partner?.let { PartnerCard(it, partnerName) }
-                Row(Modifier.padding(horizontal = 12.dp).padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    HeartButton(tr("Choose a photo"), onChoosePhoto, kind = ButtonKind.Text, icon = Icons.Rounded.PhotoLibrary, fillWidth = false, height = 44.dp)
-                    HeartButton(tr("Log by hand"), onLogByHand, kind = ButtonKind.Text, icon = Icons.Rounded.Edit, fillWidth = false, height = 44.dp)
-                }
-                FoodText.scansLeft(day.scanLimitPerDay - day.scansUsedToday, day.scanLimitPerDay)?.let {
-                    Text(it, style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(horizontal = 24.dp))
+            } else {
+                StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
+                    day.entries.forEachIndexed { index, entry ->
+                        if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 0.dp), color = colors.rule)
+                        EntryRow(entry) { onOpenEntry(entry) }
+                    }
                 }
             }
+            day.partner?.let { PartnerCard(it, partnerName) }
+            Row(Modifier.padding(horizontal = 12.dp).padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                HeartButton(tr("Choose a photo"), onChoosePhoto, kind = ButtonKind.Text, icon = Icons.Rounded.PhotoLibrary, fillWidth = false, height = 44.dp)
+                HeartButton(tr("Log by hand"), onLogByHand, kind = ButtonKind.Text, icon = Icons.Rounded.Edit, fillWidth = false, height = 44.dp)
+            }
+            FoodText.scansLeft(day.scanLimitPerDay - day.scansUsedToday, day.scanLimitPerDay)?.let {
+                Text(it, style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(horizontal = 24.dp))
+            }
+        }), contentPadding = PaddingValues(bottom = 104.dp)) {
+            ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
+            if (day != null) Summary(day) { editingAim = true }
         }
         HeartButton(tr("Snap a meal"), onSnap, Modifier.align(Alignment.BottomEnd).padding(16.dp), icon = Icons.Rounded.PhotoCamera, fillWidth = false)
     }

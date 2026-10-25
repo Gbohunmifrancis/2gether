@@ -69,8 +69,24 @@ Push (Firebase), release signing and the release API URL come from environment v
 - `ui/components`, `ui/onboarding`, `ui/auth`, `ui/pair`, `ui/home`, `ui/splash`, `ui/today`, `ui/pacts`, `ui/album`, `ui/AppNav.kt`.
 - `tools/icon_paths.py` regenerates the launcher icon layers (the tick is cut into the geometry, since vector drawables have no masks).
 
-## Not yet
+## Tablets
 
-A tablet layout: on tablets the app shows its phone layout, stretched to fit.
+The app adapts to the width of its window (`ui/components/Adaptive.kt`), using Material's window size classes:
+
+- **Phones (under 600 dp):** the bottom navigation bar, one column.
+- **Tablets, phones on their side and split screen (600 dp and up):** a navigation rail down the start side instead (the
+  right side in Arabic). Single-column screens keep a readable width (640 dp), centred on the page (`ReadableScreen`,
+  `Modifier.readable()`). Whatever paints the screen's background still reaches both edges.
+- **Room for two panes (840 dp of content and up, tablets lying down):**
+  - Today, Food and Us split into two panes (`AdaptivePage`): what matters now on the left, the rest on the right. On
+    a phone the same sections come in the same order, one under the other.
+  - Pacts and the list of games lay their cards out in columns (`CardColumns`), and the album grid fits as many photos
+    across as there's room for.
+- **The map and the food scan:** the map or photo goes edge to edge, with the sheet at a readable width over it.
+- **The camera:** it has its own side-by-side layout when the window is wider than tall.
+
+`StoreShotsTest` renders the screens on 7-inch and 10-inch tablets, upright and lying down (`build/screens/store-tablet*`).
+
+## Not yet
 
 The rep counter is tuned on synthetic poses; thresholds need checking on real phones and bodies before release. Release APKs are large (about 55 MB) because MediaPipe ships native code for every ABI: publish an App Bundle so Play delivers one ABI per phone.

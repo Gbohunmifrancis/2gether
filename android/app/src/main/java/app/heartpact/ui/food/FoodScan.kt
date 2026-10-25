@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -44,6 +45,7 @@ import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.album.CoilPhoto
 import app.heartpact.ui.album.PhotoSlot
+import app.heartpact.ui.components.ReadableWidth
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
@@ -84,7 +86,8 @@ fun FoodScanScreen(
             }
         }
         Column(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth().fillMaxHeight(0.58f)
+            // On a tablet the sheet keeps a readable width over the full-width photo.
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().widthIn(max = ReadableWidth).fillMaxHeight(0.58f)
                 .clip(Shapes.Sheet).background(colors.sticker).navigationBarsPadding(),
         ) {
             Box(Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp).size(36.dp, 4.dp).clip(Shapes.Pill).background(colors.rule2))

@@ -56,6 +56,10 @@ import app.heartpact.data.utc
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
+import app.heartpact.ui.components.CardColumns
+import app.heartpact.ui.components.ReadableWidth
+import app.heartpact.ui.components.TwoPaneWidth
+import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
@@ -92,7 +96,8 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
     val active = ui.active ?: ui.justFinished(now())
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         TopBar(active?.let { GamePlay.title(it) } ?: tr("Play together"), actions.onBack)
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
+        // On a tablet the boards keep a readable width, and the list of games spreads into columns.
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).readable(if (active == null) TwoPaneWidth else ReadableWidth).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
             ui.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             when {
                 active == null -> Picker(ui, me, partnerName, actions)
@@ -122,7 +127,7 @@ private fun Picker(ui: GamesUi, me: String, partnerName: String, actions: GameAc
     Text(tr("Pick a game and {partner} gets an invite. It starts when they join.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(bottom = 14.dp))
     val region = ui.region ?: ui.sessions.firstOrNull()?.let(GamePlay::region)
     if (region == "ng") AfterRoundCard()
-    GamePlay.offered.forEach { type ->
+    CardColumns(GamePlay.offered, minWidth = 320.dp, gap = 12.dp) { type ->
         StickerCard(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
             Column(Modifier.padding(16.dp)) {
                 Text(GamePlay.title(type, region), style = Heartpact.type.title, color = colors.ink)

@@ -55,6 +55,7 @@ import app.heartpact.ui.auth.CountrySheet
 import app.heartpact.ui.auth.GENDERS
 import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.ButtonKind
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
@@ -111,7 +112,8 @@ fun UsTab(
     var confirmDelete by remember { mutableStateOf(false) }
     var pickingCountry by remember { mutableStateOf(false) }
     var pickingGender by remember { mutableStateOf(false) }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+    // With room, the two of you and the question sit beside the account settings.
+    AdaptivePage(header = {
         Row(Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(tr("Us"), style = Heartpact.type.headline, color = colors.ink)
@@ -119,15 +121,7 @@ fun UsTab(
             }
             Character(Who.Both, Pose.Hug, 96.dp)
         }
-        ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
-        location()
-        StickerCard(Modifier.padding(horizontal = 12.dp)) {
-            CardRow(tr("Today's question"), subtitle = UsText.questionStatus(ui.question, partnerName), icon = Icons.Outlined.Forum, onClick = onQuestion) { Chevron() }
-            extraRows()
-        }
-        StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
-            CardRow(tr("Notifications"), subtitle = UsText.notifications(ui.preferences), icon = Icons.Outlined.NotificationsNone, onClick = onNotifications) { Chevron() }
-        }
+    }, second = {
         SectionHeader(tr("Account"))
         StickerCard(Modifier.padding(horizontal = 12.dp)) {
             if (onCountry != null) {
@@ -141,6 +135,16 @@ fun UsTab(
             CardRow(tr("Sign out"), divider = onCountry != null || onGender != null, subtitle = tr("Your pact and photos stay; sign back in any time"), icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
             CardRow(tr("End our pact"), subtitle = tr("Unlinks you both and stops every dare"), icon = Icons.Outlined.HeartBroken, divider = true, onClick = { confirmEnd = true })
             CardRow(tr("Delete my account"), subtitle = tr("Everything of yours, for good"), icon = Icons.Outlined.PersonRemove, divider = true, onClick = { confirmDelete = true })
+        }
+    }) {
+        ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
+        location()
+        StickerCard(Modifier.padding(horizontal = 12.dp)) {
+            CardRow(tr("Today's question"), subtitle = UsText.questionStatus(ui.question, partnerName), icon = Icons.Outlined.Forum, onClick = onQuestion) { Chevron() }
+            extraRows()
+        }
+        StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
+            CardRow(tr("Notifications"), subtitle = UsText.notifications(ui.preferences), icon = Icons.Outlined.NotificationsNone, onClick = onNotifications) { Chevron() }
         }
     }
     if (pickingCountry && onCountry != null) {

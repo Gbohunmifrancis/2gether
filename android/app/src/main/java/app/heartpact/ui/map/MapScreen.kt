@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -48,6 +49,9 @@ import app.heartpact.BuildConfig
 import app.heartpact.data.LocationPoint
 import app.heartpact.data.SharingStatus
 import app.heartpact.i18n.tr
+import app.heartpact.ui.components.ReadableWidth
+import app.heartpact.ui.components.WidthClass
+import app.heartpact.ui.components.widthClass
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -164,12 +168,15 @@ data class MapActions(
 fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Instant = Instant.now(), drawn: Boolean = !BuildConfig.HAS_MAPS_KEY, myName: String = tr("You")) {
     val colors = Heartpact.colors
     Box(Modifier.fillMaxSize().background(colors.page)) {
-        if (drawn) SketchMap(ui.points, Modifier.fillMaxWidth().height(520.dp)) else RealMap(ui.points, Modifier.fillMaxWidth().height(540.dp))
+        // A phone shows the map above the sheet; a tablet, the map edge to edge with the sheet over it, readable width.
+        val tablet = widthClass() != WidthClass.Compact
+        val area = if (tablet) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(if (drawn) 520.dp else 540.dp)
+        if (drawn) SketchMap(ui.points, area) else RealMap(ui.points, area)
         IconButton(onClick = actions.onBack, modifier = Modifier.statusBarsPadding().padding(12.dp).size(52.dp).clip(CircleShape).background(colors.sticker)) {
             Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr("Back"), tint = colors.ink)
         }
         Column(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(Shapes.Sheet).background(colors.sticker)
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().widthIn(max = ReadableWidth).clip(Shapes.Sheet).background(colors.sticker)
                 .navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 20.dp),
         ) {
             Box(Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp, bottom = 14.dp).size(36.dp, 4.dp).clip(Shapes.Pill).background(colors.rule2))

@@ -45,6 +45,7 @@ import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.utc
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
+import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
@@ -103,7 +104,7 @@ fun AlarmRinging(
     val asked = occurrence.callOffRequestedAtUtc != null
     val me = if (mySide == Side.Left) Who.Left else Who.Right
     val is24Hour = android.text.format.DateFormat.is24HourFormat(androidx.compose.ui.platform.LocalContext.current)
-    Column(Modifier.fillMaxSize().background(Ink).statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)) {
+    Column(Modifier.fillMaxSize().background(Ink).readable().statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 val (clockFace, meridiem) = bigClock(occurrence.scheduledAtUtc, is24Hour)
@@ -188,7 +189,7 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
         }
         else -> tr("{progress} at {time},\nwhile it was ringing.", "progress" to progress, "time" to localTime(done.toString()))
     }
-    Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding().padding(12.dp)) {
+    Column(Modifier.fillMaxSize().background(colors.page).readable().statusBarsPadding().navigationBarsPadding().padding(12.dp)) {
         StickerCard(Modifier.fillMaxWidth().weight(1f), shape = Shapes.Dare) {
             Column(Modifier.fillMaxSize().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 // Mockup 20: your half sticks next to the one your partner set, then you both cheer.
@@ -211,7 +212,7 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
 @Composable
 fun AlarmEnded(reason: EndReason, partnerName: String, onDone: () -> Unit) {
     val colors = Heartpact.colors
-    Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    Column(Modifier.fillMaxSize().background(colors.page).readable().statusBarsPadding().navigationBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         when (reason) {
             EndReason.LetOff -> PeeledHeart(96.dp)
             EndReason.Missed -> HeartSticker(HalfState.Slot, HalfState.Slot, 96.dp)

@@ -12,7 +12,8 @@ draw). Nothing is mocked up or retouched. The art on the page (the two-tone hear
 app's own drawing code too (`StoreArtTest`), and the Play icon is drawn from the launcher's own icon layers.
 
 - **Camera:** the camera screen shows a real photo where the front camera's picture goes. The body points on it are what
-  the app's own pose model (`pose_landmarker_lite.task`) found on that photo.
+  the app's own pose model (`pose_landmarker_lite.task`) found on that photo. The photo fills the camera area the way a
+  camera preview does (cropped, never stretched), and the points move with it.
 - **Album and food:** they show the licensed stand-in photos from `design/heartpact-v3/assets` (Unsplash and Pexels
   licences: free for commercial use, no attribution needed; see `PROVENANCE.json`).
 - **People:** names are the app's sample couple, Maya and Theo.
@@ -27,8 +28,8 @@ Add each language as a translation (Manage translations) and upload that languag
 | App icon | `icon/heartpact-play-icon-512.png` | 512 × 512, 32-bit PNG, full square and opaque (Play rounds the corners). Same layers as the launcher icon. |
 | Feature graphic | `feature-graphic/<lang>/feature-graphic-1024x500.png` | 1024 × 500, 24-bit PNG, no alpha. No app icon in it (Play asks not to repeat it); the words sit clear of the edges. |
 | Phone screenshots | `screenshots/phone/<lang>/01-…` to `08-…`, **in this order** | 8 × 1080 × 1920 JPEG (9:16), under 8 MB each. Eight is Play's maximum, and four or more at 1080 px qualify for promotion. |
-| 7-inch tablet screenshots | `screenshots/tablet7/<lang>/01-…` to `05-…` | 5 × 1920 × 1080 JPEG (16:9), from screens rendered at 600 × 960 dp. Optional. |
-| 10-inch tablet screenshots | `screenshots/tablet10/<lang>/01-…` to `05-…` | 5 × 2560 × 1440 JPEG (16:9), from screens rendered at 800 × 1280 dp. Optional. |
+| 7-inch tablet screenshots | `screenshots/tablet7/<lang>/01-…` to `05-…` | 5 × 1920 × 1080 JPEG (16:9), from screens rendered on a 7-inch tablet lying down (960 × 600 dp). |
+| 10-inch tablet screenshots | `screenshots/tablet10/<lang>/01-…` to `05-…` | 5 × 2560 × 1440 JPEG (16:9), from screens rendered on a 10-inch tablet lying down (1280 × 800 dp). |
 | App name | `listing/<lang>/title.txt` | ≤ 30 characters |
 | Short description | `listing/<lang>/short-description.txt` | ≤ 80 |
 | Full description | `listing/<lang>/full-description.txt` | ≤ 4,000 |
@@ -57,9 +58,9 @@ Captions are in `tools/captions.json`. Where the app already says it ("Keep your
 other to move.", "Every promise you keep becomes a heart.", "Nothing is shared until you choose."), each language uses
 the app's own translation word for word.
 
-**Tablets: an honest note.** The app uses its phone layout on tablets, stretched to fit. The tablet sets use the five
-screens that still read well that way (the alarm, the camera, Draw and guess, the album, food). They show what a tablet
-really looks like today. Skip them if you'd rather not list for tablets until the app has a tablet layout.
+**Tablets.** The app has a tablet layout (`android/README.md`, Tablets): a navigation rail, two panes on Today, Food
+and Us, the games and the album in columns. The tablet sets show it lying down: Today, Food, Today's question, the games
+and the album.
 
 ### Checked against Play's rules
 
