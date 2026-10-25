@@ -19,7 +19,8 @@ public sealed record AccountErasure(
     string DisplayName,
     Guid? FormerPartnerId,
     Notification? PartnerNotice,
-    IReadOnlyList<ExerciseOccurrence> CancelledAlarms);
+    IReadOnlyList<ExerciseOccurrence> CancelledAlarms,
+    string? FormerPartnerName = null);
 
 /// <summary>
 /// Removes a user and everything about them in one transaction. An active couple is ended first, as

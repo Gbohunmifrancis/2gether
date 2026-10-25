@@ -17,11 +17,31 @@ namespace Twogether.Infrastructure.Account;
 /// other member is left to own them; when one is, those rows stay with that partner and mention the
 /// deleted person by an id that no longer resolves to anyone.
 /// Memory photos cannot be removed inside a database transaction, so the rows are marked for the
-/// cleanup worker with their captions already wiped; the worker deletes the objects within minutes.
+/// cleanup worker with their captions already wiped; the worker deletes the objects within minutes,
+/// once no upload link handed out for them still works.
 /// </summary>
 public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clock) : IAccountEraser
 {
+    /// <summary>
+    /// Another writer can change a row this reads in the same moment: the alarm worker opening a
+    /// dare, or the partner deleting their own account. Then it starts once more from what is there
+    /// now; a second clash is left to the caller as <see cref="DbUpdateConcurrencyException"/>.
+    /// </summary>
     public async Task<AccountErasure?> EraseAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await EraseOnceAsync(userId, cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The transaction rolled back; forget what it had loaded.
+            db.ChangeTracker.Clear();
+            return await EraseOnceAsync(userId, cancellationToken);
+        }
+    }
+
+    private async Task<AccountErasure?> EraseOnceAsync(Guid userId, CancellationToken cancellationToken)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var user = await db.Users.SingleOrDefaultAsync(item => item.Id == userId, cancellationToken);
@@ -29,6 +49,8 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         var now = clock.UtcNow;
 
         var (partnerId, notice, cancelled) = await EndActiveCoupleAsync(user, now, cancellationToken);
+        // Loaded above; the partner's own cancelled dares are announced under their name.
+        var partnerName = db.Users.Local.SingleOrDefault(item => item.Id == partnerId)?.DisplayName;
         await db.SaveChangesAsync(cancellationToken);
 
         var couples = await db.Couples.AsNoTracking()
@@ -105,7 +127,7 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         await db.Users.Where(item => item.Id == userId).ExecuteDeleteAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
-        return new AccountErasure(userId, user.DisplayName, partnerId, notice, cancelled);
+        return new AccountErasure(userId, user.DisplayName, partnerId, notice, cancelled, partnerName);
     }
 
     private async Task<(Guid? PartnerId, Notification? Notice, List<ExerciseOccurrence> Cancelled)> EndActiveCoupleAsync(User user, DateTime now, CancellationToken cancellationToken)

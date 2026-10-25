@@ -11,6 +11,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Food;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Infrastructure.Persistence;
 using Twogether.Shared.Results;
 using Twogether.Shared.Localization;
 
@@ -235,10 +236,10 @@ public sealed class FoodController(
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError("food.estimation_unavailable", Loc.T("Photo estimates are not set up on this server. Log the meal by hand.")));
         var photo = FoodRules.ValidateImage(request.ImageBase64, request.MediaType, settings.MaxImageBytes);
         if (photo.IsFailure) return Problem(photo.Error);
-        var used = await ScansUsedTodayAsync(userId, cancellationToken);
         var entitlement = await entitlements.ForUserAsync(userId, cancellationToken);
         var limit = entitlement.Limits.FoodScansPerDay;
-        if (used >= limit)
+        var (scan, used) = await StartScanAsync(userId, couple.Id, photo.Value, limit, cancellationToken);
+        if (scan is null)
             return StatusCode(StatusCodes.Status429TooManyRequests, new ApiError("food.scan_limit",
                 entitlement.Plan == Core.Enums.Plan.Free
                     ? Loc.Plural(limit, "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.",
@@ -246,15 +247,25 @@ public sealed class FoodController(
                     : Loc.Plural(limit, "You have used today's {count} photo scan. Log this one by hand.", "You have used today's {count} photo scans. Log this one by hand.")));
 
         var watch = Stopwatch.StartNew();
-        var country = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.CountryCode).SingleOrDefaultAsync(cancellationToken);
-        var result = await estimator.EstimateAsync(photo.Value, FoodRules.CleanHint(request.Portion, request.Hint), country, cancellationToken);
+        Result<FoodEstimate> result;
+        try
+        {
+            var country = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.CountryCode).SingleOrDefaultAsync(cancellationToken);
+            result = await estimator.EstimateAsync(photo.Value, FoodRules.CleanHint(request.Portion, request.Hint), country, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            // Still counted (the model may have been asked already); the row only says how it ended.
+            await TryRecordFailureAsync(scan, exception is OperationCanceledException ? "food.scan_cancelled" : "food.scan_error", watch);
+            throw;
+        }
         watch.Stop();
         var now = clock.UtcNow;
         var latency = (int)Math.Min(watch.ElapsedMilliseconds, int.MaxValue);
 
         if (result.IsFailure)
         {
-            db.FoodScans.Add(FoodScan.Fail(userId, couple.Id, estimator.ModelName, photo.Value.MediaType, photo.Value.Bytes.Length, result.Error.Code, latency, now));
+            scan.Fail(result.Error.Code, latency, now);
             await db.SaveChangesAsync(cancellationToken);
             logger.LogWarning("Food scan failed for user {UserId}: {Code} after {LatencyMs} ms.", userId, result.Error.Code, latency);
             return Problem(result.Error);
@@ -263,20 +274,52 @@ public sealed class FoodController(
         var estimate = result.Value;
         if (!estimate.IsFood)
         {
-            db.FoodScans.Add(FoodScan.Fail(userId, couple.Id, estimator.ModelName, photo.Value.MediaType, photo.Value.Bytes.Length, "food.not_food", latency, now));
+            scan.Fail("food.not_food", latency, now);
             await db.SaveChangesAsync(cancellationToken);
             return UnprocessableEntity(new ApiError("food.not_food", Loc.T("That does not look like food. Try a photo of the meal.")));
         }
 
         var snapshot = new FoodEstimateSnapshot(estimate.Description, estimate.Calories, estimate.CaloriesLow, estimate.CaloriesHigh, estimate.ProteinGrams, estimate.CarbsGrams, estimate.FatGrams, estimate.Confidence,
             estimate.Items.Select(item => new FoodEstimateItemSnapshot(item.Name, item.Portion, item.Calories)).ToList());
-        var scan = FoodScan.Succeed(userId, couple.Id, estimator.ModelName, photo.Value.MediaType, photo.Value.Bytes.Length, estimate.InputTokens, estimate.OutputTokens, latency,
-            JsonSerializer.Serialize(snapshot, ResultJson), now);
-        db.FoodScans.Add(scan);
+        scan.Succeed(estimate.InputTokens, estimate.OutputTokens, latency, JsonSerializer.Serialize(snapshot, ResultJson), now);
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Food scan {ScanId} for user {UserId}: {Model}, {InputTokens} in / {OutputTokens} out, {LatencyMs} ms, confidence {Confidence}.",
             scan.Id, userId, estimator.ModelName, estimate.InputTokens, estimate.OutputTokens, latency, estimate.Confidence);
         return Ok(FoodMapper.ToDto(scan.Id, estimate, estimator.ModelName, Math.Max(0, limit - used - 1)));
+    }
+
+    /// <summary>
+    /// Counts today's scans and records this one as pending in one step, one request per person at
+    /// a time, before anything is sent to the model: parallel requests queue here instead of all
+    /// passing the limit on the same count. Null when the limit is reached. Every scan recorded here
+    /// counts for the day, however it ends (see <see cref="FoodScan.PendingCode"/>).
+    /// </summary>
+    private async Task<(FoodScan? Scan, int Used)> StartScanAsync(Guid userId, Guid coupleId, FoodPhoto photo, int limit, CancellationToken cancellationToken)
+    {
+        var database = ((DbContext)db).Database;
+        await using var transaction = await database.BeginTransactionAsync(cancellationToken);
+        await database.LockAsync(LockScope.FoodScans, userId, cancellationToken);
+        var used = await ScansUsedTodayAsync(userId, cancellationToken);
+        if (used >= limit) return (null, used);
+        var scan = FoodScan.Start(userId, coupleId, estimator.ModelName, photo.MediaType, photo.Bytes.Length, clock.UtcNow);
+        db.FoodScans.Add(scan);
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return (scan, used);
+    }
+
+    /// <summary>Best effort, and saved even when the request was cancelled: a scan left pending counts all the same.</summary>
+    private async Task TryRecordFailureAsync(FoodScan scan, string errorCode, Stopwatch watch)
+    {
+        try
+        {
+            scan.Fail(errorCode, (int)Math.Min(watch.ElapsedMilliseconds, int.MaxValue), clock.UtcNow);
+            await db.SaveChangesAsync(CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Could not record how food scan {ScanId} ended; it stays pending and still counts.", scan.Id);
+        }
     }
 
     private async Task NotifyDayAsync(Couple couple, Guid userId, DateOnly localDate, CancellationToken cancellationToken)

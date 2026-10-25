@@ -184,7 +184,15 @@ public sealed class AdminUsersController(
         if (string.IsNullOrWhiteSpace(request.Reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));
         audit.Record(User, "user.deleted", "user", userId.ToString(), $"{user.Email}: {request.Reason.Trim()}");
         await db.SaveChangesAsync(ct);
-        var erased = await eraser.EraseAsync(userId, ct);
+        AccountErasure? erased;
+        try
+        {
+            erased = await eraser.EraseAsync(userId, ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict(new ApiError("admin.delete_conflict", "The account changed while it was being deleted. Nothing was deleted; try again."));
+        }
         if (erased is null) return NotFound();
         connections.AbortAll(userId);
         await AccountController.AnnounceErasureAsync(hub, erased, ct);
