@@ -45,6 +45,9 @@ The request is checked in this order:
    - The app should then send them to the Play Store subscription screen, or let them confirm with `acknowledgeActiveSubscription: true`.
    - Cancelled and expired subscriptions need no acknowledgement.
 3. **Erasure.** Everything happens in one database transaction and returns `204`.
+   - If another write clashes with it (the alarm worker opening a dare, or the partner deleting their own account
+     at the same moment), it rolls back and starts once more from what is there now. A second clash returns
+     `409 account.delete_conflict` with nothing deleted; trying again is safe.
 
 ### What happens
 
@@ -58,7 +61,8 @@ The request is checked in this order:
 - **Games.** All games from any couple they were in are deleted, because game state embeds both players' answers.
 - **Memories they uploaded.**
   - The rows are marked `Deleting`, with caption and date wiped inside the same transaction.
-  - `MemoryCleanupWorker` deletes the stored objects within a few minutes.
+  - `MemoryCleanupWorker` deletes the stored objects within a few minutes, once no upload link handed out for them
+    still works (a phone still syncing could otherwise put a photo back after the account is gone).
   - Storage calls cannot be part of a database transaction, which is why this runs as a separate step.
 - **Shared couple rows** (the couple itself, the daily question list, the partner's memories, messages and answers):
   - If a partner still exists, these rows stay with that partner. The deleted person shows up only as an id that no longer matches anyone.

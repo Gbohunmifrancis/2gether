@@ -17,7 +17,7 @@ public sealed class Memory : BaseEntity
     public string ObjectKey { get; private set; } = string.Empty;
     public string ContentType { get; private set; } = string.Empty;
     public bool IsVideo { get; private set; }
-    /// <summary>Declared at upload time, replaced by the stored size on completion.</summary>
+    /// <summary>Declared at upload time, replaced by the stored size (never larger) on completion.</summary>
     public long SizeBytes { get; private set; }
     public string? Caption { get; private set; }
     /// <summary>When the photo was taken, as the device reports it. Falls back to CreatedAtUtc for sorting.</summary>
@@ -100,7 +100,8 @@ public sealed class Memory : BaseEntity
     public void MarkReady(long storedBytes, DateTime utcNow)
     {
         if (Status != MemoryStatus.Pending) throw new InvalidOperationException("Only a pending upload can be completed.");
-        if (storedBytes <= 0) throw new ArgumentOutOfRangeException(nameof(storedBytes));
+        // The quota was checked against the declared size, so the stored file may not be larger.
+        if (storedBytes <= 0 || storedBytes > SizeBytes) throw new ArgumentOutOfRangeException(nameof(storedBytes));
         SizeBytes = storedBytes;
         Status = MemoryStatus.Ready;
         ReadyAtUtc = utcNow;
@@ -122,4 +123,21 @@ public sealed class Memory : BaseEntity
         Status = MemoryStatus.Deleting;
         UpdatedAtUtc = utcNow;
     }
+
+    /// <summary>
+    /// The upload was refused: it did not match what was declared, or no longer fits the album.
+    /// Deleted like any other memory, but the phone's id is let go so trying the photo again makes
+    /// a fresh memory instead of finding this one.
+    /// </summary>
+    public void Reject(DateTime utcNow)
+    {
+        ClientId = null;
+        MarkDeleting(utcNow);
+    }
+
+    /// <summary>
+    /// A link handed out for this memory may still work, so a PUT can still put bytes at its keys.
+    /// A deleted memory's row stays (hidden) until then, and its objects are deleted once more after.
+    /// </summary>
+    public bool UploadWindowOpen(DateTime utcNow) => UploadWindowEndsAtUtc > utcNow;
 }

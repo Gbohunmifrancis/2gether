@@ -145,8 +145,30 @@ public sealed class CoupleController(
             user.CountryCode, Twogether.Core.Users.ContentRegions.For(user.CountryCode))));
     }
 
+    /// <summary>
+    /// The alarm worker can open or move a dare in the same moment, which fails the save. Nothing
+    /// was written or announced then, so this starts once more from the fresh state; a second clash
+    /// answers 409 and the person simply tries again.
+    /// </summary>
     [HttpPost("breakup")]
     public async Task<IActionResult> BreakUp(CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return await BreakUpOnceAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                ((DbContext)db).ChangeTracker.Clear();
+                logger.LogInformation(exception, "Breakup for user {UserId} raced another write (attempt {Attempt}).", currentUser.UserId, attempt + 1);
+                if (attempt > 0) return Conflict(new ApiError("couple.breakup_conflict", Loc.T("Something changed in your couple space just now. Try again.")));
+            }
+        }
+    }
+
+    private async Task<IActionResult> BreakUpOnceAsync(CancellationToken cancellationToken)
     {
         if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return NotFound();
         var couple = await db.Couples.SingleOrDefaultAsync(item => item.Id == currentUser.CoupleId.Value && item.Status == CoupleStatus.Active, cancellationToken);
@@ -179,8 +201,11 @@ public sealed class CoupleController(
             await hub.Clients.Group(CoupleHub.GroupName(couple.Id)).SendAsync("GameEnded", new GameEndedDto(session.Id, actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
         // The actor's other devices: they reconnect and lose the old couple's groups.
         await hub.Clients.Group(CoupleHub.UserGroupName(actor.Id)).SendAsync("CoupleEnded", new CoupleEndedDto(actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
+        // Each dare under its owner's name: the partner's are theirs, not the actor's.
+        var partnerName = partnerId is { } owner ? db.Users.Local.SingleOrDefault(user => user.Id == owner)?.DisplayName : null;
         foreach (var occurrence in cancelledAlarms)
-            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, ExerciseMapper.ToDto(occurrence, actor.DisplayName), cancellationToken);
+            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled,
+                ExerciseMapper.ToDto(occurrence, occurrence.UserId == actor.Id ? actor.DisplayName : partnerName ?? actor.DisplayName), cancellationToken);
         return NoContent();
     }
 

@@ -56,12 +56,23 @@ public sealed class AccountController(
             return Conflict(new ApiError("account.subscription_renews",
                 Loc.T("Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.")));
 
-        var erased = await eraser.EraseAsync(userId, cancellationToken);
+        AccountErasure? erased;
+        try
+        {
+            erased = await eraser.EraseAsync(userId, cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Lost a race twice (the eraser already tried again). Nothing was deleted.
+            return Conflict(ErasureConflict);
+        }
         if (erased is null) return NotFound();
 
         await AnnounceErasureAsync(hub, erased, cancellationToken);
         return NoContent();
     }
+
+    private static ApiError ErasureConflict => new("account.delete_conflict", Loc.T("Your account changed while it was being deleted. Nothing was deleted. Try again."));
 
     /// <summary>After an erasure (by the person or by an admin): other devices sign out, the partner is told, alarms stop.</summary>
     public static async Task AnnounceErasureAsync(IHubContext<CoupleHub> hub, AccountErasure erased, CancellationToken cancellationToken)
@@ -75,6 +86,7 @@ public sealed class AccountController(
             await partner.SendAsync("NotificationCreated", NotificationController.ToDto(erased.PartnerNotice), cancellationToken);
         }
         foreach (var occurrence in erased.CancelledAlarms)
-            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, ExerciseMapper.ToDto(occurrence, erased.DisplayName), cancellationToken);
+            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled,
+                ExerciseMapper.ToDto(occurrence, occurrence.UserId == erased.UserId ? erased.DisplayName : erased.FormerPartnerName ?? erased.DisplayName), cancellationToken);
     }
 }

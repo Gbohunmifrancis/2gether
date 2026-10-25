@@ -136,4 +136,32 @@ public sealed class MemoryUploadWindowTests
         memory.CloseUploadWindow(now.AddMinutes(41));
         Assert.Null(memory.UploadWindowEndsAtUtc);
     }
+
+    [Fact]
+    public void The_window_is_open_until_its_end()
+    {
+        var now = new DateTime(2026, 10, 11, 9, 0, 0, DateTimeKind.Utc);
+        var memory = Twogether.Core.Entities.Memory.Reserve(Guid.NewGuid(), Guid.NewGuid(), MemoryRules.Kind("image/jpeg")!, 1000, null, null, MemorySource.Camera, now);
+        Assert.False(memory.UploadWindowOpen(now));
+
+        memory.OpenUploadWindow(now.AddMinutes(15));
+        Assert.True(memory.UploadWindowOpen(now.AddMinutes(14)));
+        Assert.False(memory.UploadWindowOpen(now.AddMinutes(15)));
+    }
+
+    [Fact]
+    public void A_stored_file_larger_than_declared_is_never_made_ready()
+    {
+        var memory = Twogether.Core.Entities.Memory.Reserve(Guid.NewGuid(), Guid.NewGuid(), MemoryRules.Kind("image/jpeg")!, 1000, null, null, MemorySource.Camera, DateTime.UtcNow);
+        Assert.Throws<ArgumentOutOfRangeException>(() => memory.MarkReady(1001, DateTime.UtcNow));
+        Assert.Equal(MemoryStatus.Pending, memory.Status);
+    }
+
+    [Fact]
+    public void A_rejected_upload_lets_go_of_the_phones_id()
+    {
+        var memory = Twogether.Core.Entities.Memory.Reserve(Guid.NewGuid(), Guid.NewGuid(), MemoryRules.Kind("image/jpeg")!, 1000, null, null, MemorySource.Camera, DateTime.UtcNow, Guid.NewGuid());
+        memory.Reject(DateTime.UtcNow);
+        Assert.Equal((MemoryStatus.Deleting, (Guid?)null), (memory.Status, memory.ClientId));
+    }
 }
