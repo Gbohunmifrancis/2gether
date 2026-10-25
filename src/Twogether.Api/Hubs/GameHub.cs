@@ -49,9 +49,7 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         if (GameEngine.IsServerOnlyAction(action) || string.IsNullOrWhiteSpace(action) || action.Length > 40 || value?.Length > GameEngine.MaxActionValueLength)
             throw new HubException("That action is not available.");
         action = expired && engine.IsTimed(session.GameType) ? GameEngine.TimeoutAction : action;
-        IReadOnlyDictionary<string, bool?>? validations = null;
-        if (session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && value is not null)
-            validations = await wordValidator.ValidateAsync(session.StateJson, value, Context.ConnectionAborted);
+        var validations = await wordValidator.ForMoveAsync(session.GameType, session.StateJson, action, value, Context.ConnectionAborted);
         try { next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId!.Value, action, value, index, clock.UtcNow, validations); }
         catch (InvalidOperationException exception) { throw new HubException(exception.Message); }
         if (next.Completed) session.Complete(next.StateJson, clock.UtcNow);

@@ -69,7 +69,10 @@ The request is checked in this order:
   - Every API call fails with `401` immediately, because the JWT bearer handler checks on each request that the user still exists. Without that check, a token could keep writing rows for hours after deletion.
   - The email can be registered again.
 
-## Still to do outside the API
+## Outside the API
 
-- **Web deletion page.** Play Console asks for a URL where people can request deletion without the app. That page belongs to the frontend, which is on hold. It can sign in with `/api/auth/login` and then call this endpoint.
-- **Data safety form.** Declare in Play Console's Data safety form that deletion is offered and is immediate.
+- **Web deletion page.** Play Console asks for a URL where people can delete their account without the app:
+  https://heartpact.app/delete-account (`website/delete-account/`, docs/website.md). It signs in with
+  `/api/auth/login` and calls this endpoint, as the app does.
+- **Data safety form (still to do).** Declare in Play Console's Data safety form that deletion is offered and is
+  immediate.

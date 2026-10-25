@@ -126,12 +126,7 @@ public sealed class GameController(
             if (GameEngine.IsServerOnlyAction(request.Action))
                 return UnprocessableEntity(new ApiError("game.invalid_action", Loc.T("That action is not available.")));
             var action = expired ? GameEngine.TimeoutAction : request.Action;
-            var validations = session.GameType == GameType.ICallOn && action.Equals("submit", StringComparison.OrdinalIgnoreCase) && request.Value is not null
-                ? await wordValidator.ValidateAsync(session.StateJson, request.Value, cancellationToken)
-                : null;
-            // Word dash: the dictionary's verdict on the word played (null when it can't be reached, and the word stands).
-            if (session.GameType == GameType.WordDash && action.Equals("play", StringComparison.OrdinalIgnoreCase) && request.Value is not null)
-                validations = new Dictionary<string, bool?> { [WordDashRules.WordKey] = await wordValidator.IsWordAsync(request.Value, cancellationToken) };
+            var validations = await wordValidator.ForMoveAsync(session.GameType, session.StateJson, action, request.Value, cancellationToken);
             var next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, request.Value, request.Index, clock.UtcNow, validations);
             if (next.Completed) session.Complete(next.StateJson, clock.UtcNow);
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, clock.UtcNow);

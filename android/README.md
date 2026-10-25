@@ -71,6 +71,6 @@ Push (Firebase), release signing and the release API URL come from environment v
 
 ## Not yet
 
-Videos, captions and deleting shared photos in the album.
+A tablet layout: on tablets the app shows its phone layout, stretched to fit.
 
 The rep counter is tuned on synthetic poses; thresholds need checking on real phones and bodies before release. Release APKs are large (about 55 MB) because MediaPipe ships native code for every ABI: publish an App Bundle so Play delivers one ABI per phone.

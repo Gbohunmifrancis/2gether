@@ -304,7 +304,7 @@ private fun ICallOnBoard(s: GameSession, me: String, partnerName: String, busy: 
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(tr("Last round, {letter}", "letter" to reveal.letter), style = Heartpact.type.label, color = colors.ink)
                 reveal.entries.forEach { e ->
-                    Text("${if (e.player == me) tr("You") else partnerName} ·${e.category}: ${e.answer.ifBlank { "—" }} · ${if (e.counted) "+${e.points}" else "0"}",
+                    Text("${if (e.player == me) tr("You") else partnerName} · ${GamePlay.categoryLabel(e.category)}: ${e.answer.ifBlank { "—" }} · ${if (e.counted) "+${e.points}" else "0"}",
                         style = Heartpact.type.small, color = if (e.counted) colors.ink else colors.ink3)
                 }
             }
@@ -318,7 +318,7 @@ private fun ICallOnBoard(s: GameSession, me: String, partnerName: String, busy: 
             mineToJudge.forEach { item ->
                 StickerCard(Modifier.fillMaxWidth().padding(top = 10.dp)) {
                     Column(Modifier.padding(14.dp)) {
-                        Text(tr("{partner} said \"{answer}\" for {category}", "partner" to partnerName, "answer" to item.answer, "category" to item.category), style = Heartpact.type.body, color = colors.ink)
+                        Text(GamePlay.categoryVet(item.category, partnerName, item.answer), style = Heartpact.type.body, color = colors.ink)
                         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             val verdict = { allow: Boolean -> Json.encodeToString(VetVerdict.serializer(), VetVerdict(item.player, item.category, allow)) }
                             HeartButton(tr("It counts"), { actions.onAct(s, "vet", verdict(true), null) }, kind = ButtonKind.Tonal, fillWidth = false, height = 44.dp, enabled = !busy)
@@ -332,7 +332,7 @@ private fun ICallOnBoard(s: GameSession, me: String, partnerName: String, busy: 
         else -> {
             if (c.submitted.isNotEmpty()) NoteCard(tr("{partner} is done. Be quick!", "partner" to partnerName), Modifier.padding(top = 12.dp))
             c.categories.forEach { category ->
-                HeartField(tr("{category} starting with {letter}", "category" to category, "letter" to c.letter), answers[category].orEmpty(), { answers[category] = it.take(40) }, Modifier.padding(top = 10.dp),
+                HeartField(GamePlay.categoryField(category, c.letter), answers[category].orEmpty(), { answers[category] = it.take(40) }, Modifier.padding(top = 10.dp),
                     keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
             }
             val complete = c.categories.all { !answers[it].isNullOrBlank() }

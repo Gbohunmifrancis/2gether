@@ -3921,87 +3921,206 @@
   ],
   "code": "else -> tr(\"A draw, {score} each\", \"score\" to mine)"
  },
+ "name": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:115"
+  ],
+  "code": "\"Name\" -> tr(\"name\")"
+ },
+ "place": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:116"
+  ],
+  "code": "\"Place\" -> tr(\"place\")"
+ },
+ "thing": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:117"
+  ],
+  "code": "\"Thing\" -> tr(\"thing\")"
+ },
+ "food": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:118"
+  ],
+  "code": "\"Food\" -> tr(\"food\")"
+ },
+ "animal": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:119"
+  ],
+  "code": "\"Animal\" -> tr(\"animal\")"
+ },
+ "A name starting with {letter}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:124"
+  ],
+  "code": "\"Name\" -> tr(\"A name starting with {letter}\", \"letter\" to letter)"
+ },
+ "A place starting with {letter}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:125"
+  ],
+  "code": "\"Place\" -> tr(\"A place starting with {letter}\", \"letter\" to letter)"
+ },
+ "A thing starting with {letter}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:126"
+  ],
+  "code": "\"Thing\" -> tr(\"A thing starting with {letter}\", \"letter\" to letter)"
+ },
+ "A food starting with {letter}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:127"
+  ],
+  "code": "\"Food\" -> tr(\"A food starting with {letter}\", \"letter\" to letter)"
+ },
+ "An animal starting with {letter}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:128"
+  ],
+  "code": "\"Animal\" -> tr(\"An animal starting with {letter}\", \"letter\" to letter)"
+ },
+ "{category} starting with {letter}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:129"
+  ],
+  "code": "else -> tr(\"{category} starting with {letter}\", \"category\" to category, \"letter\" to letter)"
+ },
+ "{partner} said \"{answer}\" for a name": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:133"
+  ],
+  "code": "\"Name\" -> tr(\"{partner} said \\\"{answer}\\\" for a name\", \"partner\" to partner, \"answer\" to answer)"
+ },
+ "{partner} said \"{answer}\" for a place": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:134"
+  ],
+  "code": "\"Place\" -> tr(\"{partner} said \\\"{answer}\\\" for a place\", \"partner\" to partner, \"answer\" to answer)"
+ },
+ "{partner} said \"{answer}\" for a thing": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:135"
+  ],
+  "code": "\"Thing\" -> tr(\"{partner} said \\\"{answer}\\\" for a thing\", \"partner\" to partner, \"answer\" to answer)"
+ },
+ "{partner} said \"{answer}\" for a food": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:136"
+  ],
+  "code": "\"Food\" -> tr(\"{partner} said \\\"{answer}\\\" for a food\", \"partner\" to partner, \"answer\" to answer)"
+ },
+ "{partner} said \"{answer}\" for an animal": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:137"
+  ],
+  "code": "\"Animal\" -> tr(\"{partner} said \\\"{answer}\\\" for an animal\", \"partner\" to partner, \"answer\" to answer)"
+ },
+ "{partner} said \"{answer}\" for {category}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/GamePlay.kt:138"
+  ],
+  "code": "else -> tr(\"{partner} said \\\"{answer}\\\" for {category}\", \"partner\" to partner, \"answer\" to answer, \"category\" to category)"
+ },
  "Jollof": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:111"
+   "app/heartpact/ui/games/GamePlay.kt:142"
   ],
   "code": "fun cardLabel(value: Int, theme: String? = null) = (if (theme == \"naija\") listOf(tr(\"Jollof\"), tr(\"Suya\"), tr(\"Talking drum\"), tr(\"Danfo\"), tr(\"Palm tree\"), tr(\"Mortar and pestle\"))"
  },
  "Suya": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:111"
+   "app/heartpact/ui/games/GamePlay.kt:142"
   ],
   "code": "fun cardLabel(value: Int, theme: String? = null) = (if (theme == \"naija\") listOf(tr(\"Jollof\"), tr(\"Suya\"), tr(\"Talking drum\"), tr(\"Danfo\"), tr(\"Palm tree\"), tr(\"Mortar and pestle\"))"
  },
  "Talking drum": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:111"
+   "app/heartpact/ui/games/GamePlay.kt:142"
   ],
   "code": "fun cardLabel(value: Int, theme: String? = null) = (if (theme == \"naija\") listOf(tr(\"Jollof\"), tr(\"Suya\"), tr(\"Talking drum\"), tr(\"Danfo\"), tr(\"Palm tree\"), tr(\"Mortar and pestle\"))"
  },
  "Danfo": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:111"
+   "app/heartpact/ui/games/GamePlay.kt:142"
   ],
   "code": "fun cardLabel(value: Int, theme: String? = null) = (if (theme == \"naija\") listOf(tr(\"Jollof\"), tr(\"Suya\"), tr(\"Talking drum\"), tr(\"Danfo\"), tr(\"Palm tree\"), tr(\"Mortar and pestle\"))"
  },
  "Palm tree": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:111"
+   "app/heartpact/ui/games/GamePlay.kt:142"
   ],
   "code": "fun cardLabel(value: Int, theme: String? = null) = (if (theme == \"naija\") listOf(tr(\"Jollof\"), tr(\"Suya\"), tr(\"Talking drum\"), tr(\"Danfo\"), tr(\"Palm tree\"), tr(\"Mortar and pestle\"))"
  },
  "Mortar and pestle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:111"
+   "app/heartpact/ui/games/GamePlay.kt:142"
   ],
   "code": "fun cardLabel(value: Int, theme: String? = null) = (if (theme == \"naija\") listOf(tr(\"Jollof\"), tr(\"Suya\"), tr(\"Talking drum\"), tr(\"Danfo\"), tr(\"Palm tree\"), tr(\"Mortar and pestle\"))"
  },
  "Heart": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:112"
+   "app/heartpact/ui/games/GamePlay.kt:143"
   ],
   "code": "else listOf(tr(\"Heart\"), tr(\"Star\"), tr(\"Flower\"), tr(\"Sun\"), tr(\"Moon\"), tr(\"Cake\"))).getOrElse(value - 1) { \"?\" }"
  },
  "Star": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:112"
+   "app/heartpact/ui/games/GamePlay.kt:143"
   ],
   "code": "else listOf(tr(\"Heart\"), tr(\"Star\"), tr(\"Flower\"), tr(\"Sun\"), tr(\"Moon\"), tr(\"Cake\"))).getOrElse(value - 1) { \"?\" }"
  },
  "Flower": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:112"
+   "app/heartpact/ui/games/GamePlay.kt:143"
   ],
   "code": "else listOf(tr(\"Heart\"), tr(\"Star\"), tr(\"Flower\"), tr(\"Sun\"), tr(\"Moon\"), tr(\"Cake\"))).getOrElse(value - 1) { \"?\" }"
  },
  "Sun": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:112"
+   "app/heartpact/ui/games/GamePlay.kt:143"
   ],
   "code": "else listOf(tr(\"Heart\"), tr(\"Star\"), tr(\"Flower\"), tr(\"Sun\"), tr(\"Moon\"), tr(\"Cake\"))).getOrElse(value - 1) { \"?\" }"
  },
  "Moon": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:112"
+   "app/heartpact/ui/games/GamePlay.kt:143"
   ],
   "code": "else listOf(tr(\"Heart\"), tr(\"Star\"), tr(\"Flower\"), tr(\"Sun\"), tr(\"Moon\"), tr(\"Cake\"))).getOrElse(value - 1) { \"?\" }"
  },
  "Cake": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GamePlay.kt:112"
+   "app/heartpact/ui/games/GamePlay.kt:143"
   ],
   "code": "else listOf(tr(\"Heart\"), tr(\"Star\"), tr(\"Flower\"), tr(\"Sun\"), tr(\"Moon\"), tr(\"Cake\"))).getOrElse(value - 1) { \"?\" }"
  },
@@ -4246,13 +4365,6 @@
   ],
   "code": "Text(if (mineToJudge.isEmpty()) tr(\"Waiting for {partner} to judge your answers…\", \"partner\" to partnerName) else tr(\"Does it count?\"), style = Heartpact.type.title, color = colors.ink, modifier = Mod"
  },
- "{partner} said \"{answer}\" for {category}": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/games/GamesScreen.kt:321"
-  ],
-  "code": "Text(tr(\"{partner} said \\\"{answer}\\\" for {category}\", \"partner\" to partnerName, \"answer\" to item.answer, \"category\" to item.category), style = Heartpact.type.body, color = colors.ink)"
- },
  "It counts": {
   "plural": false,
   "uses": [
@@ -4280,13 +4392,6 @@
    "app/heartpact/ui/games/GamesScreen.kt:333"
   ],
   "code": "if (c.submitted.isNotEmpty()) NoteCard(tr(\"{partner} is done. Be quick!\", \"partner\" to partnerName), Modifier.padding(top = 12.dp))"
- },
- "{category} starting with {letter}": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/games/GamesScreen.kt:335"
-  ],
-  "code": "HeartField(tr(\"{category} starting with {letter}\", \"category\" to category, \"letter\" to c.letter), answers[category].orEmpty(), { answers[category] = it.take(40) }, Modifier.padding(top = 10.dp),"
  },
  "Send my answers": {
   "plural": false,

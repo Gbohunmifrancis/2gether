@@ -37,7 +37,9 @@ is not needed: REST plus the couple hub covers everything.
   After a miss, `lastPair` shows both cards (index and value) to both players until the next flip.
 - **I call on**: 3 rounds of Name, Place, Thing and Food starting with a letter. The inviter may choose the first
   round's letter (`letter`); later rounds draw at random. Answers a checker can't confirm go to the partner to judge
-  (`vet`). A unique answer scores 2, a shared one 1 each.
+  (`vet`). A unique answer scores 2, a shared one 1 each. Categories travel as English keys (`Name`, `Place`, `Thing`,
+  `Food`; `Animal` for Nigerian couples) in answers and verdicts; the app shows each as its own translated phrase
+  (`GamePlay.categoryField`).
 - **Draw and guess** (`handwriting`): 6 rounds, the drawer alternates (round 0: the first player). Each round's word
   comes from the setup (a global bank written with `Loc.N`, or a Naija one) and is the drawer's alone (`word` is null
   for everyone else until the round ends; then `lastRound` shows it, the outcome and the drawing to both). Both may

@@ -107,6 +107,37 @@ object GamePlay {
         }
     }
 
+    /**
+     * I call on's categories arrive as English keys ("Name", "Place", "Thing", "Food", "Animal") and go back to the
+     * server unchanged; what's shown is one whole phrase per category, so each language can word it its own way.
+     */
+    fun categoryLabel(category: String) = when (category) {
+        "Name" -> tr("name")
+        "Place" -> tr("place")
+        "Thing" -> tr("thing")
+        "Food" -> tr("food")
+        "Animal" -> tr("animal")
+        else -> category
+    }
+
+    fun categoryField(category: String, letter: String) = when (category) {
+        "Name" -> tr("A name starting with {letter}", "letter" to letter)
+        "Place" -> tr("A place starting with {letter}", "letter" to letter)
+        "Thing" -> tr("A thing starting with {letter}", "letter" to letter)
+        "Food" -> tr("A food starting with {letter}", "letter" to letter)
+        "Animal" -> tr("An animal starting with {letter}", "letter" to letter)
+        else -> tr("{category} starting with {letter}", "category" to category, "letter" to letter)
+    }
+
+    fun categoryVet(category: String, partner: String, answer: String) = when (category) {
+        "Name" -> tr("{partner} said \"{answer}\" for a name", "partner" to partner, "answer" to answer)
+        "Place" -> tr("{partner} said \"{answer}\" for a place", "partner" to partner, "answer" to answer)
+        "Thing" -> tr("{partner} said \"{answer}\" for a thing", "partner" to partner, "answer" to answer)
+        "Food" -> tr("{partner} said \"{answer}\" for a food", "partner" to partner, "answer" to answer)
+        "Animal" -> tr("{partner} said \"{answer}\" for an animal", "partner" to partner, "answer" to answer)
+        else -> tr("{partner} said \"{answer}\" for {category}", "partner" to partner, "answer" to answer, "category" to category)
+    }
+
     /** Values 1 to 6 on memory cards become six stickers; Nigerian couples' cards (theme "naija") show Naija ones. */
     fun cardLabel(value: Int, theme: String? = null) = (if (theme == "naija") listOf(tr("Jollof"), tr("Suya"), tr("Talking drum"), tr("Danfo"), tr("Palm tree"), tr("Mortar and pestle"))
         else listOf(tr("Heart"), tr("Star"), tr("Flower"), tr("Sun"), tr("Moon"), tr("Cake"))).getOrElse(value - 1) { "?" }
