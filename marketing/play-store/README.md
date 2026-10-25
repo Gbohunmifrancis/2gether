@@ -122,7 +122,8 @@ Add `https://play.google.com/store/apps/details?id=app.heartpact` to the posts o
 
   Describe location as mutual, visible and pausable, never "find your partner" (Play's stalkerware policy).
 - **Health apps declaration:** the cycle and pregnancy features.
-- **Promo video:** optional; this set has none.
+- **Promo video:** optional. Play takes a YouTube link: upload `../video/out/heartpact-launch-16x9.mp4` (see
+  `marketing/video/README.md`) to YouTube, unlisted or public, with ads turned off, and paste its URL.
 
 ## Rebuild
 

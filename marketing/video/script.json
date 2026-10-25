@@ -1,0 +1,88 @@
+{
+ "voice": "af_heart",
+ "speed": 0.94,
+ "scenes": [
+  {
+   "id": "intro",
+   "screen": null,
+   "vo": "Every couple makes promises.",
+   "title": "Every couple\nmakes *promises.*"
+  },
+  {
+   "id": "today",
+   "screen": "today.png",
+   "vo": "Heartpact helps you keep them.",
+   "title": "Keep your promises\nto *each other.*",
+   "zoom": [
+    0.035,
+    0.125,
+    0.965,
+    0.318
+   ]
+  },
+  {
+   "id": "dare",
+   "screen": "new-dare.png",
+   "vo": "Dare each other to move. Pick the exercise, the reps, and the time.",
+   "title": "Dare each other\nto *move.*",
+   "zoom": [
+    0.03,
+    0.295,
+    0.62,
+    0.49
+   ]
+  },
+  {
+   "id": "alarm",
+   "screen": "alarm.png",
+   "vo": "When it's time, their phone rings.",
+   "title": "When it's time,\nthe phone *rings.*",
+   "dark": true
+  },
+  {
+   "id": "camera",
+   "screen": "camera.png",
+   "vo": "And the camera counts every rep.",
+   "title": "The camera counts\n*every rep.*",
+   "zoom": [
+    0.03,
+    0.722,
+    0.97,
+    0.872
+   ]
+  },
+  {
+   "id": "heart",
+   "screen": "heart-complete.png",
+   "vo": "Every promise you keep becomes a heart, on a page you share.",
+   "title": "Every promise kept\nbecomes a *heart.*"
+  },
+  {
+   "id": "question",
+   "screen": "question.png",
+   "vo": "One question a day, just for you two.",
+   "title": "One question\n*a day.*",
+   "carousel": true
+  },
+  {
+   "id": "games",
+   "screen": "games-draw.png",
+   "vo": "Play together, even when you're apart.",
+   "title": "Play together,\n*even apart.*",
+   "carousel": true
+  },
+  {
+   "id": "album",
+   "screen": "album.png",
+   "vo": "And nothing is shared until you choose.",
+   "title": "Nothing is shared\nuntil *you choose.*",
+   "carousel": true
+  },
+  {
+   "id": "end",
+   "screen": null,
+   "vo": "Heartpact. Keep your promises to each other.",
+   "title": null
+  }
+ ]
+}
