@@ -32,7 +32,7 @@ fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (
     val colors = Heartpact.colors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp)) {
         Row(Modifier.height(56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LiveLogo(30.dp, LogoMood.Happy, night = colors.isNight)
+            LiveLogo(34.dp, LogoMood.Happy, night = colors.isNight)
             Text("heartpact", style = Heartpact.type.wordmark, color = colors.ink)
         }
         Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {

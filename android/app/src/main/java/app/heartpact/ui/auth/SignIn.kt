@@ -53,7 +53,7 @@ fun SignInScreen(
         TopBar(onBack = onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             // It says hello, and looks worried when something went wrong.
-            LiveLogo(48.dp, if (state.error != null || state.note != null) LogoMood.Worried else LogoMood.Hello, night = colors.isNight, modifier = Modifier.padding(top = 8.dp))
+            LiveLogo(48.dp, if (state.error != null || state.note != null) LogoMood.Worried else LogoMood.Hello, night = colors.isNight, modifier = Modifier.padding(top = 24.dp))
             Text(tr("Welcome back"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 18.dp))
             Text(tr("Sign in to pick up where you and your partner left off."), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 8.dp, bottom = 24.dp))
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
