@@ -275,6 +275,7 @@
  "Headache": "सिरदर्द",
  "Heart": "दिल",
  "Heart complete": "दिल पूरा हुआ",
+ "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact बालिगों के लिए है। साइन अप करने के लिए 18 साल या उससे ज़्यादा उम्र होनी चाहिए।",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "रेप गिनने के लिए Heartpact को कैमरा चाहिए। कुछ भी रिकॉर्ड नहीं होता, न कहीं भेजा जाता है।",
  "Heavy": "ज़्यादा",
  "Hide password": "पासवर्ड छिपाओ",
@@ -467,6 +468,7 @@
  "Opening your calendar…": "तुम्हारा कैलेंडर खुल रहा है…",
  "Opening…": "खुल रहा है…",
  "or": "या",
+ "or sign up with email": "या ईमेल से साइन अप करो",
  "out of view for {count} second|out of view for {count} seconds": {
   "one": "{count} सेकंड फ़्रेम से बाहर",
   "other": "{count} सेकंड फ़्रेम से बाहर"
@@ -834,6 +836,7 @@
  "You have Plus. It covers you and {partner}.": "तुम्हारे पास Plus है। यह तुम्हारे और {partner} दोनों के लिए है।",
  "You haven't dared {partner} yet": "तुमने अभी {partner} को कोई चुनौती नहीं दी",
  "You matched {matched} of {rounds}": "{rounds} में से {matched} जवाब मिले",
+ "You need to be 18 or over": "18 साल या उससे ज़्यादा उम्र होनी चाहिए",
  "You passed on this one.": "यह वाला तुमने पास कर दिया।",
  "You paused sharing": "तुमने शेयरिंग रोकी है",
  "You picked {answer}": "तुमने चुना: {answer}",

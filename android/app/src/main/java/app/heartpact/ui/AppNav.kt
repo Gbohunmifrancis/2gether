@@ -203,7 +203,15 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     ReadableScreen {
                         val model: SignUpViewModel = viewModel(factory = viewModelFactory { initializer { SignUpViewModel(container.auth) } })
                         val state by model.state.collectAsStateWithLifecycle()
-                        SignUpScreen(state, model::edit, { model.submit { appModel.refresh() } }, onBack = { nav.popBackStack() })
+                        val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
+                        val googleState by google.state.collectAsStateWithLifecycle()
+                        val context = LocalContext.current
+                        if (googleState.finishing) {
+                            BackHandler { google.cancel() }
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                        } else SignUpScreen(state, model::edit, { model.submit { appModel.refresh() } }, onBack = { nav.popBackStack() },
+                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
+                            googleBusy = googleState.busy, googleNote = googleState.note)
                     }
                 }
                 composable(Routes.SIGN_IN) {

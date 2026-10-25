@@ -5,6 +5,7 @@ import app.heartpact.data.Gender
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import java.time.LocalDate
+import java.time.Period
 
 /** What the sign-up form holds. Validation mirrors the API so most mistakes never leave the phone. */
 data class SignUpForm(
@@ -24,6 +25,7 @@ data class SignUpForm(
         when {
             dateOfBirth == null -> put(Field.DateOfBirth, tr("Add your date of birth."))
             dateOfBirth.isAfter(today) || dateOfBirth.year < 1900 -> put(Field.DateOfBirth, tr("That date doesn't look right."))
+            !isAdult(dateOfBirth, today) -> put(Field.DateOfBirth, TOO_YOUNG)
         }
         if (gender == null) put(Field.Gender, tr("Choose the option that best describes you."))
         if (!Countries.isKnown(country)) put(Field.Country, tr("Choose the country you live in."))
@@ -35,6 +37,13 @@ data class SignUpForm(
         const val MIN_PASSWORD = 8
     }
 }
+
+/** Heartpact is for adults, 18 and over (the server's AgeRules). Born on 29 February: a year older on 1 March. */
+const val MINIMUM_AGE = 18
+
+fun isAdult(birth: LocalDate, today: LocalDate = LocalDate.now()): Boolean = Period.between(birth, today).years >= MINIMUM_AGE
+
+val TOO_YOUNG: String get() = tr("Heartpact is for adults. You need to be 18 or over to sign up.")
 
 fun looksLikeEmail(value: String): Boolean {
     val v = value.trim()

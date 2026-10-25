@@ -44,7 +44,7 @@ fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (
         )
         HeartButton(tr("Create an account"), onCreateAccount)
         HeartButton(tr("I already have an account"), onSignIn, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline)
-        onGoogle?.let { HeartButton(tr("Continue with Google"), it, Modifier.padding(top = 8.dp), kind = ButtonKind.Text, busy = googleBusy) }
+        onGoogle?.let { GoogleButton(it, Modifier.padding(top = 8.dp), busy = googleBusy) }
         note?.let { app.heartpact.ui.components.NoteCard(it, Modifier.padding(top = 8.dp)) }
         Text(
             tr("Got an invite code from your partner? You'll enter it after you sign up."),

@@ -3,6 +3,7 @@ package app.heartpact
 import app.heartpact.data.Gender
 import app.heartpact.ui.auth.SignUpForm
 import app.heartpact.ui.auth.SignUpForm.Field
+import app.heartpact.ui.auth.isAdult
 import app.heartpact.ui.auth.looksLikeEmail
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,6 +26,14 @@ class SignUpFormTest {
         assertTrue(Field.DateOfBirth in valid.copy(dateOfBirth = today.plusDays(1)).errors(today))
         assertTrue(Field.DateOfBirth in valid.copy(dateOfBirth = LocalDate.of(1899, 12, 31)).errors(today))
         assertTrue(Field.DateOfBirth in valid.copy(dateOfBirth = null).errors(today))
+    }
+
+    @Test fun `you need to be 18 or over, as the API does`() {
+        assertFalse(Field.DateOfBirth in valid.copy(dateOfBirth = today.minusYears(18)).errors(today))
+        assertTrue(Field.DateOfBirth in valid.copy(dateOfBirth = today.minusYears(18).plusDays(1)).errors(today))
+        // Born on 29 February: 18 on 1 March in a year without one.
+        assertFalse(isAdult(LocalDate.of(2008, 2, 29), LocalDate.of(2026, 2, 28)))
+        assertTrue(isAdult(LocalDate.of(2008, 2, 29), LocalDate.of(2026, 3, 1)))
     }
 
     @Test fun `name and gender are required`() {

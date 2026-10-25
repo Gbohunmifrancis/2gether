@@ -129,63 +129,84 @@
   ],
   "code": "else if (user.GoogleId != identity.Subject) return Conflict(new ApiError(\"auth.google_mismatch\", Loc.T(\"This email is linked to a different Google account.\")));"
  },
+ "Tell us your birthday to finish signing up.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:142"
+  ],
+  "code": "return UnprocessableEntity(new GoogleProfileRequired(\"auth.profile_required\", Loc.T(\"Tell us your birthday to finish signing up.\"), identity.Email, identity.Name));"
+ },
  "Choose the option that best describes you.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:144",
-   "Twogether.Api/Controllers/AuthController.cs:175",
-   "Twogether.Api/Controllers/AuthController.cs:243"
+   "Twogether.Api/Controllers/AuthController.cs:145",
+   "Twogether.Api/Controllers/AuthController.cs:177",
+   "Twogether.Api/Controllers/AuthController.cs:245"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_gender\", Loc.T(\"Choose the option that best describes you.\")));"
  },
  "Email and a password of at least 8 characters are required.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:169"
+   "Twogether.Api/Controllers/AuthController.cs:170"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_registration\", Loc.T(\"Email and a password of at least 8 characters are required.\")));"
  },
  "An account with this email already exists.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:171"
+   "Twogether.Api/Controllers/AuthController.cs:172"
   ],
   "code": "return Conflict(new ApiError(\"auth.email_exists\", Loc.T(\"An account with this email already exists.\")));"
  },
  "Email or password is incorrect.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:208"
+   "Twogether.Api/Controllers/AuthController.cs:210"
   ],
   "code": "return Unauthorized(new ApiError(\"auth.invalid_credentials\", Loc.T(\"Email or password is incorrect.\")));"
  },
  "Nickname must be between 1 and 100 characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:233"
+   "Twogether.Api/Controllers/AuthController.cs:235"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_name\", Loc.T(\"Nickname must be between 1 and 100 characters.\")));"
  },
  "Map color must be a six-digit hex color.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:239"
+   "Twogether.Api/Controllers/AuthController.cs:241"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_color\", Loc.T(\"Map color must be a six-digit hex color.\")));"
  },
  "The avatar must be an https link of at most 500 characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:248"
+   "Twogether.Api/Controllers/AuthController.cs:250"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"profile.invalid_avatar\", Loc.T(\"The avatar must be an https link of at most 500 characters.\")));"
  },
  "This account has been disabled. Contact support if you think this is a mistake.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AuthController.cs:260"
+   "Twogether.Api/Controllers/AuthController.cs:262"
   ],
   "code": "private ObjectResult Disabled() => StatusCode(StatusCodes.Status403Forbidden, new ApiError(\"auth.account_disabled\", Loc.T(\"This account has been disabled. Contact support if you think this is a mistak"
+ },
+ "That date doesn't look right.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:273"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"auth.invalid_birthday\", Loc.T(\"That date doesn't look right.\")));"
+ },
+ "Heartpact is for adults. You need to be 18 or over to sign up.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/AuthController.cs:275"
+  ],
+  "code": "return UnprocessableEntity(new ApiError(\"auth.too_young\", Loc.T(\"Heartpact is for adults. You need to be 18 or over to sign up.\")));"
  },
  "Purchases are not set up on this server.": {
   "plural": false,
@@ -658,7 +679,7 @@
  "This game session is corrupted. End it and start a new game.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:141",
+   "Twogether.Api/Controllers/GameController.cs:136",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:143",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:118",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:110"
@@ -668,112 +689,112 @@
  "Your partner just updated the game. The latest board has been loaded.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:153"
+   "Twogether.Api/Controllers/GameController.cs:148"
   ],
   "code": "return Conflict(new ApiError(\"game.version_conflict\", Loc.T(\"Your partner just updated the game. The latest board has been loaded.\")));"
  },
  "This game has already ended.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:165"
+   "Twogether.Api/Controllers/GameController.cs:160"
   ],
   "code": "if (!session.IsOpen) return Conflict(new ApiError(\"game.already_ended\", Loc.T(\"This game has already ended.\")));"
  },
  "Game ended": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:173"
+   "Twogether.Api/Controllers/GameController.cs:168"
   ],
   "code": "notification = Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameEnded, Loc.T(\"Game ended\"),"
  },
  "{name} ended your game.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:174"
+   "Twogether.Api/Controllers/GameController.cs:169"
   ],
   "code": "Loc.T(\"{name} ended your game.\", (\"name\", endedBy.DisplayName)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);"
  },
  "{name} invited you to play Same answer.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:200"
+   "Twogether.Api/Controllers/GameController.cs:195"
   ],
   "code": "GameType.CoupleQuiz => Loc.T(\"{name} invited you to play Same answer.\", (\"name\", name)),"
  },
  "{name} invited you to play Memory match.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:201"
+   "Twogether.Api/Controllers/GameController.cs:196"
   ],
   "code": "GameType.MemoryMatch => Loc.T(\"{name} invited you to play Memory match.\", (\"name\", name)),"
  },
  "{name} invited you to play I call on.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:202"
+   "Twogether.Api/Controllers/GameController.cs:197"
   ],
   "code": "GameType.ICallOn => Loc.T(\"{name} invited you to play I call on.\", (\"name\", name)),"
  },
  "{name} invited you to play Guess my answer.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:203"
+   "Twogether.Api/Controllers/GameController.cs:198"
   ],
   "code": "GameType.GuessMyAnswer => Loc.T(\"{name} invited you to play Guess my answer.\", (\"name\", name)),"
  },
  "{name} invited you to play Word dash.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:204"
+   "Twogether.Api/Controllers/GameController.cs:199"
   ],
   "code": "GameType.WordDash => Loc.T(\"{name} invited you to play Word dash.\", (\"name\", name)),"
  },
  "{name} invited you to play Draw and guess.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:205"
+   "Twogether.Api/Controllers/GameController.cs:200"
   ],
   "code": "GameType.Handwriting => Loc.T(\"{name} invited you to play Draw and guess.\", (\"name\", name)),"
  },
  "{name} invited you to play Truth or dare.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:206"
+   "Twogether.Api/Controllers/GameController.cs:201"
   ],
   "code": "GameType.TruthOrDare => Loc.T(\"{name} invited you to play Truth or dare.\", (\"name\", name)),"
  },
  "{name} invited you to play Would you rather.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:207"
+   "Twogether.Api/Controllers/GameController.cs:202"
   ],
   "code": "GameType.WouldYouRather => Loc.T(\"{name} invited you to play Would you rather.\", (\"name\", name)),"
  },
  "{name} invited you to play Tic-tac-toe.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:208"
+   "Twogether.Api/Controllers/GameController.cs:203"
   ],
   "code": "GameType.TicTacToe => Loc.T(\"{name} invited you to play Tic-tac-toe.\", (\"name\", name)),"
  },
  "{name} invited you to play Connect four.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:209"
+   "Twogether.Api/Controllers/GameController.cs:204"
   ],
   "code": "GameType.ConnectFour => Loc.T(\"{name} invited you to play Connect four.\", (\"name\", name)),"
  },
  "{name} invited you to play Trivia.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:210"
+   "Twogether.Api/Controllers/GameController.cs:205"
   ],
   "code": "GameType.Trivia => Loc.T(\"{name} invited you to play Trivia.\", (\"name\", name)),"
  },
  "{name} invited you to a game.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:211"
+   "Twogether.Api/Controllers/GameController.cs:206"
   ],
   "code": "_ => Loc.T(\"{name} invited you to a game.\", (\"name\", name)),"
  },

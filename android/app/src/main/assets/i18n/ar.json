@@ -287,6 +287,7 @@
  "Headache": "صداع",
  "Heart": "قلب",
  "Heart complete": "اكتمل القلب",
+ "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact للبالغين. يجب أن يكون عمرك 18 عامًا أو أكثر للتسجيل.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "يحتاج Heartpact إلى الكاميرا لعدّ تكراراتك. لا يُسجَّل أو يُرسَل أي شيء.",
  "Heavy": "غزير",
  "Hide password": "إخفاء كلمة المرور",
@@ -507,6 +508,7 @@
  "Opening your calendar…": "جارٍ فتح التقويم…",
  "Opening…": "جارٍ الفتح…",
  "or": "أم",
+ "or sign up with email": "أو سجّل بالبريد الإلكتروني",
  "out of view for {count} second|out of view for {count} seconds": {
   "zero": "لم يخرج من الإطار",
   "one": "خارج الإطار لمدة ثانية",
@@ -910,6 +912,7 @@
  "You have Plus. It covers you and {partner}.": "لديك Plus، وهو يشملك أنت و{partner}.",
  "You haven't dared {partner} yet": "لا تحديات منك لـ{partner} بعد",
  "You matched {matched} of {rounds}": "تطابقتما في {matched} من {rounds}",
+ "You need to be 18 or over": "يجب أن يكون عمرك 18 عامًا أو أكثر",
  "You passed on this one.": "تخطّيت هذه الكلمة.",
  "You paused sharing": "أوقفت المشاركة مؤقتًا",
  "You picked {answer}": "اختيارك: {answer}",

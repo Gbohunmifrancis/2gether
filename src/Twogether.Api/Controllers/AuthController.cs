@@ -139,7 +139,8 @@ public sealed class AuthController(
         }
 
         if (request.DateOfBirth is null)
-            return UnprocessableEntity(new GoogleProfileRequired("auth.profile_required", "Tell us your birthday to finish signing up.", identity.Email, identity.Name));
+            return UnprocessableEntity(new GoogleProfileRequired("auth.profile_required", Loc.T("Tell us your birthday to finish signing up."), identity.Email, identity.Name));
+        if (Birthday(request.DateOfBirth.Value, now) is { } refused) return refused;
         if (!Enum.IsDefined(request.Gender))
             return UnprocessableEntity(new ApiError("auth.invalid_gender", Loc.T("Choose the option that best describes you.")));
         if (!TryCountry(request.CountryCode, out var googleCountry)) return UnprocessableEntity(BadCountry);
@@ -171,6 +172,7 @@ public sealed class AuthController(
             return Conflict(new ApiError("auth.email_exists", Loc.T("An account with this email already exists.")));
 
         var now = clock.UtcNow;
+        if (Birthday(request.DateOfBirth, now) is { } refused) return refused;
         if (!Enum.IsDefined(request.Gender))
             return UnprocessableEntity(new ApiError("auth.invalid_gender", Loc.T("Choose the option that best describes you.")));
         if (!TryCountry(request.CountryCode, out var country)) return UnprocessableEntity(BadCountry);
@@ -264,6 +266,16 @@ public sealed class AuthController(
         user.CountryCode, ContentRegions.For(user.CountryCode));
 
     /// <summary>Optional on the wire (older app versions don't send it), but a code that is sent must be a real country.</summary>
+    /// <summary>A new account's date of birth: a real date, and 18 or over (AgeRules). Null when it's fine.</summary>
+    private UnprocessableEntityObjectResult? Birthday(DateOnly dateOfBirth, DateTime now)
+    {
+        if (!AgeRules.IsPlausible(dateOfBirth, now))
+            return UnprocessableEntity(new ApiError("auth.invalid_birthday", Loc.T("That date doesn't look right.")));
+        if (!AgeRules.IsAdult(dateOfBirth, now))
+            return UnprocessableEntity(new ApiError("auth.too_young", Loc.T("Heartpact is for adults. You need to be 18 or over to sign up.")));
+        return null;
+    }
+
     private static bool TryCountry(string? requested, out string? country)
     {
         country = ContentRegions.Normalize(requested);

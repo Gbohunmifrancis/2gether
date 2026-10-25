@@ -64,7 +64,7 @@ fun SignInScreen(
             }
             state.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             HeartButton(tr("Sign in"), onSubmit, Modifier.padding(top = 6.dp), busy = state.busy)
-            onGoogle?.let { HeartButton(tr("Continue with Google"), it, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline, busy = googleBusy) }
+            onGoogle?.let { GoogleButton(it, Modifier.padding(top = 8.dp), busy = googleBusy) }
         }
         Row(Modifier.fillMaxWidth().padding(bottom = 24.dp, top = 8.dp), horizontalArrangement = Arrangement.Center) {
             Text(

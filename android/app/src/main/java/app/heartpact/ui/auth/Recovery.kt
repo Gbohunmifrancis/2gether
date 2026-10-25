@@ -218,6 +218,7 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
         val s = _state.value
         val idToken = token ?: return
         val dob = s.dateOfBirth ?: run { _state.update { it.copy(note = tr("Choose your date of birth.")) }; return }
+        if (!isAdult(dob)) return _state.update { it.copy(note = TOO_YOUNG) }
         val country = s.country?.takeIf(Countries::isKnown) ?: run { _state.update { it.copy(note = tr("Choose the country you live in.")) }; return }
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
@@ -243,6 +244,7 @@ fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday:
             Text(tr("Google signed you in. A few more things and your account is ready."), style = Heartpact.type.bodyLarge, color = colors.ink2)
             HeartField(tr("Your name"), state.name, onName, keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
             HeartField(tr("Date of birth"), state.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "", {},
+                error = state.dateOfBirth?.takeIf { !isAdult(it) }?.let { TOO_YOUNG }, hint = tr("You need to be 18 or over"),
                 trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, tr("Choose date of birth"), tint = colors.ink2) } })
             CountryField(state.country, onCountry, suggested = guess)
             Text(tr("Which describes you?"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))

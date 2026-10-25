@@ -275,6 +275,7 @@
  "Headache": "Mal de tête",
  "Heart": "Cœur",
  "Heart complete": "Cœur complet",
+ "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact est réservé aux adultes. Tu dois avoir 18 ans ou plus pour t'inscrire.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "Heartpact a besoin de la caméra pour compter tes répétitions. Rien n'est enregistré ni envoyé.",
  "Heavy": "Abondant",
  "Hide password": "Masquer le mot de passe",
@@ -467,6 +468,7 @@
  "Opening your calendar…": "Ouverture de ton calendrier…",
  "Opening…": "Ouverture…",
  "or": "ou",
+ "or sign up with email": "ou inscris-toi avec ton e-mail",
  "out of view for {count} second|out of view for {count} seconds": {
   "one": "hors champ pendant {count} seconde",
   "other": "hors champ pendant {count} secondes"
@@ -834,6 +836,7 @@
  "You have Plus. It covers you and {partner}.": "Tu as Plus. Il vous couvre, {partner} et toi.",
  "You haven't dared {partner} yet": "Tu n'as pas encore défié {partner}",
  "You matched {matched} of {rounds}": "Même réponse {matched} fois sur {rounds}",
+ "You need to be 18 or over": "Tu dois avoir 18 ans ou plus",
  "You passed on this one.": "Tu as passé celui-ci.",
  "You paused sharing": "Tu as mis le partage en pause",
  "You picked {answer}": "Tu as choisi {answer}",

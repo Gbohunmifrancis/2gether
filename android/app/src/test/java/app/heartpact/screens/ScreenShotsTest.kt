@@ -34,6 +34,8 @@ class ScreenShotsTest {
     @Test fun signUp() {
         val filled = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG")
         shot("sign-up") { SignUpScreen(SignUpState(form = filled), {}, {}, {}) }
+        shot("sign-up-google") { SignUpScreen(SignUpState(form = SignUpForm(country = "NG")), {}, {}, {}, onGoogle = {}) }
+        shot("sign-up-too-young") { SignUpScreen(SignUpState(form = filled.copy(dateOfBirth = java.time.LocalDate.now().minusYears(17)), showErrors = true), {}, {}, {}) }
         shot("sign-up-errors") { SignUpScreen(SignUpState(form = SignUpForm(email = "maya@", password = "short"), showErrors = true), {}, {}, {}) }
     }
 

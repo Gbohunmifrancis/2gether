@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -58,7 +61,8 @@ internal val GENDERS get() = listOf(Gender.Female to tr("Woman"), Gender.Male to
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Unit, onSubmit: () -> Unit, onBack: () -> Unit) {
+fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Unit, onSubmit: () -> Unit, onBack: () -> Unit,
+                 onGoogle: (() -> Unit)? = null, googleBusy: Boolean = false, googleNote: String? = null) {
     val colors = Heartpact.colors
     val form = state.form
     val errors = state.fieldErrors
@@ -69,6 +73,12 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         TopBar(tr("Create your account"), onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // The quickest way in first: Google fills the name and email; the rest is asked on the next screen.
+            onGoogle?.let {
+                GoogleButton(it, Modifier.padding(top = 4.dp), busy = googleBusy)
+                googleNote?.let { note -> NoteCard(note) }
+                OrDivider()
+            }
             HeartField(tr("Your name"), form.name, { v -> onEdit { it.copy(name = v) } }, error = errors[SignUpForm.Field.Name],
                 keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next))
             HeartField(tr("Email"), form.email, { v -> onEdit { it.copy(email = v) } }, error = errors[SignUpForm.Field.Email],
@@ -80,7 +90,7 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
                 tr("Date of birth"),
                 form.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "",
                 {},
-                error = errors[SignUpForm.Field.DateOfBirth],
+                error = errors[SignUpForm.Field.DateOfBirth], hint = tr("You need to be 18 or over"),
                 trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, tr("Choose date of birth"), tint = colors.ink2) } },
             )
             CountryField(form.country, { code -> onEdit { it.copy(country = code) } }, error = errors[SignUpForm.Field.Country], suggested = guess)
@@ -122,4 +132,15 @@ internal fun BirthDatePicker(current: LocalDate?, onPicked: (LocalDate) -> Unit,
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancel")) } },
     ) { DatePicker(state) }
+}
+
+/** A rule each side of a small "or", between Google and the email form. */
+@Composable
+private fun OrDivider() {
+    val colors = Heartpact.colors
+    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        HorizontalDivider(Modifier.weight(1f), color = colors.rule2)
+        Text(tr("or sign up with email"), style = Heartpact.type.small, color = colors.ink3)
+        HorizontalDivider(Modifier.weight(1f), color = colors.rule2)
+    }
 }
