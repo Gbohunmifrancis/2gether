@@ -449,5 +449,7 @@ public static class DatabaseSchemaUpgrade
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_couple_locations_CoupleId_UserId" ON couple_locations ("CoupleId", "UserId");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_game_results_GameSessionId" ON game_results ("GameSessionId");
         CREATE INDEX IF NOT EXISTS "IX_game_results_CoupleId_EndedAtUtc" ON game_results ("CoupleId", "EndedAtUtc");
+        -- Ending a pregnancy now stops sharing it; pregnancies ended before that stop too.
+        UPDATE pregnancies SET "ShareWithPartner" = false WHERE "Status" = 'Ended' AND "ShareWithPartner";
         """;
 }

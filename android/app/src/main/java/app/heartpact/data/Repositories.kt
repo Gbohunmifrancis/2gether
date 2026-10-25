@@ -91,7 +91,8 @@ class CycleRepository(private val api: HeartpactApi, private val json: Json) {
 }
 
 class PregnancyRepository(private val api: HeartpactApi, private val json: Json) {
-    suspend fun list(date: String): ApiResult<List<Pregnancy>> = apiCall(json) { api.pregnancies(date) }
+    suspend fun list(date: String, includeEnded: Boolean = false): ApiResult<List<Pregnancy>> = apiCall(json) { api.pregnancies(date, includeEnded) }
+    suspend fun delete(id: String): ApiResult<Unit> = apiCall(json) { api.deletePregnancy(id) }
     suspend fun start(request: StartPregnancyRequest): ApiResult<Pregnancy> = apiCall(json) { api.startPregnancy(request) }
     suspend fun update(id: String, request: UpdatePregnancyRequest): ApiResult<Pregnancy> = apiCall(json) { api.updatePregnancy(id, request) }
     suspend fun end(id: String): ApiResult<Unit> = apiCall(json) { api.endPregnancy(id) }

@@ -16,24 +16,32 @@ data class StripDay(val date: LocalDate, val kind: DayKind, val today: Boolean)
 
 /** Pure: the cycle strip, the wording, and when a logged flow starts a new period. */
 object CyclePlan {
-    /** Every day of the cycle containing today, then the predicted next period. */
+    /**
+     * Every day of the cycle containing today, then the predicted next period. A late period runs the strip on to
+     * today with nothing drawn where it was due, since it hasn't come.
+     */
     fun strip(prediction: CyclePrediction, logs: List<CycleDayLog>, periodLength: Int, today: LocalDate): List<StripDay> {
         val start = prediction.cycleStart?.let(LocalDate::parse) ?: return emptyList()
         val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return emptyList()
+        val late = prediction.daysLate != null
+        val end = if (late && !today.isBefore(next)) today.plusDays(1) else next
         val fertileFrom = prediction.fertileWindowStart?.let(LocalDate::parse)
         val fertileTo = prediction.fertileWindowEnd?.let(LocalDate::parse)
         val flowDays = logs.filter { it.flowLevel != FlowLevel.None }.map { LocalDate.parse(it.logDate) }.toSet()
-        // Logged flow wins; with nothing logged this cycle, the usual period length is assumed.
+        // Logged flow wins. With nothing logged this cycle the usual period length is assumed: drawn as a period when
+        // the cycle starts on the real last start, but as a prediction when cycles were rolled forward from it.
         val anyLogged = flowDays.any { !it.isBefore(start) && it.isBefore(next) }
-        val days = generateSequence(start) { it.plusDays(1) }.takeWhile { it.isBefore(next) }.map { date ->
+        val assumed = if (prediction.lastPeriodStart == null || prediction.lastPeriodStart == prediction.cycleStart) DayKind.Period else DayKind.Predicted
+        val days = generateSequence(start) { it.plusDays(1) }.takeWhile { it.isBefore(end) }.map { date ->
             val kind = when {
-                (if (anyLogged) date in flowDays else date.isBefore(start.plusDays(periodLength.toLong()))) -> DayKind.Period
+                anyLogged && date in flowDays -> DayKind.Period
+                !anyLogged && date.isBefore(start.plusDays(periodLength.toLong())) -> assumed
                 fertileFrom != null && fertileTo != null && !date.isBefore(fertileFrom) && !date.isAfter(fertileTo) -> DayKind.Fertile
                 else -> DayKind.Plain
             }
             StripDay(date, kind, date == today)
         }.toList()
-        val predicted = (0 until periodLength).map { StripDay(next.plusDays(it.toLong()), DayKind.Predicted, false) }
+        val predicted = if (late) emptyList() else (0 until periodLength).map { StripDay(next.plusDays(it.toLong()), DayKind.Predicted, false) }
         return days + predicted
     }
 
@@ -48,6 +56,9 @@ object CyclePlan {
 
     fun summary(prediction: CyclePrediction, cycleLength: Int): String? {
         val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return null
+        prediction.daysLate?.let { late ->
+            return if (late == 0) tr("Period due today.") else trn(late, "Period late by {count} day.", "Period late by {count} days.")
+        }
         return trn(cycleLength, "Of about {count} day. Next period likely {dates}.", "Of about {count} days. Next period likely {dates}.", "dates" to likely(next))
     }
 
@@ -68,17 +79,20 @@ object CyclePlan {
         else -> tr("Track your cycle, privately")
     }
 
-    /**
-     * Flow logged after a stretch without it, well past the last period, starts a new cycle: the
-     * profile's last period start moves to that day so predictions follow.
-     */
-    fun startsNewPeriod(flow: FlowLevel, date: LocalDate, cycleStart: LocalDate?, periodLength: Int, logs: List<CycleDayLog>): Boolean {
-        if (flow == FlowLevel.None || flow == FlowLevel.Spotting) return false
-        if (cycleStart == null) return true
-        if (!date.isAfter(cycleStart.plusDays(periodLength.toLong() + 5))) return false
-        val yesterday = logs.firstOrNull { LocalDate.parse(it.logDate) == date.minusDays(1) }
-        return yesterday == null || yesterday.flowLevel == FlowLevel.None || yesterday.flowLevel == FlowLevel.Spotting
+    /** How far back a day can be logged: a period noted a few days late still lands on the right day. */
+    const val LOG_DAYS_BACK = 60L
+
+    fun canLog(day: LocalDate, today: LocalDate): Boolean = !day.isAfter(today) && !day.isBefore(today.minusDays(LOG_DAYS_BACK))
+
+    /** The heading over the day being logged. */
+    fun dayTitle(day: LocalDate, today: LocalDate): String = when (day) {
+        today -> tr("Today")
+        today.minusDays(1) -> tr("Yesterday")
+        else -> day.format(Dates.formatter("EEEE d MMMM"))
     }
+
+    /** The last period start to show when settings are edited: the one the forecast counts from, which logged flow may have moved. */
+    fun lastStartForEditing(prediction: CyclePrediction, profileStart: String?): String? = prediction.lastPeriodStart ?: profileStart
 
     /** The symptoms on offer. These English names are what's saved and sent; [symptomLabel] is what people see. */
     val symptoms = listOf("Cramps", "Tired", "Headache", "Bloating", "Tender", "Acne", "Cravings", "Back pain")

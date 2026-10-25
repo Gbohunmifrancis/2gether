@@ -15,6 +15,10 @@ object PregnancyText {
 
     fun due(p: Pregnancy): String = tr("Due around {date}", "date" to LocalDate.parse(p.dueDate).format(dayMonth))
 
+    /** "Ended 3 October 2026", or nothing when the server didn't say when. */
+    fun endedOn(p: Pregnancy, zone: ZoneId = ZoneId.systemDefault()): String? =
+        p.endedAtUtc?.let { tr("Ended {date}", "date" to utc(it).atZone(zone).toLocalDate().format(Dates.formatter("d MMMM yyyy"))) }
+
     fun usRow(p: Pregnancy?, partner: String): String = when {
         p == null -> tr("Pauses cycle predictions")
         p.isMine -> tr("Week {week} · due {date}", "week" to p.week, "date" to LocalDate.parse(p.dueDate).format(dayMonth))

@@ -11,6 +11,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Couple;
 using Twogether.Application.Features.Exercise;
+using Twogether.Application.Features.Cycle;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Localization;
@@ -132,6 +133,7 @@ public sealed class CoupleController(
         couple.LinkPartner(user.Id, clock.UtcNow);
         user.SetCouple(couple.Id, clock.UtcNow);
         invite.Accept(clock.UtcNow);
+        await CycleSharing.StopSharingAsync(db, [user.Id, invite.InviterUserId], clock.UtcNow, cancellationToken);
         Notification connected;
         using (Loc.Use(await db.LanguageOfAsync(invite.InviterUserId, cancellationToken)))
             connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, Loc.T("You are connected"),
@@ -161,6 +163,7 @@ public sealed class CoupleController(
         foreach (var session in endedGames) session.EndBy(actor.Id, clock.UtcNow);
         couple.Dissolve(clock.UtcNow);
         await RevokePendingInvitesAsync(couple.Id, cancellationToken);
+        await CycleSharing.StopSharingAsync(db, partnerId is { } sharedWith ? [actor.Id, sharedWith] : [actor.Id], clock.UtcNow, cancellationToken);
         actor.SetCouple(null, clock.UtcNow);
         if (partnerId is { } linkedPartnerId)
         {

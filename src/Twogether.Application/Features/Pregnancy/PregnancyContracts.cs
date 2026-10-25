@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Pregnancy;
@@ -66,6 +67,13 @@ public static class PregnancyRules
         return due;
     }
 
+    /// <summary>
+    /// An edited due date. Only a changed date is checked against today, so a pregnancy past its due date can still
+    /// be edited, or hidden from the partner.
+    /// </summary>
+    public static Result<DateOnly> ResolveUpdatedDueDate(string? dueDate, DateOnly current, DateOnly today)
+        => !string.IsNullOrWhiteSpace(dueDate) && TryParse(dueDate, out var due) && due == current ? due : ResolveDueDate(dueDate, null, today);
+
     public static Result ValidateAppointment(string? title, DateTime atUtc, string? location, string? notes, DateTime utcNow)
     {
         if (string.IsNullOrWhiteSpace(title) || title.Trim().Length > PregnancyAppointment.MaxTitleLength)
@@ -83,6 +91,12 @@ public static class PregnancyRules
         => DateOnly.TryParseExact(value.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
 
     private static Error Invalid(string message) => Error.Validation("pregnancy.invalid_due_date", message);
+}
+
+/// <summary>The partner's "shared pregnancy mode with you" notification, found again by its data when sharing stops.</summary>
+public static class PregnancyNotices
+{
+    public static string SharedData(Guid pregnancyId) => JsonSerializer.Serialize(new { pregnancyId });
 }
 
 public static class PregnancyMapper

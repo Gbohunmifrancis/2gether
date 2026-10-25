@@ -8,7 +8,7 @@ Google Play requires any app that creates accounts to let people delete them, bo
 
 - profile
 - cycle settings and day logs
-- pregnancy, appointments and kick counts
+- pregnancy, appointments and kick counts (appointments they added to a partner's pregnancy only while they can still see it)
 - food entries, targets and scan records
 - exercise goals and attempts
 - last shared location
@@ -63,7 +63,8 @@ The request is checked in this order:
 - **Shared couple rows** (the couple itself, the daily question list, the partner's memories, messages and answers):
   - If a partner still exists, these rows stay with that partner. The deleted person shows up only as an id that no longer matches anyone.
   - If no partner is left, for example the solo couple every sign-up starts with, the rows are deleted too.
-- **Pregnancy appointments the person added to their partner's pregnancy** stay, because they are part of the partner's health record.
+- **Pregnancy appointments the person added to their partner's pregnancy** stay, because they are part of the partner's health record, but what the person wrote is erased: the title becomes "Appointment" in the owner's language, and the place and notes go.
+- **The partner's cycle sharing** goes back to nothing, as after a breakup, and the partner's "shared pregnancy mode with you" notification goes with the person's pregnancies.
 - **Afterwards:**
   - Other signed-in devices get an `AccountDeleted` hub event.
   - Every API call fails with `401` immediately, because the JWT bearer handler checks on each request that the user still exists. Without that check, a token could keep writing rows for hours after deletion.
