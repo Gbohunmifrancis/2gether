@@ -62,8 +62,8 @@ public sealed partial class MemoriesController(
     private DatabaseFacade Database => ((DbContext)db).Database;
 
     private static ApiError QuotaExceeded(Plan plan) => new("memories.quota_exceeded", plan == Plan.Free
-        ? "Your shared album is full. Heartpact Plus gives you more room, or remove some memories."
-        : "Your shared album is full. Remove some memories to add more.");
+        ? Loc.T("Your shared album is full. Heartpact Plus gives you more room, or remove some memories.")
+        : Loc.T("Your shared album is full. Remove some memories to add more."));
 
     /// <summary>Reserves a slot and returns a signed PUT URL. The client must send the Content-Type it declared.</summary>
     [HttpPost("uploads")]
