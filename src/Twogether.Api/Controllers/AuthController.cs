@@ -22,6 +22,7 @@ public sealed class AuthController(
     IEmailSender email,
     IGoogleTokenVerifier google,
     Twogether.Api.Presence.HubConnectionRegistry hubConnections,
+    Twogether.Api.Realtime.LocationSharingStopper locationStopper,
     ILogger<AuthController> logger) : ApiControllerBase
 {
     private static ApiError ResetSent => new("auth.reset_sent", Loc.T("If an account uses that email, a code is on its way. It works for 15 minutes."));
@@ -101,6 +102,8 @@ public sealed class AuthController(
         limiter.Reset(AttemptRules.ResetCodePerEmail, address);
         limiter.Reset(AttemptRules.LoginPerEmail, address);
         var closed = hubConnections.AbortAll(user.Id);
+        // The phones that just lost their session may have been sharing: sharing ends with them.
+        await locationStopper.StopAsync(user.Id, cancellationToken);
         logger.LogInformation("Password reset for user {UserId}; older sessions end ({Closed} live connections closed).", user.Id, closed);
         return Ok(ToResponse(user, tokenService.CreateAccessToken(user.Id, user.CoupleId, user.Email, user.DisplayName, now)));
     }

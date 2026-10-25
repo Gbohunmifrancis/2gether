@@ -49,11 +49,14 @@ builder.Services.AddScoped<Twogether.Api.Admin.AdminAudit>();
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<HubConnectionRegistry>();
 builder.Services.AddSingleton<GameLiveState>();
+builder.Services.AddSingleton<Twogether.Application.Features.Location.LocationFixThrottle>();
+builder.Services.AddScoped<Twogether.Api.Realtime.LocationSharingStopper>();
 builder.Services.AddHostedService<GameTimeoutWorker>();
 builder.Services.AddHostedService<ExerciseAlarmWorker>();
 builder.Services.AddHostedService<MemoryCleanupWorker>();
 builder.Services.AddHostedService<PushDispatchWorker>();
 builder.Services.AddHostedService<AlbumSyncReminderWorker>();
+builder.Services.AddHostedService<LocationSweepWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

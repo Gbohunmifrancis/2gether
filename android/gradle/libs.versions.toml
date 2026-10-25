@@ -25,6 +25,7 @@ gson = "2.11.0"
 credentials = "1.5.0"
 googleId = "1.1.1"
 mapsCompose = "7.0.0"
+playLocation = "19.0.0"
 billing = "8.3.0"
 integrity = "1.6.0"
 junit = "4.13.2"
@@ -79,6 +80,7 @@ googleid = { module = "com.google.android.libraries.identity.googleid:googleid",
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+play-location = { module = "com.google.android.gms:play-services-location", version.ref = "playLocation" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }

@@ -15,10 +15,11 @@ namespace Twogether.Api.Controllers;
 
 /// <summary>
 /// Mutual location sharing. Positions are pushed through the couple hub; this controller
-/// serves the snapshot, the sharing status both partners can always see, and pause/resume.
+/// serves the snapshot, the sharing status both partners can always see, start and stop,
+/// the sharing phone's heartbeat, and pause/resume.
 /// </summary>
 [Authorize]
-public sealed class LocationController(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IHubContext<CoupleHub> hub) : ApiControllerBase
+public sealed class LocationController(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IHubContext<CoupleHub> hub, LocationSharingStopper stopper) : ApiControllerBase
 {
     /// <summary>My own point, and my partner's only while we both share. Empty for unlinked users.</summary>
     [HttpGet]
@@ -39,13 +40,63 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
         var context = await LoadAsync(cancellationToken);
+        if (context is null) return Ok(await UnlinkedStatusAsync(cancellationToken));
+        return Ok(StatusOf(context, clock.UtcNow));
+    }
+
+    /// <summary>
+    /// Starts sharing (the person tapped Share), or confirms a share that is already running.
+    /// Starting is always this explicit call: a fix on a stopped share is dropped. Ends a pause.
+    /// </summary>
+    [HttpPost("start")]
+    public async Task<ActionResult<LocationSharingStatusDto>> Start(CancellationToken cancellationToken)
+    {
+        var context = await LoadAsync(cancellationToken, track: true);
+        if (context is null) return BadRequest(new ApiError("location.no_couple", Loc.T("Link your partner before sharing location.")));
         var now = clock.UtcNow;
-        if (context is null)
+        var mine = context.Mine;
+        var wasSharing = LocationSharingRules.StatusOf(mine, now) == LocationSharingStatus.Sharing;
+        if (mine is null)
         {
-            var name = await db.Users.AsNoTracking().Where(user => user.Id == currentUser.UserId.Value).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? "You";
-            return Ok(new LocationSharingStatusDto(new LocationSharingStateDto(currentUser.UserId.Value, name, LocationSharingStatus.Off, null, null), null, false));
+            mine = CoupleLocation.Start(currentUser.CoupleId!.Value, context.Me.Id, now);
+            db.CoupleLocations.Add(mine);
+            context = context with { Mine = mine };
         }
+        else mine.StartSharing(now);
+        await db.SaveChangesAsync(cancellationToken);
+        if (!wasSharing) await AnnounceAsync(context, now, cancellationToken);
         return Ok(StatusOf(context, now));
+    }
+
+    /// <summary>
+    /// The sharing phone is still there, moving or not; it calls this every few minutes. Renews
+    /// the lease, ends a pause whose time is up (so both phones see each other again without
+    /// waiting for a fix), and answers with the status: a phone told "off" stops sharing.
+    /// </summary>
+    [HttpPost("heartbeat")]
+    public async Task<ActionResult<LocationSharingStatusDto>> Heartbeat(CancellationToken cancellationToken)
+    {
+        if (!currentUser.UserId.HasValue) return Unauthorized();
+        var context = await LoadAsync(cancellationToken, track: true);
+        if (context is null) return Ok(await UnlinkedStatusAsync(cancellationToken));
+        var now = clock.UtcNow;
+        if (context.Mine is not { SharingEnabled: true } mine) return Ok(StatusOf(context, now));
+        var wasLive = mine.IsLiveAt(now);
+        var pauseEnded = mine.PausedUntilUtc is { } until && until <= now;
+        if (pauseEnded) mine.Resume(now);
+        mine.Heartbeat(now);
+        await db.SaveChangesAsync(cancellationToken);
+        if (!wasLive || pauseEnded) await AnnounceAsync(context, now, cancellationToken);
+        return Ok(StatusOf(context, now));
+    }
+
+    /// <summary>Stops sharing and wipes my point. Idempotent, so the app retries it until it lands.</summary>
+    [HttpPost("stop")]
+    public async Task<IActionResult> Stop(CancellationToken cancellationToken)
+    {
+        if (!currentUser.UserId.HasValue) return Unauthorized();
+        await stopper.StopAsync(currentUser.UserId.Value, cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("pause")]
@@ -56,7 +107,7 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
         var now = clock.UtcNow;
         var until = LocationSharingRules.PauseUntil(request.Minutes, now);
         if (until.IsFailure) return UnprocessableEntity(new ApiError(until.Error.Code, until.Error.Message));
-        if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError("location.not_sharing", Loc.T("You are not sharing your location.")));
+        if (context.Mine is null || !context.Mine.IsLiveAt(now)) return Conflict(new ApiError("location.not_sharing", Loc.T("You are not sharing your location.")));
 
         var couldSeeEachOther = LocationSharingRules.CanSee(context.Mine, context.Theirs, now);
         context.Mine.Pause(until.Value, now);
@@ -69,7 +120,7 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
             await hub.Clients.Group(CoupleHub.UserGroupName(partner.Id)).SendAsync(LocationEvents.Stopped, context.Me.Id, cancellationToken);
             await hub.Clients.Group(CoupleHub.UserGroupName(context.Me.Id)).SendAsync(LocationEvents.Stopped, partner.Id, cancellationToken);
         }
-        await LocationEvents.SharingChangedAsync(hub, context.Mine.CoupleId, LocationSharingRules.State(context.Me.Id, context.Me.DisplayName, context.Mine, now), cancellationToken);
+        await LocationEvents.SharingChangedAsync(hub, context.Mine.CoupleId, LocationSharingRules.State(context.Me.Id, context.Me.DisplayName, context.Mine, now, withLastFix: false), cancellationToken);
         return Ok(StatusOf(context, now));
     }
 
@@ -78,29 +129,37 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
     {
         var context = await LoadAsync(cancellationToken, track: true);
         if (context is null) return BadRequest(new ApiError("location.no_couple", Loc.T("Link your partner before sharing location.")));
-        if (context.Mine is null || !context.Mine.SharingEnabled) return Conflict(new ApiError("location.not_sharing", Loc.T("You are not sharing your location.")));
         var now = clock.UtcNow;
+        if (context.Mine is null || !context.Mine.IsLiveAt(now)) return Conflict(new ApiError("location.not_sharing", Loc.T("You are not sharing your location.")));
         context.Mine.Resume(now);
         await db.SaveChangesAsync(cancellationToken);
-
-        if (context.Partner is { } partner && LocationSharingRules.CanSee(context.Mine, context.Theirs, now))
-        {
-            await hub.Clients.Group(CoupleHub.UserGroupName(partner.Id)).SendAsync(LocationEvents.Updated, ToDto(context.Mine, context.Me, false), cancellationToken);
-            await hub.Clients.Group(CoupleHub.UserGroupName(context.Me.Id)).SendAsync(LocationEvents.Updated, ToDto(context.Theirs!, partner, false), cancellationToken);
-        }
-        await LocationEvents.SharingChangedAsync(hub, context.Mine.CoupleId, LocationSharingRules.State(context.Me.Id, context.Me.DisplayName, context.Mine, now), cancellationToken);
+        await AnnounceAsync(context, now, cancellationToken);
         return Ok(StatusOf(context, now));
     }
 
+    /// <summary>A point as the API serves it: its time is when the phone took the fix, not when the row last changed.</summary>
     public static LocationDto ToDto(CoupleLocation location, User user, bool isCurrentUser)
-        => new(user.Id, user.DisplayName, user.AvatarUrl, user.MapColor, location.Latitude, location.Longitude, location.AccuracyMeters, location.UpdatedAtUtc, isCurrentUser);
+        => new(user.Id, user.DisplayName, user.AvatarUrl, user.MapColor, location.Latitude!.Value, location.Longitude!.Value, location.AccuracyMeters ?? 0, location.FixAtUtc!.Value, isCurrentUser);
+
+    /// <summary>My indicator changed and we may see each other again: tell the couple, and swap points if so.</summary>
+    private async Task AnnounceAsync(SharingContext context, DateTime now, CancellationToken cancellationToken)
+    {
+        var mutual = LocationSharingRules.CanSee(context.Mine, context.Theirs, now);
+        // The indicator first: the app shows points only while its own share reads "sharing".
+        await LocationEvents.SharingChangedAsync(hub, context.Mine!.CoupleId, LocationSharingRules.State(context.Me.Id, context.Me.DisplayName, context.Mine, now, withLastFix: mutual), cancellationToken);
+        if (mutual && context.Partner is { } partner)
+            await LocationEvents.ExchangeAsync(hub.Clients, context.Mine, context.Me, context.Theirs!, partner, cancellationToken);
+    }
+
+    private async Task<LocationSharingStatusDto> UnlinkedStatusAsync(CancellationToken cancellationToken)
+    {
+        var userId = currentUser.UserId!.Value;
+        var name = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? "You";
+        return new LocationSharingStatusDto(new LocationSharingStateDto(userId, name, LocationSharingStatus.Off, null, null), null, false);
+    }
 
     private static LocationSharingStatusDto StatusOf(SharingContext context, DateTime now)
-    {
-        var me = LocationSharingRules.State(context.Me.Id, context.Me.DisplayName, context.Mine, now);
-        var partner = context.Partner is null ? null : LocationSharingRules.State(context.Partner.Id, context.Partner.DisplayName, context.Theirs, now);
-        return new LocationSharingStatusDto(me, partner, LocationSharingRules.CanSee(context.Mine, context.Theirs, now));
-    }
+        => LocationSharingRules.Status(context.Me.Id, context.Me.DisplayName, context.Mine, context.Partner?.Id, context.Partner?.DisplayName, context.Theirs, now);
 
     private async Task<SharingContext?> LoadAsync(CancellationToken cancellationToken, bool track = false)
     {

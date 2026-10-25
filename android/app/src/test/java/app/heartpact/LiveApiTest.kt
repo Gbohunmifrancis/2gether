@@ -375,8 +375,16 @@ class LiveApiTest {
 
             mayaHub.updateLocation(6.4300, 3.4200, 12.0)
             withContext(Dispatchers.IO) { Thread.sleep(800) }
-            assertEquals("not mutual yet: Theo sees only himself", emptyList<String>(), (theoLoc.points() as ApiResult.Ok).value.map { it.displayName })
+            assertEquals("a fix never starts sharing", app.heartpact.data.SharingStatus.Off, (mayaLoc.status() as ApiResult.Ok).value.me.status)
 
+            mayaLoc.start() as ApiResult.Ok
+            withContext(Dispatchers.IO) { Thread.sleep(5_200) } // fixes closer than 5 s apart are dropped
+            mayaHub.updateLocation(6.4300, 3.4200, 12.0)
+            withContext(Dispatchers.IO) { Thread.sleep(800) }
+            assertEquals("not mutual yet: Theo sees only himself", emptyList<String>(), (theoLoc.points() as ApiResult.Ok).value.map { it.displayName })
+            assertEquals("and not when Maya last moved", null, (theoLoc.status() as ApiResult.Ok).value.partner?.lastUpdatedAtUtc)
+
+            theoLoc.start() as ApiResult.Ok
             theoHub.updateLocation(6.4400, 3.4350, 15.0)
             withContext(Dispatchers.IO) { kotlinx.coroutines.withTimeout(10_000) { while (theoEvents.none { it.name == "LocationUpdated" && "Maya" in it.json }) delay(100) } }
             assertTrue((mayaLoc.status() as ApiResult.Ok).value.mutual)
@@ -385,6 +393,10 @@ class LiveApiTest {
             assertEquals(app.heartpact.data.SharingStatus.Paused, (mayaLoc.pause(60) as ApiResult.Ok).value.me.status)
             assertEquals("paused: nothing of Maya", 1, (theoLoc.points() as ApiResult.Ok).value.size)
             assertTrue(theoEvents.any { it.name == "LocationSharingChanged" })
+
+            assertTrue(mayaLoc.stop() is ApiResult.Ok)
+            assertTrue("stop is idempotent", mayaLoc.stop() is ApiResult.Ok)
+            assertEquals(app.heartpact.data.SharingStatus.Off, (theoLoc.status() as ApiResult.Ok).value.partner?.status)
         } finally {
             collector.cancel()
             mayaHub.stopAll(); theoHub.stopAll()

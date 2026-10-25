@@ -75,6 +75,9 @@ export const getNotifications = () => apiFetch<AppNotification[]>("/api/notifica
 export const markNotificationRead = (id: string) => apiFetch<void>(`/api/notification/${id}/read`, { method: "POST", body: "{}" });
 export const markAllNotificationsRead = () => apiFetch<void>("/api/notification/read-all", { method: "POST", body: "{}" });
 export const getLocations = () => apiFetch<CoupleLocation[]>("/api/location");
+// Starting is explicit (a fix never starts a share), and a share lapses without a heartbeat every few minutes.
+export const startLocationSharing = () => apiFetch<unknown>("/api/location/start", { method: "POST", body: "{}" });
+export const sendLocationHeartbeat = () => apiFetch<unknown>("/api/location/heartbeat", { method: "POST", body: "{}" });
 export const getGameSessions = () => apiFetch<GameSession[]>("/api/game/sessions");
 export const getGameSession = (id: string) => apiFetch<GameSession>(`/api/game/sessions/${id}`);
 export const createGameSession = (gameType: string, letter?: string) => apiFetch<GameSession>("/api/game/sessions", { method: "POST", body: JSON.stringify({ gameType, letter }) });

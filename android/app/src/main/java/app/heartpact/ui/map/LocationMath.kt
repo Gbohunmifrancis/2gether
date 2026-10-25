@@ -35,7 +35,7 @@ object LocationMath {
     }
 
     fun age(updatedAtUtc: String, now: Instant): String {
-        val minutes = Duration.between(utc(updatedAtUtc), now).toMinutes()
+        val minutes = minutesSince(updatedAtUtc, now)
         return when {
             minutes < 1 -> tr("updated just now")
             minutes < 60 -> tr("updated {minutes} min ago", "minutes" to minutes)
@@ -46,7 +46,7 @@ object LocationMath {
 
     /** [age] without "updated": "2 min ago", "just now". */
     fun ago(updatedAtUtc: String, now: Instant): String {
-        val minutes = Duration.between(utc(updatedAtUtc), now).toMinutes()
+        val minutes = minutesSince(updatedAtUtc, now)
         return when {
             minutes < 1 -> tr("just now")
             minutes < 60 -> tr("{minutes} min ago", "minutes" to minutes)
@@ -55,9 +55,20 @@ object LocationMath {
         }
     }
 
-    /** "Until tomorrow" pauses until 8:00 the next morning, within the server's 15 min to 24 h. */
+    /**
+     * Whole minutes since a point's time, never negative: with the phone's clock behind the server's,
+     * a fresh point reads "just now" rather than a time in the future.
+     */
+    fun minutesSince(updatedAtUtc: String, now: Instant): Long = Duration.between(utc(updatedAtUtc), now).toMinutes().coerceAtLeast(0)
+
+    /**
+     * "Until tomorrow" pauses until the next 8:00: tomorrow's in the evening, but this morning's when
+     * tapped after midnight. Kept within the server's 15 min to 24 h.
+     */
     fun minutesUntilTomorrow(now: ZonedDateTime): Int {
-        val morning = now.toLocalDate().plusDays(1).atTime(LocalTime.of(8, 0)).atZone(now.zone)
+        val eight = LocalTime.of(8, 0)
+        val day = if (now.toLocalTime() < eight) now.toLocalDate() else now.toLocalDate().plusDays(1)
+        val morning = day.atTime(eight).atZone(now.zone)
         return Duration.between(now, morning).toMinutes().toInt().coerceIn(15, 1440)
     }
 
@@ -76,6 +87,36 @@ object LocationMath {
     /** The time a pause ends, "18:30", for "Paused until {time}". */
     fun pausedUntil(iso: String?, zone: ZoneId = ZoneId.systemDefault()): String? =
         iso?.let { utc(it).atZone(zone).toLocalTime().withSecond(0).withNano(0).toString() }
+
+    /** A last known fix older than this is not sent: it can be hours old and would show as current. */
+    const val LAST_KNOWN_MAX_AGE_MS = 2 * 60_000L
+
+    /** Both on the elapsed-realtime clock, which a wrong wall clock can't move. */
+    fun isRecentFix(fixElapsedNanos: Long, nowElapsedNanos: Long): Boolean =
+        nowElapsedNanos - fixElapsedNanos in 0..LAST_KNOWN_MAX_AGE_MS * 1_000_000
+
+    /** Slack after a pause ends before asking the server, so its clock has passed the end too. */
+    private const val PAUSE_SLACK_MS = 3_000L
+
+    /** The sharing phone's next heartbeat: the usual beat, or just after its pause ends if that is sooner. */
+    fun nextBeatMs(pausedUntilUtc: String?, now: Instant, beatMs: Long): Long {
+        val untilEnd = pausedUntilUtc?.let { Duration.between(now, utc(it)).toMillis() + PAUSE_SLACK_MS } ?: return beatMs
+        return untilEnd.coerceIn(PAUSE_SLACK_MS, beatMs)
+    }
+
+    /** When a screen should refresh because a pause (yours or your partner's) ends; null when nobody is paused. */
+    fun refreshAfterPauseMs(status: SharingStatusView?, now: Instant): Long? =
+        listOfNotNull(status?.me, status?.partner)
+            .filter { it.status == SharingStatus.Paused }
+            .mapNotNull { it.pausedUntilUtc }
+            .minOfOrNull { Duration.between(now, utc(it)).toMillis() }
+            ?.let { (it + PAUSE_SLACK_MS).coerceAtLeast(PAUSE_SLACK_MS) }
+
+    /**
+     * Whether a point from the hub may go on the map. A point can race a pause or stop by
+     * milliseconds; while your own share is off or paused you see nobody, as the mutual rule says.
+     */
+    fun acceptsPoints(myStatus: SharingStatus): Boolean = myStatus == SharingStatus.Sharing
 
     /**
      * Two points on a drawn map: an equirectangular projection around their midpoint, scaled so both sit

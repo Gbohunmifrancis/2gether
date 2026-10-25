@@ -79,7 +79,7 @@ import androidx.compose.runtime.LaunchedEffect
 import java.time.Instant
 import java.time.ZonedDateTime
 
-/** Asks for location the first time, then starts sharing. Location is only used while sharing. */
+/** Asks for location and notifications the first time, then starts sharing (which needs both). Location is only used while sharing. */
 @Composable
 fun rememberShareLocation(onGranted: () -> Unit): () -> Unit {
     val granted by rememberUpdatedState(onGranted)
@@ -205,7 +205,8 @@ fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Ins
                     Text(tr("Sharing is mutual and always visible: you only see {partner} while you both share, and a notification shows the whole time. Stop any time.", "partner" to partnerName),
                         style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
                 }
-                SharingStatus.Paused -> HeartButton(tr("Resume sharing"), actions.onResume, Modifier.padding(top = 16.dp), busy = ui.busy)
+                // A phone that isn't sending (restarted during the pause) resumes by starting again.
+                SharingStatus.Paused -> HeartButton(tr("Resume sharing"), if (ui.sendingHere) actions.onResume else actions.onShare, Modifier.padding(top = 16.dp), busy = ui.busy)
                 SharingStatus.Sharing -> {
                     if (!ui.sendingHere) HeartButton(tr("Send from this phone"), actions.onShare, Modifier.padding(top = 16.dp), kind = ButtonKind.Tonal)
                     Text(tr("Pause sharing"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 18.dp, bottom = 10.dp))
@@ -254,7 +255,7 @@ fun LocationCard(ui: LocationUi, partnerName: String, onOpen: () -> Unit, onShar
         CardRow(LocationMath.headline(ui.status, partnerName), subtitle = subtitle, icon = Icons.Outlined.LocationOn, onClick = onOpen) {
             val (label, action) = when (ui.myStatus) {
                 SharingStatus.Off -> tr("Share") to onShare
-                SharingStatus.Paused -> tr("Resume") to onResume
+                SharingStatus.Paused -> tr("Resume") to (if (ui.sendingHere) onResume else onShare)
                 SharingStatus.Sharing -> tr("Pause") to onPause
             }
             Text(label, style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clip(Shapes.Pill).clickable(onClick = action).padding(8.dp))

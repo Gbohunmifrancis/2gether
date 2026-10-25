@@ -180,7 +180,8 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
             Fill(from, to, ByDay(answersByDay)),
             gamesByType.Sum(item => item.Count),
             gamesByType.Select(item => new NamedCount(Camel(item.Key.ToString()), item.Count)).ToList(),
-            await db.CoupleLocations.CountAsync(item => item.SharingEnabled && (item.PausedUntilUtc == null || item.PausedUntilUtc < now), ct),
+            // Live shares only: a phone that went quiet past the lease no longer counts.
+            await db.CoupleLocations.CountAsync(item => item.SharingEnabled && item.LastSeenAtUtc > now - Twogether.Core.Entities.CoupleLocation.Lease && (item.PausedUntilUtc == null || item.PausedUntilUtc < now), ct),
             await db.Pregnancies.CountAsync(item => item.Status == PregnancyStatus.Active, ct),
             await db.Users.CountAsync(user => user.CycleOwner, ct));
     }

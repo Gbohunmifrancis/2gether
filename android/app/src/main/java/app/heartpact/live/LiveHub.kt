@@ -54,8 +54,9 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
     /** After signing in or linking: the token changed, so connect again. */
     fun restart() = scope.launch { close(); ensure() }
 
-    fun updateLocation(latitude: Double, longitude: Double, accuracy: Double) = send("UpdateLocation", latitude, longitude, accuracy)
-    fun stopLocationSharing() = send("StopLocationSharing")
+    /** [fixedAtMs] is when the phone took the fix; the server keeps it (capped at its own clock) as the point's time. */
+    fun updateLocation(latitude: Double, longitude: Double, accuracy: Double, fixedAtMs: Long = System.currentTimeMillis()) =
+        send("UpdateLocationAt", latitude, longitude, accuracy, fixedAtMs)
     fun reportExerciseProgress(occurrenceId: String, count: Int, confidence: Double) = send("ReportExerciseProgress", occurrenceId, count, confidence)
 
     private fun send(method: String, vararg args: Any) = scope.launch {

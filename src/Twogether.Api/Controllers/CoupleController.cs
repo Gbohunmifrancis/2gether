@@ -154,6 +154,8 @@ public sealed class CoupleController(
         var actor = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = couple.UserAId == actor.Id ? couple.UserBId : couple.UserAId;
         var cancelledAlarms = await StopExerciseGoalsAsync(couple.Id, cancellationToken);
+        // Neither partner's last point outlives the couple.
+        await Twogether.Application.Features.Location.LocationRetention.DeleteCoupleAsync(db, couple.Id, cancellationToken);
         var endedGames = await db.GameSessions
             .Where(session => session.CoupleId == couple.Id
                 && (session.Status == GameSessionStatus.WaitingForPartner || session.Status == GameSessionStatus.InProgress || session.Status == GameSessionStatus.Paused))

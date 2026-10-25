@@ -15,7 +15,7 @@ using Twogether.Shared.Localization;
 namespace Twogether.Api.Hubs;
 
 [Authorize]
-public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections) : Hub
+public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections, LocationSharingStopper locationStopper, LocationFixThrottle fixThrottle) : Hub
 {
     public static string GroupName(Guid coupleId) => $"couple-{coupleId:N}";
     public static string UserGroupName(Guid userId) => $"user-{userId:N}";
@@ -83,67 +83,73 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
     }
 
     /// <summary>
-    /// Stores the caller's latest fix. Sharing is mutual: the partner receives it only while
-    /// they share too. A fix sent during a pause is dropped, never stored. When the caller
-    /// starts or comes back from a pause, they also receive the partner's current position.
+    /// Stores the caller's latest fix, timed by the server. The web app's call; the phone sends
+    /// <see cref="UpdateLocationAt"/> with the time the fix was taken.
     /// </summary>
-    public async Task<LocationDto> UpdateLocation(double latitude, double longitude, double accuracyMeters)
+    public Task<LocationDto?> UpdateLocation(double latitude, double longitude, double accuracyMeters)
+        => RecordFixAsync(latitude, longitude, accuracyMeters, clock.UtcNow);
+
+    /// <summary>
+    /// Stores the caller's latest fix. Sharing is mutual: the partner receives it only while
+    /// they share too. Starting is explicit (<c>POST api/location/start</c>): a fix on a stopped
+    /// share is dropped, as is one sent during a pause, one older than the stored fix, and one
+    /// sooner than a few seconds after the last. When the caller becomes visible again (the first
+    /// fix, the end of a pause), they also receive the partner's current position. Returns null
+    /// when the fix was dropped.
+    /// </summary>
+    public Task<LocationDto?> UpdateLocationAt(double latitude, double longitude, double accuracyMeters, long fixedAtUnixMs)
+    {
+        var now = clock.UtcNow;
+        var fixedAt = LocationSharingRules.FixTime(fixedAtUnixMs) ?? now;
+        return RecordFixAsync(latitude, longitude, accuracyMeters, fixedAt > now ? now : fixedAt);
+    }
+
+    private async Task<LocationDto?> RecordFixAsync(double latitude, double longitude, double accuracyMeters, DateTime fixedAtUtc)
     {
         if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) throw new HubException("A linked couple is required.");
-        if (latitude is < -90 or > 90 || longitude is < -180 or > 180 || accuracyMeters is < 0 or > 100000) throw new HubException("Location is invalid.");
+        if (!LocationSharingRules.IsValidFix(latitude, longitude, accuracyMeters)) throw new HubException("Location is invalid.");
         var coupleId = currentUser.CoupleId.Value;
         var userId = currentUser.UserId.Value;
+        var now = clock.UtcNow;
+        if (!fixThrottle.TryAccept(userId, now)) return null;
+        var location = await db.CoupleLocations.SingleOrDefaultAsync(item => item.CoupleId == coupleId && item.UserId == userId, Context.ConnectionAborted);
+        if (location is null || !location.SharingEnabled) return null;
         var linked = await db.Couples.AsNoTracking().AnyAsync(item => item.Id == coupleId && item.Status == CoupleStatus.Active, Context.ConnectionAborted);
         if (!linked) throw new HubException("Link a partner before sharing location.");
-        var now = clock.UtcNow;
-        var user = await db.Users.AsNoTracking().SingleAsync(item => item.Id == userId, Context.ConnectionAborted);
-        var location = await db.CoupleLocations.SingleOrDefaultAsync(item => item.CoupleId == coupleId && item.UserId == userId, Context.ConnectionAborted);
-        if (location is not null && location.IsPausedAt(now)) return LocationController.ToDto(location, user, true);
 
-        var startedOrResumed = location is null || !location.SharingEnabled || location.PausedUntilUtc is not null;
-        if (location is null)
-        {
-            location = CoupleLocation.Create(coupleId, userId, latitude, longitude, accuracyMeters, now);
-            db.CoupleLocations.Add(location);
-        }
-        else location.Update(latitude, longitude, accuracyMeters, now);
+        var becameVisible = !location.IsVisibleAt(now) || location.PausedUntilUtc is not null;
+        var stored = location.TryRecordFix(latitude, longitude, accuracyMeters, fixedAtUtc, now);
+        // Even a dropped fix shows the phone is still there, so the lease is saved either way.
         await db.SaveChangesAsync(Context.ConnectionAborted);
+        if (!stored) return null;
 
+        var user = await db.Users.AsNoTracking().SingleAsync(item => item.Id == userId, Context.ConnectionAborted);
         var result = LocationController.ToDto(location, user, true);
         var partnerId = await PartnerId(coupleId, userId);
         var theirs = partnerId is { } id
             ? await db.CoupleLocations.AsNoTracking().SingleOrDefaultAsync(item => item.CoupleId == coupleId && item.UserId == id, Context.ConnectionAborted)
             : null;
-        if (LocationSharingRules.CanSee(location, theirs, now))
+        var mutual = LocationSharingRules.CanSee(location, theirs, now);
+        // The indicator first: the app shows points only while its own share reads "sharing".
+        if (becameVisible)
+            await LocationEvents.SharingChangedAsync(Clients, coupleId, LocationSharingRules.State(userId, user.DisplayName, location, now, withLastFix: mutual), Context.ConnectionAborted);
+        if (mutual)
         {
-            await Clients.OthersInGroup(GroupName(coupleId)).SendAsync(LocationEvents.Updated, result with { IsCurrentUser = false }, Context.ConnectionAborted);
-            if (startedOrResumed)
+            await Clients.Group(UserGroupName(theirs!.UserId)).SendAsync(LocationEvents.Updated, result with { IsCurrentUser = false }, Context.ConnectionAborted);
+            if (becameVisible)
             {
-                var partner = await db.Users.AsNoTracking().SingleAsync(item => item.Id == theirs!.UserId, Context.ConnectionAborted);
-                await Clients.Caller.SendAsync(LocationEvents.Updated, LocationController.ToDto(theirs!, partner, false), Context.ConnectionAborted);
+                var partner = await db.Users.AsNoTracking().SingleAsync(item => item.Id == theirs.UserId, Context.ConnectionAborted);
+                await Clients.Group(UserGroupName(userId)).SendAsync(LocationEvents.Updated, LocationController.ToDto(theirs, partner, false), Context.ConnectionAborted);
             }
         }
-        if (startedOrResumed)
-            await Clients.Group(GroupName(coupleId)).SendAsync(LocationEvents.SharingChanged, LocationSharingRules.State(userId, user.DisplayName, location, now), Context.ConnectionAborted);
         return result;
     }
 
-    /// <summary>Stops sharing. The mutual rule means the caller stops seeing the partner too.</summary>
+    /// <summary>Stops sharing and wipes the caller's point. The mutual rule means the caller stops seeing the partner too.</summary>
     public async Task StopLocationSharing()
     {
-        if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return;
-        var coupleId = currentUser.CoupleId.Value;
-        var userId = currentUser.UserId.Value;
-        var location = await db.CoupleLocations.SingleOrDefaultAsync(item => item.CoupleId == coupleId && item.UserId == userId, Context.ConnectionAborted);
-        if (location is null) return;
-        var now = clock.UtcNow;
-        location.StopSharing(now);
-        await db.SaveChangesAsync(Context.ConnectionAborted);
-        await Clients.OthersInGroup(GroupName(coupleId)).SendAsync(LocationEvents.Stopped, userId, Context.ConnectionAborted);
-        if (await PartnerId(coupleId, userId) is { } partnerId)
-            await Clients.Caller.SendAsync(LocationEvents.Stopped, partnerId, Context.ConnectionAborted);
-        var name = await db.Users.AsNoTracking().Where(item => item.Id == userId).Select(item => item.DisplayName).SingleAsync(Context.ConnectionAborted);
-        await Clients.Group(GroupName(coupleId)).SendAsync(LocationEvents.SharingChanged, LocationSharingRules.State(userId, name, location, now), Context.ConnectionAborted);
+        if (!currentUser.UserId.HasValue) return;
+        await locationStopper.StopAsync(currentUser.UserId.Value, Context.ConnectionAborted);
     }
 
     /// <summary>

@@ -59,7 +59,8 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         await db.FoodEntries.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.FoodScans.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.NutritionTargets.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
-        await db.CoupleLocations.Where(item => item.UserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
+        // Every couple the person was in, the partner's last point included.
+        await db.CoupleLocations.Where(item => item.UserId == userId || coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.DeviceRegistrations.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.NotificationPreferences.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         // Also cascades from users; removed here so the list above stays the whole story.

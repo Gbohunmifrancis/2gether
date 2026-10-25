@@ -119,6 +119,8 @@ dependencies {
     // SignalR hands hub payloads over as Gson elements; it only declares Gson at runtime.
     implementation(libs.gson)
     implementation(libs.maps.compose)
+    // The fused provider for location sharing on phones older than Android 12 (the version billing already brings).
+    implementation(libs.play.location)
     implementation(libs.billing.ktx)
     implementation(libs.play.integrity)
     implementation(libs.androidx.lifecycle.process)

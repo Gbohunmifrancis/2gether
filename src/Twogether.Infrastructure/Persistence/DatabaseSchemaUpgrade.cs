@@ -449,5 +449,20 @@ public static class DatabaseSchemaUpgrade
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_couple_locations_CoupleId_UserId" ON couple_locations ("CoupleId", "UserId");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_game_results_GameSessionId" ON game_results ("GameSessionId");
         CREATE INDEX IF NOT EXISTS "IX_game_results_CoupleId_EndedAtUtc" ON game_results ("CoupleId", "EndedAtUtc");
+
+        -- Location: a stopped share keeps no coordinates, the time of the fix is kept apart from
+        -- the row's, and a share lapses when its phone goes quiet. Existing shares start their
+        -- lease from their last change, so a phone that is no longer sending reads as off.
+        ALTER TABLE couple_locations ALTER COLUMN "Latitude" DROP NOT NULL;
+        ALTER TABLE couple_locations ALTER COLUMN "Longitude" DROP NOT NULL;
+        ALTER TABLE couple_locations ALTER COLUMN "AccuracyMeters" DROP NOT NULL;
+        ALTER TABLE couple_locations ADD COLUMN IF NOT EXISTS "FixAtUtc" timestamp with time zone NULL;
+        ALTER TABLE couple_locations ADD COLUMN IF NOT EXISTS "LastSeenAtUtc" timestamp with time zone NULL;
+        UPDATE couple_locations SET "FixAtUtc" = "UpdatedAtUtc" WHERE "FixAtUtc" IS NULL AND "SharingEnabled" AND "Latitude" IS NOT NULL;
+        UPDATE couple_locations SET "LastSeenAtUtc" = "UpdatedAtUtc" WHERE "LastSeenAtUtc" IS NULL;
+        ALTER TABLE couple_locations ALTER COLUMN "LastSeenAtUtc" SET NOT NULL;
+        UPDATE couple_locations SET "Latitude" = NULL, "Longitude" = NULL, "AccuracyMeters" = NULL, "FixAtUtc" = NULL WHERE NOT "SharingEnabled" AND "Latitude" IS NOT NULL;
+        DELETE FROM couple_locations WHERE "CoupleId" IN (SELECT "Id" FROM couples WHERE "Status" = 'Dissolved');
+        CREATE INDEX IF NOT EXISTS "IX_couple_locations_UpdatedAtUtc" ON couple_locations ("UpdatedAtUtc");
         """;
 }

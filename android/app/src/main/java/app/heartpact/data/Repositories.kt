@@ -108,6 +108,11 @@ class LocationRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun status(): ApiResult<SharingStatusView> = apiCall(json) { api.locationStatus() }
     suspend fun pause(minutes: Int): ApiResult<SharingStatusView> = apiCall(json) { api.pauseLocation(PauseRequest(minutes)) }
     suspend fun resume(): ApiResult<SharingStatusView> = apiCall(json) { api.resumeLocation() }
+    /** Starting is explicit: the server drops fixes until this has gone through. */
+    suspend fun start(): ApiResult<SharingStatusView> = apiCall(json) { api.startLocation() }
+    suspend fun heartbeat(): ApiResult<SharingStatusView> = apiCall(json) { api.locationHeartbeat() }
+    /** [token] only for a retry after sign-out; otherwise the signed-in session's is used. */
+    suspend fun stop(token: String? = null): ApiResult<Unit> = apiCall(json) { api.stopLocation(token?.let { "Bearer $it" }) }
 }
 
 class GameRepository(private val api: HeartpactApi, private val json: Json) {

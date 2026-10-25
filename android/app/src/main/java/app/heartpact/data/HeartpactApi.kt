@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -199,6 +200,16 @@ interface HeartpactApi {
 
     @POST("api/location/resume")
     suspend fun resumeLocation(): Response<SharingStatusView>
+
+    @POST("api/location/start")
+    suspend fun startLocation(): Response<SharingStatusView>
+
+    @POST("api/location/heartbeat")
+    suspend fun locationHeartbeat(): Response<SharingStatusView>
+
+    /** [authorization] is set by a retry after sign-out, which carries the signed-out session's token. */
+    @POST("api/location/stop")
+    suspend fun stopLocation(@Header("Authorization") authorization: String? = null): Response<Unit>
 
     @POST("api/auth/password/forgot")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
