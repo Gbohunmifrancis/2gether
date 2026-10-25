@@ -464,5 +464,8 @@ public static class DatabaseSchemaUpgrade
         UPDATE couple_locations SET "Latitude" = NULL, "Longitude" = NULL, "AccuracyMeters" = NULL, "FixAtUtc" = NULL WHERE NOT "SharingEnabled" AND "Latitude" IS NOT NULL;
         DELETE FROM couple_locations WHERE "CoupleId" IN (SELECT "Id" FROM couples WHERE "Status" = 'Dissolved');
         CREATE INDEX IF NOT EXISTS "IX_couple_locations_UpdatedAtUtc" ON couple_locations ("UpdatedAtUtc");
+
+        -- Ending a pregnancy now stops sharing it; pregnancies ended before that stop too.
+        UPDATE pregnancies SET "ShareWithPartner" = false WHERE "Status" = 'Ended' AND "ShareWithPartner";
         """;
 }

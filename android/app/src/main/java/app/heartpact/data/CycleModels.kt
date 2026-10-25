@@ -46,7 +46,7 @@ data class CycleProfile(
     val userId: String = "",
     val averageCycleLengthDays: Int = 28,
     val averagePeriodLengthDays: Int = 5,
-    val shareLevel: CycleShare = CycleShare.PredictionsOnly,
+    val shareLevel: CycleShare = CycleShare.None,
     val lastPeriodStartDate: String? = null,
 )
 
@@ -82,6 +82,10 @@ data class CyclePrediction(
     val fertileWindowEnd: String? = null,
     val cycleStart: String? = null,
     val cycleDay: Int? = null,
+    /** When the last period really started (logged flow, else the profile). cycleStart differs when cycles were rolled forward. */
+    val lastPeriodStart: String? = null,
+    /** Set while a due period hasn't been logged: 0 on the day it's due. */
+    val daysLate: Int? = null,
 )
 
 @Serializable

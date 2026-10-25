@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Account;
+using Twogether.Application.Features.Cycle;
+using Twogether.Application.Features.Notifications;
+using Twogether.Application.Features.Pregnancy;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Infrastructure.Persistence;
@@ -54,8 +57,31 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
 
         await db.CycleDayLogs.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.CycleProfiles.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
-        // Appointments and kick sessions cascade with the pregnancy.
+        // Appointments and kick sessions cascade with the pregnancy, and the partner's "shared pregnancy mode with
+        // you" notice goes with it.
+        foreach (var pregnancyId in await db.Pregnancies.Where(item => item.UserId == userId).Select(item => item.Id).ToListAsync(cancellationToken))
+        {
+            var sharedNotice = PregnancyNotices.SharedData(pregnancyId);
+            await db.Notifications.Where(item => item.Type == NotificationType.PregnancyUpdated && item.DataJson == sharedNotice).ExecuteDeleteAsync(cancellationToken);
+        }
         await db.Pregnancies.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
+        // Appointments the person added to someone else's pregnancy stay in that health record, but what they wrote
+        // goes: a plain title in the owner's language, no place, no notes.
+        var owners = await db.PregnancyAppointments.Where(item => item.CreatedByUserId == userId)
+            .Join(db.Pregnancies, item => item.PregnancyId, pregnancy => pregnancy.Id, (item, pregnancy) => pregnancy.UserId)
+            .Distinct().ToListAsync(cancellationToken);
+        foreach (var ownerId in owners)
+        {
+            string title;
+            using (Loc.Use(await db.LanguageOfAsync(ownerId, cancellationToken))) title = Loc.T("Appointment");
+            await db.PregnancyAppointments
+                .Where(item => item.CreatedByUserId == userId && db.Pregnancies.Any(pregnancy => pregnancy.Id == item.PregnancyId && pregnancy.UserId == ownerId))
+                .ExecuteUpdateAsync(set => set
+                    .SetProperty(item => item.Title, title)
+                    .SetProperty(item => item.Location, (string?)null)
+                    .SetProperty(item => item.Notes, (string?)null)
+                    .SetProperty(item => item.UpdatedAtUtc, now), cancellationToken);
+        }
         await db.FoodEntries.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.FoodScans.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.NutritionTargets.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
@@ -102,6 +128,7 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
 
         var partner = await db.Users.SingleAsync(item => item.Id == linkedPartnerId, cancellationToken);
         partner.SetCouple(null, now);
+        await CycleSharing.StopSharingAsync(db, [linkedPartnerId], now, cancellationToken);
         using var _ = Loc.Use(partner.Language);
         var notice = Notification.Create(linkedPartnerId, coupleId, NotificationType.Breakup, Loc.T("Your couple space was ended"),
             Loc.T("{name} deleted their account.", ("name", user.DisplayName)), null, now);

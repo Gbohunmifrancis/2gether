@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Common;
 using Twogether.Api.Presence;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Cycle;
 using Twogether.Application.Features.Dashboard;
 using Twogether.Core.Enums;
+using Twogether.Core.Exercise;
 
 namespace Twogether.Api.Controllers;
 
@@ -30,8 +32,6 @@ public sealed class DashboardController(
         var partnerName = "Waiting for partner";
         var partnerOnline = false;
         var notificationCount = 0;
-        var cycleDaysUntilPeriod = configuration.GetValue("Dashboard:CycleDaysUntilPeriod", 5);
-        var cycleSummary = configuration["Dashboard:CycleSummary"] ?? $"{cycleDaysUntilPeriod} days until period";
         var latestNote = configuration["Dashboard:LatestNote"] ?? "Share a thought with your favorite person.";
         var latestNoteAuthor = "Twogether";
 
@@ -65,13 +65,12 @@ public sealed class DashboardController(
             }
         }
 
+        // The same forecast as the cycle screen, on the person's own calendar day. No data, no number.
         var profile = await db.CycleProfiles.AsNoTracking().SingleOrDefaultAsync(item => item.UserId == user.Id, cancellationToken);
-        if (profile?.LastPeriodStartDate is { } lastPeriodStart)
-        {
-            var nextPeriod = lastPeriodStart.AddDays(profile.AverageCycleLengthDays);
-            cycleDaysUntilPeriod = Math.Max(0, nextPeriod.DayNumber - DateOnly.FromDateTime(clock.UtcNow).DayNumber);
-            cycleSummary = cycleDaysUntilPeriod == 0 ? "Period expected today" : $"{cycleDaysUntilPeriod} days until period";
-        }
+        var pregnant = await db.Pregnancies.AsNoTracking().AnyAsync(item => item.UserId == user.Id && item.Status == PregnancyStatus.Active, cancellationToken);
+        var localToday = ExerciseSchedule.LocalDate(clock.UtcNow, ExerciseSchedule.ResolveTimeZone(user.TimeZoneId));
+        var outlook = profile is null || pregnant ? null : await CycleSharing.OutlookAsync(db, profile, localToday, mayShowLate: true, cancellationToken);
+        var (cycleSummary, cycleDaysUntilPeriod) = CycleSharing.Summary(outlook?.Forecast, pregnant, localToday);
 
         var activeGameCount = user.CoupleId is { } activeCoupleId
             ? await db.GameSessions.AsNoTracking().CountAsync(item => item.CoupleId == activeCoupleId && (item.Status == GameSessionStatus.WaitingForPartner || item.Status == GameSessionStatus.InProgress), cancellationToken)

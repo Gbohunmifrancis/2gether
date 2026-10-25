@@ -36,6 +36,9 @@ class CycleShotsTest {
         shot("cycle") { CycleScreen(CycleUi(CycleMode.Owner, CycleProfile(shareLevel = CycleShare.PredictionsOnly, lastPeriodStartDate = "2026-09-30"), prediction, logs), "Theo", CycleActions(), today) }
         shot("cycle-setup") { CycleScreen(CycleUi(CycleMode.Setup), "Theo", CycleActions(), today) }
         shot("cycle-partner") { CycleScreen(CycleUi(CycleMode.Partner, shared = SharedCycle(CycleProfile(shareLevel = CycleShare.PredictionsOnly), prediction)), "Maya", CycleActions(), today) }
+        val late = prediction.copy(lastPeriodStart = "2026-09-30", cycleDay = 32, daysLate = 3)
+        shot("cycle-late") { CycleScreen(CycleUi(CycleMode.Owner, CycleProfile(lastPeriodStartDate = "2026-09-30"), late, logs.take(5)), "Theo", CycleActions(), LocalDate.of(2026, 10, 31)) }
+        shot("cycle-settings") { CycleScreen(CycleUi(CycleMode.Setup, CycleProfile(shareLevel = CycleShare.PredictionsOnly, lastPeriodStartDate = "2026-09-30"), prediction, editing = true), "Theo", CycleActions(), today) }
     }
 
     @Test fun pregnancy() {
@@ -47,6 +50,8 @@ class CycleShotsTest {
         val kicks = listOf(KickSession("k", "p", "2026-10-10T13:10:00Z", "2026-10-10T13:50:00Z", 7, 2400))
         shot("pregnancy") { PregnancyScreen(PregnancyUi(p, appts, kicks, loaded = true), "maya", "Theo", PregnancyActions(), today) }
         shot("pregnancy-start") { PregnancyScreen(PregnancyUi(loaded = true), "maya", "Theo", PregnancyActions(), today) }
+        val ended = p.copy(status = app.heartpact.data.PregnancyStatus.Ended, shareWithPartner = false, endedAtUtc = "2026-10-01T10:00:00Z")
+        shot("pregnancy-ended") { PregnancyScreen(PregnancyUi(loaded = true, ended = listOf(ended)), "maya", "Theo", PregnancyActions(), today) }
         shot("pregnancy-kicks") { PregnancyScreen(PregnancyUi(p, appts, kicks, counting = kicks.first().copy(endedAtUtc = null), kickCount = 4, loaded = true), "maya", "Theo", PregnancyActions(), today) }
     }
 }

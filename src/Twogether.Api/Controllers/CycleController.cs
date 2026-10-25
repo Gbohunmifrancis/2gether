@@ -1,9 +1,10 @@
-using Twogether.Core.Cycle;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Twogether.Api.Common;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Cycle;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Localization;
@@ -23,6 +24,7 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         return Ok(profile is null ? null : ToProfile(profile));
     }
 
+    /// <summary>Shares nothing until the owner chooses, and never changes a level already chosen.</summary>
     [HttpPost("claim")]
     public async Task<ActionResult<CycleProfileDto>> Claim(CancellationToken cancellationToken)
     {
@@ -31,12 +33,12 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         if (actor is null) return NotFound();
         if (actor.Gender != Gender.Female)
             return Forbid();
+        // Says nothing about why: that the partner tracks a cycle is theirs to share.
         if (currentUser.CoupleId.HasValue && await db.Users.AsNoTracking().AnyAsync(item => item.CoupleId == currentUser.CoupleId.Value && item.Id != actor.Id && item.CycleOwner, cancellationToken))
-            return Conflict(new ApiError("cycle.owner_exists", Loc.T("Your partner already owns the shared cycle calendar.")));
+            return Conflict(new ApiError("cycle.unavailable", Loc.T("Cycle tracking isn't available on this account.")));
         actor.ClaimCycleOwnership(clock.UtcNow);
         var profile = await db.CycleProfiles.SingleOrDefaultAsync(item => item.UserId == actor.Id, cancellationToken);
         if (profile is null) { profile = CycleProfile.Create(actor.Id, clock.UtcNow); db.CycleProfiles.Add(profile); }
-        profile.SetShareLevel(ShareLevel.PredictionsOnly, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
         return Ok(ToProfile(profile));
     }
@@ -47,8 +49,8 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         if (!currentUser.UserId.HasValue) return Unauthorized();
         var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (actor is null || !actor.CycleOwner) return Forbid();
-        if (request.AverageCycleLengthDays is < 15 or > 60 || request.AveragePeriodLengthDays is < 1 or > 14)
-            return UnprocessableEntity(new ApiError("cycle.invalid_profile", Loc.T("Cycle lengths are outside the supported range.")));
+        var rules = CycleRules.ValidateProfile(request.AverageCycleLengthDays, request.AveragePeriodLengthDays, request.LastPeriodStartDate, request.ShareLevel, clock.UtcNow);
+        if (rules.IsFailure) return UnprocessableEntity(new ApiError(rules.Error.Code, rules.Error.Message));
         var profile = await db.CycleProfiles.SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value, cancellationToken);
         if (profile is null) { profile = CycleProfile.Create(currentUser.UserId.Value, clock.UtcNow); db.CycleProfiles.Add(profile); }
         profile.SetCycleSettings(request.AverageCycleLengthDays, request.AveragePeriodLengthDays, request.LastPeriodStartDate, clock.UtcNow);
@@ -69,24 +71,31 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         return Ok(logs.Select(ToLog).ToList());
     }
 
-    private const int MaxNotesLength = 2000;
-    private const int MaxSymptoms = 30;
-    private const int MaxSymptomLength = 50;
-
     [HttpPut("logs/{date}")]
     public async Task<ActionResult<CycleDayLogDto>> UpsertLog(DateOnly date, CycleDayLogRequest request, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
-        var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
+        var userId = currentUser.UserId.Value;
+        var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == userId, cancellationToken);
         if (actor is null || !actor.CycleOwner) return Forbid();
-        if (request.Notes?.Length > MaxNotesLength)
-            return UnprocessableEntity(new ApiError("cycle.invalid_notes", Loc.T("Notes are at most {max} characters.", ("max", MaxNotesLength))));
-        if (request.Symptoms is { } symptoms && (symptoms.Count > MaxSymptoms || symptoms.Any(symptom => string.IsNullOrWhiteSpace(symptom) || symptom.Length > MaxSymptomLength)))
-            return UnprocessableEntity(new ApiError("cycle.invalid_symptoms", Loc.T("Up to {symptoms} symptoms of at most {characters} characters each.", ("symptoms", MaxSymptoms), ("characters", MaxSymptomLength))));
-        var log = await db.CycleDayLogs.SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value && item.LogDate == date, cancellationToken);
-        if (log is null) { log = CycleDayLog.Create(currentUser.UserId.Value, date, request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow); db.CycleDayLogs.Add(log); }
-        else log.Update(request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow);
-        await db.SaveChangesAsync(cancellationToken);
+        var rules = CycleRules.ValidateLog(date, request.FlowLevel, request.Mood, request.Symptoms, request.Notes, clock.UtcNow);
+        if (rules.IsFailure) return UnprocessableEntity(new ApiError(rules.Error.Code, rules.Error.Message));
+        var log = await db.CycleDayLogs.SingleOrDefaultAsync(item => item.UserId == userId && item.LogDate == date, cancellationToken);
+        if (log is not null) log.Update(request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow);
+        else
+        {
+            log = CycleDayLog.Create(userId, date, request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow);
+            db.CycleDayLogs.Add(log);
+        }
+        try { await db.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" })
+        {
+            // Two saves of a new day raced and the other inserted it first: this one is an update of that row.
+            db.CycleDayLogs.Remove(log);
+            log = await db.CycleDayLogs.SingleAsync(item => item.UserId == userId && item.LogDate == date, cancellationToken);
+            log.Update(request.FlowLevel, request.Symptoms, request.Mood, request.HadSex, request.ProtectionUsed, request.Notes, clock.UtcNow);
+            await db.SaveChangesAsync(cancellationToken);
+        }
         return Ok(ToLog(log));
     }
 
@@ -97,33 +106,42 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         var owner = await db.Users.AsNoTracking().AnyAsync(item => item.Id == currentUser.UserId.Value && item.CycleOwner, cancellationToken);
         if (!owner) return Ok(new CyclePredictionDto(null, null, null));
         var profile = await db.CycleProfiles.AsNoTracking().SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value, cancellationToken);
-        if (profile?.LastPeriodStartDate is not { } start) return Ok(new CyclePredictionDto(null, null, null));
+        if (profile is null) return Ok(new CyclePredictionDto(null, null, null));
         // Period predictions are meaningless during a pregnancy; show none rather than a wrong date.
-        if (await PregnantAsync(currentUser.UserId.Value, cancellationToken)) return Ok(new CyclePredictionDto(null, null, null));
-        return Ok(ToPrediction(CyclePrediction.Predict(start, profile.AverageCycleLengthDays, profile.AveragePeriodLengthDays, Today(date))));
+        if (await PregnantAsync(currentUser.UserId.Value, null, cancellationToken)) return Ok(new CyclePredictionDto(null, null, null));
+        var outlook = await CycleSharing.OutlookAsync(db, profile, Today(date), mayShowLate: true, cancellationToken);
+        return Ok(outlook is null ? new CyclePredictionDto(null, null, null) : ToPrediction(outlook));
     }
 
     [HttpGet("shared")]
     public async Task<ActionResult<SharedCycleDto>> GetShared([FromQuery] DateOnly? date, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue || !currentUser.CoupleId.HasValue) return NotFound();
+        var userId = currentUser.UserId.Value;
         var couple = await db.Couples.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.CoupleId.Value && item.Status == CoupleStatus.Active, cancellationToken);
-        if (couple is null) return NotFound();
-        var partnerId = couple.UserAId == currentUser.UserId.Value ? couple.UserBId : couple.UserAId;
+        if (couple is null || (couple.UserAId != userId && couple.UserBId != userId)) return NotFound();
+        var partnerId = couple.UserAId == userId ? couple.UserBId : couple.UserAId;
         if (!partnerId.HasValue) return NotFound();
+        var nothing = new SharedCycleDto(null, null, Array.Empty<SharedCycleDayLogDto>());
         var partnerOwnsCycle = await db.Users.AsNoTracking().AnyAsync(item => item.Id == partnerId.Value && item.CycleOwner, cancellationToken);
-        if (!partnerOwnsCycle) return Ok(new SharedCycleDto(null, null, Array.Empty<CycleDayLogDto>()));
+        if (!partnerOwnsCycle) return Ok(nothing);
         var profile = await db.CycleProfiles.AsNoTracking().SingleOrDefaultAsync(item => item.UserId == partnerId.Value, cancellationToken);
-        if (profile is null || profile.ShareLevelWithPartner == ShareLevel.None) return Ok(new SharedCycleDto(null, null, Array.Empty<CycleDayLogDto>()));
-        // Hide the partner's predictions only when they share the pregnancy too: predictions that
-        // vanish without explanation would reveal a pregnancy they chose to keep private.
-        var prediction = profile.LastPeriodStartDate is { } start && !await PregnantAsync(partnerId.Value, cancellationToken, sharedOnly: true)
-            ? ToPrediction(CyclePrediction.Predict(start, profile.AverageCycleLengthDays, profile.AveragePeriodLengthDays, Today(date)))
-            : new CyclePredictionDto(null, null, null);
+        if (profile is null || profile.ShareLevelWithPartner == ShareLevel.None) return Ok(nothing);
+        // Hide the partner's predictions only when they share the pregnancy with this couple too: predictions that
+        // vanish without explanation would reveal a pregnancy they chose to keep private. For the same reason a
+        // private pregnancy keeps the old roll-forward instead of a growing "late by" count.
+        var prediction = new CyclePredictionDto(null, null, null);
+        if (!await PregnantAsync(partnerId.Value, couple.Id, cancellationToken))
+        {
+            var privatelyPregnant = await PregnantAsync(partnerId.Value, null, cancellationToken);
+            var outlook = await CycleSharing.OutlookAsync(db, profile, Today(date), mayShowLate: !privatelyPregnant, cancellationToken);
+            if (outlook is not null) prediction = ToPrediction(outlook);
+        }
+        var since = CycleSharing.SharedLogsSince(couple);
         var sharedLogs = profile.ShareLevelWithPartner == ShareLevel.FullDetail
-            ? await db.CycleDayLogs.AsNoTracking().Where(item => item.UserId == partnerId.Value).OrderByDescending(item => item.LogDate).Take(120).ToListAsync(cancellationToken)
+            ? await db.CycleDayLogs.AsNoTracking().Where(item => item.UserId == partnerId.Value && item.LogDate >= since).OrderByDescending(item => item.LogDate).Take(120).ToListAsync(cancellationToken)
             : [];
-        var logs = sharedLogs.Select(ToLog).ToList();
+        var logs = sharedLogs.Select(ToSharedLog).ToList();
         return Ok(new SharedCycleDto(ToProfile(profile), prediction, logs));
     }
 
@@ -134,21 +152,33 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         return date is { } local && Math.Abs(local.DayNumber - utcToday.DayNumber) <= 1 ? local : utcToday;
     }
 
-    private static CyclePredictionDto ToPrediction(CycleForecast forecast) => new(
-        forecast.NextPeriodStart, forecast.FertileWindowStart, forecast.NextPeriodEnd,
-        forecast.FertileWindowEnd, forecast.CycleStart, forecast.CycleDay);
+    private static CyclePredictionDto ToPrediction(CycleOutlook outlook)
+    {
+        var forecast = outlook.Forecast;
+        return new(forecast.NextPeriodStart, forecast.FertileWindowStart, forecast.NextPeriodEnd,
+            forecast.FertileWindowEnd, forecast.CycleStart, forecast.CycleDay, outlook.LastPeriodStart, forecast.DaysLate);
+    }
 
-    private Task<bool> PregnantAsync(Guid userId, CancellationToken cancellationToken, bool sharedOnly = false)
-        => db.Pregnancies.AsNoTracking().AnyAsync(item => item.UserId == userId && item.Status == PregnancyStatus.Active && (!sharedOnly || item.ShareWithPartner), cancellationToken);
+    /// <summary>An active pregnancy; with <paramref name="sharedWithCouple"/>, only one shared with that couple.</summary>
+    private Task<bool> PregnantAsync(Guid userId, Guid? sharedWithCouple, CancellationToken cancellationToken)
+        => db.Pregnancies.AsNoTracking().AnyAsync(item => item.UserId == userId && item.Status == PregnancyStatus.Active
+            && (sharedWithCouple == null || (item.ShareWithPartner && item.CoupleId == sharedWithCouple)), cancellationToken);
 
     private static CycleProfileDto ToProfile(CycleProfile item) => new(item.UserId, item.AverageCycleLengthDays, item.AveragePeriodLengthDays, item.ShareLevelWithPartner, item.LastPeriodStartDate);
     private static CycleDayLogDto ToLog(CycleDayLog item) => new(item.LogDate, item.FlowLevel, item.Symptoms, item.Mood, item.HadSex, item.ProtectionUsed, item.Notes);
+    private static SharedCycleDayLogDto ToSharedLog(CycleDayLog item) => new(item.LogDate, item.FlowLevel, item.Symptoms, item.Mood, item.Notes);
 }
 
 public sealed record UpdateCycleProfileRequest(int AverageCycleLengthDays, int AveragePeriodLengthDays, DateOnly? LastPeriodStartDate, ShareLevel ShareLevel);
 public sealed record CycleDayLogRequest(FlowLevel FlowLevel, IReadOnlyList<string>? Symptoms, Mood? Mood, bool? HadSex, bool? ProtectionUsed, string? Notes);
 public sealed record CycleProfileDto(Guid UserId, int AverageCycleLengthDays, int AveragePeriodLengthDays, ShareLevel ShareLevel, DateOnly? LastPeriodStartDate);
 public sealed record CycleDayLogDto(DateOnly LogDate, FlowLevel FlowLevel, IReadOnlyList<string> Symptoms, Mood? Mood, bool? HadSex, bool? ProtectionUsed, string? Notes);
-/// <summary>PeriodEnd is the last day of the next period. The fertile window and cycle day describe the cycle that contains today.</summary>
-public sealed record CyclePredictionDto(DateOnly? NextPeriodStart, DateOnly? FertileWindowStart, DateOnly? PeriodEnd, DateOnly? FertileWindowEnd = null, DateOnly? CycleStart = null, int? CycleDay = null);
-public sealed record SharedCycleDto(CycleProfileDto? Profile, CyclePredictionDto? Prediction, IReadOnlyList<CycleDayLogDto> Logs);
+/// <summary>What a partner sees of a logged day at "everything": no sex or protection, which no screen shows them.</summary>
+public sealed record SharedCycleDayLogDto(DateOnly LogDate, FlowLevel FlowLevel, IReadOnlyList<string> Symptoms, Mood? Mood, string? Notes);
+/// <summary>
+/// PeriodEnd is the last day of the next period. The fertile window and cycle day describe the cycle that contains today.
+/// LastPeriodStart is the real last start (logged flow, else the profile); DaysLate is set while a due period hasn't been logged.
+/// </summary>
+public sealed record CyclePredictionDto(DateOnly? NextPeriodStart, DateOnly? FertileWindowStart, DateOnly? PeriodEnd, DateOnly? FertileWindowEnd = null, DateOnly? CycleStart = null, int? CycleDay = null,
+    DateOnly? LastPeriodStart = null, int? DaysLate = null);
+public sealed record SharedCycleDto(CycleProfileDto? Profile, CyclePredictionDto? Prediction, IReadOnlyList<SharedCycleDayLogDto> Logs);

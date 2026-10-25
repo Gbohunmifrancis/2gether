@@ -79,8 +79,10 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 data class CycleActions(
-    val onClaim: () -> Unit = {},
-    val onSetup: (LocalDate, Int, Int) -> Unit = { _, _, _ -> },
+    val onSetup: (LocalDate, Int, Int, CycleShare) -> Unit = { _, _, _, _ -> },
+    val onEdit: () -> Unit = {},
+    val onCancelEdit: () -> Unit = {},
+    val onPickDay: (LocalDate) -> Unit = {},
     val onShare: (CycleShare) -> Unit = {},
     val onFlow: (FlowLevel) -> Unit = {},
     val onSymptom: (String) -> Unit = {},
@@ -100,8 +102,7 @@ fun CycleScreen(ui: CycleUi, partnerName: String, actions: CycleActions, today: 
             ui.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             when (ui.mode) {
                 CycleMode.Loading -> Text(tr("Opening your calendar…"), style = Heartpact.type.body, color = colors.ink2)
-                CycleMode.Claim -> Claim(ui.busy, partnerName, actions.onClaim)
-                CycleMode.Setup -> Setup(ui, actions.onSetup, today)
+                CycleMode.Setup -> Setup(ui, partnerName, actions, today)
                 CycleMode.Unavailable -> Text(tr("{partner} hasn't shared a cycle with you. If they track one here, they choose what you see.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2)
                 CycleMode.Owner -> Owner(ui, partnerName, actions, today)
                 CycleMode.Partner -> Partner(ui, partnerName, today)
@@ -127,13 +128,17 @@ private fun Big(day: Int?, line: String?) {
 private fun Owner(ui: CycleUi, partnerName: String, actions: CycleActions, today: LocalDate) {
     val colors = Heartpact.colors
     var more by remember { mutableStateOf(false) }
-    val todayLog = ui.logs.firstOrNull { it.logDate == today.toString() } ?: CycleDayLog(today.toString())
+    var picking by remember { mutableStateOf(false) }
+    val day = ui.day ?: today
+    val todayLog = ui.logFor(day)
     Big(ui.prediction.cycleDay, CyclePlan.summary(ui.prediction, ui.profile.averageCycleLengthDays))
     Strip(CyclePlan.strip(ui.prediction, ui.logs, ui.profile.averagePeriodLengthDays, today))
-    Row(Modifier.padding(top = 22.dp, bottom = 10.dp), verticalAlignment = Alignment.Bottom) {
-        Text(tr("Today"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.weight(1f))
+    Row(Modifier.padding(top = 22.dp, bottom = 10.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(CyclePlan.dayTitle(day, today), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.weight(1f))
+        Text(tr("Another day"), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clickable { picking = true })
         Text(if (more) tr("Less") else tr("More"), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clickable { more = !more })
     }
+    if (picking) PickDay(day, { CyclePlan.canLog(it, today) }, onDismiss = { picking = false }) { actions.onPickDay(it); picking = false }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(FlowLevel.None, FlowLevel.Spotting, FlowLevel.Light, FlowLevel.Medium, FlowLevel.Heavy).forEach { HeartChip(it.label, todayLog.flowLevel == it, { actions.onFlow(it) }) }
     }
@@ -151,7 +156,23 @@ private fun Owner(ui: CycleUi, partnerName: String, actions: CycleActions, today
     Text(tr("What {partner} sees", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 22.dp, bottom = 10.dp))
     Segmented(listOf(CycleShare.None to tr("Nothing"), CycleShare.PredictionsOnly to tr("Predictions"), CycleShare.FullDetail to tr("Everything")), ui.profile.shareLevel, actions.onShare)
     Text(CyclePlan.shareLine(ui.profile.shareLevel, partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
+    HeartButton(tr("Cycle settings"), actions.onEdit, Modifier.padding(top = 18.dp), kind = ButtonKind.Outline, fillWidth = false, height = 44.dp)
     Text(tr("Predictions are calendar estimates from your averages, not medical advice or contraception."), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(top = 18.dp))
+}
+
+/** A day picker limited to the days [selectable] allows (dates are UTC midnights, as the picker counts them). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PickDay(initial: LocalDate, selectable: (LocalDate) -> Boolean, onDismiss: () -> Unit, onPick: (LocalDate) -> Unit) {
+    val state = rememberDatePickerState(initial.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+        selectableDates = object : androidx.compose.material3.SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) = selectable(Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate())
+        })
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { onPick(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) } ?: onDismiss() }) { Text(tr("Set")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancel")) } },
+    ) { DatePicker(state) }
 }
 
 @Composable
@@ -179,6 +200,9 @@ private fun Partner(ui: CycleUi, partnerName: String, today: LocalDate) {
     }
     Text(if (profile.shareLevel == CycleShare.FullDetail) tr("{partner} shares everything they log.", "partner" to partnerName) else tr("{partner} shares predictions only, not what they log.", "partner" to partnerName),
         style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 16.dp))
+    // The fertile strip is the part most easily read as "safe days", so the partner gets the same warning.
+    Text(tr("Predictions are calendar estimates from {partner}'s averages, not medical advice or contraception.", "partner" to partnerName),
+        style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(top = 18.dp))
 }
 
 /** One bar per day: period dark, fertile light, today outlined, the predicted next period dashed. */
@@ -245,40 +269,27 @@ private fun <T> Segmented(options: List<Pair<T, String>>, selected: T, onSelect:
     }
 }
 
+/** First use, and the settings later: last period, usual lengths and what the partner sees. */
 @Composable
-private fun Claim(busy: Boolean, partnerName: String, onClaim: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = 20.dp)) {
-        Character(Who.Both, Pose.Stand, 120.dp)
-        Text(tr("Track your cycle here"), style = Heartpact.type.title, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 16.dp))
-        Text(tr("You decide what {partner} sees: nothing, just predictions, or everything you log. You can change it any time.", "partner" to partnerName),
-            style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 8.dp))
-        HeartButton(tr("Start tracking"), onClaim, Modifier.padding(top = 20.dp), busy = busy)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun Setup(ui: CycleUi, onSetup: (LocalDate, Int, Int) -> Unit, today: LocalDate) {
+private fun Setup(ui: CycleUi, partnerName: String, actions: CycleActions, today: LocalDate) {
     val colors = Heartpact.colors
-    var start by remember { mutableStateOf(ui.profile.lastPeriodStartDate?.let(LocalDate::parse) ?: today.minusDays(7)) }
+    var start by remember { mutableStateOf(CyclePlan.lastStartForEditing(ui.prediction, ui.profile.lastPeriodStartDate)?.let(LocalDate::parse) ?: today.minusDays(7)) }
     var cycle by remember { mutableIntStateOf(ui.profile.averageCycleLengthDays) }
     var period by remember { mutableIntStateOf(ui.profile.averagePeriodLengthDays) }
+    var share by remember { mutableStateOf(ui.profile.shareLevel) }
     var picking by remember { mutableStateOf(false) }
     Text(tr("When did your last period start?"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
     HeartButton(start.format(Dates.formatter("EEEE d MMMM")), { picking = true }, Modifier.padding(top = 10.dp), kind = ButtonKind.Outline, fillWidth = false)
     Stepper(tr("Usual cycle length"), trn(cycle, "{count} day", "{count} days"), { cycle = (cycle - 1).coerceAtLeast(15) }, { cycle = (cycle + 1).coerceAtMost(60) })
     Stepper(tr("Usual period length"), trn(period, "{count} day", "{count} days"), { period = (period - 1).coerceAtLeast(1) }, { period = (period + 1).coerceAtMost(14) })
-    Text(tr("Not sure? 28 and 5 are common starting points; predictions get better as you log."), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
-    HeartButton(tr("Save"), { onSetup(start, cycle, period) }, Modifier.padding(top = 22.dp), busy = ui.busy)
-    if (picking) {
-        val state = rememberDatePickerState(start.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
-            selectableDates = object : androidx.compose.material3.SelectableDates { override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= today.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli() })
-        DatePickerDialog(
-            onDismissRequest = { picking = false },
-            confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { start = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }; picking = false }) { Text(tr("Set")) } },
-            dismissButton = { TextButton(onClick = { picking = false }) { Text(tr("Cancel")) } },
-        ) { DatePicker(state) }
-    }
+    Text(tr("Not sure? 28 and 5 are common starting points. Log your period when it starts and predictions count from that day; you can change these any time."),
+        style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
+    Text(tr("What {partner} sees", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 22.dp, bottom = 10.dp))
+    Segmented(listOf(CycleShare.None to tr("Nothing"), CycleShare.PredictionsOnly to tr("Predictions"), CycleShare.FullDetail to tr("Everything")), share) { share = it }
+    Text(CyclePlan.shareLine(share, partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
+    HeartButton(tr("Save"), { actions.onSetup(start, cycle, period, share) }, Modifier.padding(top = 22.dp), busy = ui.busy)
+    if (ui.editing) HeartButton(tr("Cancel"), actions.onCancelEdit, Modifier.padding(top = 8.dp), kind = ButtonKind.Text)
+    if (picking) PickDay(start, { !it.isAfter(today) && !it.isBefore(today.minusYears(1)) }, onDismiss = { picking = false }) { start = it; picking = false }
 }
 
 @Composable

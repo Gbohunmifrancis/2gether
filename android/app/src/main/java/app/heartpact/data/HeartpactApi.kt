@@ -160,7 +160,10 @@ interface HeartpactApi {
     suspend fun sharedCycle(@Query("date") date: String): Response<SharedCycle>
 
     @GET("api/pregnancy")
-    suspend fun pregnancies(@Query("date") date: String): Response<List<Pregnancy>>
+    suspend fun pregnancies(@Query("date") date: String, @Query("includeEnded") includeEnded: Boolean = false): Response<List<Pregnancy>>
+
+    @DELETE("api/pregnancy/{id}")
+    suspend fun deletePregnancy(@Path("id") id: String): Response<Unit>
 
     @POST("api/pregnancy")
     suspend fun startPregnancy(@Body request: StartPregnancyRequest): Response<Pregnancy>

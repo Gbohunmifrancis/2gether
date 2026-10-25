@@ -436,7 +436,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         LaunchedEffect(Unit) { model.load() }
                         val state by model.ui.collectAsStateWithLifecycle()
                         CycleScreen(state, partner, CycleActions(
-                            onClaim = model::claim, onSetup = { start, cycle, period -> model.saveSetup(start, cycle, period) }, onShare = model::share,
+                            onSetup = { start, cycle, period, share -> model.saveSetup(start, cycle, period, share) }, onEdit = model::edit, onCancelEdit = model::cancelEdit,
+                            onPickDay = model::pickDay, onShare = model::share,
                             onFlow = model::flow, onSymptom = model::symptom, onMood = model::mood, onNotes = model::notes, onBack = { nav.popBackStack() },
                         ))
                     }
@@ -450,7 +451,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         LaunchedEffect(Unit) { model.load() }
                         val state by model.ui.collectAsStateWithLifecycle()
                         PregnancyScreen(state, session?.user?.id.orEmpty(), partner, PregnancyActions(
-                            onStart = { due, lmp, share -> model.start(due, lmp, share) }, onShare = model::share, onEnd = model::end,
+                            onStart = { due, lmp, share -> model.start(due, lmp, share) }, onShare = model::share, onEnd = model::end, onDelete = { model.delete(it) },
                             onAddAppointment = { t, at, loc -> model.addAppointment(t, at, loc) }, onDeleteAppointment = { model.deleteAppointment(it) },
                             onStartKicks = model::startKicks, onKick = model::kick, onFinishKicks = model::finishKicks, onBack = { nav.popBackStack() },
                         ))

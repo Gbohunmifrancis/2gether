@@ -79,6 +79,7 @@ data class PregnancyActions(
     val onStart: (LocalDate?, LocalDate?, Boolean) -> Unit = { _, _, _ -> },
     val onShare: (Boolean) -> Unit = {},
     val onEnd: () -> Unit = {},
+    val onDelete: (String) -> Unit = {},
     val onAddAppointment: (String, LocalDateTime, String?) -> Unit = { _, _, _ -> },
     val onDeleteAppointment: (String) -> Unit = {},
     val onStartKicks: () -> Unit = {},
@@ -93,6 +94,7 @@ fun PregnancyScreen(ui: PregnancyUi, myId: String, partnerName: String, actions:
     val colors = Heartpact.colors
     var adding by remember { mutableStateOf(false) }
     var ending by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf<String?>(null) }
     val p = ui.pregnancy
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -103,8 +105,11 @@ fun PregnancyScreen(ui: PregnancyUi, myId: String, partnerName: String, actions:
             ui.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             when {
                 !ui.loaded -> Text(tr("Opening…"), style = Heartpact.type.body, color = colors.ink2)
-                p == null -> Start(ui.busy, partnerName, actions.onStart, today)
-                else -> Active(p, ui, myId, partnerName, actions, onAdd = { adding = true }, today = today)
+                p == null -> {
+                    Start(ui.busy, partnerName, actions.onStart, today)
+                    Ended(ui.ended, onDelete = { deleting = it })
+                }
+                else -> Active(p, ui, myId, partnerName, actions, onAdd = { adding = true }, onDelete = { deleting = p.id }, today = today)
             }
         }
     }
@@ -112,14 +117,37 @@ fun PregnancyScreen(ui: PregnancyUi, myId: String, partnerName: String, actions:
     if (ending) AlertDialog(
         onDismissRequest = { ending = false },
         title = { Text(tr("End pregnancy mode?")) },
-        text = { Text(tr("Weeks and kick counts stop, and cycle predictions come back. Your appointments and history stay.")) },
+        text = { Text(tr("Weeks and kick counts stop, cycle predictions come back, and {partner} no longer sees it. It stays with you until you delete it.", "partner" to partnerName)) },
         confirmButton = { TextButton(onClick = { ending = false; actions.onEnd() }) { Text(tr("End it")) } },
         dismissButton = { TextButton(onClick = { ending = false }) { Text(tr("Keep it on")) } },
     )
+    deleting?.let { id ->
+        AlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text(tr("Delete this pregnancy?")) },
+            text = { Text(tr("Its due date, appointments and kick counts are removed for good, for you and {partner}. This can't be undone.", "partner" to partnerName)) },
+            confirmButton = { TextButton(onClick = { deleting = null; actions.onDelete(id) }) { Text(tr("Delete")) } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(tr("Keep it")) } },
+        )
+    }
+}
+
+/** Pregnancies I ended stay mine, and private, until I delete them. */
+@Composable
+private fun Ended(ended: List<Pregnancy>, onDelete: (String) -> Unit) {
+    if (ended.isEmpty()) return
+    Text(tr("Ended"), style = Heartpact.type.title, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 26.dp, bottom = 10.dp))
+    StickerCard(Modifier.fillMaxWidth()) {
+        ended.forEachIndexed { i, e ->
+            CardRow(PregnancyText.due(e), subtitle = PregnancyText.endedOn(e), divider = i > 0, onClick = { onDelete(e.id) }) {
+                Text(tr("Delete"), style = Heartpact.type.label, color = Heartpact.actor.onSoft)
+            }
+        }
+    }
 }
 
 @Composable
-private fun Active(p: Pregnancy, ui: PregnancyUi, myId: String, partnerName: String, actions: PregnancyActions, onAdd: () -> Unit, today: LocalDate) {
+private fun Active(p: Pregnancy, ui: PregnancyUi, myId: String, partnerName: String, actions: PregnancyActions, onAdd: () -> Unit, onDelete: () -> Unit, today: LocalDate) {
     val colors = Heartpact.colors
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
@@ -145,7 +173,10 @@ private fun Active(p: Pregnancy, ui: PregnancyUi, myId: String, partnerName: Str
     if (upcoming.isEmpty()) {
         StickerCard(Modifier.fillMaxWidth()) { Text(tr("Nothing booked. Add scans, check-ups and classes so you both know."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(16.dp)) }
     } else StickerCard(Modifier.fillMaxWidth()) {
-        upcoming.forEachIndexed { i, a -> AppointmentRow(a, myId, partnerName, divider = i > 0, onDelete = { actions.onDeleteAppointment(a.id) }) }
+        // The owner manages every appointment; a partner only the ones they added, as the server allows.
+        upcoming.forEachIndexed { i, a ->
+            AppointmentRow(a, myId, partnerName, divider = i > 0, onDelete = { actions.onDeleteAppointment(a.id) }.takeIf { p.isMine || a.createdByUserId == myId })
+        }
     }
     if (p.isMine) {
         val counting = ui.counting
@@ -161,6 +192,7 @@ private fun Active(p: Pregnancy, ui: PregnancyUi, myId: String, partnerName: Str
                 HeartButton(tr("Done counting"), actions.onFinishKicks, kind = ButtonKind.Text)
             }
         }
+        HeartButton(tr("Delete pregnancy"), onDelete, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
     }
 }
 
@@ -185,7 +217,7 @@ private fun Weeks(week: Int) {
 }
 
 @Composable
-private fun AppointmentRow(a: Appointment, myId: String, partnerName: String, divider: Boolean, onDelete: () -> Unit) {
+private fun AppointmentRow(a: Appointment, myId: String, partnerName: String, divider: Boolean, onDelete: (() -> Unit)?) {
     val at = utc(a.atUtc).atZone(ZoneId.systemDefault())
     val line = listOfNotNull(at.format(Dates.formatter("EEE d MMM · HH:mm")), a.location).joinToString(" · ")
     var confirm by remember { mutableStateOf(false) }
@@ -198,7 +230,7 @@ private fun AppointmentRow(a: Appointment, myId: String, partnerName: String, di
         title = { Text(a.title) },
         text = { Text(line + (a.notes?.let { "\n\n$it" } ?: "")) },
         confirmButton = { TextButton(onClick = { confirm = false }) { Text(tr("Close")) } },
-        dismissButton = { TextButton(onClick = { confirm = false; onDelete() }) { Text(tr("Delete")) } },
+        dismissButton = onDelete?.let { delete -> { TextButton(onClick = { confirm = false; delete() }) { Text(tr("Delete")) } } },
     )
 }
 

@@ -36,11 +36,18 @@ public sealed class Pregnancy : BaseEntity
         UpdatedAtUtc = utcNow;
     }
 
-    /// <summary>No reason is asked or stored; how it ended is not the app's business.</summary>
+    /// <summary>The partner in <paramref name="coupleId"/> sees it: active, shared, and started in that couple.</summary>
+    public bool IsSharedWith(Guid coupleId) => Status == PregnancyStatus.Active && ShareWithPartner && CoupleId == coupleId;
+
+    /// <summary>
+    /// No reason is asked or stored; how it ended is not the app's business. Ending stops sharing it, since an
+    /// ended pregnancy can't be changed and the owner could never hide it again.
+    /// </summary>
     public void End(DateTime utcNow)
     {
         if (Status != PregnancyStatus.Active) throw new InvalidOperationException("This pregnancy has already ended.");
         Status = PregnancyStatus.Ended;
+        ShareWithPartner = false;
         EndedAtUtc = utcNow;
         UpdatedAtUtc = utcNow;
     }

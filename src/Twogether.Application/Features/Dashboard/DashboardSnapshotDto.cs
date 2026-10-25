@@ -8,7 +8,7 @@ public sealed record DashboardSnapshotDto(
     int NotificationCount,
     int ConnectionStreakDays,
     string CycleSummary,
-    int CycleDaysUntilPeriod,
+    int? CycleDaysUntilPeriod,
     string HeroDescription,
     string LatestNote,
     string LatestNoteAuthor,
