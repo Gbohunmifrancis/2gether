@@ -74,6 +74,19 @@ really looks like today. Skip them if you'd rather not list for tablets until th
   - The alarm can always be silenced on the phone.
 - **Icon:** no text and no badges.
 
+## Logo (`logo/`)
+
+| File | What |
+| --- | --- |
+| `heartpact-mark.svg`, `heartpact-mark.png` | The mark for light grounds: indigo and periwinkle halves. Vector, and a large PNG on transparent ground. |
+| `heartpact-mark-on-dark.svg`, `heartpact-mark-on-dark.png` | The mark for dark grounds: the left half turns white. |
+| `heartpact-lockup.png` | Mark and wordmark ("heartpact" in Sora, as in the app) for light grounds, transparent. |
+| `heartpact-lockup-on-dark.png` | The same for dark grounds. |
+| `heartpact-app-icon-1024.png`, `heartpact-app-icon-512.png` | The app icon, full square: profile pictures, press, the website. Play rounds the corners itself. |
+| `app-icon-background.svg`, `app-icon-foreground.svg`, `app-icon-monochrome.svg` | The launcher icon's layers (108 × 108, safe zone in the middle 66). |
+
+Keep the mark's two halves in their colours and order; don't stretch it, add effects or put it on a busy picture.
+
 ## Promotion (`promo/<lang>/`)
 
 Each uses Google's official "Get it on Google Play" badge in that language (`tools/badges/`, unaltered, from

@@ -172,8 +172,9 @@ def panorama(lang: str, art: Path) -> Path:
     return png
 
 
-def render(html: Path, png: Path, width: int, height: int) -> None:
-    subprocess.run(["node", str(TOOLS / "render.cjs"), str(html), str(png), str(width), str(height)], check=True, cwd=TOOLS)
+def render(html: Path, png: Path, width: int, height: int, transparent: bool = False) -> None:
+    subprocess.run(["node", str(TOOLS / "render.cjs"), str(html), str(png), str(width), str(height)] + (["transparent"] if transparent else []),
+                   check=True, cwd=TOOLS)
 
 
 def slice_panorama(lang: str, png: Path) -> list[Path]:
@@ -261,6 +262,50 @@ def icon(art: Path) -> None:
     out = OUT / "icon"
     out.mkdir(parents=True, exist_ok=True)
     Image.open(SCREENS / "art/play-icon-512.png").convert("RGBA").save(out / "heartpact-play-icon-512.png", optimize=True)
+
+
+LOGO_SVG = REPO / "design/heartpact-v3/logo"
+NIGHT_INK = "#EEF0FB"
+
+
+def logo() -> None:
+    """
+    The logo kit: the mark as SVG and PNG, the mark with the wordmark (light and dark grounds), and the app icon at 512
+    and 1024. PNGs other than the icon are on transparent ground. The icon is the launcher's own layers.
+    """
+    out = OUT / "logo"
+    shutil.rmtree(out, ignore_errors=True)
+    out.mkdir(parents=True)
+    for source, name in (("heartpact-mark.svg", "heartpact-mark.svg"), ("heartpact-mark-dark.svg", "heartpact-mark-on-dark.svg"),
+                         ("ic_launcher_background.svg", "app-icon-background.svg"), ("ic_launcher_foreground.svg", "app-icon-foreground.svg"),
+                         ("ic_launcher_monochrome.svg", "app-icon-monochrome.svg")):
+        shutil.copy(LOGO_SVG / source, out / name)
+
+    def draw(name: str, inner: str, width: int, height: int, transparent: bool = True, pad: int = 0) -> None:
+        html = WORK / f"logo-{name}.html"
+        html.write_text(f"""<!doctype html><html><head><meta charset="utf-8"><style>{fonts_css()}
+            * {{ margin: 0; padding: 0; }} html, body {{ width: {width}px; height: {height}px; background: transparent; overflow: hidden; }}
+            body {{ display: flex; align-items: center; justify-content: center; }}</style></head><body>{inner}</body></html>""")
+        png = WORK / f"logo-{name}.png"
+        render(html, png, width, height, transparent)
+        image = Image.open(png).convert("RGBA")
+        if transparent:
+            image = image.crop(image.getbbox())
+            framed = Image.new("RGBA", (image.width + 2 * pad, image.height + 2 * pad), (0, 0, 0, 0))
+            framed.alpha_composite(image, (pad, pad))
+            image = framed
+        image.save(out / f"{name}.png", optimize=True)
+
+    for svg, name in (("heartpact-mark.svg", "heartpact-mark"), ("heartpact-mark-dark.svg", "heartpact-mark-on-dark")):
+        draw(name, f'<img src="{(LOGO_SVG / svg).as_uri()}" style="height:1024px">', 1400, 1100)
+    for svg, ink, name in (("heartpact-mark.svg", INK, "heartpact-lockup"), ("heartpact-mark-dark.svg", NIGHT_INK, "heartpact-lockup-on-dark")):
+        draw(name, f'<div style="display:flex;align-items:center;gap:90px"><img src="{(LOGO_SVG / svg).as_uri()}" style="height:330px">'
+                   f'<span style="font-family:Sora;font-weight:600;font-size:250px;letter-spacing:-0.045em;color:{ink};line-height:1">heartpact</span></div>',
+             2600, 700, pad=40)
+    layers = "".join(f'<img src="{(LOGO_SVG / svg).as_uri()}" style="position:absolute;inset:0;width:1024px;height:1024px">'
+                     for svg in ("ic_launcher_background.svg", "ic_launcher_foreground.svg"))
+    draw("heartpact-app-icon-1024", f'<div style="position:relative;width:1024px;height:1024px">{layers}</div>', 1024, 1024, transparent=False)
+    shutil.copy(OUT / "icon/heartpact-play-icon-512.png", out / "heartpact-app-icon-512.png")
 
 
 def feature(lang: str, art: Path) -> None:
@@ -388,6 +433,9 @@ def main() -> None:
     languages = sys.argv[1:] or LANGUAGES
     art = trimmed_art()
     icon(art)
+    logo()
+    if sys.argv[1:] == ["logo"]:
+        return
     for lang in languages:
         slice_panorama(lang, panorama(lang, art))
         feature(lang, art)
