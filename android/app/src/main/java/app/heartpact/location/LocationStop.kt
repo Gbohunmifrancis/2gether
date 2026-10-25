@@ -51,20 +51,27 @@ object LocationStop {
     }
 }
 
-/** The retry of [LocationStop]. The token stays in WorkManager's app-private database until the stop lands. */
+/**
+ * The retry of [LocationStop]. The token stays in WorkManager's app-private database until the stop lands, or until
+ * the server's lease has ended the share anyway: after that a retry adds nothing, so it gives up and the token goes.
+ */
 class LocationStopWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val token = inputData.getString(TOKEN) ?: return Result.success()
+        if (System.currentTimeMillis() - inputData.getLong(QUEUED_AT, 0L) > GIVE_UP_AFTER_MS) return Result.success()
         val container = (applicationContext as HeartpactApplication).container
         return if (LocationStop.landed(container.location.stop(token))) Result.success() else Result.retry()
     }
 
     companion object {
         private const val TOKEN = "token"
+        private const val QUEUED_AT = "queuedAt"
+        /** The server's lease (10 minutes) plus a margin. */
+        private const val GIVE_UP_AFTER_MS = 12 * 60_000L
 
         fun enqueue(context: Context, token: String) {
             val request = OneTimeWorkRequestBuilder<LocationStopWorker>()
-                .setInputData(workDataOf(TOKEN to token))
+                .setInputData(workDataOf(TOKEN to token, QUEUED_AT to System.currentTimeMillis()))
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
