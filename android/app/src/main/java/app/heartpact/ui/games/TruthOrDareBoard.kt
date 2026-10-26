@@ -33,9 +33,7 @@ import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.StickerCard
-import app.heartpact.ui.graphics.Character
-import app.heartpact.ui.graphics.Pose
-import app.heartpact.ui.graphics.Who
+import app.heartpact.ui.play.Reaction
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.Shapes
 
@@ -44,28 +42,38 @@ import app.heartpact.ui.theme.Shapes
 internal fun TruthOrDareBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
     val colors = Heartpact.colors
     val t = GamePlay.truthOrDare(s)
-    Scores(t.scores, me, partnerName) { trn(it, "{count} heart", "{count} hearts") }
-    Text(tr("Turn {turn} of {turns}", "turn" to minOf(t.turn + 1, t.totalTurns), "turns" to t.totalTurns), style = Heartpact.type.small, color = colors.ink2)
-    t.last?.let { NoteCard(lastNote(it, me, partnerName), Modifier.padding(top = 10.dp)) }
+    val finished = s.status == GameStatus.Completed || t.phase == "completed"
+    if (!finished) {
+        Scoreboard(t.scores, me, partnerName, turnOf(s, me)) { trn(it, "{count} heart", "{count} hearts") }
+        Text(tr("Turn {turn} of {turns}", "turn" to minOf(t.turn + 1, t.totalTurns), "turns" to t.totalTurns), style = Heartpact.type.small, color = colors.ink2)
+    }
+    t.last?.let { last ->
+        val done = last.result == "done"
+        RoundReveal(t.turn, if (done) tr("Done!") else null, hearts = done, Modifier.padding(top = 10.dp)) { NoteCard(lastNote(last, me, partnerName)) }
+    }
     when {
-        s.status == GameStatus.Completed || t.phase == "completed" ->
-            Text(GamePlay.outcome(s, me, partnerName), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
+        finished -> Unit
         t.phase == "choosing" && t.chooser == me -> {
             Text(tr("Truth or dare?"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 18.dp))
             Text(tr("Pick one. {partner} sees your prompt and says if you did it.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
             Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Pick(tr("Truth"), tr("Answer honestly"), Icons.Rounded.QuestionAnswer, enabled = !busy, Modifier.weight(1f)) { actions.onAct(s, "choose", "truth", null) }
-                Pick(tr("Dare"), tr("Do it, send proof"), Icons.Rounded.Bolt, enabled = !busy, Modifier.weight(1f)) { actions.onAct(s, "choose", "dare", null) }
+                DealIn(t.turn to "truth", Modifier.weight(1f)) {
+                    Pick(tr("Truth"), tr("Answer honestly"), Icons.Rounded.QuestionAnswer, enabled = !busy, Modifier.fillMaxWidth()) { actions.onAct(s, "choose", "truth", null) }
+                }
+                DealIn(t.turn to "dare", Modifier.weight(1f), delayMs = 90) {
+                    Pick(tr("Dare"), tr("Do it, send proof"), Icons.Rounded.Bolt, enabled = !busy, Modifier.fillMaxWidth()) { actions.onAct(s, "choose", "dare", null) }
+                }
             }
         }
         t.phase == "choosing" -> Column(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Character(Who.Both, Pose.Stand, 120.dp)
+            Couple(110.dp, Reaction.Waiting, Reaction.Thinking)
             Text(tr("{partner} is choosing truth or dare…", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 14.dp))
         }
         else -> {
             val mine = t.chooser == me
             val truth = t.choice == "truth"
-            PromptCard(
+            // The prompt is a card drawn and turned face up.
+            FlipIn(t.turn to t.choice) { PromptCard(
                 when {
                     mine && truth -> tr("Your truth")
                     mine -> tr("Your dare")
@@ -73,7 +81,7 @@ internal fun TruthOrDareBoard(s: GameSession, me: String, partnerName: String, b
                     else -> tr("{partner}'s dare", "partner" to partnerName)
                 },
                 t.prompt.orEmpty(), if (truth) Icons.Rounded.QuestionAnswer else Icons.Rounded.Bolt,
-            )
+            ) }
             if (mine) {
                 Text(if (truth) tr("Answer by message, call or voice note. {partner} marks it once you have.", "partner" to partnerName)
                     else tr("Do it and send {partner} the proof. They mark it done.", "partner" to partnerName),

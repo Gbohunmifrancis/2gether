@@ -1,7 +1,14 @@
 package app.heartpact.ui.games
 
 import android.provider.Settings
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -15,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -39,13 +47,15 @@ import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.graphics.HalfState
 import app.heartpact.ui.graphics.HeartGeometry
 import app.heartpact.ui.graphics.HeartSticker
+import app.heartpact.ui.graphics.LocalStillLogo
 import app.heartpact.ui.graphics.inUnits
+import app.heartpact.ui.play.rememberPlayHaptics
 import app.heartpact.ui.theme.Art
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.LocalActor
 import app.heartpact.ui.theme.Shapes
 import app.heartpact.ui.theme.Side
-import app.heartpact.ui.theme.partner
+import kotlinx.coroutines.delay
 
 /*
  * Shared by tic-tac-toe and connect four: a short match on a grid, each partner playing their own half of the heart
@@ -70,11 +80,15 @@ internal fun sideOf(owner: String, me: String): Side {
     return if (owner == me) mine else if (mine == Side.Left) Side.Right else Side.Left
 }
 
-/** With animations turned off in the system settings, boards change without moving. */
+/**
+ * With animations turned off in the system settings, things change without moving and nothing loops. The same goes
+ * for a still frame (screenshots hold the live logo still the same way): it shows every end state at once.
+ */
 @Composable
 internal fun motionOff(): Boolean {
     val context = LocalContext.current
-    return remember { Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+    val off = remember { Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+    return off || LocalStillLogo.current
 }
 
 /** [spec], or an instant change when motion is off. */
@@ -98,21 +112,29 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
     )
     val partnerId = g.players.firstOrNull { it != me }
 
-    Row(Modifier.fillMaxWidth().padding(bottom = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-        PlayerScore(tr("You"), g.scores[me] ?: 0, LocalActor.current, myTurn && !gameOver || cleared, Modifier.weight(1f), end = false)
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 8.dp)) {
-            Text(tr("Game {game} of {games}", "game" to shown.game + 1, "games" to g.totalGames), style = Heartpact.type.labelSmall, color = colors.ink3)
+    val games: @Composable () -> Unit = {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (s.status != GameStatus.Completed) Text(tr("Game {game} of {games}", "game" to shown.game + 1, "games" to g.totalGames), style = Heartpact.type.labelSmall, color = colors.ink3)
             Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                 (0 until g.totalGames).forEach { i -> GamePip(g.results.getOrNull(i), i < g.results.size, i + 1, me, partnerName) }
             }
         }
-        PlayerScore(partnerName, partnerId?.let { g.scores[it] } ?: 0, if (LocalActor.current == Side.Left) Side.Right else Side.Left,
-            s.status == GameStatus.InProgress && !myTurn && !gameOver, Modifier.weight(1f), end = true)
+    }
+    // A finished match has its result card above: here, just the games as they went, then the final board.
+    if (s.status == GameStatus.Completed) {
+        Box(Modifier.fillMaxWidth().padding(bottom = 14.dp), contentAlignment = Alignment.Center) { games() }
+    } else {
+        val turn = when {
+            myTurn && !gameOver || cleared -> Turn.Mine
+            s.status == GameStatus.InProgress && !myTurn && !gameOver -> Turn.Theirs
+            else -> Turn.None
+        }
+        Scoreboard(g.scores[me] ?: 0, partnerId?.let { g.scores[it] } ?: 0, partnerName, turn, { trn(it, "{count} win", "{count} wins") }, middle = games)
     }
 
     val last = g.results.lastOrNull()
     val title = when {
-        s.status == GameStatus.Completed -> GamePlay.outcome(s, me, partnerName)
+        s.status == GameStatus.Completed -> null
         gameOver && !cleared -> when (last) {
             me -> tr("You won game {game}!", "game" to g.game + 1)
             null -> tr("Game {game} is a draw", "game" to g.game + 1)
@@ -121,7 +143,7 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
         myTurn -> yourMove
         else -> tr("{partner}'s turn", "partner" to partnerName)
     }
-    Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp))
+    if (title != null) Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp))
 
     board(g, shown)
 
@@ -129,26 +151,6 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
         if (myTurn) HeartButton(tr("Start game {game}", "game" to g.game + 2), { clearedGame = g.game }, Modifier.padding(top = 16.dp))
         else Text(tr("{partner} starts game {game}.", "partner" to partnerName, "game" to g.game + 2), style = Heartpact.type.bodyLarge, color = colors.ink2,
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp), textAlign = TextAlign.Center)
-    }
-}
-
-@Composable
-private fun PlayerScore(name: String, wins: Int, side: Side, turn: Boolean, modifier: Modifier, end: Boolean) {
-    val colors = Heartpact.colors
-    val partner = colors.partner(side)
-    Box(modifier, contentAlignment = if (end) Alignment.CenterEnd else Alignment.CenterStart) {
-        Row(
-            Modifier.clip(Shapes.Pill).background(if (turn) partner.soft else colors.page).padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (!end) HalfHeartPiece(side, 26.dp)
-            Column(horizontalAlignment = if (end) Alignment.End else Alignment.Start) {
-                Text(name, style = Heartpact.type.label, color = if (turn) partner.onSoft else colors.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(trn(wins, "{count} win", "{count} wins"), style = Heartpact.type.small, color = colors.ink2, maxLines = 1)
-            }
-            if (end) HalfHeartPiece(side, 26.dp)
-        }
     }
 }
 
@@ -195,4 +197,39 @@ internal fun HeartDisc(side: Side, modifier: Modifier = Modifier) {
         val midX = if (side == Side.Left) 24.5f else 75.5f
         inUnits(midX - 95f, 53f - 95f, 190f, 190f) { drawPath(half, Art.Keyline, alpha = 0.9f) }
     }
+}
+
+/**
+ * The pen struck through a winning line, over a grid of [columns] by [rows] cells [gap] apart that fills this canvas.
+ * It's drawn on once, after the winning pieces have lifted.
+ */
+@Composable
+internal fun WinLine(line: Set<Int>, columns: Int, rows: Int, gap: Dp, modifier: Modifier = Modifier) {
+    if (line.size < 2) return
+    val still = motionOff()
+    val haptics = rememberPlayHaptics()
+    val pen = remember(line) { Animatable(if (still) 1f else 0f) }
+    LaunchedEffect(line) {
+        if (still) return@LaunchedEffect
+        delay(350)
+        pen.animateTo(1f, tween(520, easing = FastOutSlowInEasing))
+        haptics.thud()
+    }
+    Canvas(modifier) {
+        val g = gap.toPx()
+        val cellW = (size.width - g * (columns - 1)) / columns
+        val cellH = (size.height - g * (rows - 1)) / rows
+        fun centre(index: Int) = Offset((index % columns) * (cellW + g) + cellW / 2, (index / columns) * (cellH + g) + cellH / 2)
+        // Along any straight line the cell numbers only grow, so the ends are the smallest and the largest.
+        penLine(centre(line.min()), centre(line.max()), pen.value)
+    }
+}
+
+/** A winning piece's gentle, endless pulse (0 to 1); nothing when it isn't winning or motion is off. */
+@Composable
+internal fun winPulse(winning: Boolean): Float {
+    if (!winning || motionOff()) return 0f
+    val loop = rememberInfiniteTransition(label = "win")
+    val p by loop.animateFloat(0f, 1f, infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "pulse")
+    return p
 }

@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -78,15 +79,14 @@ internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, 
     val mine = pending.filter { it.sessionId == s.id && it.round == d.round }
     val strokes = Sketching.withPending(d.strokes, mine)
     var seenReveal by rememberSaveable(s.id) { mutableIntStateOf(-1) }
-    Scores(d.scores, me, partnerName) { trn(it, "{count} heart", "{count} hearts") }
-
+    // The result card above says how it went; the last drawing stays to look at.
     if (s.status == GameStatus.Completed) {
-        Text(GamePlay.outcome(s, me, partnerName), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(bottom = 14.dp))
         d.lastRound?.let { Reveal(it, d, me, partnerName) }
         return
     }
 
-    Text(tr("Round {round} of {rounds}", "round" to minOf(d.round + 1, d.totalRounds), "rounds" to d.totalRounds), style = Heartpact.type.small, color = colors.ink2)
+    // A team game: a heart each for every drawing guessed.
+    TogetherScore(d.scores[me] ?: 0, tr("Round {round} of {rounds}", "round" to minOf(d.round + 1, d.totalRounds), "rounds" to d.totalRounds), turnOf(s, me))
     val last = d.lastRound
     val fresh = strokes.isEmpty() && d.wrongGuesses.isEmpty() && mine.isEmpty()
     if (last != null && last.round > seenReveal && fresh) {
@@ -137,7 +137,8 @@ internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, 
 private fun Reveal(last: DrawRound, d: DrawAndGuessState, me: String, partnerName: String, modifier: Modifier = Modifier) {
     val colors = Heartpact.colors
     val drewIt = last.drawer == me
-    StickerCard(modifier.fillMaxWidth()) {
+    val guessed = last.outcome == "guessed"
+    RoundReveal(last.round, if (guessed) tr("Guessed!") else null, hearts = guessed, modifier) { StickerCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             Text(tr("The word was"), style = Heartpact.type.labelSmall, color = colors.ink2)
             Text(last.word, style = Heartpact.type.display.copy(fontSize = 40.sp, lineHeight = 42.sp), color = colors.ink)
@@ -149,7 +150,7 @@ private fun Reveal(last: DrawRound, d: DrawAndGuessState, me: String, partnerNam
             DrawingCanvas(last.strokes, penColor(d, last.drawer), description = tr("The drawing"))
             WrongGuesses(last.wrongGuesses)
         }
-    }
+    } }
 }
 
 private fun lastRoundLine(last: DrawRound) = when (last.outcome) {
@@ -164,10 +165,14 @@ private fun WrongGuesses(guesses: List<String>) {
     if (guesses.isEmpty()) return
     val colors = Heartpact.colors
     Text(tr("Not it"), style = Heartpact.type.labelSmall, color = colors.ink2, modifier = Modifier.padding(top = 10.dp, bottom = 6.dp))
+    // The newest miss shakes its head as it lands.
+    val shake = rememberShake(guesses.size)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        guesses.forEach { guess ->
+        guesses.forEachIndexed { i, guess ->
+            val newest = i == guesses.lastIndex
             Text(guess, style = Heartpact.type.label.copy(textDecoration = TextDecoration.LineThrough), color = colors.ink3,
-                modifier = Modifier.clip(Shapes.Pill).background(colors.sticker2).border(1.dp, colors.rule2, Shapes.Pill).padding(horizontal = 12.dp, vertical = 7.dp))
+                modifier = Modifier.graphicsLayer { if (newest) translationX = shake.value * density }
+                    .clip(Shapes.Pill).background(colors.sticker2).border(1.dp, colors.rule2, Shapes.Pill).padding(horizontal = 12.dp, vertical = 7.dp))
         }
     }
 }

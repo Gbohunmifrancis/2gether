@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,17 +49,16 @@ fun GamePlay.guessMyAnswer(s: GameSession): GuessMyAnswerState =
 internal fun GuessMyAnswerBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
     val colors = Heartpact.colors
     val g = GamePlay.guessMyAnswer(s)
-    val partner = g.players.firstOrNull { it != me }
-    Row(Modifier.fillMaxWidth().padding(bottom = 14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        val count = { n: Int -> trn(n, "{count} point", "{count} points") }
-        Text(tr("You {score}", "score" to count(g.scores[me] ?: 0)), style = Heartpact.type.titleSmall, color = colors.ink)
-        Text("$partnerName ${count(partner?.let { g.scores[it] } ?: 0)}", style = Heartpact.type.titleSmall, color = colors.ink)
+    val finished = s.status == GameStatus.Completed
+    if (!finished) {
+        Scoreboard(g.scores, me, partnerName, turnOf(s, me)) { trn(it, "{count} point", "{count} points") }
+        Text(tr("Round {round} of {rounds}", "round" to minOf(g.round + 1, g.totalRounds), "rounds" to g.totalRounds), style = Heartpact.type.small, color = colors.ink2)
     }
-    Text(tr("Round {round} of {rounds}", "round" to minOf(g.round + 1, g.totalRounds), "rounds" to g.totalRounds), style = Heartpact.type.small, color = colors.ink2)
     g.last?.let { GuessRevealCard(it, me, partnerName, Modifier.padding(top = 12.dp)) }
 
     val question = g.question
-    if (s.status == GameStatus.Completed || question == null) {
+    if (finished) return
+    if (question == null) {
         Text(GamePlay.outcome(s, me, partnerName), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
         return
     }
@@ -66,21 +66,25 @@ internal fun GuessMyAnswerBoard(s: GameSession, me: String, partnerName: String,
     val myMove = s.status == GameStatus.InProgress && s.currentTurnUserId == me
     val canAnswer = myMove && aboutMe && !g.answered
     val canGuess = myMove && !aboutMe && g.answered
-    Text(if (aboutMe) tr("About you") else tr("About {partner}", "partner" to partnerName), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.padding(top = 20.dp))
-    Text(question, style = Heartpact.type.headline.copy(fontSize = 26.sp, lineHeight = 30.sp), color = colors.ink, modifier = Modifier.padding(top = 6.dp))
-    Text(
-        when {
-            aboutMe && !g.answered -> tr("Pick your honest answer. {partner} will try to guess it.", "partner" to partnerName)
-            aboutMe -> tr("Locked in. Waiting for {partner} to guess…", "partner" to partnerName)
-            !g.answered -> tr("{partner} is picking an answer. Your guess comes next.", "partner" to partnerName)
-            else -> tr("{partner} has answered. What did they pick?", "partner" to partnerName)
-        },
-        style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp),
-    )
-    Column(Modifier.padding(top = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        g.choices.forEachIndexed { i, choice ->
-            GuessChoice("ABCD".getOrElse(i) { '?' }.toString(), choice, selected = g.answer == i, enabled = (canAnswer || canGuess) && !busy) {
-                actions.onAct(s, if (canAnswer) "answer" else "guess", null, i)
+    DealIn(g.round) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(if (aboutMe) tr("About you") else tr("About {partner}", "partner" to partnerName), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.padding(top = 20.dp))
+            Text(question, style = Heartpact.type.headline.copy(fontSize = 26.sp, lineHeight = 30.sp), color = colors.ink, modifier = Modifier.padding(top = 6.dp))
+            Text(
+                when {
+                    aboutMe && !g.answered -> tr("Pick your honest answer. {partner} will try to guess it.", "partner" to partnerName)
+                    aboutMe -> tr("Locked in. Waiting for {partner} to guess…", "partner" to partnerName)
+                    !g.answered -> tr("{partner} is picking an answer. Your guess comes next.", "partner" to partnerName)
+                    else -> tr("{partner} has answered. What did they pick?", "partner" to partnerName)
+                },
+                style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp),
+            )
+            Column(Modifier.padding(top = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                g.choices.forEachIndexed { i, choice ->
+                    GuessChoice("ABCD".getOrElse(i) { '?' }.toString(), choice, selected = g.answer == i, enabled = (canAnswer || canGuess) && !busy) {
+                        actions.onAct(s, if (canAnswer) "answer" else "guess", null, i)
+                    }
+                }
             }
         }
     }
@@ -92,13 +96,14 @@ private fun GuessChoice(letter: String, text: String, selected: Boolean, enabled
     val colors = Heartpact.colors
     val actor = Heartpact.actor
     val shape = Shapes.Field
-    var m = Modifier.fillMaxWidth().heightIn(min = 58.dp)
+    val pick = pickedFlip(selected)
+    var m = Modifier.fillMaxWidth().heightIn(min = 58.dp).graphicsLayer { scaleX = pick.bump; scaleY = pick.bump }
     if (enabled) m = m.shadow(4.dp, shape, ambientColor = colors.left.art.copy(alpha = 0.4f), spotColor = colors.left.art.copy(alpha = 0.45f))
     m = m.clip(shape).background(if (selected) actor.soft else colors.sticker)
     if (!selected) m = m.border(2.dp, colors.rule, shape)
     m = m.alpha(if (enabled || selected) 1f else 0.7f).clickable(enabled = enabled, role = Role.Button, onClick = onClick)
     Row(m.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(Modifier.size(34.dp).clip(CircleShape).background(if (selected) actor.action else colors.sticker2), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(34.dp).graphicsLayer { rotationY = pick.turn }.clip(CircleShape).background(if (selected) actor.action else colors.sticker2), contentAlignment = Alignment.Center) {
             Text(letter, style = Heartpact.type.label, color = if (selected) colors.onAction else colors.ink2)
         }
         Text(text, style = Heartpact.type.bodyLarge, color = if (selected) actor.onSoft else colors.ink, modifier = Modifier.weight(1f))
@@ -119,14 +124,17 @@ private fun GuessRevealCard(last: GuessReveal, me: String, partnerName: String, 
         last.right -> tr("{partner} guessed it: {answer}. A point for {partner}.", "partner" to partnerName, "answer" to answer)
         else -> tr("You picked {answer}. {partner} guessed {guess}.", "answer" to answer, "partner" to partnerName, "guess" to guess)
     }
-    StickerCard(modifier.fillMaxWidth()) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.size(40.dp).clip(CircleShape).background(if (last.right) Heartpact.actor.soft else colors.sticker2), contentAlignment = Alignment.Center) {
-                Icon(if (last.right) Icons.Rounded.Favorite else Icons.Rounded.HeartBroken, null, Modifier.size(22.dp), tint = if (last.right) Heartpact.actor.onSoft else colors.ink3)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(tr("Last round: {question}", "question" to last.question), style = Heartpact.type.small, color = colors.ink2)
-                Text(line, style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 2.dp))
+    // A right guess is stamped and bursts hearts, whoever made it: one of you knew the other.
+    RoundReveal(last.round, if (last.right) tr("Got it!") else null, hearts = last.right, modifier) {
+        StickerCard(Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.size(40.dp).clip(CircleShape).background(if (last.right) Heartpact.actor.soft else colors.sticker2), contentAlignment = Alignment.Center) {
+                    Icon(if (last.right) Icons.Rounded.Favorite else Icons.Rounded.HeartBroken, null, Modifier.size(22.dp), tint = if (last.right) Heartpact.actor.onSoft else colors.ink3)
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(tr("Last round: {question}", "question" to last.question), style = Heartpact.type.small, color = colors.ink2)
+                    Text(line, style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 2.dp))
+                }
             }
         }
     }
