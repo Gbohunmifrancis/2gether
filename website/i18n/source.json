@@ -592,6 +592,16 @@
    "terms/index.html"
   ]
  },
+ "Language": {
+  "kind": "attribute",
+  "pages": [
+   "404.html",
+   "delete-account/index.html",
+   "index.html",
+   "privacy/index.html",
+   "terms/index.html"
+  ]
+ },
  "The couples app where your partner sets the dare, your phone rings until the camera counts your reps, and the heart only fills when you both keep your word. Free on Google Play.": {
   "kind": "attribute",
   "pages": [
@@ -622,7 +632,7 @@
    "privacy/index.html"
   ]
  },
- "Last updated: 23 October 2026": {
+ "Last updated: 26 October 2026": {
   "kind": "text",
   "pages": [
    "privacy/index.html",
@@ -653,13 +663,13 @@
    "privacy/index.html"
   ]
  },
- "Your partner sees what you choose to share with them. Our staff see account details and counts, never your photos, answers, meals, health logs or location.": {
+ "Your partner sees what you choose to share with them. Our staff see your account details and what kinds of things you do and when (for example, \"did a squats dare\" or \"finished a game\"), never your photos, answers, drawings, meals, health logs or location.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "Location is shared only while you both have it switched on, and we keep only the latest point, never a history.": {
+ "Location is shared only while you both have it switched on. We keep only the latest point, never a history, and it is wiped when you stop sharing.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -719,19 +729,19 @@
    "privacy/index.html"
   ]
  },
- "<strong>Account details:</strong> email address, a password (stored only as a salted hash) or your Google account ID if you sign in with Google, display name, date of birth, gender (you can choose \"prefer not to say\"), time zone, profile picture link and map colour.": {
+ "<strong>Account details:</strong> email address, a password (stored only as a salted hash) or your Google account ID if you sign in with Google, display name, date of birth, gender (you can choose \"prefer not to say\"), the country you live in (chosen when you sign up, and changeable under Us), the language of your app, time zone, profile picture link and map colour.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "To create your account, sign you in, keep it secure, send password reset codes, show times in your own time zone, and set up features such as cycle tracking.": {
+ "To create your account, sign you in, keep it secure, check that you are 18 or over, send password reset codes, show times in your own time zone, write notifications and emails in your language, show photos, food tips and game versions from your part of the world, and set up features such as cycle tracking (choosing Woman turns it on).": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>You.</strong> <strong>Your partner:</strong> your name, profile picture and map colour. <strong>Us:</strong> your email, name, time zone, sign-in method, and when you signed up and were last active.": {
+ "<strong>You.</strong> <strong>Your partner:</strong> your name, profile picture and map colour, and your time zone, so that a dare they set for you rings at your local time. <strong>Us:</strong> your email, name, time zone, sign-in method, whether your email is verified, when you signed up and were last active, and your country (in totals by country, and in the live feed when you sign up). Never your date of birth or gender.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -749,7 +759,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>You and your partner.</strong> <strong>Us:</strong> whether you are linked, and to whom (by email and name).": {
+ "<strong>You and your partner.</strong> <strong>Us:</strong> whether you are linked, to whom (by email and name), and when you linked or unlinked, including in the live feed (for example, \"Maya &amp; Theo linked up\").": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -767,7 +777,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>You and your partner</strong> (your partner can also watch your count live while you exercise). <strong>Us:</strong> how many dares were completed or missed.": {
+ "<strong>You and your partner</strong> (your partner can also watch your count live while you exercise). <strong>Us:</strong> how many dares were set, completed or missed, on which days and for which exercise, including in the live feed with both your names (for example, \"Maya did the dare · squats, set by Theo\"); and, across everyone, the times, confidence and failed checks of dares, as totals.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -785,13 +795,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>You and your partner.</strong> <strong>Us:</strong> how many items you have shared and how much space they use.": {
+ "<strong>You and your partner.</strong> <strong>Us:</strong> how many items you have shared, on which days, and how much space they use.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Daily questions, games and messages:</strong> your answers to daily couple questions, your moves and answers in games, scores, and any messages you send through Heartpact.": {
+ "<strong>Daily questions, games and messages:</strong> your answers to daily couple questions, your moves, answers and drawings in games, scores (including your 0 to 100 score for each Heart to heart skill round), and any messages you send through Heartpact.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -803,25 +813,25 @@
    "privacy/index.html"
   ]
  },
- "<strong>You and your partner.</strong> Your partner sees your daily answer only once they have answered too. <strong>Us:</strong> how many questions you have answered and games you have finished.": {
+ "<strong>You and your partner.</strong> Your partner sees your daily answer only once they have answered too, and your score for a Heart to heart round once they have played it too. <strong>Us:</strong> how many questions you have answered and on which days, which types of game you finished and when; and, across everyone, Heart to heart scores as numbers in charts. Never what you wrote or drew.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Food log:</strong> meals and snacks, calories, optional protein, carbs and fat, your daily targets and sharing setting; for each photo estimate, a record of when it ran, the photo's size and type, the result and whether it worked. We do not keep the meal photo itself.": {
+ "<strong>Food log:</strong> meals and snacks, calories, optional protein, carbs and fat, your daily targets and sharing setting; for each photo estimate, a record of when it ran, the photo's size and type, the AI model used, how much processing it took and how long, the result and whether it worked. The record is made as soon as the photo is sent, so the scan counts towards your daily limit however it ends. We do not keep the meal photo itself.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "To keep your food log, estimate meals from photos, apply the daily scan limit, and show your partner what you have chosen to share.": {
+ "To keep your food log, estimate meals from photos, apply the daily scan limit, keep an eye on what estimates cost, and show your partner what you have chosen to share.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>You.</strong> <strong>Your partner:</strong> depends on your setting: nothing, daily totals only (the default), or full detail. <strong>Us:</strong> how many meals and scans you have logged.": {
+ "<strong>You.</strong> <strong>Your partner:</strong> depends on your setting: nothing, daily totals only (the default), or full detail. <strong>Us:</strong> how many meals and scans you have logged, and on which days.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -833,13 +843,13 @@
    "privacy/index.html"
   ]
  },
- "To show your cycle, predict upcoming dates, and share what you choose with your partner.": {
+ "To show your cycle, predict upcoming dates, tell you when a period is late, and share what you choose with your partner.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>You.</strong> <strong>Your partner:</strong> depends on your setting: nothing (the default), predictions only, or predictions plus your logs. <strong>Us:</strong> only whether the feature is in use, never the details.": {
+ "<strong>You.</strong> <strong>Your partner:</strong> depends on your setting: nothing (the default), predictions only, or predictions plus your logs. Predictions include that your period is late, and by how many days. Shared logs show the date, flow, symptoms, mood and notes, only from the day you linked, and never whether you had sex or used protection. <strong>Us:</strong> only whether the feature is in use, never the details.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -857,13 +867,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>You.</strong> <strong>Your partner:</strong> only while you share it (sharing is on unless you switch it off). <strong>Us:</strong> only whether the feature is in use, never the details.": {
+ "<strong>You.</strong> <strong>Your partner:</strong> only while the pregnancy is active, you share it (sharing is on unless you switch it off), and you are still linked with the partner you started it with. <strong>Us:</strong> only whether the feature is in use, never the details.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Location:</strong> your latest position and its accuracy, whether you are sharing, and when a pause ends.": {
+ "<strong>Location:</strong> your latest position, its accuracy and when your phone took it, whether you are sharing, when your phone last checked in, and when a pause ends.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -899,7 +909,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>Subscription:</strong> the Heartpact Plus product, its status, expiry date, whether it auto-renews, and the Google Play purchase token.": {
+ "<strong>Subscription:</strong> the Heartpact Plus product, its status (for example active, cancelled but paid up, in a grace period or on hold after a failed payment, paused or expired), expiry date, whether it auto-renews, and the Google Play purchase token; and any complimentary Plus we give your couple, with its reason and end date.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -911,25 +921,25 @@
    "privacy/index.html"
   ]
  },
- "<strong>You.</strong> <strong>Your partner:</strong> that your couple has Plus. <strong>Us:</strong> yes, to manage payments and support. We never see your card or payment details; Google handles those.": {
+ "<strong>You.</strong> <strong>Your partner:</strong> that your couple has Plus. <strong>Us:</strong> yes, to manage payments and support, including when Plus started or ended (also in the live feed). We never see your card or payment details; Google handles those.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Usage:</strong> when you were last active and which days you used the app.": {
+ "<strong>Usage:</strong> when you were last active, which days you used the app, and when you did things in it (for example, when a dare was done or a meal logged).": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "To understand how Heartpact is used overall (for example, how many people were active this week) and keep it running well.": {
+ "To understand how Heartpact is used (for example, how many people were active this week, or how far new couples get), help with support, and keep it running well.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Us</strong>, as dates and totals.": {
+ "<strong>Us</strong>, as described in section 5.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -948,6 +958,24 @@
   ]
  },
  "<strong>Nobody.</strong> It is held briefly in our server's memory (an hour at most) and not written to our database.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Account deletions:</strong> that an account was deleted, when, and whether it was one of our test or team accounts. Nothing that says whose it was.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "To count how many people leave.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Us</strong>, as a count and in the live feed (\"An account was deleted\").": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -977,7 +1005,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>Our legitimate interests.</strong> Keeping Heartpact secure and fair (rate limits, the Play Integrity check on finished dares), understanding overall usage, and handling support. We balance these against your rights and keep them to a minimum.": {
+ "<strong>Our legitimate interests.</strong> Keeping Heartpact secure and fair (rate limits, the Play Integrity check on finished dares), understanding how Heartpact is used through the admin views in section 5, and handling support. We balance these against your rights and keep them to a minimum.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1019,6 +1047,12 @@
    "privacy/index.html"
   ]
  },
+ "<strong>Practice scores.</strong> Your best scores when you practise Heart skills on your own are kept on your phone only. Only scores from a Heart to heart game with your partner are sent to us.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
  "<strong>Your sign-in.</strong> Heartpact's app data, including your sign-in, is excluded from Android cloud backups and device transfers. On a new phone you simply sign in again.": {
   "kind": "text",
   "pages": [
@@ -1026,6 +1060,12 @@
   ]
  },
  "The app asks for camera, notification, alarm, location and (for album uploads) foreground service permissions. You can change any of these in your phone's settings; the related feature will stop working until you allow it again. Heartpact does not ask for permission to read the location embedded in your photos.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "On our website, a language you pick is remembered in your browser. The pictures on the home page are chosen from the time zone your device reports; that happens in your browser and nothing is sent to us.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1043,7 +1083,7 @@
    "privacy/index.html"
   ]
  },
- "Your name, profile picture and map colour.": {
+ "Your name, profile picture and map colour, and your time zone.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1067,7 +1107,7 @@
    "privacy/index.html"
   ]
  },
- "Your games.": {
+ "Your games, including your drawings and scores. In a Heart to heart duel, your score for each round shows once they have played that round too.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1103,19 +1143,55 @@
    "privacy/index.html"
   ]
  },
- "A small number of people who run Heartpact use an admin dashboard. It shows <strong>account details and counts only</strong>: your email, name, time zone, sign-up and last-active dates, how you sign in, whether you are linked and to whom, your devices (platform and app version), your subscription, and how many dares, meals, photos and answers you have. It shows totals across all users, such as how many people use location sharing.": {
+ "A small number of people who run Heartpact use an admin dashboard. It shows <strong>account details, counts, and when things happened</strong>, with names:": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "The dashboard <strong>never</strong> shows what you wrote, photographed or logged: no photos, captions, answers, messages, meals, cycle or pregnancy details, or location. There is no admin function that returns any of it.": {
+ "<strong>Your account:</strong> your email, name, time zone, sign-up and last-active dates, how you sign in and whether your email is verified, whether you are linked and to whom, your devices (platform and app version), your subscription and any complimentary Plus, how many dares, meals, food scans, photos and answers you have, and every admin action on your account.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "Admins can help with your account: disable or re-enable it, sign you out everywhere, email you a password reset code, give your couple complimentary Plus, refund or cancel a Google Play subscription, or delete your account. Every admin sign-in and action is recorded in an audit log with who did it, when, why and from which IP address. Admins sign in with a password and a one-time code from an authenticator app.": {
+ "<strong>Your activity, day by day:</strong> for each day, the kinds of thing you did and how many: dares set, done or missed (with the exercise, for example squats), meals logged, photos synced, questions answered, games finished (with the type of game), Plus started or ended (with the plan), and admin actions.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>A live feed</strong> of what is happening across Heartpact, with display names: for example \"Kayla &amp; Austin linked up\", \"João did the dare · squats, set by Leticia\", a new sign-up and their country, a couple starting Plus, a game finished, a couple ending, or an account being deleted (without saying whose). It also shows who is online right now.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Charts and totals across everyone:</strong> sign-ups and how far new couples get, how often couples come back, the times of day people use Heartpact, dares by exercise, games by type, Heart to heart scores as spreads of numbers, renewals and estimated revenue, and the couples making the most hearts, by name.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>A world view</strong> of how many people and couples are in each country, from the country on their accounts. It never uses anyone's location.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "The dashboard <strong>never</strong> shows what you wrote, photographed, drew or logged: no photos, captions, answers, messages, drawings, meals, cycle or pregnancy details, or location. There is no admin function that returns any of it.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "Accounts we use for testing, and our team's own accounts, can be marked as internal. They work as usual but are left out of every chart and total.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "Admins can help with your account: disable or re-enable it, sign you out everywhere, email you a password reset code, give your couple complimentary Plus, refund or cancel a Google Play subscription, or delete your account. Every admin sign-in and action is recorded in an audit log with who did it, when, why and from which IP address. Admins sign in with a password and a one-time code from an authenticator app, and must enter a fresh code again before disabling or deleting an account, refunding or cancelling a subscription, giving Plus, or marking an account as internal.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1193,6 +1269,24 @@
    "privacy/index.html"
   ]
  },
+ "Cloudflare (Pages)": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "Serves our website, heartpact.app.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "The requests your browser makes to the website, as any web host does.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
  "Anthropic": {
   "kind": "text",
   "pages": [
@@ -1205,7 +1299,7 @@
    "privacy/index.html"
   ]
  },
- "The meal photo (shrunk to at most 1600 pixels and re-encoded, which removes embedded details such as location), sent from our server. It is not sent with your name or email, and we do not store it.": {
+ "The meal photo (shrunk to at most 1600 pixels and re-encoded, which removes embedded details such as location), any notes you add about the meal, and the country on your account so it can think of local dishes first, sent from our server. It is not sent with your name or email, and we do not store the photo.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1301,6 +1395,24 @@
    "privacy/index.html"
   ]
  },
+ "Google Play services: location": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "Works out your position on phones older than Android 12, while you share location.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "Your phone's location provider, run by Google Play services on your phone. We receive only the position the app sends us.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
  "Our email provider ([EMAIL PROVIDER])": {
   "kind": "text",
   "pages": [
@@ -1379,7 +1491,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>You decide what your partner sees.</strong> Cycle sharing starts at \"nothing\". Pregnancy sharing is on by default, and you can switch it off at any time. When a pregnancy is not shared, your partner gets no hint of it.": {
+ "<strong>You decide what your partner sees.</strong> Cycle sharing starts at \"nothing\", and goes back to \"nothing\" whenever a couple ends or you link with someone new, so a new partner never inherits it. Pregnancy sharing is on by default, and you can switch it off at any time; ending a pregnancy stops sharing it. When a pregnancy is not shared, your partner gets no hint of it.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Late periods.</strong> If you share at least predictions, your partner can see that your period is late, and by how many days. While you have a pregnancy you are not sharing with them, they see no late count, so it gives nothing away.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1397,13 +1515,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>Easy to remove.</strong> Deleting a pregnancy removes its appointments and kick counts too. Deleting your account removes all of your cycle and pregnancy data.": {
+ "<strong>Easy to remove.</strong> You can delete a pregnancy, whether it is active or ended; this removes its appointments and kick counts too. Hiding, ending or deleting a pregnancy also removes the notification your partner got when you shared it. Deleting your account removes all of your cycle and pregnancy data.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "If your partner has added appointments to your shared pregnancy, those appointments are part of your record and stay with you, even if your partner later deletes their account.": {
+ "While your pregnancy is shared, your partner can add appointments to it, and change or delete the ones they added. Those appointments are part of your record and stay with you, even if your partner later deletes their account; what they wrote is then erased (the title becomes \"Appointment\", and the place and notes are removed).": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1433,7 +1551,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>Only the latest point.</strong> Each new position replaces the last one. We do not keep a location history.": {
+ "<strong>You start it.</strong> Sharing starts only when you tap to share. A late position from your phone never switches it back on.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Only the latest point.</strong> Each new position replaces the last one, and we accept at most one every 5 seconds. We do not keep a location history.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1445,13 +1569,25 @@
    "privacy/index.html"
   ]
  },
+ "<strong>It stops when your phone goes quiet.</strong> While you share, your phone checks in with us every few minutes. If we hear nothing from it for 10 minutes (for example, it was switched off), your sharing counts as off for both of you.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Signing out stops it.</strong> Signing out on any of your phones stops your location sharing on all of them. Resetting your password does too.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
  "<strong>Visible on your phone.</strong> While you share, Android shows a notification, and you can stop from there. Heartpact does not use background location access.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "When you stop sharing, your partner can no longer see your last position. That last point stays stored with your account until you share again (when it is replaced) or delete your account.": {
+ "When you stop sharing, your last position is wiped straight away. When a couple ends, both partners' location records are deleted. If your sharing lapsed because your phone went quiet, your last point stays stored, hidden from your partner, until you share again (when it is thrown away) or until it has gone untouched for 7 days, when it is deleted automatically.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1475,7 +1611,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>Album photos and videos:</strong> until the uploader deletes them, your couple ends (see section 10), or the uploader deletes their account. Files are removed from storage within minutes of being deleted.": {
+ "<strong>Album photos and videos:</strong> until the uploader deletes them, your couple ends (see section 10), or the uploader deletes their account. Files are removed from storage within minutes of being deleted. A hidden record of a deleted photo is kept only until any upload link for it has expired (15 minutes at most), so a late upload cannot bring it back, and then it is removed too.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1487,13 +1623,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>Meal photos sent for an estimate:</strong> we do not keep them. They pass through our server to Anthropic and are not written anywhere. The record of the scan (time, size, result) is kept with your food log.": {
+ "<strong>Meal photos sent for an estimate:</strong> we do not keep them. They pass through our server to Anthropic and are not written anywhere. The record of the scan (time, size, model, result) is kept with your food log.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Location:</strong> only the latest point, as described in section 8.": {
+ "<strong>Location:</strong> only the latest point, wiped when you stop sharing and deleted after 7 days without use, as described in section 8.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1506,6 +1642,12 @@
   ]
  },
  "<strong>IP addresses used for rate limits:</strong> held in memory for an hour at most.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>Account deletions:</strong> a record that an account was deleted, with the date and whether it was a test or team account, and nothing else.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1560,7 +1702,13 @@
    "privacy/index.html"
   ]
  },
- "Your food log, cycle and pregnancy data stay yours, in your own account.": {
+ "Your food log, cycle and pregnancy data stay yours, in your own account. Cycle sharing goes back to \"nothing\" for both of you, and a pregnancy shared in that couple is no longer visible to your former partner.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "Both partners' location records are deleted.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1620,7 +1768,7 @@
    "privacy/index.html"
   ]
  },
- "If you are linked, the couple ends first, and your partner is told you deleted your account.": {
+ "If you are linked, the couple ends first, and your partner is told you deleted your account. Their cycle sharing goes back to \"nothing\".": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1644,13 +1792,19 @@
    "privacy/index.html"
   ]
  },
- "Things that belong to your partner, such as their own photos, answers and messages, stay with them. You appear there only as an ID that no longer matches anyone.": {
+ "Things that belong to your partner, such as their own photos, answers and messages, stay with them. You appear there only as an ID that no longer matches anyone. Appointments you added to their pregnancy stay in their record, without what you wrote.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
  "You are signed out everywhere straight away, and the email address can be used for a new account.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "We keep only a record that an account was deleted and when (see section 9).": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1686,7 +1840,7 @@
    "privacy/index.html"
   ]
  },
- "pregnancies, appointments and kick counts;": {
+ "pregnancies, appointments and kick counts (appointments you added to your partner's pregnancy only while you can still see it);": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1806,7 +1960,7 @@
    "privacy/index.html"
   ]
  },
- "Heartpact is for adults only. You must be 18 or older to create an account. We do not knowingly collect data from anyone under 18. If you believe someone under 18 is using Heartpact, tell us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a> and we will delete the account.": {
+ "Heartpact is for adults only. You must be 18 or older to create an account. We ask for your date of birth when you sign up and do not create an account for anyone under 18. We do not knowingly collect data from anyone under 18. If you believe someone under 18 is using Heartpact, tell us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a> and we will delete the account.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1854,7 +2008,7 @@
    "privacy/index.html"
   ]
  },
- "Admins need a password and an authenticator code, their sessions are short, and every admin action is logged.": {
+ "Admins need a password and an authenticator code to sign in, and a fresh code for actions such as deleting an account; their sessions are short, and every admin action is logged.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2042,7 +2196,7 @@
    "terms/index.html"
   ]
  },
- "<strong>When you link,</strong> you and your partner can see each other's shared information as described in the Privacy Policy: dares and their results, the shared album, daily answers, games, and whatever you choose to share from your food log, cycle, pregnancy and location.": {
+ "<strong>When you link,</strong> you and your partner can see each other's shared information as described in the Privacy Policy: dares and their results, the shared album, daily answers, games and their scores, and whatever you choose to share from your food log, cycle, pregnancy and location.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2066,7 +2220,7 @@
    "terms/index.html"
   ]
  },
- "Your own food log, cycle and pregnancy data stay in your account.": {
+ "Your own food log, cycle and pregnancy data stay in your account. Cycle sharing goes back to \"nothing\", and both partners' location records are deleted.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2138,6 +2292,12 @@
    "terms/index.html"
   ]
  },
+ "The same goes for games, such as a Heart to heart duel, where you both play the same skill rounds and compare scores. They are for fun. Scores are measured by your phone and can be off, and a lost game is never a reason to pressure anyone.": {
+  "kind": "text",
+  "pages": [
+   "terms/index.html"
+  ]
+ },
  "6. Acceptable use": {
   "kind": "text",
   "pages": [
@@ -2180,7 +2340,7 @@
    "terms/index.html"
   ]
  },
- "tamper with the app, the camera checks or the integrity check, or use a modified version of the app;": {
+ "tamper with the app, the camera checks, game scores or the integrity check, or use a modified version of the app;": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2216,7 +2376,7 @@
    "terms/index.html"
   ]
  },
- "Location sharing is mutual: you see your partner only while you are both sharing, and each of you can always see whether the other is sharing, paused or off. You can stop or pause at any time.": {
+ "Location sharing is mutual: you see your partner only while you are both sharing, and each of you can always see whether the other is sharing, paused or off. You can stop or pause at any time. Sharing also stops when you sign out on any of your phones, and when the phone that is sharing has not been heard from for 10 minutes.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2265,6 +2425,12 @@
   ]
  },
  "<strong>Auto-renewal.</strong> Plus renews automatically at the end of each monthly or yearly period, and Google Play charges you, until you cancel. If you start with a free trial, it turns into a paid subscription when the trial ends unless you cancel before then.": {
+  "kind": "text",
+  "pages": [
+   "terms/index.html"
+  ]
+ },
+ "<strong>Failed payments.</strong> If a renewal payment fails, Google Play may keep Plus going for a grace period while it tries again. If the payment still fails, the subscription goes on hold and Plus stops until the payment is fixed in Google Play.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2384,7 +2550,7 @@
    "terms/index.html"
   ]
  },
- "Heartpact is provided \"as is\" and \"as available\". To the extent the law allows, we make no promises beyond those in these terms, including any implied promises about fitness for a particular purpose, accuracy (for example, of rep counts, form checks, food estimates, cycle predictions or location), or that the service will be uninterrupted or error-free.": {
+ "Heartpact is provided \"as is\" and \"as available\". To the extent the law allows, we make no promises beyond those in these terms, including any implied promises about fitness for a particular purpose, accuracy (for example, of rep counts, form checks, game scores, food estimates, cycle predictions or location), or that the service will be uninterrupted or error-free.": {
   "kind": "text",
   "pages": [
    "terms/index.html"

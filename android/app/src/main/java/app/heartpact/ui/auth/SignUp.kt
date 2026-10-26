@@ -39,12 +39,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.heartpact.data.Countries
 import app.heartpact.data.Gender
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
+import app.heartpact.ui.components.ConsentLine
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.HeartField
@@ -108,8 +108,7 @@ fun SignUpScreen(state: SignUpState, onEdit: ((SignUpForm) -> SignUpForm) -> Uni
         }
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)) {
             HeartButton(tr("Create account"), onSubmit, busy = state.busy)
-            Text(tr("By continuing you agree to the Terms and the Privacy Policy."), style = Heartpact.type.small, color = colors.ink2,
-                textAlign = TextAlign.Center, modifier = Modifier.padding(top = 10.dp).fillMaxWidth())
+            ConsentLine(Modifier.padding(top = 10.dp).fillMaxWidth())
         }
     }
     if (picking) BirthDatePicker(form.dateOfBirth, onPicked = { date -> onEdit { it.copy(dateOfBirth = date) }; picking = false }, onDismiss = { picking = false })

@@ -105,9 +105,11 @@ Add `https://play.google.com/store/apps/details?id=app.heartpact` to the posts o
 
 ## Before you submit
 
-- **Privacy policy:** https://heartpact.app/privacy (required), and the account deletion page
-  https://heartpact.app/delete-account. The privacy policy and terms still have placeholders (company name, address,
-  governing law); fill them first.
+- **Privacy policy:** https://heartpact.app/privacy/ (required), and the account deletion page
+  https://heartpact.app/delete-account/. The terms are at https://heartpact.app/terms/. The app links to both
+  (sign-up, and Us → Privacy policy / Terms of use). They still have placeholders (company name, address, country,
+  providers, retention periods, governing law, liability cap); fill them first with
+  `python3 website/i18n/build.py fill "[COMPANY NAME]" "…"`.
 - **Contact:** support@heartpact.app, and the website https://heartpact.app.
 - **Category:** Lifestyle, or Health & Fitness. Tags: Couples, Relationships, Fitness, Habits.
 - **Data safety form:** account details (name, email, date of birth, gender, country), photos (album, food), location

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -47,6 +48,7 @@ import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
+import app.heartpact.ui.components.ConsentLine
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.HeartField
@@ -256,7 +258,10 @@ fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday:
             Text(tr("Choosing Woman turns on cycle tracking. It stays private until you share it."), style = Heartpact.type.small, color = colors.ink2)
             state.note?.let { NoteCard(it) }
         }
-        HeartButton(tr("Create account"), onFinish, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy)
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)) {
+            HeartButton(tr("Create account"), onFinish, busy = state.busy)
+            ConsentLine(Modifier.padding(top = 10.dp).fillMaxWidth())
+        }
     }
     if (picking) BirthDatePicker(state.dateOfBirth, onPicked = { onBirthday(it); picking = false }, onDismiss = { picking = false })
 }

@@ -2,7 +2,7 @@
 """The app's translation catalog (docs/translation.md).
 
     python3 android/i18n/catalog.py export   # writes android/i18n/source.json: every English string, where it's used
-    python3 android/i18n/catalog.py check    # every language file has every string, no stale ones, same {placeholders}
+    python3 android/i18n/catalog.py check    # every language file has every string, no stale ones, same {placeholders} and <tags>
     python3 android/i18n/catalog.py missing fr   # just the strings French still needs, as JSON
     python3 android/i18n/catalog.py merge fr batch.json   # adds a batch of translations to fr.json, sorted
     python3 android/i18n/catalog.py prune    # drops translations whose English is no longer in the app
@@ -46,6 +46,8 @@ else:
     TRN = re.compile(r'\btrn\(' + COUNT + r',\s*' + LIT + r'\s*,\s*' + LIT)
     CALL = re.compile(r'\btrn?\(')
 PLACEHOLDER = re.compile(r'\{[a-zA-Z][a-zA-Z0-9]*\}')
+# <name>words</name> marks the words of a link in a sentence (linkedText in the app); a translation keeps the same tags.
+TAG = re.compile(r'</?[a-z]+>')
 
 
 def unescape(literal):
@@ -133,6 +135,8 @@ def check_language(language, found):
                 problems.append(f"{language}: {key!r} should be a plain string")
             elif placeholders(value) != expected:
                 problems.append(f"{language}: {key!r} has placeholders {placeholders(value)}, the English has {expected}")
+            elif sorted(TAG.findall(value)) != sorted(TAG.findall(key)):
+                problems.append(f"{language}: {key!r} has tags {sorted(TAG.findall(value))}, the English has {sorted(TAG.findall(key))}")
     for key in catalog:
         if not key.startswith("@") and key not in found:
             problems.append(f"{language}: {key!r} is no longer in the app; remove it")
