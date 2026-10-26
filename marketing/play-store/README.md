@@ -107,9 +107,8 @@ Add `https://play.google.com/store/apps/details?id=app.heartpact` to the posts o
 
 - **Privacy policy:** https://heartpact.app/privacy/ (required), and the account deletion page
   https://heartpact.app/delete-account/. The terms are at https://heartpact.app/terms/. The app links to both
-  (sign-up, and Us → Privacy policy / Terms of use). The company and address are filled in; they still have placeholders
-  (email provider, server region, retention periods, liability cap); fill them first with
-  `python3 website/i18n/build.py fill "[EMAIL PROVIDER]" "…"`.
+  (sign-up, and Us → Privacy policy / Terms of use). Every placeholder is filled in (HeartPact, Delaware; Railway US East; Resend;
+  audit log 2 years, backups and logs 30 days; US$100 liability cap). Have a lawyer read them before launch.
 - **Contact:** support@heartpact.app, and the website https://heartpact.app.
 - **Category:** Lifestyle, or Health & Fitness. Tags: Couples, Relationships, Fitness, Habits.
 - **Data safety form:** account details (name, email, date of birth, gender, country), photos (album, food), location

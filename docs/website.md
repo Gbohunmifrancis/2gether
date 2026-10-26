@@ -7,7 +7,7 @@ and nothing loaded from other sites (fonts and images are served from `website/a
 | Path | What |
 |---|---|
 | `index.html` | The home page (design direction C, "The Fold") |
-| `privacy/`, `terms/` | Drafts written from what the code does. **Have a lawyer review them**, and fill the remaining bracketed placeholders (email provider, server region, retention periods, liability cap; `build.py fill`), before launch. Keep them true to the code: when a feature or the admin console changes what is collected or who sees it, update them. The app opens them in the phone's language (`LegalPages` in `android/.../ui/components/Legal.kt`) from sign-up and from Us |
+| `privacy/`, `terms/` | Drafts written from what the code does. **Have a lawyer review them** before launch; every placeholder is filled in (`build.py fill` replaces one in every language). Keep them true to the code: when a feature or the admin console changes what is collected or who sees it, update them. The app opens them in the phone's language (`LegalPages` in `android/.../ui/components/Legal.kt`) from sign-up and from Us |
 | `delete-account/` | Signs in with email and password and calls `POST /api/account/delete`, the same call the app makes. A renewing Plus subscription is shown first, as in the app. Google sign-in accounts are asked to email support |
 | `404.html` | Not found |
 | `_headers` | Security headers, including a strict Content-Security-Policy (scripts, styles and fonts only from the site; API calls only to the API) |

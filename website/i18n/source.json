@@ -1413,7 +1413,7 @@
    "privacy/index.html"
   ]
  },
- "Our email provider ([EMAIL PROVIDER])": {
+ "Our email provider (Resend)": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1653,13 +1653,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>Admin audit log:</strong> kept for [AUDIT LOG RETENTION PERIOD] so we can account for every action taken on an account. If an admin deletes your account, the log keeps your email address and the reason.": {
+ "<strong>Admin audit log:</strong> kept for 2 years so we can account for every action taken on an account. If an admin deletes your account, the log keeps your email address and the reason.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Backups and server logs:</strong> our hosting provider may keep backups and request logs for [BACKUP AND LOG RETENTION PERIOD], after which they are overwritten.": {
+ "<strong>Backups and server logs:</strong> our hosting provider may keep backups and request logs for 30 days, after which they are overwritten.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2032,7 +2032,7 @@
    "privacy/index.html"
   ]
  },
- "We are based in the United States, and our servers are in [SERVER REGION]. If you use Heartpact from outside the United States, including from the UK or the European Economic Area, your data is transferred to the United States. Some of our providers, including Google, Cloudflare and Anthropic, may also process data in other countries. Where the law requires it, we rely on recognised safeguards for these transfers, such as the European Commission's Standard Contractual Clauses and the UK's equivalent, or an adequacy decision.": {
+ "We are based in the United States, and our servers are in the eastern United States (Railway's US East region). If you use Heartpact from outside the United States, including from the UK or the European Economic Area, your data is transferred to the United States. Some of our providers, including Google, Cloudflare and Anthropic, may also process data in other countries. Where the law requires it, we rely on recognised safeguards for these transfers, such as the European Commission's Standard Contractual Clauses and the UK's equivalent, or an adequacy decision.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2568,7 +2568,7 @@
    "terms/index.html"
   ]
  },
- "To the extent the law allows, we are not liable for any indirect or consequential loss, or for loss of data, profits or opportunity, arising from your use of Heartpact. Our total liability to you for any claim relating to Heartpact is limited to the greater of the amount you paid for Heartpact Plus in the 12 months before the claim, or [LIABILITY CAP AMOUNT].": {
+ "To the extent the law allows, we are not liable for any indirect or consequential loss, or for loss of data, profits or opportunity, arising from your use of Heartpact. Our total liability to you for any claim relating to Heartpact is limited to the greater of the amount you paid for Heartpact Plus in the 12 months before the claim, or US$100.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
