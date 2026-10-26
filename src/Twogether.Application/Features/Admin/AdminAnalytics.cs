@@ -102,8 +102,13 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
         var totalUsers = await users.CountAsync(ct);
         var newUsers = await users.CountAsync(user => user.CreatedAtUtc >= fromUtc, ct);
         var disabled = await users.CountAsync(user => user.DisabledAtUtc != null, ct);
-        var couples = await measured.Couples.GroupBy(couple => couple.Status).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
-        int CouplesIn(CoupleStatus status) => couples.FirstOrDefault(item => item.Key == status)?.Count ?? 0;
+        var activeCouples = await measured.Couples.CountAsync(couple => couple.Status == CoupleStatus.Active, ct);
+        // Someone who joins their partner's couple leaves their own empty one behind, dissolved: only couples that were
+        // linked count as breakups. Invites waiting are the ones that can still be used.
+        var breakups = await measured.Couples.CountAsync(couple => couple.Status == CoupleStatus.Dissolved && couple.LinkedAtUtc != null, ct);
+        var coupleIds = measured.CoupleIds;
+        var invitesWaiting = await db.PartnerInvites.CountAsync(invite =>
+            coupleIds.Contains(invite.CoupleId) && invite.Status == PartnerInviteStatus.Pending && invite.ExpiresAtUtc > clock.UtcNow, ct);
 
         var activeToday = await activity.CountAsync(item => item.Day == today, ct);
         var weekFrom = today.AddDays(-6);
@@ -124,7 +129,7 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
 
         return new OverviewDto(
             days, totalUsers, newUsers, disabled,
-            CouplesIn(CoupleStatus.Active), CouplesIn(CoupleStatus.PendingInvite), CouplesIn(CoupleStatus.Dissolved),
+            activeCouples, invitesWaiting, breakups,
             activeToday, activeWeek, activeMonth,
             await PlusCouplesAsync(ct),
             Fill(from, to, ByDay(signups)),

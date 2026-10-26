@@ -55,7 +55,13 @@ public sealed class GameEngine : IGameEngine
     public bool IsTimed(GameType gameType) => RulesFor(gameType)?.Timed ?? gameType == GameType.ICallOn;
 
     public string ToPublicState(GameType gameType, string stateJson, Guid? viewer)
-        => RulesFor(gameType) is { } rules ? rules.ToPublicState(stateJson, viewer) : ToPublicState(gameType, stateJson);
+    {
+        // An invite that hasn't started has no state yet; the rules all assume a game in play.
+        if (NotStarted(stateJson)) return "{}";
+        return RulesFor(gameType) is { } rules ? rules.ToPublicState(stateJson, viewer) : ToPublicState(gameType, stateJson);
+    }
+
+    private static bool NotStarted(string? stateJson) => string.IsNullOrWhiteSpace(stateJson) || stateJson.Trim() == "{}";
 
     public GameEngineResult Start(GameType gameType, IReadOnlyList<Guid> playerIds, DateTime utcNow, string? setupJson = null)
     {
@@ -86,6 +92,7 @@ public sealed class GameEngine : IGameEngine
 
     public string ToPublicState(GameType gameType, string stateJson)
     {
+        if (NotStarted(stateJson)) return "{}";
         if (RulesFor(gameType) is { } rules) return rules.ToPublicState(stateJson, null);
         if (gameType != GameType.MemoryMatch && gameType != GameType.ICallOn)
         {
@@ -141,6 +148,7 @@ public sealed class GameEngine : IGameEngine
 
     public GameScoreSummary Summarise(GameType gameType, string stateJson)
     {
+        if (NotStarted(stateJson)) return new GameScoreSummary(new Dictionary<Guid, int>(), 0, null);
         try
         {
             if (RulesFor(gameType) is { } rules) return rules.Summarise(stateJson);
