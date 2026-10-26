@@ -39,6 +39,7 @@ import app.heartpact.ui.components.TwoPaneWidth
 import app.heartpact.ui.components.readable
 import app.heartpact.ui.play.Reaction
 import app.heartpact.ui.play.SkillBests
+import app.heartpact.ui.play.rememberSkillBests
 import app.heartpact.ui.play.SkillKind
 import app.heartpact.ui.play.SkillPracticeScreen
 import app.heartpact.ui.play.rememberPlayHaptics
@@ -61,7 +62,7 @@ data class GameActions(
  * [bests] keeps Heart skills' best practice scores; without one, none are shown.
  */
 @Composable
-fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }, bests: SkillBests = NoSkillBests) {
+fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }, bests: SkillBests = rememberSkillBests()) {
     // A Heart skill being practiced opens over the hub, full screen; back comes home to the hub.
     var practicing by rememberSaveable { mutableStateOf<SkillKind?>(null) }
     practicing?.let { kind ->

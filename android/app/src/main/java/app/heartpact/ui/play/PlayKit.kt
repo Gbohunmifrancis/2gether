@@ -269,6 +269,15 @@ enum class Reaction { Idle, Cheer, Sad, Thinking, Waiting }
  */
 @Composable
 fun ReactingCharacter(who: Who, reaction: Reaction, size: Dp, modifier: Modifier = Modifier, key: Any? = reaction) {
+    // Still (the reaction's pose, no breathing) when animations are off, and in screenshot tests, which wait for the
+    // screen to settle.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val still = app.heartpact.ui.graphics.LocalStillLogo.current ||
+        remember { android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+    if (still) {
+        Character(who, stillPose(who, reaction), size, modifier, mood = moodOf(reaction))
+        return
+    }
     val hop = remember(key) { Animatable(0f) }
     LaunchedEffect(key) {
         if (reaction == Reaction.Cheer || reaction == Reaction.Sad) {
@@ -280,17 +289,8 @@ fun ReactingCharacter(who: Who, reaction: Reaction, size: Dp, modifier: Modifier
     val breathe by loop.animateFloat(0f, 1f, infiniteRepeatable(tween(2400, easing = LinearEasing), RepeatMode.Restart), label = "breathe")
     val b = sin(breathe * 2f * PI.toFloat())
     val h = hop.value
-    val pose = when (reaction) {
-        Reaction.Cheer -> Pose.Cheer
-        Reaction.Waiting -> Pose.Stand
-        Reaction.Sad -> Pose.Rest
-        else -> Pose.Wave.takeIf { reaction == Reaction.Idle && who != Who.Both } ?: Pose.Stand
-    }
-    val mood = when (reaction) {
-        Reaction.Cheer -> Mood.Cheer
-        Reaction.Sad -> Mood.Worried
-        else -> Mood.Smile
-    }
+    val pose = stillPose(who, reaction)
+    val mood = moodOf(reaction)
     Character(who, pose, size, modifier.graphicsLayer {
         transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
         when (reaction) {
@@ -304,6 +304,19 @@ fun ReactingCharacter(who: Who, reaction: Reaction, size: Dp, modifier: Modifier
             else -> { scaleY = 1f + 0.02f * b; scaleX = 1f - 0.01f * b }
         }
     }, mood = mood)
+}
+
+private fun stillPose(who: Who, reaction: Reaction) = when (reaction) {
+    Reaction.Cheer -> Pose.Cheer
+    Reaction.Waiting -> Pose.Stand
+    Reaction.Sad -> Pose.Rest
+    else -> if (reaction == Reaction.Idle && who != Who.Both) Pose.Wave else Pose.Stand
+}
+
+private fun moodOf(reaction: Reaction) = when (reaction) {
+    Reaction.Cheer -> Mood.Cheer
+    Reaction.Sad -> Mood.Worried
+    else -> Mood.Smile
 }
 
 /** A light tap for a placed piece, a firm one for a win. */
