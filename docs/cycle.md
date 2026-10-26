@@ -9,7 +9,10 @@ shares: `none`, `predictionsOnly` or `fullDetail` (predictions plus the logs).
 - A new profile shares `none`. Claiming never changes a level that was already chosen; only `PUT api/cycle/profile`
   does, and the app asks for it at setup.
 - The share level is chosen for one partner. A breakup, a new link, and the partner's account deletion all set it back
-  to `none` (`CycleSharing.StopSharingAsync`), so a new partner never inherits it.
+  to `none` (`CycleSharing.StopSharingAsync`), so a new partner never inherits it. Breakups from before that left
+  the level as it was; on boot, `DatabaseSchemaUpgrade.StopCycleSharingAfterOldBreakupsSql` sets it to `none` for
+  anyone not in an active couple whose profile hasn't been saved since a linked couple of theirs ended. A level chosen
+  after the breakup, or by someone in an active couple, is left alone.
 - At `fullDetail` the partner sees the last 120 logs dated on or after the day the couple linked, never earlier ones.
   Shared logs carry the date, flow, symptoms, mood and notes, not `hadSex` or `protectionUsed`.
 - When claiming isn't possible because the partner owns the calendar, claim answers `409 cycle.unavailable` without
@@ -28,6 +31,9 @@ A calendar estimate from the last period start and the owner's averages, in `Two
   the forecast stays on that cycle (`cycleDay` 29, 30…) and `daysLate` counts from the due day (0 on the day). After a
   whole cycle late, or for an owner who doesn't log, an old start rolls forward whole cycles, so the forecast describes
   the cycle that contains today. The app draws a rolled-forward period as predicted, not as one that happened.
+  A partner shown predictions or everything gets the same `daysLate` as the owner and the app says so by name
+  ("Maya's period is 3 days late"), on the cycle screen and the Us row; shown nothing, they get nothing. Lateness
+  never sends the partner a notification.
 - `cycleStart`, `cycleDay` (day 1 is the first day of the period), `nextPeriodStart`, and `periodEnd` (the last day of
   the next period).
 - Ovulation is taken as 14 days before the next period (the luteal phase varies little); the fertile window is the five

@@ -1318,6 +1318,16 @@
  "{partner}'s drawing": "{partner} की ड्रॉइंग",
  "{partner}'s half is on. Yours sticks at {target}.": "{partner} का आधा दिल लग गया। तुम्हारा {target} पर लगेगा।",
  "{partner}'s heart": "{partner} का दिल",
+ "{partner}'s period is due today": "{partner} का पीरियड आज आने वाला है",
+ "{partner}'s period is due today.": "{partner} का पीरियड आज आने वाला है।",
+ "{partner}'s period is {count} day late.|{partner}'s period is {count} days late.": {
+  "one": "{partner} का पीरियड {count} दिन लेट है।",
+  "other": "{partner} का पीरियड {count} दिन लेट है।"
+ },
+ "{partner}'s period is {count} day late|{partner}'s period is {count} days late": {
+  "one": "{partner} का पीरियड {count} दिन लेट है",
+  "other": "{partner} का पीरियड {count} दिन लेट है"
+ },
  "{partner}'s time ran out: a point for you. New chain: {partner} starts.": "{partner} का समय खत्म: तुम्हें एक पॉइंट। नई चेन: शुरुआत {partner} की।",
  "{partner}'s truth": "{partner} का ट्रुथ",
  "{partner}'s turn": "{partner} की बारी",

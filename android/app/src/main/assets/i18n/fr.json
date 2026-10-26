@@ -1318,6 +1318,16 @@
  "{partner}'s drawing": "Le dessin de {partner}",
  "{partner}'s half is on. Yours sticks at {target}.": "La moitié de {partner} est collée. La tienne se colle à {target}.",
  "{partner}'s heart": "Le cœur de {partner}",
+ "{partner}'s period is due today": "Les règles de {partner} sont prévues aujourd'hui",
+ "{partner}'s period is due today.": "Les règles de {partner} sont prévues aujourd'hui.",
+ "{partner}'s period is {count} day late.|{partner}'s period is {count} days late.": {
+  "one": "Les règles de {partner} ont {count} jour de retard.",
+  "other": "Les règles de {partner} ont {count} jours de retard."
+ },
+ "{partner}'s period is {count} day late|{partner}'s period is {count} days late": {
+  "one": "Les règles de {partner} ont {count} jour de retard",
+  "other": "Les règles de {partner} ont {count} jours de retard"
+ },
  "{partner}'s time ran out: a point for you. New chain: {partner} starts.": "Temps écoulé pour {partner} : un point pour toi. Nouvelle chaîne : {partner} commence.",
  "{partner}'s truth": "La vérité de {partner}",
  "{partner}'s turn": "Au tour de {partner}",

@@ -62,19 +62,35 @@ object CyclePlan {
         return trn(cycleLength, "Of about {count} day. Next period likely {dates}.", "Of about {count} days. Next period likely {dates}.", "dates" to likely(next))
     }
 
+    /**
+     * The same forecast seen from the partner's side. A late period is named as the owner's (never "her" or "your")
+     * and says only how late it is; otherwise the wording is the owner's.
+     */
+    fun partnerSummary(prediction: CyclePrediction, cycleLength: Int, partner: String): String? {
+        prediction.nextPeriodStart ?: return null
+        prediction.daysLate?.let { late ->
+            return if (late == 0) tr("{partner}'s period is due today.", "partner" to partner)
+            else trn(late, "{partner}'s period is {count} day late.", "{partner}'s period is {count} days late.", "partner" to partner)
+        }
+        return summary(prediction, cycleLength)
+    }
+
     fun shareLine(level: CycleShare, partner: String): String = when (level) {
         CycleShare.None -> tr("{partner} sees nothing of your cycle.", "partner" to partner)
         CycleShare.PredictionsOnly -> tr("{partner} sees your next period and fertile window. Not your logs or notes.", "partner" to partner)
         CycleShare.FullDetail -> tr("{partner} sees your predictions and what you log, including notes.", "partner" to partner)
     }
 
-    fun usRow(owner: Boolean, cycleDay: Int?, share: CycleShare?, partner: String, partnerDay: Int?): String = when {
+    /** The cycle row on Us. A partner whose view is late sees that instead of a day count that keeps climbing. */
+    fun usRow(owner: Boolean, cycleDay: Int?, share: CycleShare?, partner: String, partnerDay: Int?, partnerDaysLate: Int? = null): String = when {
         owner && cycleDay != null -> when (share) {
             CycleShare.None -> tr("Day {day} · private", "day" to cycleDay)
             CycleShare.FullDetail -> tr("Day {day} · {partner} sees everything", "day" to cycleDay, "partner" to partner)
             else -> tr("Day {day} · {partner} sees predictions", "day" to cycleDay, "partner" to partner)
         }
         owner -> tr("Set up your cycle")
+        partnerDay != null && partnerDaysLate == 0 -> tr("{partner}'s period is due today", "partner" to partner)
+        partnerDay != null && partnerDaysLate != null -> trn(partnerDaysLate, "{partner}'s period is {count} day late", "{partner}'s period is {count} days late", "partner" to partner)
         partnerDay != null -> tr("Day {day} of {partner}'s cycle", "day" to partnerDay, "partner" to partner)
         else -> tr("Track your cycle, privately")
     }
