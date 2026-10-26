@@ -64,7 +64,7 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | Users | Search by email, name, user id or couple id; filter active, disabled, not in a couple or internal; who's online now |
 | A user | Account, couple and partner, activity counts, their journey (each day's counts as a sticker strip), devices, subscriptions, grants and admin history. Disable or re-enable, sign out everywhere, email a reset code, mark as internal, give the couple Plus, delete the account |
 | Payments | Every Play subscription: sync with Google, stop renewal, refund the latest payment, or revoke (refund and end now). Complimentary Plus grants, with end |
-| Audit log | Every admin sign-in (and failure) and action, who, when, on what, from which IP |
+| Audit log | Every admin sign-in (and failure) and action, who, when, on what, from which IP. Kept two years (`AdminAuditSweepWorker`, daily), as the privacy policy says |
 | Health | Probes (database, storage, push, email, food scans) with latency; background workers as beating hearts that go still when late and red when failing; queues; album storage; food scan cost; an honest list of what nothing monitors |
 | System | Which services are configured, push and clean-up queues, list prices, and the admins |
 
