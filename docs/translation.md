@@ -51,6 +51,9 @@ starts and again when the language changes (`Tr.load`).
   languages then get their own order and words ("27 de outubro"). Numbers with decimals use `Locale.getDefault()`.
 - Don't drop a translated word into another sentence (`"{count} {exercise}"`, `"Play {game}"`): gender, case and
   articles can't follow. Write one whole phrase per case instead, as `ExerciseType.label` and `GamePlay.play` do.
+- A link inside a sentence wraps its words in a tag, and `linkedText` turns the tag into the link:
+  `tr("By continuing you agree to the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.")`. A
+  translation keeps the same tags around its own words; `check` compares them.
 
 ### Adding or changing text
 

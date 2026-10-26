@@ -25,12 +25,12 @@
  "A pair! Go again": "زوج! العب مجددًا",
  "A perfect tie": "تعادل تام",
  "A perfect tie, {count} heart each|A perfect tie, {count} hearts each": {
-  "zero": "تعادل تام، {count} قلب لكل منكما",
-  "one": "تعادل تام، قلب واحد لكل منكما",
-  "two": "تعادل تام، قلبان لكل منكما",
   "few": "تعادل تام، {count} قلوب لكل منكما",
   "many": "تعادل تام، {count} قلبًا لكل منكما",
-  "other": "تعادل تام، {count} قلب لكل منكما"
+  "one": "تعادل تام، قلب واحد لكل منكما",
+  "other": "تعادل تام، {count} قلب لكل منكما",
+  "two": "تعادل تام، قلبان لكل منكما",
+  "zero": "تعادل تام، {count} قلب لكل منكما"
  },
  "A pizza, a slice already gone.": "بيتزا أُكلت منها شريحة.",
  "A place starting with {letter}": "مكان بحرف {letter}",
@@ -40,12 +40,12 @@
  "A word chain against the clock: each word starts with the last letter of the one before. 20 seconds a turn, first to five.": "سلسلة كلمات في سباق مع الوقت: كل كلمة تبدأ بآخر حرف من الكلمة السابقة. 20 ثانية لكل دور، والفوز لمن يصل إلى خمس أولًا.",
  "A word starting with {letter}": "كلمة تبدأ بحرف {letter}",
  "A year ago|{count} years ago": {
-  "zero": "قبل {count} عام",
-  "one": "قبل عام",
-  "two": "قبل عامين",
   "few": "قبل {count} أعوام",
   "many": "قبل {count} عامًا",
-  "other": "قبل {count} عام"
+  "one": "قبل عام",
+  "other": "قبل {count} عام",
+  "two": "قبل عامين",
+  "zero": "قبل {count} عام"
  },
  "About you": "عنك",
  "About {partner}": "عن {partner}",
@@ -68,12 +68,12 @@
  "Album space": "مساحة الألبوم",
  "All countries": "كل البلدان",
  "All five played. {partner} has {count} round to go.|All five played. {partner} has {count} rounds to go.": {
-  "zero": "لعبت الجولات الخمس. بقي لـ{partner} {count} جولة.",
-  "one": "لعبت الجولات الخمس. بقيت لـ{partner} جولة واحدة.",
-  "two": "لعبت الجولات الخمس. بقيت لـ{partner} جولتان.",
   "few": "لعبت الجولات الخمس. بقيت لـ{partner} {count} جولات.",
   "many": "لعبت الجولات الخمس. بقيت لـ{partner} {count} جولة.",
-  "other": "لعبت الجولات الخمس. بقيت لـ{partner} {count} جولة."
+  "one": "لعبت الجولات الخمس. بقيت لـ{partner} جولة واحدة.",
+  "other": "لعبت الجولات الخمس. بقيت لـ{partner} {count} جولة.",
+  "two": "لعبت الجولات الخمس. بقيت لـ{partner} جولتان.",
+  "zero": "لعبت الجولات الخمس. بقي لـ{partner} {count} جولة."
  },
  "All the way through. One straight swipe.": "من طرف إلى طرف. سحبة واحدة مستقيمة.",
  "Allow": "سماح",
@@ -100,12 +100,12 @@
  "Ask {partner} to call it off": "اطلب من {partner} الإلغاء",
  "Ask {partner} to call it off?": "طلب الإلغاء من {partner}؟",
  "At least {count} character|At least {count} characters": {
-  "zero": "{count} حرف على الأقل",
-  "one": "حرف واحد على الأقل",
-  "two": "حرفان على الأقل",
   "few": "{count} أحرف على الأقل",
   "many": "{count} حرفًا على الأقل",
-  "other": "{count} حرف على الأقل"
+  "one": "حرف واحد على الأقل",
+  "other": "{count} حرف على الأقل",
+  "two": "حرفان على الأقل",
+  "zero": "{count} حرف على الأقل"
  },
  "at {time}": "عند {time}",
  "Back": "رجوع",
@@ -119,14 +119,14 @@
  "Both right!": "أصبتما كلاكما!",
  "Breakfast": "الفطور",
  "Bring your arms all the way down between raises.": "أنزل ذراعيك تمامًا بين التكرارات.",
- "By continuing you agree to the Terms and the Privacy Policy.": "المتابعة تعني الموافقة على الشروط وسياسة الخصوصية.",
+ "By continuing you agree to the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.": "المتابعة تعني الموافقة على <terms>الشروط</terms> و<privacy>سياسة الخصوصية</privacy>.",
  "by {count} heart|by {count} hearts": {
-  "zero": "بفارق {count} قلب",
-  "one": "بفارق قلب واحد",
-  "two": "بفارق قلبين",
   "few": "بفارق {count} قلوب",
   "many": "بفارق {count} قلبًا",
-  "other": "بفارق {count} قلب"
+  "one": "بفارق قلب واحد",
+  "other": "بفارق {count} قلب",
+  "two": "بفارق قلبين",
+  "zero": "بفارق {count} قلب"
  },
  "Cake": "كعكة",
  "Call it off together": "إلغاء معًا",
@@ -271,12 +271,12 @@
  "Ended early": "انتهت مبكرًا",
  "Ended {date}": "انتهى في {date}",
  "Enter all {count} digit.|Enter all {count} digits.": {
-  "zero": "أدخل كل الأرقام الـ{count}.",
-  "one": "أدخل الرقم كاملًا.",
-  "two": "أدخل الرقمين كليهما.",
   "few": "أدخل كل الأرقام الـ{count}.",
   "many": "أدخل كل الأرقام الـ{count}.",
-  "other": "أدخل كل الأرقام الـ{count}."
+  "one": "أدخل الرقم كاملًا.",
+  "other": "أدخل كل الأرقام الـ{count}.",
+  "two": "أدخل الرقمين كليهما.",
+  "zero": "أدخل كل الأرقام الـ{count}."
  },
  "Enter an email like name@example.com.": "أدخل بريدًا إلكترونيًا مثل name@example.com.",
  "Enter the email you signed up with.": "أدخل البريد الإلكتروني الذي سجّلت به.",
@@ -373,12 +373,12 @@
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact للبالغين. يجب أن يكون عمرك 18 عامًا أو أكثر للتسجيل.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "يحتاج Heartpact إلى الكاميرا لعدّ تكراراتك. لا يُسجَّل أو يُرسَل أي شيء.",
  "heart|hearts": {
-  "zero": "قلب",
-  "one": "قلب",
-  "two": "قلبان",
   "few": "قلوب",
   "many": "قلبًا",
-  "other": "قلب"
+  "one": "قلب",
+  "other": "قلب",
+  "two": "قلبان",
+  "zero": "قلب"
  },
  "Heavy": "غزير",
  "Held on {s} s too long.": "تأخّر الإفلات بـ{s} ث.",
@@ -428,12 +428,12 @@
  "Keeps going in the background": "تستمر في الخلفية",
  "Kick count": "عدّ الركلات",
  "kick|kicks": {
-  "zero": "ركلات",
-  "one": "ركلة",
-  "two": "ركلتان",
   "few": "ركلات",
   "many": "ركلة",
-  "other": "ركلة"
+  "one": "ركلة",
+  "other": "ركلة",
+  "two": "ركلتان",
+  "zero": "ركلات"
  },
  "Kiss the center": "قبلة في المنتصف",
  "Knees up to hip height.": "الركبتان حتى مستوى الورك.",
@@ -449,8 +449,8 @@
  "Later today": "لاحقًا اليوم",
  "Leave Heartpact whenever you like. If the connection drops, it carries on when you're back.": "غادر Heartpact متى شئت. وإذا انقطع الاتصال، تُستأنف المزامنة عند عودته.",
  "Left side got {pct}% more.": "الجانب الأيسر أكبر بنسبة {pct}%.",
- "left to ring": "متبقية من الرنين",
  "Left to ring": "حتى نهاية الرنين",
+ "left to ring": "متبقية من الرنين",
  "Left {deg}° open.": "بقيت فجوة {deg}°.",
  "Less": "أقل",
  "Let go at the line": "أفلِت عند الخط",
@@ -458,12 +458,12 @@
  "Let your dares ring on time": "اجعل تحدياتك ترنّ في وقتها",
  "Level on hearts and on points": "تعادل في القلوب وفي النقاط",
  "Level on hearts, won by {count} point|Level on hearts, won by {count} points": {
-  "zero": "تعادل في القلوب، والفوز بفارق {count} نقطة",
-  "one": "تعادل في القلوب، والفوز بفارق نقطة واحدة",
-  "two": "تعادل في القلوب، والفوز بفارق نقطتين",
   "few": "تعادل في القلوب، والفوز بفارق {count} نقاط",
   "many": "تعادل في القلوب، والفوز بفارق {count} نقطة",
-  "other": "تعادل في القلوب، والفوز بفارق {count} نقطة"
+  "one": "تعادل في القلوب، والفوز بفارق نقطة واحدة",
+  "other": "تعادل في القلوب، والفوز بفارق {count} نقطة",
+  "two": "تعادل في القلوب، والفوز بفارق نقطتين",
+  "zero": "تعادل في القلوب، والفوز بفارق {count} نقطة"
  },
  "Level on hearts, you won on points": "تعادل في القلوب، وفزت بالنقاط",
  "Level on hearts, {partner} won on points": "تعادل في القلوب، والفوز لـ{partner} بالنقاط",
@@ -503,22 +503,22 @@
  "Memory match": "لعبة الذاكرة",
  "Messages": "الرسائل",
  "minute left\n{progress}|minutes left\n{progress}": {
-  "zero": "أقل من دقيقة متبقية\n{progress}",
-  "one": "دقيقة واحدة متبقية\n{progress}",
-  "two": "دقيقتان متبقيتان\n{progress}",
   "few": "دقائق متبقية\n{progress}",
   "many": "دقيقة متبقية\n{progress}",
-  "other": "دقيقة متبقية\n{progress}"
+  "one": "دقيقة واحدة متبقية\n{progress}",
+  "other": "دقيقة متبقية\n{progress}",
+  "two": "دقيقتان متبقيتان\n{progress}",
+  "zero": "أقل من دقيقة متبقية\n{progress}"
  },
- "missed": "فائت",
  "Missed": "أخطأت",
+ "missed": "فائت",
  "missed a camera check-in|missed {count} camera check-ins": {
-  "zero": "لم يفت أي فحص بالكاميرا",
-  "one": "فات فحص واحد بالكاميرا",
-  "two": "فات فحصان بالكاميرا",
   "few": "فاتت {count} فحوصات بالكاميرا",
   "many": "فات {count} فحصًا بالكاميرا",
-  "other": "فات {count} فحص بالكاميرا"
+  "one": "فات فحص واحد بالكاميرا",
+  "other": "فات {count} فحص بالكاميرا",
+  "two": "فات فحصان بالكاميرا",
+  "zero": "لم يفت أي فحص بالكاميرا"
  },
  "Missed the check-in": "فات الفحص",
  "Missed today": "فات اليوم",
@@ -587,21 +587,21 @@
  "Notifications arrive silently, without sound": "تصل الإشعارات بصمت، دون صوت",
  "Now find its pair": "الآن ابحث عن مثيلتها",
  "Of about {count} day. Next period likely {dates}.|Of about {count} days. Next period likely {dates}.": {
-  "zero": "من أصل {count} يوم تقريبًا. الحيض القادم على الأرجح {dates}.",
-  "one": "من أصل يوم واحد تقريبًا. الحيض القادم على الأرجح {dates}.",
-  "two": "من أصل يومين تقريبًا. الحيض القادم على الأرجح {dates}.",
   "few": "من أصل {count} أيام تقريبًا. الحيض القادم على الأرجح {dates}.",
   "many": "من أصل {count} يومًا تقريبًا. الحيض القادم على الأرجح {dates}.",
-  "other": "من أصل {count} يوم تقريبًا. الحيض القادم على الأرجح {dates}."
+  "one": "من أصل يوم واحد تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "other": "من أصل {count} يوم تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "two": "من أصل يومين تقريبًا. الحيض القادم على الأرجح {dates}.",
+  "zero": "من أصل {count} يوم تقريبًا. الحيض القادم على الأرجح {dates}."
  },
  "of your cycle, food and goals": "من دورتك وطعامك وأهدافك",
  "of {count} second|of {count} seconds": {
-  "zero": "من أصل {count} ثانية",
-  "one": "من أصل ثانية واحدة",
-  "two": "من أصل ثانيتين",
   "few": "من أصل {count} ثوانٍ",
   "many": "من أصل {count} ثانية",
-  "other": "من أصل {count} ثانية"
+  "one": "من أصل ثانية واحدة",
+  "other": "من أصل {count} ثانية",
+  "two": "من أصل ثانيتين",
+  "zero": "من أصل {count} ثانية"
  },
  "of {total}": "من أصل {total}",
  "Off center by {pct}%, down and to the left.": "انحراف عن المنتصف بنسبة {pct}%، إلى الأسفل واليسار.",
@@ -618,20 +618,20 @@
  "One draws a secret word, the other has three guesses. Swap each round, six rounds.": "أحدكما يرسم كلمة سرية، وللآخر ثلاث محاولات لتخمينها. تبادلا الأدوار كل جولة، ست جولات.",
  "one half on": "نصف واحد ملصق",
  "one meal photo|{number} meal photos": {
-  "zero": "لا صور وجبات",
-  "one": "صورة وجبة واحدة",
-  "two": "صورتين لوجبات",
   "few": "{number} صور وجبات",
   "many": "{number} صورة وجبات",
-  "other": "{number} صورة وجبات"
+  "one": "صورة وجبة واحدة",
+  "other": "{number} صورة وجبات",
+  "two": "صورتين لوجبات",
+  "zero": "لا صور وجبات"
  },
  "one meal|{number} meals": {
-  "zero": "لا وجبات",
-  "one": "وجبة واحدة",
-  "two": "وجبتين",
   "few": "{number} وجبات",
   "many": "{number} وجبة",
-  "other": "{number} وجبة"
+  "one": "وجبة واحدة",
+  "other": "{number} وجبة",
+  "two": "وجبتين",
+  "zero": "لا وجبات"
  },
  "One plan covers both of you. Either of you can buy it.": "اشتراك واحد يشملكما معًا، ويمكن لأيٍّ منكما شراؤه.",
  "One question a day, for both of you": "سؤال واحد يوميًا، لكليكما",
@@ -648,16 +648,17 @@
  "only {partner} answered": "الإجابة من {partner} فقط",
  "Opening your calendar…": "جارٍ فتح التقويم…",
  "Opening…": "جارٍ الفتح…",
+ "Opens in your browser": "تُفتح في متصفحك",
  "or": "أم",
  "or sign up with email": "أو سجّل بالبريد الإلكتروني",
  "Other half": "النصف الآخر",
  "out of view for {count} second|out of view for {count} seconds": {
-  "zero": "لم يخرج من الإطار",
-  "one": "خارج الإطار لمدة ثانية",
-  "two": "خارج الإطار لمدة ثانيتين",
   "few": "خارج الإطار لمدة {count} ثوانٍ",
   "many": "خارج الإطار لمدة {count} ثانية",
-  "other": "خارج الإطار لمدة {count} ثانية"
+  "one": "خارج الإطار لمدة ثانية",
+  "other": "خارج الإطار لمدة {count} ثانية",
+  "two": "خارج الإطار لمدة ثانيتين",
+  "zero": "لم يخرج من الإطار"
  },
  "over a day ago": "قبل أكثر من يوم",
  "Pacts": "المواثيق",
@@ -676,12 +677,12 @@
  "period": "الحيض",
  "Period due today.": "الدورة متوقعة اليوم.",
  "Period late by {count} day.|Period late by {count} days.": {
-  "zero": "الدورة متأخرة {count} يوم.",
-  "one": "الدورة متأخرة يومًا واحدًا.",
-  "two": "الدورة متأخرة يومين.",
   "few": "الدورة متأخرة {count} أيام.",
   "many": "الدورة متأخرة {count} يومًا.",
-  "other": "الدورة متأخرة {count} يوم."
+  "one": "الدورة متأخرة يومًا واحدًا.",
+  "other": "الدورة متأخرة {count} يوم.",
+  "two": "الدورة متأخرة يومين.",
+  "zero": "الدورة متأخرة {count} يوم."
  },
  "Photo added by {name}": "صورة من {name}",
  "Photo estimates aren't set up": "تقديرات الصور غير مُعدّة",
@@ -702,12 +703,12 @@
  "place": "مكان",
  "Plank": "بلانك",
  "plank, {count} second|plank, {count} seconds": {
-  "zero": "بلانك، {count} ثانية",
-  "one": "بلانك، ثانية واحدة",
-  "two": "بلانك، ثانيتان",
   "few": "بلانك، {count} ثوانٍ",
   "many": "بلانك، {count} ثانية",
-  "other": "بلانك، {count} ثانية"
+  "one": "بلانك، ثانية واحدة",
+  "other": "بلانك، {count} ثانية",
+  "two": "بلانك، ثانيتان",
+  "zero": "بلانك، {count} ثانية"
  },
  "plans and dreams": "خطط وأحلام",
  "Play": "العب",
@@ -746,6 +747,7 @@
  "Prefer not to say": "أفضّل عدم الإفصاح",
  "Pregnancy": "الحمل",
  "Pregnancy mode": "وضع الحمل",
+ "Privacy policy": "سياسة الخصوصية",
  "Promise ring": "خاتم الوعد",
  "Protein": "بروتين",
  "Push all the way up between reps.": "ادفع للأعلى تمامًا بين التكرارات.",
@@ -783,12 +785,12 @@
  "Rings every day at": "يرنّ يوميًا عند",
  "Rings for up to": "يرنّ لمدة أقصاها",
  "Rings in {count} minute|Rings in {count} minutes": {
-  "zero": "يرنّ الآن",
-  "one": "يرنّ بعد دقيقة",
-  "two": "يرنّ بعد دقيقتين",
   "few": "يرنّ بعد {count} دقائق",
   "many": "يرنّ بعد {count} دقيقة",
-  "other": "يرنّ بعد {count} دقيقة"
+  "one": "يرنّ بعد دقيقة",
+  "other": "يرنّ بعد {count} دقيقة",
+  "two": "يرنّ بعد دقيقتين",
+  "zero": "يرنّ الآن"
  },
  "Rings today at {time}": "يرنّ اليوم عند {time}",
  "Rings tomorrow at {time}": "يرنّ غدًا عند {time}",
@@ -914,12 +916,12 @@
  "Sync progress and a daily nudge when photos are waiting on this phone.": "تقدّم المزامنة وتذكير يومي عندما تنتظر صور على هذا الهاتف.",
  "Sync when you're ready and they'll join your shared album.": "زامِن متى شئت وستنضم إلى ألبومكما المشترك.",
  "Sync {count} photo?|Sync {count} photos?": {
-  "zero": "لا صور للمزامنة",
-  "one": "مزامنة صورة واحدة؟",
-  "two": "مزامنة صورتين؟",
   "few": "مزامنة {count} صور؟",
   "many": "مزامنة {count} صورة؟",
-  "other": "مزامنة {count} صورة؟"
+  "one": "مزامنة صورة واحدة؟",
+  "other": "مزامنة {count} صورة؟",
+  "two": "مزامنة صورتين؟",
+  "zero": "لا صور للمزامنة"
  },
  "Syncing photos": "جارٍ مزامنة الصور",
  "Syncing {done} of {total}": "مزامنة {done} من {total}",
@@ -934,6 +936,7 @@
  "Ten questions, four choices each. You both answer, then the right one shows.": "عشرة أسئلة، لكل منها أربعة خيارات. تجيبان معًا، ثم تظهر الإجابة الصحيحة.",
  "Ten turns. Pick truth or dare, and your partner says if you did it. A point for each one done.": "عشرة أدوار. اختر صراحة أم جرأة، والحكم لشريكك إن نفّذت. نقطة لكل واحدة تُنجَز.",
  "Tender": "ألم الثدي",
+ "Terms of use": "شروط الاستخدام",
  "Thanks. Keep going.": "شكرًا. لنكمل!",
  "That code didn't work. Check it with your partner, or ask for a new one.": "لم ينجح هذا الرمز. تحقق منه مع شريكك، أو اطلب رمزًا جديدًا.",
  "That date doesn't look right.": "يبدو هذا التاريخ غير صحيح.",
@@ -948,25 +951,26 @@
  "The bottom got {pct}% more.": "الجزء السفلي أكبر بنسبة {pct}%.",
  "The camera couldn't read your pose. Try more light.": "تعذّر على الكاميرا قراءة وضعيتك. جرّب إضاءة أكثر.",
  "The chain so far · {count} word|The chain so far · {count} words": {
-  "zero": "السلسلة حتى الآن · لا كلمات",
-  "one": "السلسلة حتى الآن · كلمة واحدة",
-  "two": "السلسلة حتى الآن · كلمتان",
   "few": "السلسلة حتى الآن · {count} كلمات",
   "many": "السلسلة حتى الآن · {count} كلمة",
-  "other": "السلسلة حتى الآن · {count} كلمة"
+  "one": "السلسلة حتى الآن · كلمة واحدة",
+  "other": "السلسلة حتى الآن · {count} كلمة",
+  "two": "السلسلة حتى الآن · كلمتان",
+  "zero": "السلسلة حتى الآن · لا كلمات"
  },
  "The drawing": "الرسمة",
  "The Naija finger-count game: call a number, lay your fingers, and the winner slaps. Play it with friends.": "لعبة عدّ الأصابع النيجيرية: اختر رقمًا، وأظهر أصابعك، والفائز يصفع. العبها مع الأصدقاء.",
  "the phone was moving during {count} rep|the phone was moving during {count} reps": {
-  "zero": "لم يتحرك الهاتف أثناء التكرارات",
-  "one": "كان الهاتف يتحرك أثناء تكرار واحد",
-  "two": "كان الهاتف يتحرك أثناء تكرارين",
   "few": "كان الهاتف يتحرك أثناء {count} تكرارات",
   "many": "كان الهاتف يتحرك أثناء {count} تكرارًا",
-  "other": "كان الهاتف يتحرك أثناء {count} تكرار"
+  "one": "كان الهاتف يتحرك أثناء تكرار واحد",
+  "other": "كان الهاتف يتحرك أثناء {count} تكرار",
+  "two": "كان الهاتف يتحرك أثناء تكرارين",
+  "zero": "لم يتحرك الهاتف أثناء التكرارات"
  },
  "The photo said {range}": "قدّرتها الصورة بـ{range}",
  "The pose model couldn't load on this phone.": "تعذّر تحميل نموذج تتبّع الوضعية على هذا الهاتف.",
+ "The rules for using Heartpact": "قواعد استخدام Heartpact",
  "The same five skill rounds for both of you, each on your own time. Your scores show side by side.": "جولات المهارة الخمس نفسها لكليكما، كلٌّ في وقته. تظهر نتيجتاكما جنبًا إلى جنب.",
  "The same heart goes on {partner}'s page.": "القلب نفسه يُضاف إلى صفحة {partner}.",
  "The same notifications, arriving silently during your quiet hours.": "الإشعارات نفسها، تصل بصمت خلال ساعات الهدوء.",
@@ -976,6 +980,7 @@
  "The window closed": "انتهت المهلة",
  "The word was": "الكلمة كانت",
  "Theo's dare for Maya": "تحدٍّ من Theo إلى Maya",
+ "There's no browser on this phone to open it. The page is at {url}": "لا يوجد متصفح على هذا الهاتف لفتحها. الصفحة على {url}",
  "They join your shared album, and your partner sees them once they're in.": "تنضم إلى ألبومكما المشترك، ويراها شريكك فور وصولها.",
  "thing": "شيء",
  "This dare was changed or already finished.": "تغيّر هذا التحدي أو انتهى بالفعل.",
@@ -992,8 +997,8 @@
  "Tic-tac-toe": "إكس أو",
  "Tiny tests of a steady hand. Practice alone and beat your best.": "اختبارات صغيرة لثبات اليد. تدرّب وحدك وتفوّق على أفضل نتيجة لك.",
  "Tired": "تعب",
- "to go": "متبقٍ",
  "To go": "المتبقي",
+ "to go": "متبقٍ",
  "Today": "اليوم",
  "today": "اليوم",
  "Today's dare wasn't done in time. Tomorrow is a new page.": "لم يُنجَز تحدي اليوم في الوقت. غدًا صفحة جديدة.",
@@ -1025,12 +1030,12 @@
  "updated {minutes} min ago": "حُدّث قبل {minutes} د",
  "Us": "نحن",
  "Use at least {count} character.|Use at least {count} characters.": {
-  "zero": "استخدم {count} حرف على الأقل.",
-  "one": "استخدم حرفًا واحدًا على الأقل.",
-  "two": "استخدم حرفين على الأقل.",
   "few": "استخدم {count} أحرف على الأقل.",
   "many": "استخدم {count} حرفًا على الأقل.",
-  "other": "استخدم {count} حرف على الأقل."
+  "one": "استخدم حرفًا واحدًا على الأقل.",
+  "other": "استخدم {count} حرف على الأقل.",
+  "two": "استخدم حرفين على الأقل.",
+  "zero": "استخدم {count} حرف على الأقل."
  },
  "Usual cycle length": "طول الدورة المعتاد",
  "Usual period length": "مدة الحيض المعتادة",
@@ -1061,6 +1066,7 @@
  "What reaches your phone": "ما يصل إلى هاتفك",
  "What reaches your phone, and when": "ما يصل إلى هاتفك، ومتى",
  "What shall we play?": "ماذا نلعب؟",
+ "What we keep and who can see it": "ما نحتفظ به ومن يمكنه رؤيته",
  "What you both get": "ما تحصلان عليه معًا",
  "What {partner} sees": "ما يظهر لـ{partner}",
  "When did your last period start?": "متى بدأ حيضك الأخير؟",
@@ -1080,8 +1086,8 @@
  "Would you rather…": "لو خُيّرت…",
  "Wrong": "خطأ",
  "Yearly": "سنوي",
- "yesterday": "أمس",
  "Yesterday": "أمس",
+ "yesterday": "أمس",
  "You": "أنت",
  "You asked {partner} to call it off": "طلبت من {partner} الإلغاء",
  "You both answered": "أجبتما كلاكما",
@@ -1113,12 +1119,12 @@
  "You won game {game}!": "فزت بالجولة {game}!",
  "You won the duel": "فزت بالمبارزة",
  "You won the duel by {count} heart|You won the duel by {count} hearts": {
-  "zero": "فزت بالمبارزة بفارق {count} قلب",
-  "one": "فزت بالمبارزة بفارق قلب واحد",
-  "two": "فزت بالمبارزة بفارق قلبين",
   "few": "فزت بالمبارزة بفارق {count} قلوب",
   "many": "فزت بالمبارزة بفارق {count} قلبًا",
-  "other": "فزت بالمبارزة بفارق {count} قلب"
+  "one": "فزت بالمبارزة بفارق قلب واحد",
+  "other": "فزت بالمبارزة بفارق {count} قلب",
+  "two": "فزت بالمبارزة بفارق قلبين",
+  "zero": "فزت بالمبارزة بفارق {count} قلب"
  },
  "You won {game}, {mine} to {theirs}": "فزت في {game}، {mine} مقابل {theirs}",
  "You won!": "فزت!",
@@ -1168,12 +1174,12 @@
  "Your shared album is nearly full": "ألبومكما المشترك على وشك الامتلاء",
  "Your sticker page": "صفحة ملصقاتك",
  "Your sticker page · {count} heart in 30 days|Your sticker page · {count} hearts in 30 days": {
-  "zero": "صفحة ملصقاتك · لا قلوب في 30 يومًا",
-  "one": "صفحة ملصقاتك · قلب واحد في 30 يومًا",
-  "two": "صفحة ملصقاتك · قلبان في 30 يومًا",
   "few": "صفحة ملصقاتك · {count} قلوب في 30 يومًا",
   "many": "صفحة ملصقاتك · {count} قلبًا في 30 يومًا",
-  "other": "صفحة ملصقاتك · {count} قلب في 30 يومًا"
+  "one": "صفحة ملصقاتك · قلب واحد في 30 يومًا",
+  "other": "صفحة ملصقاتك · {count} قلب في 30 يومًا",
+  "two": "صفحة ملصقاتك · قلبان في 30 يومًا",
+  "zero": "صفحة ملصقاتك · لا قلوب في 30 يومًا"
  },
  "Your sync starts as soon as you're online.": "تبدأ المزامنة فور اتصالك بالإنترنت.",
  "Your tap": "ضغطتك",
@@ -1188,286 +1194,286 @@
  "Your {plan} plan is set not to renew. Plus ends on {date}.": "اشتراكك ال{plan} لن يتجدد. ينتهي Plus في {date}.",
  "Your {plan} plan renews on {date}.": "يتجدد اشتراكك ال{plan} في {date}.",
  "{achieved} of {count} second|{achieved} of {count} seconds": {
-  "zero": "{achieved} من {count} ثانية",
-  "one": "{achieved} من ثانية واحدة",
-  "two": "{achieved} من ثانيتين",
   "few": "{achieved} من {count} ثوانٍ",
   "many": "{achieved} من {count} ثانية",
-  "other": "{achieved} من {count} ثانية"
+  "one": "{achieved} من ثانية واحدة",
+  "other": "{achieved} من {count} ثانية",
+  "two": "{achieved} من ثانيتين",
+  "zero": "{achieved} من {count} ثانية"
  },
  "{achieved} of {total}": "{achieved} من {total}",
  "{calories} kcal so far, from {meals}": "{calories} سعرة حتى الآن، من {meals}",
  "{category} starting with {letter}": "{category} بحرف {letter}",
  "{count} arm raise|{count} arm raises": {
-  "zero": "رفع الذراعين × {count}",
-  "one": "رفع الذراعين × {count}",
-  "two": "رفع الذراعين × {count}",
   "few": "رفع الذراعين × {count}",
   "many": "رفع الذراعين × {count}",
-  "other": "رفع الذراعين × {count}"
+  "one": "رفع الذراعين × {count}",
+  "other": "رفع الذراعين × {count}",
+  "two": "رفع الذراعين × {count}",
+  "zero": "رفع الذراعين × {count}"
  },
  "{count} day|{count} days": {
-  "zero": "لا أيام",
-  "one": "يوم واحد",
-  "two": "يومان",
   "few": "{count} أيام",
   "many": "{count} يومًا",
-  "other": "{count} يوم"
+  "one": "يوم واحد",
+  "other": "{count} يوم",
+  "two": "يومان",
+  "zero": "لا أيام"
  },
  "{count} drawing guessed|{count} drawings guessed": {
-  "zero": "لم تُخمَّن أي رسمة",
-  "one": "خُمّنت رسمة واحدة",
-  "two": "خُمّنت رسمتان",
   "few": "خُمّنت {count} رسمات",
   "many": "خُمّنت {count} رسمة",
-  "other": "خُمّنت {count} رسمة"
+  "one": "خُمّنت رسمة واحدة",
+  "other": "خُمّنت {count} رسمة",
+  "two": "خُمّنت رسمتان",
+  "zero": "لم تُخمَّن أي رسمة"
  },
  "{count} guess left|{count} guesses left": {
-  "zero": "لم تبقَ أي محاولة",
-  "one": "بقيت محاولة واحدة",
-  "two": "بقيت محاولتان",
   "few": "بقيت {count} محاولات",
   "many": "بقيت {count} محاولة",
-  "other": "بقيت {count} محاولة"
+  "one": "بقيت محاولة واحدة",
+  "other": "بقيت {count} محاولة",
+  "two": "بقيت محاولتان",
+  "zero": "لم تبقَ أي محاولة"
  },
  "{count} heart|{count} hearts": {
-  "zero": "{count} قلب",
-  "one": "قلب واحد",
-  "two": "قلبان",
   "few": "{count} قلوب",
   "many": "{count} قلبًا",
-  "other": "{count} قلب"
+  "one": "قلب واحد",
+  "other": "{count} قلب",
+  "two": "قلبان",
+  "zero": "{count} قلب"
  },
  "{count} high knee|{count} high knees": {
-  "zero": "رفع الركبتين × {count}",
-  "one": "رفع الركبتين × {count}",
-  "two": "رفع الركبتين × {count}",
   "few": "رفع الركبتين × {count}",
   "many": "رفع الركبتين × {count}",
-  "other": "رفع الركبتين × {count}"
+  "one": "رفع الركبتين × {count}",
+  "other": "رفع الركبتين × {count}",
+  "two": "رفع الركبتين × {count}",
+  "zero": "رفع الركبتين × {count}"
  },
  "{count} jumping jack|{count} jumping jacks": {
-  "zero": "قفز مفتوح × {count}",
-  "one": "قفز مفتوح × {count}",
-  "two": "قفز مفتوح × {count}",
   "few": "قفز مفتوح × {count}",
   "many": "قفز مفتوح × {count}",
-  "other": "قفز مفتوح × {count}"
+  "one": "قفز مفتوح × {count}",
+  "other": "قفز مفتوح × {count}",
+  "two": "قفز مفتوح × {count}",
+  "zero": "قفز مفتوح × {count}"
  },
  "{count} kick in {minutes} min · {day} {time}|{count} kicks in {minutes} min · {day} {time}": {
-  "zero": "لا ركلات في {minutes} د · {day} {time}",
-  "one": "ركلة واحدة في {minutes} د · {day} {time}",
-  "two": "ركلتان في {minutes} د · {day} {time}",
   "few": "{count} ركلات في {minutes} د · {day} {time}",
   "many": "{count} ركلة في {minutes} د · {day} {time}",
-  "other": "{count} ركلة في {minutes} د · {day} {time}"
+  "one": "ركلة واحدة في {minutes} د · {day} {time}",
+  "other": "{count} ركلة في {minutes} د · {day} {time}",
+  "two": "ركلتان في {minutes} د · {day} {time}",
+  "zero": "لا ركلات في {minutes} د · {day} {time}"
  },
  "{count} matching answer|{count} matching answers": {
-  "zero": "لا إجابات متطابقة",
-  "one": "إجابة متطابقة واحدة",
-  "two": "إجابتان متطابقتان",
   "few": "{count} إجابات متطابقة",
   "many": "{count} إجابة متطابقة",
-  "other": "{count} إجابة متطابقة"
+  "one": "إجابة متطابقة واحدة",
+  "other": "{count} إجابة متطابقة",
+  "two": "إجابتان متطابقتان",
+  "zero": "لا إجابات متطابقة"
  },
  "{count} matching pick|{count} matching picks": {
-  "zero": "لا اختيارات متطابقة",
-  "one": "اختيار متطابق واحد",
-  "two": "اختياران متطابقان",
   "few": "{count} اختيارات متطابقة",
   "many": "{count} اختيارًا متطابقًا",
-  "other": "{count} اختيار متطابق"
+  "one": "اختيار متطابق واحد",
+  "other": "{count} اختيار متطابق",
+  "two": "اختياران متطابقان",
+  "zero": "لا اختيارات متطابقة"
  },
  "{count} month|{count} months": {
-  "zero": "لا أشهر",
-  "one": "شهر واحد",
-  "two": "شهران",
   "few": "{count} أشهر",
   "many": "{count} شهرًا",
-  "other": "{count} شهر"
+  "one": "شهر واحد",
+  "other": "{count} شهر",
+  "two": "شهران",
+  "zero": "لا أشهر"
  },
  "{count} of {limit} photo estimate left today|{count} of {limit} photo estimates left today": {
-  "zero": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
-  "one": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
-  "two": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
   "few": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
   "many": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
-  "other": "المتبقي اليوم من تقديرات الصور: {count} من {limit}"
+  "one": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
+  "other": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
+  "two": "المتبقي اليوم من تقديرات الصور: {count} من {limit}",
+  "zero": "المتبقي اليوم من تقديرات الصور: {count} من {limit}"
  },
  "{count} of {target}, {left} to go": "{count} من {target}، والمتبقي {left}",
  "{count} pair|{count} pairs": {
-  "zero": "لا أزواج",
-  "one": "زوج واحد",
-  "two": "زوجان",
   "few": "{count} أزواج",
   "many": "{count} زوجًا",
-  "other": "{count} زوج"
+  "one": "زوج واحد",
+  "other": "{count} زوج",
+  "two": "زوجان",
+  "zero": "لا أزواج"
  },
  "{count} photo added to your shared album.|{count} photos added to your shared album.": {
-  "zero": "لم تُضف أي صورة إلى ألبومكما المشترك.",
-  "one": "أُضيفت صورة واحدة إلى ألبومكما المشترك.",
-  "two": "أُضيفت صورتان إلى ألبومكما المشترك.",
   "few": "أُضيفت {count} صور إلى ألبومكما المشترك.",
   "many": "أُضيفت {count} صورة إلى ألبومكما المشترك.",
-  "other": "أُضيفت {count} صورة إلى ألبومكما المشترك."
+  "one": "أُضيفت صورة واحدة إلى ألبومكما المشترك.",
+  "other": "أُضيفت {count} صورة إلى ألبومكما المشترك.",
+  "two": "أُضيفت صورتان إلى ألبومكما المشترك.",
+  "zero": "لم تُضف أي صورة إلى ألبومكما المشترك."
  },
  "{count} photo couldn't be added; tap one to see why.|{count} photos couldn't be added; tap one to see why.": {
-  "zero": "لم تتعذّر إضافة أي صورة.",
-  "one": "تعذّرت إضافة صورة واحدة؛ اضغط عليها لمعرفة السبب.",
-  "two": "تعذّرت إضافة صورتين؛ اضغط على إحداهما لمعرفة السبب.",
   "few": "تعذّرت إضافة {count} صور؛ اضغط على إحداها لمعرفة السبب.",
   "many": "تعذّرت إضافة {count} صورة؛ اضغط على إحداها لمعرفة السبب.",
-  "other": "تعذّرت إضافة {count} صورة؛ اضغط على إحداها لمعرفة السبب."
+  "one": "تعذّرت إضافة صورة واحدة؛ اضغط عليها لمعرفة السبب.",
+  "other": "تعذّرت إضافة {count} صورة؛ اضغط على إحداها لمعرفة السبب.",
+  "two": "تعذّرت إضافة صورتين؛ اضغط على إحداهما لمعرفة السبب.",
+  "zero": "لم تتعذّر إضافة أي صورة."
  },
  "{count} photo estimate left today|{count} photo estimates left today": {
-  "zero": "لم يتبقَّ اليوم أي تقدير بالصور",
-  "one": "المتبقي اليوم: تقدير واحد بالصور",
-  "two": "المتبقي اليوم: تقديران بالصور",
   "few": "المتبقي اليوم: {count} تقديرات بالصور",
   "many": "المتبقي اليوم: {count} تقديرًا بالصور",
-  "other": "المتبقي اليوم: {count} تقدير بالصور"
+  "one": "المتبقي اليوم: تقدير واحد بالصور",
+  "other": "المتبقي اليوم: {count} تقدير بالصور",
+  "two": "المتبقي اليوم: تقديران بالصور",
+  "zero": "لم يتبقَّ اليوم أي تقدير بالصور"
  },
  "{count} photo is only on this phone|{count} photos are only on this phone": {
-  "zero": "لا صور على هذا الهاتف فقط",
-  "one": "صورة واحدة على هذا الهاتف فقط",
-  "two": "صورتان على هذا الهاتف فقط",
   "few": "{count} صور على هذا الهاتف فقط",
   "many": "{count} صورة على هذا الهاتف فقط",
-  "other": "{count} صورة على هذا الهاتف فقط"
+  "one": "صورة واحدة على هذا الهاتف فقط",
+  "other": "{count} صورة على هذا الهاتف فقط",
+  "two": "صورتان على هذا الهاتف فقط",
+  "zero": "لا صور على هذا الهاتف فقط"
  },
  "{count} photo still waiting: {reason}|{count} photos still waiting: {reason}": {
-  "zero": "لا صور بالانتظار: {reason}",
-  "one": "صورة واحدة ما زالت بالانتظار: {reason}",
-  "two": "صورتان ما زالتا بالانتظار: {reason}",
   "few": "{count} صور ما زالت بالانتظار: {reason}",
   "many": "{count} صورة ما زالت بالانتظار: {reason}",
-  "other": "{count} صورة ما زالت بالانتظار: {reason}"
+  "one": "صورة واحدة ما زالت بالانتظار: {reason}",
+  "other": "{count} صورة ما زالت بالانتظار: {reason}",
+  "two": "صورتان ما زالتا بالانتظار: {reason}",
+  "zero": "لا صور بالانتظار: {reason}"
  },
  "{count} photo waiting|{count} photos waiting": {
-  "zero": "لا صور بالانتظار",
-  "one": "صورة واحدة بالانتظار",
-  "two": "صورتان بالانتظار",
   "few": "{count} صور بالانتظار",
   "many": "{count} صورة بالانتظار",
-  "other": "{count} صورة بالانتظار"
+  "one": "صورة واحدة بالانتظار",
+  "other": "{count} صورة بالانتظار",
+  "two": "صورتان بالانتظار",
+  "zero": "لا صور بالانتظار"
  },
  "{count} photo wasn't added. {reason}|{count} photos weren't added. {reason}": {
-  "zero": "لم تُضف {count} صورة. {reason}",
-  "one": "لم تُضف صورة واحدة. {reason}",
-  "two": "لم تُضف صورتان. {reason}",
   "few": "لم تُضف {count} صور. {reason}",
   "many": "لم تُضف {count} صورة. {reason}",
-  "other": "لم تُضف {count} صورة. {reason}"
+  "one": "لم تُضف صورة واحدة. {reason}",
+  "other": "لم تُضف {count} صورة. {reason}",
+  "two": "لم تُضف صورتان. {reason}",
+  "zero": "لم تُضف {count} صورة. {reason}"
  },
  "{count} photo|{count} photos": {
-  "zero": "لا صور",
-  "one": "صورة واحدة",
-  "two": "صورتان",
   "few": "{count} صور",
   "many": "{count} صورة",
-  "other": "{count} صورة"
+  "one": "صورة واحدة",
+  "other": "{count} صورة",
+  "two": "صورتان",
+  "zero": "لا صور"
  },
  "{count} point|{count} points": {
-  "zero": "{count} نقطة",
-  "one": "نقطة واحدة",
-  "two": "نقطتان",
   "few": "{count} نقاط",
   "many": "{count} نقطة",
-  "other": "{count} نقطة"
+  "one": "نقطة واحدة",
+  "other": "{count} نقطة",
+  "two": "نقطتان",
+  "zero": "{count} نقطة"
  },
  "{count} pt|{count} pts": {
-  "zero": "لا نقاط",
-  "one": "نقطة واحدة",
-  "two": "نقطتان",
   "few": "{count} نقاط",
   "many": "{count} نقطة",
-  "other": "{count} نقطة"
+  "one": "نقطة واحدة",
+  "other": "{count} نقطة",
+  "two": "نقطتان",
+  "zero": "لا نقاط"
  },
  "{count} push-up|{count} push-ups": {
-  "zero": "ضغط × {count}",
-  "one": "ضغط × {count}",
-  "two": "ضغط × {count}",
   "few": "ضغط × {count}",
   "many": "ضغط × {count}",
-  "other": "ضغط × {count}"
+  "one": "ضغط × {count}",
+  "other": "ضغط × {count}",
+  "two": "ضغط × {count}",
+  "zero": "ضغط × {count}"
  },
  "{count} rep didn't count|{count} reps didn't count": {
-  "zero": "كل التكرارات احتُسبت",
-  "one": "تكرار واحد لم يُحتسب",
-  "two": "تكراران لم يُحتسبا",
   "few": "{count} تكرارات لم تُحتسب",
   "many": "{count} تكرارًا لم يُحتسب",
-  "other": "{count} تكرار لم يُحتسب"
+  "one": "تكرار واحد لم يُحتسب",
+  "other": "{count} تكرار لم يُحتسب",
+  "two": "تكراران لم يُحتسبا",
+  "zero": "كل التكرارات احتُسبت"
  },
  "{count} round left to play|{count} rounds left to play": {
-  "zero": "{count} جولة متبقية",
-  "one": "جولة واحدة متبقية",
-  "two": "جولتان متبقيتان",
   "few": "{count} جولات متبقية",
   "many": "{count} جولة متبقية",
-  "other": "{count} جولة متبقية"
+  "one": "جولة واحدة متبقية",
+  "other": "{count} جولة متبقية",
+  "two": "جولتان متبقيتان",
+  "zero": "{count} جولة متبقية"
  },
  "{count} sit-up|{count} sit-ups": {
-  "zero": "تمارين البطن × {count}",
-  "one": "تمارين البطن × {count}",
-  "two": "تمارين البطن × {count}",
   "few": "تمارين البطن × {count}",
   "many": "تمارين البطن × {count}",
-  "other": "تمارين البطن × {count}"
+  "one": "تمارين البطن × {count}",
+  "other": "تمارين البطن × {count}",
+  "two": "تمارين البطن × {count}",
+  "zero": "تمارين البطن × {count}"
  },
  "{count} squat|{count} squats": {
-  "zero": "سكوات × {count}",
-  "one": "سكوات × {count}",
-  "two": "سكوات × {count}",
   "few": "سكوات × {count}",
   "many": "سكوات × {count}",
-  "other": "سكوات × {count}"
+  "one": "سكوات × {count}",
+  "other": "سكوات × {count}",
+  "two": "سكوات × {count}",
+  "zero": "سكوات × {count}"
  },
  "{count} week|{count} weeks": {
-  "zero": "لا أسابيع",
-  "one": "أسبوع واحد",
-  "two": "أسبوعان",
   "few": "{count} أسابيع",
   "many": "{count} أسبوعًا",
-  "other": "{count} أسبوع"
+  "one": "أسبوع واحد",
+  "other": "{count} أسبوع",
+  "two": "أسبوعان",
+  "zero": "لا أسابيع"
  },
  "{count} win|{count} wins": {
-  "zero": "{count} فوز",
-  "one": "فوز واحد",
-  "two": "فوزان",
   "few": "{count} انتصارات",
   "many": "{count} فوزًا",
-  "other": "{count} فوز"
+  "one": "فوز واحد",
+  "other": "{count} فوز",
+  "two": "فوزان",
+  "zero": "{count} فوز"
  },
  "{count} year|{count} years": {
-  "zero": "لا سنوات",
-  "one": "سنة واحدة",
-  "two": "سنتان",
   "few": "{count} سنوات",
   "many": "{count} سنة",
-  "other": "{count} سنة"
+  "one": "سنة واحدة",
+  "other": "{count} سنة",
+  "two": "سنتان",
+  "zero": "لا سنوات"
  },
  "{dare} by {time}": "{dare} قبل {time}",
  "{dare} won't ring for {partner} any more. The hearts already kept stay on both pages.": "{dare}: لن يرنّ لـ{partner} بعد الآن. تبقى القلوب التي جُمعت على الصفحتين.",
  "{dare} · rings at {time}": "{dare} · يرنّ عند {time}",
  "{date} · {count} heart this week|{date} · {count} hearts this week": {
-  "zero": "{date} · لا قلوب هذا الأسبوع",
-  "one": "{date} · قلب واحد هذا الأسبوع",
-  "two": "{date} · قلبان هذا الأسبوع",
   "few": "{date} · {count} قلوب هذا الأسبوع",
   "many": "{date} · {count} قلبًا هذا الأسبوع",
-  "other": "{date} · {count} قلب هذا الأسبوع"
+  "one": "{date} · قلب واحد هذا الأسبوع",
+  "other": "{date} · {count} قلب هذا الأسبوع",
+  "two": "{date} · قلبان هذا الأسبوع",
+  "zero": "{date} · لا قلوب هذا الأسبوع"
  },
  "{day} at {time}": "{day} الساعة {time}",
  "{done} of {total} in your shared album": "{done} من {total} في ألبومكما المشترك",
  "{due} · cycle predictions paused": "{due} · توقعات الدورة متوقفة",
  "{exercise}, {count} second|{exercise}, {count} seconds": {
-  "zero": "{exercise}، {count} ثانية",
-  "one": "{exercise}، ثانية واحدة",
-  "two": "{exercise}، ثانيتان",
   "few": "{exercise}، {count} ثوانٍ",
   "many": "{exercise}، {count} ثانية",
-  "other": "{exercise}، {count} ثانية"
+  "one": "{exercise}، ثانية واحدة",
+  "other": "{exercise}، {count} ثانية",
+  "two": "{exercise}، ثانيتان",
+  "zero": "{exercise}، {count} ثانية"
  },
  "{game} ended early": "انتهت لعبة {game} مبكرًا",
  "{game} was a draw, {score} each": "تعادل في {game}، {score} لكل منكما",
@@ -1501,12 +1507,12 @@
  "{partner} has picked. Your turn!": "اختيار {partner} جاهز. دورك!",
  "{partner} has played it": "لعبها {partner}",
  "{partner} has {count} guess left|{partner} has {count} guesses left": {
-  "zero": "لم تبقَ لـ{partner} أي محاولة",
-  "one": "بقيت لـ{partner} محاولة واحدة",
-  "two": "بقيت لـ{partner} محاولتان",
   "few": "بقيت لـ{partner} {count} محاولات",
   "many": "بقيت لـ{partner} {count} محاولة",
-  "other": "بقيت لـ{partner} {count} محاولة"
+  "one": "بقيت لـ{partner} محاولة واحدة",
+  "other": "بقيت لـ{partner} {count} محاولة",
+  "two": "بقيت لـ{partner} محاولتان",
+  "zero": "لم تبقَ لـ{partner} أي محاولة"
  },
  "{partner} hasn't shared a cycle with you. If they track one here, they choose what you see.": "لا توجد دورة مشارَكة من {partner}. عند تتبّعها هنا، يعود قرار ما يظهر لك إلى {partner}.",
  "{partner} hasn't started drawing yet": "لا رسم من {partner} بعد",
@@ -1526,12 +1532,12 @@
  "{partner} picked {answer}": "اختيار {partner}: {answer}",
  "{partner} picked {answer}. You guessed {guess}.": "اختيار {partner}: {answer}. وتخمينك: {guess}.",
  "{partner} played {count} round you haven't. Play it to see both scores.|{partner} played {count} rounds you haven't. Play them to see both scores.": {
-  "zero": "لعب {partner} {count} جولة لم تلعبها. العبها لترى النتيجتين.",
-  "one": "لعب {partner} جولة لم تلعبها. العبها لترى النتيجتين.",
-  "two": "لعب {partner} جولتين لم تلعبهما. العبهما لترى النتيجتين.",
   "few": "لعب {partner} {count} جولات لم تلعبها. العبها لترى النتيجتين.",
   "many": "لعب {partner} {count} جولة لم تلعبها. العبها لترى النتيجتين.",
-  "other": "لعب {partner} {count} جولة لم تلعبها. العبها لترى النتيجتين."
+  "one": "لعب {partner} جولة لم تلعبها. العبها لترى النتيجتين.",
+  "other": "لعب {partner} {count} جولة لم تلعبها. العبها لترى النتيجتين.",
+  "two": "لعب {partner} جولتين لم تلعبهما. العبهما لترى النتيجتين.",
+  "zero": "لعب {partner} {count} جولة لم تلعبها. العبها لترى النتيجتين."
  },
  "{partner} played. Play yours to see": "لعب {partner}. العب جولتك لترى",
  "{partner} said \"{answer}\" for a food": "إجابة {partner} في الطعام: «{answer}»",
@@ -1555,12 +1561,12 @@
  "{partner} won": "الفوز لـ{partner}",
  "{partner} won game {game}": "الجولة {game} لـ{partner}",
  "{partner} won the duel by {count} heart|{partner} won the duel by {count} hearts": {
-  "zero": "الفوز لـ{partner} بفارق {count} قلب",
-  "one": "الفوز لـ{partner} بفارق قلب واحد",
-  "two": "الفوز لـ{partner} بفارق قلبين",
   "few": "الفوز لـ{partner} بفارق {count} قلوب",
   "many": "الفوز لـ{partner} بفارق {count} قلبًا",
-  "other": "الفوز لـ{partner} بفارق {count} قلب"
+  "one": "الفوز لـ{partner} بفارق قلب واحد",
+  "other": "الفوز لـ{partner} بفارق {count} قلب",
+  "two": "الفوز لـ{partner} بفارق قلبين",
+  "zero": "الفوز لـ{partner} بفارق {count} قلب"
  },
  "{partner} won {game}, {theirs} to {mine}": "الفوز في {game} لـ{partner}، {theirs} مقابل {mine}",
  "{partner} won, {theirs} to {mine}": "الفوز لـ{partner}، {theirs} مقابل {mine}",
@@ -1575,20 +1581,20 @@
  "{partner}'s period is due today": "الدورة الشهرية لـ{partner} متوقعة اليوم",
  "{partner}'s period is due today.": "الدورة الشهرية لـ{partner} متوقعة اليوم.",
  "{partner}'s period is {count} day late.|{partner}'s period is {count} days late.": {
-  "zero": "الدورة الشهرية لـ{partner} متأخرة {count} يوم.",
-  "one": "الدورة الشهرية لـ{partner} متأخرة يومًا واحدًا.",
-  "two": "الدورة الشهرية لـ{partner} متأخرة يومين.",
   "few": "الدورة الشهرية لـ{partner} متأخرة {count} أيام.",
   "many": "الدورة الشهرية لـ{partner} متأخرة {count} يومًا.",
-  "other": "الدورة الشهرية لـ{partner} متأخرة {count} يوم."
+  "one": "الدورة الشهرية لـ{partner} متأخرة يومًا واحدًا.",
+  "other": "الدورة الشهرية لـ{partner} متأخرة {count} يوم.",
+  "two": "الدورة الشهرية لـ{partner} متأخرة يومين.",
+  "zero": "الدورة الشهرية لـ{partner} متأخرة {count} يوم."
  },
  "{partner}'s period is {count} day late|{partner}'s period is {count} days late": {
-  "zero": "الدورة الشهرية لـ{partner} متأخرة {count} يوم",
-  "one": "الدورة الشهرية لـ{partner} متأخرة يومًا واحدًا",
-  "two": "الدورة الشهرية لـ{partner} متأخرة يومين",
   "few": "الدورة الشهرية لـ{partner} متأخرة {count} أيام",
   "many": "الدورة الشهرية لـ{partner} متأخرة {count} يومًا",
-  "other": "الدورة الشهرية لـ{partner} متأخرة {count} يوم"
+  "one": "الدورة الشهرية لـ{partner} متأخرة يومًا واحدًا",
+  "other": "الدورة الشهرية لـ{partner} متأخرة {count} يوم",
+  "two": "الدورة الشهرية لـ{partner} متأخرة يومين",
+  "zero": "الدورة الشهرية لـ{partner} متأخرة {count} يوم"
  },
  "{partner}'s time ran out: a point for you. New chain: {partner} starts.": "انتهى وقت {partner}: نقطة لك. سلسلة جديدة: البداية لـ{partner}.",
  "{partner}'s truth": "سؤال صراحة لـ{partner}",
@@ -1599,46 +1605,46 @@
  "{partner}, week {week}": "{partner}، الأسبوع {week}",
  "{photos} · {used} of {limit}": "{photos} · {used} من {limit}",
  "{price} a day|{price} every {count} days": {
-  "zero": "{price} يوميًا",
-  "one": "{price} يوميًا",
-  "two": "{price} كل يومين",
   "few": "{price} كل {count} أيام",
   "many": "{price} كل {count} يومًا",
-  "other": "{price} كل {count} يوم"
+  "one": "{price} يوميًا",
+  "other": "{price} كل {count} يوم",
+  "two": "{price} كل يومين",
+  "zero": "{price} يوميًا"
  },
  "{price} a month|{price} every {count} months": {
-  "zero": "{price} شهريًا",
-  "one": "{price} شهريًا",
-  "two": "{price} كل شهرين",
   "few": "{price} كل {count} أشهر",
   "many": "{price} كل {count} شهرًا",
-  "other": "{price} كل {count} شهر"
+  "one": "{price} شهريًا",
+  "other": "{price} كل {count} شهر",
+  "two": "{price} كل شهرين",
+  "zero": "{price} شهريًا"
  },
  "{price} a week|{price} every {count} weeks": {
-  "zero": "{price} أسبوعيًا",
-  "one": "{price} أسبوعيًا",
-  "two": "{price} كل أسبوعين",
   "few": "{price} كل {count} أسابيع",
   "many": "{price} كل {count} أسبوعًا",
-  "other": "{price} كل {count} أسبوع"
+  "one": "{price} أسبوعيًا",
+  "other": "{price} كل {count} أسبوع",
+  "two": "{price} كل أسبوعين",
+  "zero": "{price} أسبوعيًا"
  },
  "{price} a year|{price} every {count} years": {
-  "zero": "{price} سنويًا",
-  "one": "{price} سنويًا",
-  "two": "{price} كل سنتين",
   "few": "{price} كل {count} سنوات",
   "many": "{price} كل {count} سنة",
-  "other": "{price} كل {count} سنة"
+  "one": "{price} سنويًا",
+  "other": "{price} كل {count} سنة",
+  "two": "{price} كل سنتين",
+  "zero": "{price} سنويًا"
  },
  "{price} each period": "{price} لكل فترة",
  "{progress} at {time},\nwhile it was ringing.": "{progress} عند {time}،\nبينما كان يرنّ.",
  "{progress} at {time},\n{count} minute before it would ring.|{progress} at {time},\n{count} minutes before it would ring.": {
-  "zero": "{progress} عند {time}،\nقبل الرنين بأقل من دقيقة.",
-  "one": "{progress} عند {time}،\nقبل الرنين بدقيقة واحدة.",
-  "two": "{progress} عند {time}،\nقبل الرنين بدقيقتين.",
   "few": "{progress} عند {time}،\nقبل الرنين بـ{count} دقائق.",
   "many": "{progress} عند {time}،\nقبل الرنين بـ{count} دقيقة.",
-  "other": "{progress} عند {time}،\nقبل الرنين بـ{count} دقيقة."
+  "one": "{progress} عند {time}،\nقبل الرنين بدقيقة واحدة.",
+  "other": "{progress} عند {time}،\nقبل الرنين بـ{count} دقيقة.",
+  "two": "{progress} عند {time}،\nقبل الرنين بدقيقتين.",
+  "zero": "{progress} عند {time}،\nقبل الرنين بأقل من دقيقة."
  },
  "{progress} · rings until {time}": "{progress} · يرنّ حتى {time}",
  "{seconds} seconds left": "الثواني المتبقية: {seconds}",

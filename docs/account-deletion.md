@@ -77,7 +77,7 @@ The request is checked in this order:
 ## Outside the API
 
 - **Web deletion page.** Play Console asks for a URL where people can delete their account without the app:
-  https://heartpact.app/delete-account (`website/delete-account/`, docs/website.md). It signs in with
+  https://heartpact.app/delete-account/ (`website/delete-account/`, docs/website.md). It signs in with
   `/api/auth/login` and calls this endpoint, as the app does.
 - **Data safety form (still to do).** Declare in Play Console's Data safety form that deletion is offered and is
   immediate.

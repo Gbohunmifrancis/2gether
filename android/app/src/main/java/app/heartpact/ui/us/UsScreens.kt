@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,11 +19,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.HeartBroken
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -59,7 +63,9 @@ import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
+import app.heartpact.ui.components.LegalPages
 import app.heartpact.ui.components.NoteCard
+import app.heartpact.ui.components.openInBrowser
 import app.heartpact.ui.components.SectionHeader
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.components.TopBar
@@ -136,6 +142,7 @@ fun UsTab(
             CardRow(tr("End our pact"), subtitle = tr("Unlinks you both and stops every dare"), icon = Icons.Outlined.HeartBroken, divider = true, onClick = { confirmEnd = true })
             CardRow(tr("Delete my account"), subtitle = tr("Everything of yours, for good"), icon = Icons.Outlined.PersonRemove, divider = true, onClick = { confirmDelete = true })
         }
+        LegalCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp))
     }) {
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
         location()
@@ -188,6 +195,23 @@ fun UsTab(
         )
     }
 }
+
+/** The Privacy Policy and Terms of Use, opened on heartpact.app in the app's language. */
+@Composable
+private fun LegalCard(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val opens = tr("Opens in your browser")
+    StickerCard(modifier) {
+        CardRow(tr("Privacy policy"), subtitle = tr("What we keep and who can see it"), icon = Icons.Outlined.PrivacyTip,
+            onClick = { openInBrowser(context, LegalPages.privacy()) }) { ExternalMark(opens) }
+        CardRow(tr("Terms of use"), subtitle = tr("The rules for using Heartpact"), icon = Icons.Outlined.Description, divider = true,
+            onClick = { openInBrowser(context, LegalPages.terms()) }) { ExternalMark(opens) }
+    }
+}
+
+@Composable
+private fun ExternalMark(description: String) =
+    Icon(Icons.AutoMirrored.Rounded.OpenInNew, description, Modifier.size(20.dp), tint = Heartpact.colors.ink2)
 
 /** Today's question (mockup 16): answer to unlock your partner's. */
 @Composable

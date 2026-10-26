@@ -7,10 +7,14 @@ and TanStack Table, and it talks only to the API's `/api/admin/*` endpoints.
 
 ## What admins can and can't see
 
-Admins see **counts and account metadata**: email, name, sign-up and last-active dates, sign-in methods, couple
-state, devices, store subscriptions, and how many dares, meals, photos and answers someone has. They never see
-what couples wrote, photographed or logged: no photos, captions, answers, messages, meals, cycle or pregnancy
-details, or location. The API has no admin endpoint that returns any of it.
+Admins see **counts, account metadata and when things happened, with names**: email, name, sign-up and
+last-active dates, sign-in methods, couple state, devices, store subscriptions, how many dares, meals, photos and
+answers someone has, their journey (each day's kinds of activity, with exercise names, game types and products), the
+live feed ("Kayla & Austin linked up", "João did the dare · squats, set by Leticia"), top couples by name, the world
+view by account country, and Heart to heart scores as distributions. They never see what couples wrote,
+photographed, drew or logged: no photos, captions, answers, messages, drawings, meals, cycle or pregnancy details, or
+location. The API has no admin endpoint that returns any of it. The Privacy Policy (`website/privacy/`, section 5)
+describes this to users; change it when what admins see changes.
 
 ## Signing in
 
