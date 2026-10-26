@@ -69,11 +69,12 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     }
 
     fun signOut() = viewModelScope.launch {
-        withTimeoutOrNull(5_000) { Push.unregister(app) }
-        // Sharing ends with the session: the server hears it before the hub and the token go. If it
-        // can't be reached, a retry carrying this session's token keeps trying, and the server's lease
-        // ends the share meanwhile. Sent even when this phone isn't sharing: another may have been.
+        // Sharing ends with the session, on this phone at once, online or not, before anything waits on the network.
         if (LocationShareService.running) LocationShareService.stop(app.appContext, tellServer = false)
+        withTimeoutOrNull(5_000) { Push.unregister(app) }
+        // Then the server hears it, before the hub and the token go, and stops it on the person's other phones too.
+        // If it can't be reached, a retry carrying this session's token keeps trying, and the server's lease ends
+        // the share meanwhile. Sent even when this phone isn't sharing: another may have been.
         LocationStop.send(app)
         app.live.stopAll()
         app.auth.signOut()

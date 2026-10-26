@@ -23,6 +23,7 @@ public sealed record GameInsightsDto(int Days, IReadOnlyList<GameTypeDto> Types,
 public sealed record GameTypeDto(string Type, int Started, int Finished, int Abandoned, double? MedianMinutes);
 /// <summary>Buckets: ten counts, 0-9 … 90-100.</summary>
 public sealed record SkillDto(string Kind, int Rounds, double? AverageScore, int[] Buckets);
+/// <summary>Finished duels; ties are level on hearts and on points; the median gap is in hearts.</summary>
 public sealed record DuelDto(int Finished, int Ties, double? MedianMargin);
 
 public sealed record GrowthDto(

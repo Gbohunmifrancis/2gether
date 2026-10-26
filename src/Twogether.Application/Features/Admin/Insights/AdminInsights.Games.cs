@@ -10,7 +10,8 @@ public sealed partial class AdminInsights
     /// <summary>
     /// Games begun in the window, by type: how many were finished or abandoned, and the median length of a finished
     /// one. Skills are the Heart to heart rounds of duels begun in the window that weren't abandoned (finished or still
-    /// going): each score played counts as a round. Duels are the finished ones: ties and the median gap between totals.
+    /// going): each score played counts as a round. Duels are the finished ones: ties (level on hearts and on points) and
+    /// the median gap in hearts.
     /// </summary>
     public async Task<GameInsightsDto> GamesAsync(int days, CancellationToken ct)
     {
@@ -44,6 +45,7 @@ public sealed partial class AdminInsights
         var scores = SkillDuelRules.Kinds.ToDictionary(kind => kind, _ => new List<int>());
         var margins = new List<double>();
         var finished = 0;
+        var ties = 0;
         foreach (var duel in duels)
         {
             SkillDuelTally tally;
@@ -59,6 +61,7 @@ public sealed partial class AdminInsights
                 if (scores.TryGetValue(kind, out var list)) list.Add(score);
             if (duel.Status != GameSessionStatus.Completed) continue;
             finished++;
+            if (tally.Tied) ties++;
             if (tally.Margin is { } margin) margins.Add(margin);
         }
         var skills = scores.Select(item =>
@@ -67,6 +70,6 @@ public sealed partial class AdminInsights
             foreach (var score in item.Value) buckets[InsightsMath.ScoreBucket(score)]++;
             return new SkillDto(item.Key, item.Value.Count, item.Value.Count == 0 ? null : Math.Round(item.Value.Average(), 1), buckets);
         }).ToList();
-        return new GameInsightsDto(days, types, skills, new DuelDto(finished, margins.Count(margin => margin == 0), InsightsMath.Round(InsightsMath.Median(margins))));
+        return new GameInsightsDto(days, types, skills, new DuelDto(finished, ties, InsightsMath.Round(InsightsMath.Median(margins))));
     }
 }

@@ -53,13 +53,31 @@ class SkillDuelStateTest {
         assertEquals(5, GamePlay.skillDuel(session("{}")).totalRounds)
     }
 
-    @Test fun `the outcome is the duel won on total points`() {
-        fun finished(maya: Int, theo: Int, winner: String?) = session("""{"players":["maya","theo"],"phase":"completed","rounds":[],
-            "hearts":{"maya":2,"theo":3},"totals":{"maya":$maya,"theo":$theo},"winner":${winner?.let { "\"$it\"" }},"tie":${winner == null},"margin":${kotlin.math.abs(maya - theo)}}""", GameStatus.Completed)
-        assertEquals("You won the duel by 75 points", GamePlay.outcome(finished(355, 280, "maya"), "maya", "Theo"))
-        assertEquals("Theo won the duel by 1 point", GamePlay.outcome(finished(300, 301, "theo"), "maya", "Theo"))
-        assertEquals("A perfect tie, 250 points each", GamePlay.outcome(finished(250, 250, null), "maya", "Theo"))
+    private fun finished(hearts: Pair<Int, Int>, points: Pair<Int, Int>, winner: String?, decidedBy: String?) = session(
+        """{"players":["maya","theo"],"phase":"completed","rounds":[],"hearts":{"maya":${hearts.first},"theo":${hearts.second}},
+        "totals":{"maya":${points.first},"theo":${points.second}},"winner":${winner?.let { "\"$it\"" }},"tie":${winner == null},
+        "decidedBy":${decidedBy?.let { "\"$it\"" }},"margin":${kotlin.math.abs(hearts.first - hearts.second)},"pointMargin":${kotlin.math.abs(points.first - points.second)}}""",
+        GameStatus.Completed)
+
+    @Test fun `the outcome is the duel won on hearts, and the points only when the hearts were level`() {
+        assertEquals("You won the duel by 2 hearts", GamePlay.outcome(finished(4 to 2, 355 to 280, "maya", "hearts"), "maya", "Theo"))
+        // More hearts win even with fewer points.
+        assertEquals("Theo won the duel by 1 heart", GamePlay.outcome(finished(2 to 3, 350 to 173, "theo", "hearts"), "maya", "Theo"))
+        assertEquals("Level on hearts, you won on points", GamePlay.outcome(finished(4 to 4, 250 to 230, "maya", "points"), "maya", "Theo"))
+        assertEquals("Level on hearts, Theo won on points", GamePlay.outcome(finished(4 to 4, 230 to 250, "theo", "points"), "maya", "Theo"))
+        assertEquals("A perfect tie, 3 hearts each", GamePlay.outcome(finished(3 to 3, 250 to 250, null, null), "maya", "Theo"))
         assertEquals("Ended early", GamePlay.outcome(session(midDuel, GameStatus.Abandoned), "maya", "Theo"))
+    }
+
+    @Test fun `the result explains the tiebreak only when it was used`() {
+        fun margin(s: GameSession) = GamePlay.duelMargin(GamePlay.skillDuel(s), "maya")
+        assertEquals("by 2 hearts", margin(finished(4 to 2, 355 to 280, "maya", "hearts")))
+        assertEquals("by 1 heart", margin(finished(2 to 3, 350 to 173, "theo", "hearts")))
+        assertEquals("Level on hearts, won by 20 points", margin(finished(4 to 4, 250 to 230, "maya", "points")))
+        assertEquals("Level on hearts and on points", margin(finished(3 to 3, 250 to 250, null, null)))
+        assertEquals(GamePlay.DuelDecision.Points, GamePlay.duelDecision(GamePlay.skillDuel(finished(4 to 4, 250 to 230, "maya", "points"))))
+        assertEquals(GamePlay.DuelDecision.Tie, GamePlay.duelDecision(GamePlay.skillDuel(finished(3 to 3, 250 to 250, null, null))))
+        assertEquals(GamePlay.DuelDecision.Hearts, GamePlay.duelDecision(GamePlay.skillDuel(finished(4 to 2, 355 to 280, "maya", "hearts"))))
     }
 
     @Test fun `the duel is offered first`() {

@@ -55,9 +55,12 @@ is not needed: REST plus the couple hub covers everything.
   `score` (`index` the round 0–4, `value` `{"score": n}`, a whole number; each round once). Each round in `rounds`
   shows `kind`, `seed`, `mine`, and `played` (the partner has played it); the partner's score (`partner`), the
   round's `winner` and `tie` show only once you've played that round too. A round goes to the higher score, a tie is a
-  heart each (`hearts`, counted over rounds both have played). Once both have played all five, `totals`, `winner`
-  (the higher total; null and `tie` for equal totals) and `margin` (the difference in points) show. The hearts are
-  the game's scores in the history; the declared winner is the higher total.
+  heart each (`hearts`, counted over rounds both have played). The duel goes to whoever has more hearts. Once both
+  have played all five, `totals` (points), `winner`, `decidedBy` (`hearts`; `points` when the hearts were level and
+  the higher total broke the tie; null for a tie), `tie` (level on hearts and on points: `winner` is null),
+  `margin` (the difference in hearts) and `pointMargin` (the difference in points) show. The hearts are the game's
+  scores in the history, and a finished duel declares its winner, so a duel won on points with level hearts is
+  still recorded as that partner's win; a tie declares none.
 
 # Adding a game
 

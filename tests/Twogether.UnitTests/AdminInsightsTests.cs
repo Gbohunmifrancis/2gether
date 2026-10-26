@@ -227,7 +227,8 @@ public sealed class AdminInsightsTests : IDisposable
         Assert.Equal(0, unplayed.Rounds);
         Assert.Null(unplayed.AverageScore);
 
-        Assert.Equal(new DuelDto(2, 1, 2.5), games.Duels);
+        // Hearts 4 to 3 (a margin of one), then 3 each on 150 points each: a tie, a margin of none.
+        Assert.Equal(new DuelDto(2, 1, 0.5), games.Duels);
     }
 
     [Fact]

@@ -326,6 +326,7 @@ export interface GameInsights {
   days: number;
   types: { type: string; started: number; finished: number; abandoned: number; medianMinutes: number | null }[];
   skills: { kind: string; rounds: number; averageScore: number | null; buckets: number[] }[];
+  /** Ties are level on hearts and on points; the median margin is in hearts. */
   duels: { finished: number; ties: number; medianMargin: number | null };
 }
 

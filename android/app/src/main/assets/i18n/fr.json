@@ -24,9 +24,9 @@
  "A packet or a menu usually says": "C'est souvent indiqué sur l'emballage ou le menu",
  "A pair! Go again": "Une paire ! Rejoue",
  "A perfect tie": "Égalité parfaite",
- "A perfect tie, {count} point each|A perfect tie, {count} points each": {
-  "one": "Égalité parfaite, {count} point chacun",
-  "other": "Égalité parfaite, {count} points chacun"
+ "A perfect tie, {count} heart each|A perfect tie, {count} hearts each": {
+  "one": "Égalité parfaite, {count} cœur chacun",
+  "other": "Égalité parfaite, {count} cœurs chacun"
  },
  "A pizza, a slice already gone.": "Une pizza, une part déjà mangée.",
  "A place starting with {letter}": "Un lieu en {letter}",
@@ -104,9 +104,9 @@
  "Breakfast": "Petit-déjeuner",
  "Bring your arms all the way down between raises.": "Redescends bien les bras entre chaque lever.",
  "By continuing you agree to the Terms and the Privacy Policy.": "En continuant, tu acceptes les Conditions d'utilisation et la Politique de confidentialité.",
- "by {count} point|by {count} points": {
-  "one": "de {count} point",
-  "other": "de {count} points"
+ "by {count} heart|by {count} hearts": {
+  "one": "de {count} cœur",
+  "other": "de {count} cœurs"
  },
  "Cake": "Gâteau",
  "Call it off together": "Annuler ensemble",
@@ -348,6 +348,10 @@
  "Heartbeat": "Cœur battant",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact est réservé aux adultes. Tu dois avoir 18 ans ou plus pour t'inscrire.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "Heartpact a besoin de la caméra pour compter tes répétitions. Rien n'est enregistré ni envoyé.",
+ "heart|hearts": {
+  "one": "cœur",
+  "other": "cœurs"
+ },
  "Heavy": "Abondant",
  "Held on {s} s too long.": "Lâché {s} s trop tard.",
  "Hide password": "Masquer le mot de passe",
@@ -420,6 +424,13 @@
  "Let go at the line": "Lâche au trait",
  "Let go {s} s too early.": "Lâché {s} s trop tôt.",
  "Let your dares ring on time": "Fais sonner tes défis à l'heure",
+ "Level on hearts and on points": "À égalité de cœurs et de points",
+ "Level on hearts, won by {count} point|Level on hearts, won by {count} points": {
+  "one": "À égalité de cœurs, gagné de {count} point",
+  "other": "À égalité de cœurs, gagné de {count} points"
+ },
+ "Level on hearts, you won on points": "À égalité de cœurs, tu gagnes aux points",
+ "Level on hearts, {partner} won on points": "À égalité de cœurs, {partner} gagne aux points",
  "Lie all the way back between sit-ups.": "Rallonge-toi complètement entre les abdos.",
  "Lie on your back with your knees bent.": "Allonge-toi sur le dos, genoux pliés.",
  "Lift your hips into a straight line.": "Remonte les hanches, le corps bien droit.",
@@ -653,7 +664,6 @@
  "Plus · on us until {date}": "Plus · offert jusqu'au {date}",
  "Plus · you pay, it covers you both": "Plus · tu paies, pour vous deux",
  "Plus · {partner} pays, it covers you both": "Plus · {partner} paie, pour vous deux",
- "points": "points",
  "Portion": "Portion",
  "Pour to the line. Not a drop more.": "Verse jusqu'au trait. Pas une goutte de plus.",
  "Pouring...": "On verse…",
@@ -1010,9 +1020,9 @@
  "You scored {score}": "Ton score : {score}",
  "You won game {game}!": "Tu as gagné la partie {game} !",
  "You won the duel": "Tu as gagné le duel",
- "You won the duel by {count} point|You won the duel by {count} points": {
-  "one": "Tu as gagné le duel de {count} point",
-  "other": "Tu as gagné le duel de {count} points"
+ "You won the duel by {count} heart|You won the duel by {count} hearts": {
+  "one": "Tu as gagné le duel de {count} cœur",
+  "other": "Tu as gagné le duel de {count} cœurs"
  },
  "You won {game}, {mine} to {theirs}": "{game} : tu as gagné, {mine} à {theirs}",
  "You won!": "Tu as gagné !",
@@ -1169,10 +1179,6 @@
   "one": "{count} photo",
   "other": "{count} photos"
  },
- "{count} point each|{count} points each": {
-  "one": "{count} point chacun",
-  "other": "{count} points chacun"
- },
  "{count} point|{count} points": {
   "one": "{count} point",
   "other": "{count} points"
@@ -1304,9 +1310,9 @@
  "{partner} stuck their half on. Do the reps and the camera sticks yours.": "{partner} a collé sa moitié. Fais tes répétitions et la caméra collera la tienne.",
  "{partner} won": "{partner} a gagné",
  "{partner} won game {game}": "{partner} a gagné la partie {game}",
- "{partner} won the duel by {count} point|{partner} won the duel by {count} points": {
-  "one": "{partner} a gagné le duel de {count} point",
-  "other": "{partner} a gagné le duel de {count} points"
+ "{partner} won the duel by {count} heart|{partner} won the duel by {count} hearts": {
+  "one": "{partner} a gagné le duel de {count} cœur",
+  "other": "{partner} a gagné le duel de {count} cœurs"
  },
  "{partner} won {game}, {theirs} to {mine}": "{game} : {partner} a gagné, {theirs} à {mine}",
  "{partner} won, {theirs} to {mine}": "{partner} a gagné, {theirs} à {mine}",

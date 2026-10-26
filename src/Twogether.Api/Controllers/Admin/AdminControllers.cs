@@ -6,6 +6,7 @@ using Twogether.Api.Admin;
 using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Presence;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Admin;
@@ -47,7 +48,8 @@ public sealed class AdminUsersController(
     IAccountEraser eraser,
     IHubContext<CoupleHub> hub,
     IEmailSender email,
-    IEntitlementService entitlements) : ApiControllerBase
+    IEntitlementService entitlements,
+    LocationSharingStopper locationStopper) : ApiControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<AdminPage<AdminUserRow>>> List([FromQuery] string? query, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
@@ -131,6 +133,8 @@ public sealed class AdminUsersController(
         audit.Record(User, "user.disabled", "user", userId.ToString(), request.Reason.Trim());
         await db.SaveChangesAsync(ct);
         connections.AbortAll(userId);
+        // Every session ends, so the location share ends with them, on all of the person's phones.
+        await locationStopper.StopAsync(userId, ct);
         return NoContent();
     }
 
@@ -145,7 +149,7 @@ public sealed class AdminUsersController(
         return NoContent();
     }
 
-    /// <summary>Ends every session on every device; the person signs in again.</summary>
+    /// <summary>Ends every session on every device and stops their location sharing; the person signs in again.</summary>
     [HttpPost("{userId:guid}/sign-out")]
     public async Task<IActionResult> SignOut(Guid userId, CancellationToken ct)
     {
@@ -155,6 +159,7 @@ public sealed class AdminUsersController(
         audit.Record(User, "user.signed_out", "user", userId.ToString());
         await db.SaveChangesAsync(ct);
         connections.AbortAll(userId);
+        await locationStopper.StopAsync(userId, ct);
         return NoContent();
     }
 
@@ -347,7 +352,8 @@ public sealed class AdminSystemController(
     IEmailSender email,
     IGoogleTokenVerifier google,
     IGooglePlayBilling billing,
-    AdminSecretProtector secrets) : ApiControllerBase
+    AdminSecretProtector secrets,
+    LocationSharingStopper locationStopper) : ApiControllerBase
 {
     [HttpGet("system")]
     public async Task<ActionResult<AdminSystem>> System(CancellationToken ct)
@@ -401,6 +407,8 @@ public sealed class AdminSystemController(
         user.EndSessions(clock.UtcNow);
         audit.Record(User, "admin.authenticator_reset", "user", userId.ToString());
         await db.SaveChangesAsync(ct);
+        // Signed out everywhere, so sharing stops too, as with any sign-out.
+        await locationStopper.StopAsync(userId, ct);
         return NoContent();
     }
 }

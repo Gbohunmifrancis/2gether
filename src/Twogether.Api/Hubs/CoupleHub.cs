@@ -113,7 +113,14 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
         var now = clock.UtcNow;
         if (!fixThrottle.TryAccept(userId, now)) return null;
         var location = await db.CoupleLocations.SingleOrDefaultAsync(item => item.CoupleId == coupleId && item.UserId == userId, Context.ConnectionAborted);
-        if (location is null || !location.SharingEnabled) return null;
+        if (location is null || !location.SharingEnabled)
+        {
+            // Still sending after the share stopped somewhere else (signed out or stopped on another phone, a
+            // password reset): tell this phone sharing is off, so it ends its service and its notification.
+            var name = await db.Users.AsNoTracking().Where(item => item.Id == userId).Select(item => item.DisplayName).SingleOrDefaultAsync(Context.ConnectionAborted) ?? string.Empty;
+            await Clients.Caller.SendAsync(LocationEvents.SharingChanged, LocationSharingRules.State(userId, name, location, now, withLastFix: false), Context.ConnectionAborted);
+            return null;
+        }
         var linked = await db.Couples.AsNoTracking().AnyAsync(item => item.Id == coupleId && item.Status == CoupleStatus.Active, Context.ConnectionAborted);
         if (!linked) throw new HubException("Link a partner before sharing location.");
 

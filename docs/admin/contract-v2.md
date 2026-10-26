@@ -96,7 +96,7 @@ interface GameInsights {
   days: number;
   types: { type: string; started: number; finished: number; abandoned: number; medianMinutes: number | null }[];
   skills: { kind: string; rounds: number; averageScore: number | null; buckets: number[] }[]; // 10 buckets: 0-9 … 90-100
-  duels: { finished: number; ties: number; medianMargin: number | null };
+  duels: { finished: number; ties: number; medianMargin: number | null }; // ties: level on hearts and points; margin in hearts
 }
 ```
 Skill rounds come from finished/ongoing Heart to heart duels' state (scores only).

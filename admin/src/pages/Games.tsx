@@ -9,7 +9,7 @@ import { RangePicker } from "../components/RangePicker";
 import { Card, ErrorState, LoadingCards, PageHead } from "../components/ui";
 import { ChartCard } from "../components/Viz";
 import { KpiSticker } from "../components/Kpi";
-import { count } from "../lib/format";
+import { count, hearts } from "../lib/format";
 import { DASH, rate } from "../lib/insights";
 import { gameLabel, skillLabel } from "../lib/labels";
 
@@ -78,8 +78,8 @@ export function GamesPage() {
                   label="Usual winning margin"
                   icon="spark"
                   value={data.duels.medianMargin}
-                  format={(value) => `${Math.round(value)} pts`}
-                  hint="Median, across a duel's rounds"
+                  format={hearts}
+                  hint="Median gap in hearts at the end of a duel"
                 />
               </div>
               <Card flush title="By game">

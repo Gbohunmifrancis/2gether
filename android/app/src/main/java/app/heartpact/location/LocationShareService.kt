@@ -26,6 +26,7 @@ import app.heartpact.MainActivity
 import app.heartpact.R
 import app.heartpact.album.AlbumNotices
 import app.heartpact.data.ApiResult
+import app.heartpact.data.SharingState
 import app.heartpact.data.SharingStatus
 import app.heartpact.i18n.tr
 import app.heartpact.ui.map.LocationMath
@@ -54,12 +55,15 @@ import java.time.Instant
  * Starting is an explicit call to the server. After that a heartbeat every few minutes keeps the
  * share alive while the phone is still (the server lets a quiet share lapse), and its answer keeps
  * this phone in step: paused shows "Paused" and turns location off until the pause ends, and off
- * (stopped on another phone, a password reset) ends the service.
+ * (stopped or signed out on another phone, signed out everywhere) ends the service. The hub saying so (a stop
+ * elsewhere, or a fix answered with "off") makes it check at once.
  */
 class LocationShareService : Service() {
     private val container get() = (application as HeartpactApplication).container
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var loop: Job? = null
+    /** Listens on the hub for this person's share being stopped on another phone. */
+    private var watch: Job? = null
     /** Wakes the loop early: the app paused, resumed or asked to start again. */
     private val nudge = Channel<Boolean>(Channel.CONFLATED)
     private var listener: LocationListener? = null
@@ -90,7 +94,22 @@ class LocationShareService : Service() {
         container.live.hold(HOLD)
         // Tapped Share again while running (to resume from a pause): start again.
         if (loop?.isActive == true) nudge.trySend(true) else loop = scope.launch { keepSharing() }
+        if (watch?.isActive != true) watch = scope.launch { watchElsewhere() }
         return START_NOT_STICKY
+    }
+
+    /**
+     * Sharing stopped on another of this person's phones (they signed out or tapped Stop there, or signed out
+     * everywhere): the hub says their share is off, live or in answer to a fix. Check with the server now rather
+     * than at the next heartbeat; its "off" ends this service and its notification.
+     */
+    private suspend fun watchElsewhere() {
+        val me = container.session.load()?.user?.id ?: return
+        container.live.events.collect { event ->
+            if (event.name != "LocationSharingChanged") return@collect
+            val state = runCatching { container.json.decodeFromString(SharingState.serializer(), event.json) }.getOrNull()
+            if (LocationMath.saysMyShareIsOff(state, me)) nudge.trySend(false)
+        }
     }
 
     private suspend fun keepSharing() {
@@ -174,6 +193,8 @@ class LocationShareService : Service() {
         unlisten()
         loop?.cancel()
         loop = null
+        watch?.cancel()
+        watch = null
         running = false
         container.live.release(HOLD)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)

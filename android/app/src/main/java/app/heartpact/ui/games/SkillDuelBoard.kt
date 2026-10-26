@@ -97,7 +97,7 @@ import kotlin.math.PI
 /*
  * Heart to heart: five skill rounds, the same for both, each played on your own time. A partner's score stays a
  * sealed "?" until you've played that round too; then both count up side by side, the pen circles them, the round's
- * heart is stamped and Maya and Theo react. At the end the totals decide the duel.
+ * heart is stamped and Maya and Theo react. At the end the hearts decide the duel; the points only when the hearts are level.
  */
 
 /** How long ScoreReveal takes to count [score] up (PlayKit's timing), so the stamp lands right after. */
@@ -522,28 +522,30 @@ private fun Dashes(modifier: Modifier = Modifier) {
     }
 }
 
-/** The end of the duel: both totals circled, who won and by how much, a stamp, and the five rounds at a glance. */
+/** The end of the duel: both hearts circled, who won and by how much (the points only when they broke a tie), a stamp, and the five rounds at a glance. */
 @Composable
 private fun DuelResult(session: String, d: SkillDuelState, rounds: List<DuelRound>, me: String, partnerId: String?, partnerName: String, still: Boolean) {
     val colors = Heartpact.colors
     val mySide = LocalActor.current
     val theirSide = if (mySide == Side.Left) Side.Right else Side.Left
-    val mine = d.totals?.get(me) ?: 0
-    val theirs = partnerId?.let { d.totals?.get(it) } ?: 0
+    val mine = d.hearts[me] ?: 0
+    val theirs = partnerId?.let { d.hearts[it] } ?: 0
+    val decision = GamePlay.duelDecision(d)
     val iWon = d.winner == me
-    val tie = d.tie || d.winner == null
-    val margin = d.margin ?: kotlin.math.abs(mine - theirs)
+    val tie = decision == GamePlay.DuelDecision.Tie
+    // The points show only when the hearts were level: they broke the tie, or they were level too.
+    val points = if (decision == GamePlay.DuelDecision.Hearts) null else (d.totals?.get(me) ?: 0) to (partnerId?.let { d.totals?.get(it) } ?: 0)
     val animate = remember { DuelSeen.first(session, 5, 2) && !still }
     var landed by remember { mutableStateOf(!animate) }
     LaunchedEffect(animate) {
-        if (animate) { delay(countMs(minOf(maxOf(mine, theirs), 160)).toLong() + 520); landed = true }
+        if (animate) { delay(countMs(maxOf(mine, theirs)).toLong() + 520); landed = true }
     }
     val headline = when {
         tie -> tr("A perfect tie")
         iWon -> tr("You won the duel")
         else -> tr("{partner} won", "partner" to partnerName)
     }
-    val by = if (tie) trn(mine, "{count} point each", "{count} points each") else trn(margin, "by {count} point", "by {count} points")
+    val by = GamePlay.duelMargin(d, me)
     val stampText = when {
         tie -> tr("Perfect tie!")
         iWon -> tr("Champion!")
@@ -557,10 +559,10 @@ private fun DuelResult(session: String, d: SkillDuelState, rounds: List<DuelRoun
     ) {
         Text(headline, style = Heartpact.type.headline, color = colors.ink, textAlign = TextAlign.Center,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite; contentDescription = "$headline, $by" })
-        Text(by, style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 2.dp))
+        Text(by, style = Heartpact.type.bodyLarge, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 2.dp))
         Row(Modifier.fillMaxWidth().padding(top = 22.dp), verticalAlignment = Alignment.CenterVertically) {
-            Total(tr("You"), mySide, mine, won = tie || iWon, animate = animate, burst = landed && animate, modifier = Modifier.weight(1f))
-            Total(partnerName, theirSide, theirs, won = tie || !iWon, animate = animate, burst = landed && animate, modifier = Modifier.weight(1f))
+            Total(tr("You"), mySide, mine, points?.first, won = tie || iWon, animate = animate, burst = landed && animate, modifier = Modifier.weight(1f))
+            Total(partnerName, theirSide, theirs, points?.second, won = tie || !iWon, animate = animate, burst = landed && animate, modifier = Modifier.weight(1f))
         }
         Box(Modifier.padding(top = 20.dp).heightIn(min = 44.dp), contentAlignment = Alignment.Center) {
             if (landed) { if (animate) Stamp(stampText, key = session) else StillStamp(stampText) }
@@ -571,7 +573,7 @@ private fun DuelResult(session: String, d: SkillDuelState, rounds: List<DuelRoun
 }
 
 @Composable
-private fun Total(name: String, side: Side, total: Int, won: Boolean, animate: Boolean, burst: Boolean, modifier: Modifier) {
+private fun Total(name: String, side: Side, hearts: Int, points: Int?, won: Boolean, animate: Boolean, burst: Boolean, modifier: Modifier) {
     val colors = Heartpact.colors
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -579,11 +581,12 @@ private fun Total(name: String, side: Side, total: Int, won: Boolean, animate: B
             Text(name, style = Heartpact.type.label, color = colors.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Box(Modifier.padding(top = 14.dp).height(60.dp), contentAlignment = Alignment.Center) {
-            if (animate) ScoreReveal(total, big = false, key = total, stamp = null, colour = if (won) colors.ink else colors.ink3)
-            else StillScore(total, if (won) colors.ink else colors.ink3)
+            if (animate) ScoreReveal(hearts, big = false, key = hearts, stamp = null, colour = if (won) colors.ink else colors.ink3)
+            else StillScore(hearts, if (won) colors.ink else colors.ink3)
             if (burst && won) HeartBurst(true, Modifier.size(1.dp), count = 22, spread = 140.dp)
         }
-        Text(tr("points"), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(top = 4.dp))
+        Text(trn(hearts, "heart", "hearts"), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(top = 4.dp))
+        if (points != null) Text(trn(points, "{count} point", "{count} points"), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 2.dp))
     }
 }
 

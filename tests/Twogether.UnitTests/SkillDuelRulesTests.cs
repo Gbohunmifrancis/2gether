@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Twogether.Application.Features.Games;
+using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 
 namespace Twogether.UnitTests;
@@ -186,7 +187,7 @@ public sealed class SkillDuelRulesTests
     }
 
     [Fact]
-    public void The_duel_ends_when_both_have_played_all_five_and_goes_to_the_higher_total()
+    public void The_duel_ends_when_both_have_played_all_five_and_goes_to_more_hearts()
     {
         var mayaDone = PlayAll(Start(), maya, 90, 40, 70, 100, 55);
         Assert.False(mayaDone.Completed);
@@ -196,19 +197,21 @@ public sealed class SkillDuelRulesTests
 
         var view = View(done, theo);
         Assert.Equal("completed", view.GetProperty("phase").GetString());
-        Assert.Equal(355, view.GetProperty("totals").GetProperty(maya.ToString()).GetInt32());
-        Assert.Equal(280, view.GetProperty("totals").GetProperty(theo.ToString()).GetInt32());
-        Assert.Equal(maya, view.GetProperty("winner").GetGuid());
-        Assert.Equal(75, view.GetProperty("margin").GetInt32());
-        Assert.False(view.GetProperty("tie").GetBoolean());
         // Maya won rounds 0, 3 and 4, Theo round 1, round 2 tied.
         Assert.Equal(4, view.GetProperty("hearts").GetProperty(maya.ToString()).GetInt32());
         Assert.Equal(2, view.GetProperty("hearts").GetProperty(theo.ToString()).GetInt32());
+        Assert.Equal(355, view.GetProperty("totals").GetProperty(maya.ToString()).GetInt32());
+        Assert.Equal(280, view.GetProperty("totals").GetProperty(theo.ToString()).GetInt32());
+        Assert.Equal(maya, view.GetProperty("winner").GetGuid());
+        Assert.Equal("hearts", view.GetProperty("decidedBy").GetString());
+        Assert.Equal(2, view.GetProperty("margin").GetInt32());
+        Assert.Equal(75, view.GetProperty("pointMargin").GetInt32());
+        Assert.False(view.GetProperty("tie").GetBoolean());
 
         var summary = engine.Summarise(GameType.SkillDuel, done.StateJson);
-        // The history keeps the points, so its winner is always the duel's.
-        Assert.Equal(355, summary.Scores[maya]);
-        Assert.Equal(280, summary.Scores[theo]);
+        // The history keeps the hearts, and names the duel's winner.
+        Assert.Equal(4, summary.Scores[maya]);
+        Assert.Equal(2, summary.Scores[theo]);
         Assert.Equal(5, summary.RoundsPlayed);
         Assert.Equal(maya, summary.DeclaredWinnerUserId);
 
@@ -216,26 +219,66 @@ public sealed class SkillDuelRulesTests
     }
 
     [Fact]
-    public void The_total_decides_the_duel_even_when_the_hearts_say_otherwise()
+    public void The_hearts_decide_the_duel_even_when_the_points_say_otherwise()
     {
-        // Theo wins three rounds by a point; Maya wins two by a lot.
+        // Theo wins three rounds by a point; Maya wins two by a lot, and has far more points.
         var done = PlayAll(PlayAll(Start(), maya, 50, 50, 50, 100, 100), theo, 51, 51, 51, 10, 10);
         var view = View(done, maya);
-        Assert.Equal(maya, view.GetProperty("winner").GetGuid());
-        Assert.Equal(177, view.GetProperty("margin").GetInt32());
-        Assert.Equal(maya, engine.Summarise(GameType.SkillDuel, done.StateJson).DeclaredWinnerUserId);
-        Assert.Equal(3, view.GetProperty("hearts").GetProperty(theo.ToString()).GetInt32());
+        Assert.Equal(theo, view.GetProperty("winner").GetGuid());
+        Assert.Equal("hearts", view.GetProperty("decidedBy").GetString());
+        Assert.Equal(1, view.GetProperty("margin").GetInt32());
+        Assert.Equal(177, view.GetProperty("pointMargin").GetInt32());
+        Assert.Equal(350, view.GetProperty("totals").GetProperty(maya.ToString()).GetInt32());
+
+        var summary = engine.Summarise(GameType.SkillDuel, done.StateJson);
+        Assert.Equal(theo, summary.DeclaredWinnerUserId);
+        Assert.Equal(3, summary.Scores[theo]);
+        Assert.Equal(2, summary.Scores[maya]);
     }
 
     [Fact]
-    public void Equal_totals_are_a_perfect_tie()
+    public void Level_on_hearts_the_points_break_the_tie()
+    {
+        // Maya takes round 0, Theo round 1, the other three are a heart each: 4 hearts each, 250 points to 230.
+        var done = PlayAll(PlayAll(Start(), maya, 90, 10, 50, 50, 50), theo, 60, 20, 50, 50, 50);
+        var view = View(done, theo);
+        Assert.Equal(4, view.GetProperty("hearts").GetProperty(maya.ToString()).GetInt32());
+        Assert.Equal(4, view.GetProperty("hearts").GetProperty(theo.ToString()).GetInt32());
+        Assert.Equal(maya, view.GetProperty("winner").GetGuid());
+        Assert.False(view.GetProperty("tie").GetBoolean());
+        Assert.Equal("points", view.GetProperty("decidedBy").GetString());
+        Assert.Equal(0, view.GetProperty("margin").GetInt32());
+        Assert.Equal(20, view.GetProperty("pointMargin").GetInt32());
+
+        // The history's hearts are level, but it declares the duel's winner, so the record agrees with the board.
+        var summary = engine.Summarise(GameType.SkillDuel, done.StateJson);
+        Assert.Equal(summary.Scores[maya], summary.Scores[theo]);
+        Assert.Equal(maya, summary.DeclaredWinnerUserId);
+        var session = GameSession.Create(Guid.NewGuid(), GameType.SkillDuel, maya, now);
+        session.Start(maya, null, done.StateJson, now);
+        session.Complete(done.StateJson, now);
+        Assert.Equal(maya, new GameOutcomeService(engine).Record(session, GameOutcome.Completed, null, now).WinnerUserId);
+
+        var tally = SkillDuelRules.Tally(done.StateJson);
+        Assert.Equal(0, tally.Margin);
+        Assert.False(tally.Tied);
+    }
+
+    [Fact]
+    public void Level_on_hearts_and_points_is_a_tie()
     {
         var done = PlayAll(PlayAll(Start(), maya, 60, 40, 80, 20, 50), theo, 40, 60, 20, 80, 50);
         var view = View(done, maya);
         Assert.True(view.GetProperty("tie").GetBoolean());
         Assert.Equal(JsonValueKind.Null, view.GetProperty("winner").ValueKind);
+        Assert.Equal(JsonValueKind.Null, view.GetProperty("decidedBy").ValueKind);
         Assert.Equal(0, view.GetProperty("margin").GetInt32());
+        Assert.Equal(0, view.GetProperty("pointMargin").GetInt32());
         Assert.Null(engine.Summarise(GameType.SkillDuel, done.StateJson).DeclaredWinnerUserId);
+        var session = GameSession.Create(Guid.NewGuid(), GameType.SkillDuel, maya, now);
+        session.Start(maya, null, done.StateJson, now);
+        Assert.Null(new GameOutcomeService(engine).Record(session, GameOutcome.Completed, null, now).WinnerUserId);
+        Assert.True(SkillDuelRules.Tally(done.StateJson).Tied);
     }
 
     [Fact]
@@ -243,5 +286,7 @@ public sealed class SkillDuelRulesTests
     {
         var half = PlayAll(Start(), maya, 100, 100, 100);
         Assert.Null(engine.Summarise(GameType.SkillDuel, half.StateJson).DeclaredWinnerUserId);
+        Assert.Equal(JsonValueKind.Null, View(half, maya).GetProperty("decidedBy").ValueKind);
+        Assert.False(SkillDuelRules.Tally(half.StateJson).Tied);
     }
 }

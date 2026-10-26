@@ -80,7 +80,7 @@ public sealed class AdminInsightsPostgresTests : IAsyncLifetime
 
         var games = await insights.GamesAsync(30, default);
         Assert.Equal(10, games.Skills.Sum(skill => skill.Rounds));
-        Assert.Equal(new DuelDto(1, 0, 5), games.Duels);
+        Assert.Equal(new DuelDto(1, 0, 1), games.Duels); // 4 hearts to 3
 
         var growth = await insights.GrowthAsync(30, default);
         Assert.Equal([2, 2, 1, 2, 2], growth.Path.Select(step => step.Count));

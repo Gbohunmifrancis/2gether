@@ -305,11 +305,16 @@ data class SkillDuelState(
     val hearts: Map<String, Int> = emptyMap(),
     /** Each partner's points, once both have played every round. */
     val totals: Map<String, Int>? = null,
-    /** The higher total; null until the end, and for a perfect tie. */
+    /** More hearts, or the higher total when the hearts are level; null until the end, and for a perfect tie. */
     val winner: String? = null,
+    /** Level on hearts and on points. */
     val tie: Boolean = false,
-    /** The difference in points, at the end. */
+    /** What settled it: "hearts", or "points" when the hearts were level; null for a tie and until the end. */
+    val decidedBy: String? = null,
+    /** The difference in hearts, at the end. */
     val margin: Int? = null,
+    /** The difference in points, at the end. */
+    val pointMargin: Int? = null,
 ) {
     val finished: Boolean get() = totals != null
 }

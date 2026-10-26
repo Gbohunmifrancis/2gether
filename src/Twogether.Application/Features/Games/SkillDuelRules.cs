@@ -8,7 +8,8 @@ namespace Twogether.Application.Features.Games;
 /// Heart to heart (docs/games.md): five skill rounds, the same for both (the same kind and seed, so the same shape or
 /// target), each played on the partner's own time, no clock. Each round is scored 0 to 100 on the phone and sent as
 /// <c>score</c>. A partner's score stays hidden from you until you've played that round too. A round goes to the
-/// higher score, a tie is a heart each; the duel goes to the higher total.
+/// higher score, a tie is a heart each; the duel goes to whoever has more hearts. Level on hearts, the higher total of
+/// points breaks the tie; level on both, it's a tie.
 /// </summary>
 public sealed class SkillDuelRules : IGameRules
 {
@@ -85,6 +86,7 @@ public sealed class SkillDuelRules : IGameRules
         var hearts = Hearts(state);
         var finished = state.Players.All(player => Finished(state, player));
         var totals = finished ? state.Players.ToDictionary(player => player, player => Total(state, player)) : null;
+        var outcome = finished ? Decide(state) : null;
         return JsonSerializer.Serialize(new
         {
             state.Players,
@@ -110,29 +112,32 @@ public sealed class SkillDuelRules : IGameRules
             }),
             hearts,
             totals,
-            winner = finished ? DuelWinner(state) : null,
-            tie = finished && DuelWinner(state) is null,
-            margin = totals is null ? (int?)null : Math.Abs(totals.Values.Max() - totals.Values.Min()),
+            winner = outcome?.Winner,
+            tie = outcome is { Winner: null },
+            // What settled it: "hearts", or "points" when the hearts were level; null for a tie and until the end.
+            decidedBy = outcome?.DecidedBy,
+            // The gap in hearts, and in points, at the end.
+            margin = outcome?.HeartMargin,
+            pointMargin = outcome?.PointMargin,
         }, PublicJson);
     }
 
     /// <summary>
-    /// Hearts (rounds won, a tie a heart each) are the scores; the duel's winner is the higher total. A perfect tie on
-    /// totals has no declared winner, so the history falls back to the hearts.
+    /// The hearts (rounds won, a tie a heart each) are the scores kept for the history. A finished duel declares its
+    /// winner, so when the hearts are level and the points broke the tie the history still names the duel's winner;
+    /// a tie on both declares none, and the level hearts make it a draw. An unfinished duel declares no winner.
     /// </summary>
     public GameScoreSummary Summarise(string stateJson)
     {
         var state = Read(stateJson);
         var played = Enumerable.Range(0, state.Rounds.Count).Count(index => Both(state, index));
         var finished = state.Players.All(player => Finished(state, player));
-        // The score kept for the history is the points over the rounds both have played, so its winner is always
-        // the duel's: the higher total (hearts only colour the rounds).
-        return new GameScoreSummary(PlayedTotals(state), played, finished ? DuelWinner(state) : null);
+        return new GameScoreSummary(Hearts(state), played, finished ? Decide(state).Winner : null);
     }
 
     /// <summary>
-    /// For the admin insights: every score played (its round's kind and the points), and the gap between the two totals
-    /// over the rounds both have played (null before any). Numbers only.
+    /// For the admin insights: every score played (its round's kind and the points), the gap in hearts over the rounds
+    /// both have played (null before any), and whether a finished duel was a tie. Numbers only.
     /// </summary>
     public static SkillDuelTally Tally(string stateJson)
     {
@@ -141,9 +146,10 @@ public sealed class SkillDuelRules : IGameRules
         foreach (var player in state.Players)
             for (var round = 0; round < state.Rounds.Count; round++)
                 if (ScoreOf(state, player, round) is { } score) scores.Add((state.Rounds[round].Kind, score));
-        var totals = PlayedTotals(state).Values.ToList();
+        var hearts = Hearts(state).Values.ToList();
         var anyPlayed = Enumerable.Range(0, state.Rounds.Count).Any(round => Both(state, round));
-        return new SkillDuelTally(scores, anyPlayed && totals.Count == 2 ? Math.Abs(totals[0] - totals[1]) : null);
+        var finished = state.Players.Count > 0 && state.Players.All(player => Finished(state, player));
+        return new SkillDuelTally(scores, anyPlayed && hearts.Count == 2 ? Math.Abs(hearts[0] - hearts[1]) : null, finished && Decide(state).Winner is null);
     }
 
     /// <summary>The score in <c>{"score": n}</c>: a whole number from 0 to 100, nothing else.</summary>
@@ -183,14 +189,31 @@ public sealed class SkillDuelRules : IGameRules
         return leaders.Count == 1 ? leaders[0].player : null;
     }
 
-    private static Guid? DuelWinner(State state)
+    /// <summary>
+    /// The duel's result over the rounds both have played: more hearts wins; level on hearts, the higher total of
+    /// points; level on both, a tie (no winner, <c>DecidedBy</c> null).
+    /// </summary>
+    private static DuelOutcome Decide(State state)
     {
-        var totals = state.Players.Select(player => (player, total: Total(state, player))).ToList();
-        if (totals.Count == 0) return null;
-        var best = totals.Max(item => item.total);
-        var leaders = totals.Where(item => item.total == best).ToList();
-        return leaders.Count == 1 ? leaders[0].player : null;
+        var hearts = Hearts(state);
+        var points = PlayedTotals(state);
+        var heartMargin = hearts.Count == 0 ? 0 : hearts.Values.Max() - hearts.Values.Min();
+        var pointMargin = points.Count == 0 ? 0 : points.Values.Max() - points.Values.Min();
+        if (Leader(hearts) is { } byHearts) return new DuelOutcome(byHearts, "hearts", heartMargin, pointMargin);
+        if (Leader(points) is { } byPoints) return new DuelOutcome(byPoints, "points", heartMargin, pointMargin);
+        return new DuelOutcome(null, null, heartMargin, pointMargin);
     }
+
+    /// <summary>The one player with the most; null when it is shared (or nobody played).</summary>
+    private static Guid? Leader(Dictionary<Guid, int> counts)
+    {
+        if (counts.Count == 0) return null;
+        var best = counts.Values.Max();
+        var leaders = counts.Where(item => item.Value == best).Select(item => item.Key).ToList();
+        return leaders.Count == 1 ? leaders[0] : null;
+    }
+
+    private sealed record DuelOutcome(Guid? Winner, string? DecidedBy, int HeartMargin, int PointMargin);
 
     private static Dictionary<Guid, int> PlayedTotals(State state) => state.Players.ToDictionary(player => player,
         player => Enumerable.Range(0, state.Rounds.Count).Where(round => Both(state, round)).Sum(round => ScoreOf(state, player, round) ?? 0));
@@ -246,5 +269,8 @@ public sealed class SkillDuelRules : IGameRules
     }
 }
 
-/// <summary>A duel's scores as the admin insights read them: (kind, points) per round played, and the totals' gap.</summary>
-public sealed record SkillDuelTally(IReadOnlyList<(string Kind, int Score)> Scores, int? Margin);
+/// <summary>
+/// A duel's scores as the admin insights read them: (kind, points) per round played, the gap in hearts, and whether a
+/// finished duel was a tie (level on hearts and on points).
+/// </summary>
+public sealed record SkillDuelTally(IReadOnlyList<(string Kind, int Score)> Scores, int? Margin, bool Tied = false);

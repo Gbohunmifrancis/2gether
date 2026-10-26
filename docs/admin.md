@@ -52,7 +52,7 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | Retention | Couples by the week they linked and the share active each week after, as soft heat squares with the weighted average on top |
 | Rhythm | Weekday × hour blobs of everything, dares done or alarms, shifted into your own time zone |
 | Dares | Per exercise: set, done, called off, missed, time to start, time on camera, how sure the camera was, failed checks; early starts; couples by current streak |
-| Games | Started, finished and left per game; the Heart to heart duel's skill scores as small histograms; duels and winning margins |
+| Games | Started, finished and left per game; the Heart to heart duel's skill scores as small histograms; duels, ties and the usual winning margin in hearts |
 | Growth | Renewals coming up, renewed and lapsed, renewal rate, the path from free to Plus (limits hit on the way), median days to Plus, Plus by country |
 | Revenue | Estimated monthly revenue, paying and complimentary couples, subscriptions started and ended, active by plan and state |
 | World | A map of where people are (the country on their account, never their location): bubbles sized by people, coloured by how many of their couples are on Plus; the top countries |

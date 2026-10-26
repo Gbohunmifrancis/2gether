@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actionLabel, ago, bytes, compact, count, humanize, money, percent, plural, productLabel, shortDay } from "./format";
+import { actionLabel, ago, bytes, compact, count, hearts, humanize, money, percent, plural, productLabel, shortDay } from "./format";
 
 describe("format", () => {
   it("counts with separators and compacts only big numbers", () => {
@@ -40,6 +40,9 @@ describe("format", () => {
     expect(actionLabel("something.new")).toBe("Something new");
     expect(plural(1, "couple")).toBe("1 couple");
     expect(plural(3, "couple")).toBe("3 couples");
+    expect(hearts(1)).toBe("1 heart");
+    expect(hearts(0.5)).toBe("0.5 hearts");
+    expect(hearts(2)).toBe("2 hearts");
     expect(shortDay("2026-03-01")).toBe("1 Mar");
   });
 });

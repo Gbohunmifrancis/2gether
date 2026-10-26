@@ -24,13 +24,13 @@
  "A packet or a menu usually says": "عادةً تذكرها العبوة أو قائمة الطعام",
  "A pair! Go again": "زوج! العب مجددًا",
  "A perfect tie": "تعادل تام",
- "A perfect tie, {count} point each|A perfect tie, {count} points each": {
-  "zero": "تعادل تام، {count} نقطة لكل منكما",
-  "one": "تعادل تام، نقطة واحدة لكل منكما",
-  "two": "تعادل تام، نقطتان لكل منكما",
-  "few": "تعادل تام، {count} نقاط لكل منكما",
-  "many": "تعادل تام، {count} نقطة لكل منكما",
-  "other": "تعادل تام، {count} نقطة لكل منكما"
+ "A perfect tie, {count} heart each|A perfect tie, {count} hearts each": {
+  "zero": "تعادل تام، {count} قلب لكل منكما",
+  "one": "تعادل تام، قلب واحد لكل منكما",
+  "two": "تعادل تام، قلبان لكل منكما",
+  "few": "تعادل تام، {count} قلوب لكل منكما",
+  "many": "تعادل تام، {count} قلبًا لكل منكما",
+  "other": "تعادل تام، {count} قلب لكل منكما"
  },
  "A pizza, a slice already gone.": "بيتزا أُكلت منها شريحة.",
  "A place starting with {letter}": "مكان بحرف {letter}",
@@ -120,13 +120,13 @@
  "Breakfast": "الفطور",
  "Bring your arms all the way down between raises.": "أنزل ذراعيك تمامًا بين التكرارات.",
  "By continuing you agree to the Terms and the Privacy Policy.": "المتابعة تعني الموافقة على الشروط وسياسة الخصوصية.",
- "by {count} point|by {count} points": {
-  "zero": "بفارق {count} نقطة",
-  "one": "بفارق نقطة واحدة",
-  "two": "بفارق نقطتين",
-  "few": "بفارق {count} نقاط",
-  "many": "بفارق {count} نقطة",
-  "other": "بفارق {count} نقطة"
+ "by {count} heart|by {count} hearts": {
+  "zero": "بفارق {count} قلب",
+  "one": "بفارق قلب واحد",
+  "two": "بفارق قلبين",
+  "few": "بفارق {count} قلوب",
+  "many": "بفارق {count} قلبًا",
+  "other": "بفارق {count} قلب"
  },
  "Cake": "كعكة",
  "Call it off together": "إلغاء معًا",
@@ -372,6 +372,14 @@
  "Heartbeat": "نبضة قلب",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact للبالغين. يجب أن يكون عمرك 18 عامًا أو أكثر للتسجيل.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "يحتاج Heartpact إلى الكاميرا لعدّ تكراراتك. لا يُسجَّل أو يُرسَل أي شيء.",
+ "heart|hearts": {
+  "zero": "قلب",
+  "one": "قلب",
+  "two": "قلبان",
+  "few": "قلوب",
+  "many": "قلبًا",
+  "other": "قلب"
+ },
  "Heavy": "غزير",
  "Held on {s} s too long.": "تأخّر الإفلات بـ{s} ث.",
  "Hide password": "إخفاء كلمة المرور",
@@ -448,6 +456,17 @@
  "Let go at the line": "أفلِت عند الخط",
  "Let go {s} s too early.": "إفلات مبكر بـ{s} ث.",
  "Let your dares ring on time": "اجعل تحدياتك ترنّ في وقتها",
+ "Level on hearts and on points": "تعادل في القلوب وفي النقاط",
+ "Level on hearts, won by {count} point|Level on hearts, won by {count} points": {
+  "zero": "تعادل في القلوب، والفوز بفارق {count} نقطة",
+  "one": "تعادل في القلوب، والفوز بفارق نقطة واحدة",
+  "two": "تعادل في القلوب، والفوز بفارق نقطتين",
+  "few": "تعادل في القلوب، والفوز بفارق {count} نقاط",
+  "many": "تعادل في القلوب، والفوز بفارق {count} نقطة",
+  "other": "تعادل في القلوب، والفوز بفارق {count} نقطة"
+ },
+ "Level on hearts, you won on points": "تعادل في القلوب، وفزت بالنقاط",
+ "Level on hearts, {partner} won on points": "تعادل في القلوب، والفوز لـ{partner} بالنقاط",
  "Lie all the way back between sit-ups.": "استلقِ للخلف تمامًا بين التكرارات.",
  "Lie on your back with your knees bent.": "استلقِ على ظهرك مع ثني الركبتين.",
  "Lift your hips into a straight line.": "ارفع وركيك إلى خط مستقيم.",
@@ -717,7 +736,6 @@
  "Plus · on us until {date}": "Plus · هدية منا حتى {date}",
  "Plus · you pay, it covers you both": "Plus · الدفع منك، ويشملكما معًا",
  "Plus · {partner} pays, it covers you both": "Plus · الدفع من {partner}، ويشملكما معًا",
- "points": "نقاط",
  "Portion": "الحصة",
  "Pour to the line. Not a drop more.": "اسكب حتى الخط. ولا قطرة زيادة.",
  "Pouring...": "جارٍ السكب...",
@@ -1094,13 +1112,13 @@
  "You scored {score}": "نتيجتك {score}",
  "You won game {game}!": "فزت بالجولة {game}!",
  "You won the duel": "فزت بالمبارزة",
- "You won the duel by {count} point|You won the duel by {count} points": {
-  "zero": "فزت بالمبارزة بفارق {count} نقطة",
-  "one": "فزت بالمبارزة بفارق نقطة واحدة",
-  "two": "فزت بالمبارزة بفارق نقطتين",
-  "few": "فزت بالمبارزة بفارق {count} نقاط",
-  "many": "فزت بالمبارزة بفارق {count} نقطة",
-  "other": "فزت بالمبارزة بفارق {count} نقطة"
+ "You won the duel by {count} heart|You won the duel by {count} hearts": {
+  "zero": "فزت بالمبارزة بفارق {count} قلب",
+  "one": "فزت بالمبارزة بفارق قلب واحد",
+  "two": "فزت بالمبارزة بفارق قلبين",
+  "few": "فزت بالمبارزة بفارق {count} قلوب",
+  "many": "فزت بالمبارزة بفارق {count} قلبًا",
+  "other": "فزت بالمبارزة بفارق {count} قلب"
  },
  "You won {game}, {mine} to {theirs}": "فزت في {game}، {mine} مقابل {theirs}",
  "You won!": "فزت!",
@@ -1349,14 +1367,6 @@
   "many": "{count} صورة",
   "other": "{count} صورة"
  },
- "{count} point each|{count} points each": {
-  "zero": "{count} نقطة لكل منكما",
-  "one": "نقطة واحدة لكل منكما",
-  "two": "نقطتان لكل منكما",
-  "few": "{count} نقاط لكل منكما",
-  "many": "{count} نقطة لكل منكما",
-  "other": "{count} نقطة لكل منكما"
- },
  "{count} point|{count} points": {
   "zero": "{count} نقطة",
   "one": "نقطة واحدة",
@@ -1544,13 +1554,13 @@
  "{partner} stuck their half on. Do the reps and the camera sticks yours.": "نصف {partner} مُلصق. أنجز التكرارات وتلصق الكاميرا نصفك.",
  "{partner} won": "الفوز لـ{partner}",
  "{partner} won game {game}": "الجولة {game} لـ{partner}",
- "{partner} won the duel by {count} point|{partner} won the duel by {count} points": {
-  "zero": "الفوز لـ{partner} بفارق {count} نقطة",
-  "one": "الفوز لـ{partner} بفارق نقطة واحدة",
-  "two": "الفوز لـ{partner} بفارق نقطتين",
-  "few": "الفوز لـ{partner} بفارق {count} نقاط",
-  "many": "الفوز لـ{partner} بفارق {count} نقطة",
-  "other": "الفوز لـ{partner} بفارق {count} نقطة"
+ "{partner} won the duel by {count} heart|{partner} won the duel by {count} hearts": {
+  "zero": "الفوز لـ{partner} بفارق {count} قلب",
+  "one": "الفوز لـ{partner} بفارق قلب واحد",
+  "two": "الفوز لـ{partner} بفارق قلبين",
+  "few": "الفوز لـ{partner} بفارق {count} قلوب",
+  "many": "الفوز لـ{partner} بفارق {count} قلبًا",
+  "other": "الفوز لـ{partner} بفارق {count} قلب"
  },
  "{partner} won {game}, {theirs} to {mine}": "الفوز في {game} لـ{partner}، {theirs} مقابل {mine}",
  "{partner} won, {theirs} to {mine}": "الفوز لـ{partner}، {theirs} مقابل {mine}",

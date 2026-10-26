@@ -113,16 +113,40 @@ object GamePlay {
         }
     }
 
-    /** A finished duel is won on total points (the hearts, rounds won, stand in before the totals are known). */
+    /** How a finished duel was settled: on hearts, on points when the hearts were level, or a tie on both. */
+    enum class DuelDecision { Hearts, Points, Tie }
+
+    fun duelDecision(d: SkillDuelState): DuelDecision = when {
+        d.winner == null -> DuelDecision.Tie
+        d.decidedBy == "points" -> DuelDecision.Points
+        d.decidedBy == null && d.hearts.values.distinct().size == 1 -> DuelDecision.Points
+        else -> DuelDecision.Hearts
+    }
+
+    /** A finished duel is won on hearts; the points speak only when the hearts were level. Before the end, the hearts so far. */
     private fun duelOutcome(d: SkillDuelState, me: String, partner: String): String {
-        val totals = d.totals.orEmpty()
-        val mine = totals[me] ?: 0
-        val theirs = totals.entries.firstOrNull { it.key != me }?.value ?: 0
+        val mine = d.hearts[me] ?: 0
+        val theirs = d.hearts.entries.firstOrNull { it.key != me }?.value ?: 0
         val by = d.margin ?: kotlin.math.abs(mine - theirs)
-        return when {
-            mine > theirs -> trn(by, "You won the duel by {count} point", "You won the duel by {count} points")
-            theirs > mine -> trn(by, "{partner} won the duel by {count} point", "{partner} won the duel by {count} points", "partner" to partner)
-            else -> trn(mine, "A perfect tie, {count} point each", "A perfect tie, {count} points each")
+        val iWon = d.winner == me
+        return when (duelDecision(d)) {
+            DuelDecision.Hearts -> if (iWon) trn(by, "You won the duel by {count} heart", "You won the duel by {count} hearts")
+                else trn(by, "{partner} won the duel by {count} heart", "{partner} won the duel by {count} hearts", "partner" to partner)
+            DuelDecision.Points -> if (iWon) tr("Level on hearts, you won on points") else tr("Level on hearts, {partner} won on points", "partner" to partner)
+            DuelDecision.Tie -> trn(mine, "A perfect tie, {count} heart each", "A perfect tie, {count} hearts each")
+        }
+    }
+
+    /** The line under the result's headline: by how many hearts or, only when the hearts were level, by how many points. */
+    fun duelMargin(d: SkillDuelState, me: String): String {
+        val mine = d.hearts[me] ?: 0
+        val theirs = d.hearts.entries.firstOrNull { it.key != me }?.value ?: 0
+        val points = d.totals.orEmpty()
+        val pointGap = d.pointMargin ?: kotlin.math.abs((points[me] ?: 0) - (points.entries.firstOrNull { it.key != me }?.value ?: 0))
+        return when (duelDecision(d)) {
+            DuelDecision.Hearts -> trn(d.margin ?: kotlin.math.abs(mine - theirs), "by {count} heart", "by {count} hearts")
+            DuelDecision.Points -> trn(pointGap, "Level on hearts, won by {count} point", "Level on hearts, won by {count} points")
+            DuelDecision.Tie -> tr("Level on hearts and on points")
         }
     }
 
