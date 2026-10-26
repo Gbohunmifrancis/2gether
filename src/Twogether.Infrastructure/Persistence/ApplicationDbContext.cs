@@ -34,6 +34,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<AdminAuditEvent> AdminAuditEvents => Set<AdminAuditEvent>();
     public DbSet<PlusGrant> PlusGrants => Set<PlusGrant>();
     public DbSet<UserActivityDay> UserActivityDays => Set<UserActivityDay>();
+    public DbSet<AccountDeletion> AccountDeletions => Set<AccountDeletion>();
     public DbSet<StoreSubscription> StoreSubscriptions => Set<StoreSubscription>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
     public DbSet<AlbumSyncState> AlbumSyncStates => Set<AlbumSyncState>();

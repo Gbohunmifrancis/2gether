@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Memories;
 using Twogether.Core.Enums;
 
@@ -14,10 +15,12 @@ public sealed class MemoryCleanupWorker(
     IMediaStorage storage,
     MediaSettings settings,
     IDateTimeProvider clock,
-    ILogger<MemoryCleanupWorker> logger) : BackgroundService
+    ILogger<MemoryCleanupWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
     private const int BatchSize = 100;
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
+    public const string HeartbeatName = "memoryCleanup";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -26,6 +29,8 @@ public sealed class MemoryCleanupWorker(
             logger.LogInformation("Media storage is not configured; memory cleanup is off.");
             return;
         }
+        // Only when it runs at all: with storage off there is nothing for it to keep up with.
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(MemoryCleanupWorker), stoppingToken);
         using var timer = new PeriodicTimer(Interval);
         do
@@ -35,6 +40,7 @@ public sealed class MemoryCleanupWorker(
                 while (await RecheckClosedUploadWindowsAsync(stoppingToken) == BatchSize) { }
                 // Drain: an ended album can hold thousands of photos.
                 while (await SweepAsync(stoppingToken) == BatchSize) { }
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -43,6 +49,7 @@ public sealed class MemoryCleanupWorker(
             catch (Exception exception)
             {
                 logger.LogError(exception, "Memory cleanup sweep failed.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));

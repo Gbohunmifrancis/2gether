@@ -11,6 +11,7 @@ public interface IApplicationDbContext
     DbSet<AdminAuditEvent> AdminAuditEvents { get; }
     DbSet<PlusGrant> PlusGrants { get; }
     DbSet<UserActivityDay> UserActivityDays { get; }
+    DbSet<AccountDeletion> AccountDeletions { get; }
     DbSet<Couple> Couples { get; }
     DbSet<PartnerInvite> PartnerInvites { get; }
     DbSet<CycleProfile> CycleProfiles { get; }

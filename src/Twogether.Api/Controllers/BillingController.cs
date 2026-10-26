@@ -23,7 +23,8 @@ public sealed class BillingController(
     GooglePlaySubscriptionSync sync,
     IGooglePlayBilling store,
     BillingSettings settings,
-    ILogger<BillingController> logger) : ApiControllerBase
+    ILogger<BillingController> logger,
+    Twogether.Application.Features.Admin.Ops.OpsSignals? signals = null) : ApiControllerBase
 {
     [Authorize]
     [HttpGet("entitlement")]
@@ -58,6 +59,8 @@ public sealed class BillingController(
         if (result.IsFailure)
         {
             logger.LogWarning("Purchase verification for user {UserId} failed: {Code}.", currentUser.UserId, result.Error.Code);
+            // For the admin payment alert: failures that aren't the buyer's own doing.
+            if (result.Error.Type is not (ErrorType.Validation or ErrorType.Forbidden)) signals?.VerifyFailed();
             return Problem(result.Error);
         }
         if (result.Value.AcknowledgeFailed)

@@ -27,6 +27,16 @@ details, or location. The API has no admin endpoint that returns any of it.
 A lost phone: another admin opens System → Admins → **Reset authenticator**. That admin is signed out and enrolls
 again at their next sign-in. Nobody can reset their own.
 
+### A fresh code for destructive actions
+
+Disabling or deleting an account, refunding, revoking or stopping a subscription, giving a couple Plus, resetting
+another admin's authenticator and marking an account internal also need a **fresh authenticator code**, sent as the
+`X-Admin-Code` header. It is checked like a sign-in code: it works once (the same "last used step" as sign-in, so the
+code you just signed in with doesn't count again), and it is used up before the action runs, so a copied session token
+alone can't do any of these. Without a code the API answers `403 admin.step_up_required`; with a wrong or used one,
+`403 admin.step_up_invalid` (audited as `admin.step_up_failed`). Five wrong codes in 15 minutes lock step-up for that
+admin for a while (`429`). The dashboard asks for the code in a dialog and retries with it.
+
 Every sign-in failure says the same thing ("Email or password is incorrect"), whether the account doesn't exist, isn't
 an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes) and per IP (20 per 15 minutes).
 
@@ -73,7 +83,9 @@ alone, and another admin resets their authenticator. Changing `Jwt__SigningKey` 
 | `Admin__Emails` | Who may sign in, comma-separated. Empty: nobody |
 | `Admin__TokenHours` | Admin session length in hours, default 4 |
 | `Admin__MonthlyPrices__heartpact_plus_monthly`, `Admin__MonthlyPrices__heartpact_plus_yearly` | Monthly list price per product, for the revenue estimate |
-| `Admin__Currency` | Currency of those prices, default `USD` |
+| `Admin__Currency` | Currency of those prices (and of the food scan cost), default `USD` |
+| `Admin__FoodScanPricePerMillionInput`, `Admin__FoodScanPricePerMillionOutput` | Food photo estimate price per million input and output tokens, for the cost on System → Health. Without both, the cost shows "—" |
+| `Admin__StorageBudgetGb` | Album storage budget in GB (10^9 bytes): an alert is raised at 80% and turns red at 100%. Unset: no storage alert |
 | `Admin__SecretKey` | Encrypts admins' authenticator secrets in the database. Any long random string. Without it, a key derived from `Jwt__SigningKey` is used |
 | `Admin__PreviousSecretKey` | The key before the last change, so existing secrets still open; they are re-encrypted under the new key at start-up |
 | `Frontend__Origin` | Add the dashboard's origin (for example `https://admin.heartpact.app`) to this comma-separated CORS list |
@@ -119,6 +131,25 @@ Pages and Netlify. Elsewhere, set the same headers on the host.
 Put it on its own hostname, add that origin to `Frontend__Origin`, and consider putting it behind your host's
 access control (Cloudflare Access, an IP allowlist) as well: the sign-in is strong, but an admin URL nobody else
 can reach is stronger.
+
+## Live, health and alerts
+
+- **Live** (`analytics/pulse`, `analytics/live/events`): the pulse is today's counts and the last 24 hours of events; the
+  stream is Server-Sent Events over a normal authenticated `GET` (read with `fetch`, not `EventSource`). The API polls
+  the database every 3 s, sends each event once by id, pings every 20 s, re-checks every minute that the admin is still
+  an admin, and ends when the token expires. It starts a minute back, so the client drops repeats of `recent` by id.
+  "Online now" is people whose last request was in the last 5 minutes or who have the app open (a live connection).
+- **Health** (`system/health`): database and storage round trips, whether push, email and food estimates are set up
+  (and degraded when a fifth of pushes or half the scans failed in the last hour), every background worker's last run
+  and error, and the queues the workers drain. Workers report into memory, so this is the answering instance's view
+  since its last start; "late" is three missed intervals (at least 30 s), "failing" is a last loop that errored.
+- **Alerts** (`alerts`): sign-up wave, food-scan flood, payment trouble, push failing, a late or failing worker, album
+  storage near its budget. Each is raised once an hour at most, stays listed for that hour, and appears on the live
+  stream as an `alert` event. They are computed on request (at most every 30 s) and held in memory: nothing pages
+  anyone, and an alert is only noticed while someone has the dashboard open. `notMonitored` on the health page lists
+  what nothing watches yet.
+- Deleted accounts leave one row in `account_deletions` (when, and whether it was an internal account; nothing else),
+  so the live feed can say an account was deleted.
 
 ## Known limits
 

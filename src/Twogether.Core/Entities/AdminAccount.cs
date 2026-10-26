@@ -111,3 +111,17 @@ public sealed class UserActivityDay
     public Guid UserId { get; set; }
     public DateOnly Day { get; set; }
 }
+
+/// <summary>
+/// That an account was deleted, and when: nothing else, so the admin live feed can say "an account was
+/// deleted" after the person and everything of theirs is gone. Internal (test) accounts are flagged so
+/// analytics can leave them out.
+/// </summary>
+public sealed class AccountDeletion : BaseEntity
+{
+    private AccountDeletion() { }
+
+    public bool WasInternal { get; private set; }
+
+    public static AccountDeletion Record(bool wasInternal, DateTime utcNow) => new() { WasInternal = wasInternal, CreatedAtUtc = utcNow, UpdatedAtUtc = utcNow };
+}

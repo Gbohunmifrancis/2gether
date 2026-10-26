@@ -40,12 +40,25 @@ var adminSettings = new Twogether.Application.Features.Admin.AdminSettings
         .Where(item => decimal.TryParse(item.Value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out _))
         .ToDictionary(item => item.Key, item => decimal.Parse(item.Value!, System.Globalization.CultureInfo.InvariantCulture)),
     Currency = builder.Configuration["Admin:Currency"] ?? "USD",
+    FoodScanPricePerMillionInput = PositiveDecimal(builder.Configuration["Admin:FoodScanPricePerMillionInput"]),
+    FoodScanPricePerMillionOutput = PositiveDecimal(builder.Configuration["Admin:FoodScanPricePerMillionOutput"]),
+    StorageBudgetGb = PositiveDecimal(builder.Configuration["Admin:StorageBudgetGb"]),
 };
+static decimal? PositiveDecimal(string? value)
+    => decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsed) && parsed > 0 ? parsed : null;
 builder.Services.AddSingleton(adminSettings);
 // Admins' authenticator secrets are encrypted at rest; older keys still read existing ones (docs/admin.md).
 builder.Services.AddSingleton(_ => new Twogether.Application.Features.Admin.AdminSecretProtector(
     builder.Configuration["Admin:SecretKey"], builder.Configuration["Admin:PreviousSecretKey"], jwtSettings.SigningKey));
 builder.Services.AddScoped<Twogether.Api.Admin.AdminAudit>();
+// Admin console v2: live feed, health and alerts (docs/admin/contract-v2.md).
+builder.Services.AddSingleton<Twogether.Application.Features.Admin.Ops.WorkerHeartbeats>();
+builder.Services.AddSingleton<Twogether.Application.Features.Admin.Ops.OpsSignals>();
+builder.Services.AddSingleton<Twogether.Application.Features.Admin.Ops.AdminAlertMonitor>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.Live.AdminLiveFeed>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.Ops.AdminAlerts>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.Ops.AdminHealth>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.People.AdminJourney>();
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<HubConnectionRegistry>();
 builder.Services.AddSingleton<GameLiveState>();

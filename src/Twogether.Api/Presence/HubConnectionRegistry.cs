@@ -12,6 +12,9 @@ public sealed class HubConnectionRegistry
 {
     private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, HubCallerContext>> _byUser = new();
 
+    /// <summary>Everyone with the app open on this instance, for the admin "online now" count.</summary>
+    public IReadOnlyCollection<Guid> ConnectedUserIds => _byUser.Keys.ToList();
+
     public void Add(Guid userId, HubCallerContext context) => _byUser.GetOrAdd(userId, _ => new()).TryAdd(context.ConnectionId, context);
 
     public void Remove(Guid userId, string connectionId)
