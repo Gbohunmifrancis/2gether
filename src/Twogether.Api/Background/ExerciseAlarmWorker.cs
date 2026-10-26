@@ -4,6 +4,7 @@ using Npgsql;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Exercise;
 using Twogether.Application.Features.Notifications;
 using Twogether.Core.Entities;
@@ -23,17 +24,23 @@ public sealed class ExerciseAlarmWorker(
     IServiceScopeFactory scopeFactory,
     IHubContext<CoupleHub> hub,
     IDateTimeProvider clock,
-    ILogger<ExerciseAlarmWorker> logger) : BackgroundService
+    ILogger<ExerciseAlarmWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
+    public const string HeartbeatName = "exerciseAlarms";
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(ExerciseAlarmWorker), stoppingToken);
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        using var timer = new PeriodicTimer(Interval);
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             try
             {
                 await TickAsync(stoppingToken);
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -42,6 +49,7 @@ public sealed class ExerciseAlarmWorker(
             catch (Exception exception)
             {
                 logger.LogError(exception, "Exercise alarm tick failed.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
     }

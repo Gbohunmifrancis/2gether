@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Memories;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
@@ -24,11 +25,13 @@ public sealed class AlbumSyncReminderWorker(
     IServiceScopeFactory scopeFactory,
     IHubContext<CoupleHub> hub,
     IDateTimeProvider clock,
-    ILogger<AlbumSyncReminderWorker> logger) : BackgroundService
+    ILogger<AlbumSyncReminderWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
     private const int BatchSize = 100;
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan StartupDelay = TimeSpan.FromMinutes(1);
+    public const string HeartbeatName = "albumSyncReminders";
 
     public sealed record RunSummary(int Candidates, int Sent, int SkippedCategoryOff, int SkippedQuietHours, int SkippedNotDue, int SkippedClaimedElsewhere, int Failed);
 
@@ -36,6 +39,7 @@ public sealed class AlbumSyncReminderWorker(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(AlbumSyncReminderWorker), stoppingToken);
         try
         {
@@ -52,6 +56,7 @@ public sealed class AlbumSyncReminderWorker(
             try
             {
                 await RunAsync(stoppingToken);
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -60,6 +65,7 @@ public sealed class AlbumSyncReminderWorker(
             catch (Exception exception)
             {
                 logger.LogError(exception, "Album sync reminder run failed.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));

@@ -124,6 +124,9 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         await db.GameResults.Where(item => coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.GameSessions.Where(item => coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.Couples.Where(item => orphaned.Contains(item.Id)).ExecuteDeleteAsync(cancellationToken);
+        // Only that it happened, for the admin live feed: no id, name or anything else of theirs.
+        db.AccountDeletions.Add(AccountDeletion.Record(user.IsInternal, now));
+        await db.SaveChangesAsync(cancellationToken);
         await db.Users.Where(item => item.Id == userId).ExecuteDeleteAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);

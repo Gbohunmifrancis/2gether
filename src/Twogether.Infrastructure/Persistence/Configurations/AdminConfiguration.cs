@@ -57,3 +57,13 @@ public sealed class UserActivityDayConfiguration : IEntityTypeConfiguration<User
         builder.HasIndex(item => item.Day);
     }
 }
+
+public sealed class AccountDeletionConfiguration : IEntityTypeConfiguration<AccountDeletion>
+{
+    public void Configure(EntityTypeBuilder<AccountDeletion> builder)
+    {
+        builder.ToTable("account_deletions");
+        builder.HasKey(item => item.Id);
+        builder.HasIndex(item => item.CreatedAtUtc);
+    }
+}

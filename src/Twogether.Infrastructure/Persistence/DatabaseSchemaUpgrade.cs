@@ -470,5 +470,15 @@ public static class DatabaseSchemaUpgrade
 
         -- Admin: test and team accounts, left out of analytics.
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "IsInternal" boolean NOT NULL DEFAULT false;
+
+        -- Admin live feed: that an account was deleted, and when. Nothing about whose it was.
+        CREATE TABLE IF NOT EXISTS account_deletions (
+            "Id" uuid NOT NULL,
+            "WasInternal" boolean NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_account_deletions" PRIMARY KEY ("Id")
+        );
+        CREATE INDEX IF NOT EXISTS "IX_account_deletions_CreatedAtUtc" ON account_deletions ("CreatedAtUtc");
         """;
 }
