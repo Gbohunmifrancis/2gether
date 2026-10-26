@@ -159,6 +159,38 @@ describe("the dashboard", () => {
     expect(screen.getByText("Account disabled.")).toBeTruthy();
   });
 
+  it("asks for a fresh code when the API wants one, then retries with it", async () => {
+    const user = userEvent.setup();
+    const sent: (string | undefined)[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://admin.test");
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      if ((init?.method ?? "GET") === "GET" && url.pathname === `/api/admin/users/${maya.id}`)
+        return new Response(JSON.stringify(detail()), { status: 200, headers: { "content-type": "application/json" } });
+      if (init?.method === "POST" && url.pathname === `/api/admin/users/${maya.id}/internal`) {
+        sent.push(headers["x-admin-code"]);
+        if (!headers["x-admin-code"]) return new Response(JSON.stringify({ code: "admin.step_up_required", message: "Fresh code, please." }), { status: 403 });
+        return new Response(null, { status: 204 });
+      }
+      // The live feed, alerts and the rest aren't part of this test.
+      return new Response(null, { status: 404 });
+    });
+    act(() => setSession(admin));
+    start(`/users/${maya.id}`);
+
+    await user.click(await screen.findByRole("button", { name: "Mark internal" }));
+    await user.type(screen.getByLabelText(/Reason/), "QA account");
+    await user.click(screen.getAllByRole("button", { name: "Mark internal" }).at(-1)!);
+
+    const code = await screen.findByLabelText("Authenticator code");
+    await waitFor(() => expect((code as HTMLInputElement).disabled).toBe(false));
+    await user.type(code, "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => expect(sent).toEqual([undefined, "123456"]));
+    expect(await screen.findByText("Marked internal.")).toBeTruthy();
+  });
+
   it("only deletes after the admin types the account's email", async () => {
     const user = userEvent.setup();
     const calls = mockApi((method, path) => {

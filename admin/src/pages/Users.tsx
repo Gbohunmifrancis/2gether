@@ -5,8 +5,21 @@ import { queries, type UserStatusFilter } from "../api/queries";
 import type { UserRow } from "../api/types";
 import { DataTable } from "../components/DataTable";
 import { SearchBox } from "../components/SearchBox";
+import { Icon } from "../components/Icon";
 import { Avatar, Badge, Card, ErrorState, PageHead, Pager } from "../components/ui";
 import { ago, coupleStatusLabel, date } from "../lib/format";
+
+/** Active in the last 5 minutes, like the pulse's "online now". */
+export const isOnline = (lastActive: string | null | undefined, now = Date.now()) => Boolean(lastActive && now - Date.parse(lastActive) < 5 * 60_000);
+
+export function InternalBadge() {
+  return (
+    <Badge tone="warn">
+      <Icon name="flask" />
+      Internal
+    </Badge>
+  );
+}
 
 const route = getRouteApi("/_app/users");
 const column = createColumnHelper<UserRow>();
@@ -20,9 +33,11 @@ const columns = [
     header: "Person",
     cell: ({ row }) => (
       <div className="who">
-        <Avatar name={row.original.displayName} />
+        <Avatar name={row.original.displayName} online={isOnline(row.original.lastActiveAtUtc)} />
         <div style={{ minWidth: 0 }}>
-          <b>{row.original.displayName}</b>
+          <b>
+            {row.original.displayName} {row.original.internal ? <InternalBadge /> : null}
+          </b>
           <small>{row.original.email}</small>
         </div>
       </div>
@@ -48,7 +63,19 @@ const columns = [
     cell: ({ row }) => <SignInMethods google={row.original.google} password={row.original.password} />,
   }),
   column.accessor("createdAtUtc", { header: "Joined", meta: { secondary: true }, cell: ({ getValue }) => date(getValue()) }),
-  column.accessor("lastActiveAtUtc", { header: "Last active", meta: { secondary: true }, cell: ({ getValue }) => ago(getValue()) }),
+  column.accessor("lastActiveAtUtc", {
+    header: "Last active",
+    meta: { secondary: true },
+    cell: ({ getValue }) =>
+      isOnline(getValue()) ? (
+        <span className="online-badge">
+          <span className="dot" aria-hidden="true" />
+          Online now
+        </span>
+      ) : (
+        ago(getValue())
+      ),
+  }),
   column.accessor("disabledAtUtc", {
     header: "Status",
     cell: ({ getValue }) => (getValue() ? <Badge tone="bad">Disabled</Badge> : <Badge tone="good">Active</Badge>),
@@ -84,6 +111,7 @@ export function UsersPage() {
               <option value="active">Active</option>
               <option value="disabled">Disabled</option>
               <option value="unlinked">Not in a couple</option>
+              <option value="internal">Internal (test and team)</option>
             </select>
           </label>
           {isFetching && !isPending ? <span className="small faint">Updating…</span> : null}

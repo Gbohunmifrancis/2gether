@@ -108,11 +108,19 @@ export function Empty({ children }: { children: ReactNode }) {
   return <div className="empty">{children}</div>;
 }
 
-export function Avatar({ name, large }: { name: string; large?: boolean }) {
+/** An initial on a soft disc; a green dot when they're online now. Its colour follows the name, so people are told apart. */
+export function Avatar({ name, large, online }: { name: string; large?: boolean; online?: boolean }) {
   const initial = name.trim().charAt(0).toUpperCase() || "?";
+  const hue = [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 3;
   return (
-    <span className={`avatar${large ? " lg" : ""}`} aria-hidden="true">
+    <span
+      className={`avatar${large ? " lg" : ""} hue-${hue}`}
+      aria-hidden={online ? undefined : true}
+      role={online ? "img" : undefined}
+      aria-label={online ? `${name}, online now` : undefined}
+    >
       {initial}
+      {online ? <span className="avatar-online" /> : null}
     </span>
   );
 }

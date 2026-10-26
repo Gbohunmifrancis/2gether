@@ -27,7 +27,8 @@ export function rangeSearch(search: Input): { days: Range } {
 }
 
 export function usersSearch(search: Input): { query?: string; status?: UserStatusFilter; page: number } {
-  const status = search.status === "active" || search.status === "disabled" || search.status === "unlinked" ? search.status : undefined;
+  const status =
+    search.status === "active" || search.status === "disabled" || search.status === "unlinked" || search.status === "internal" ? search.status : undefined;
   return { query: text(search.query), status, page: page(search.page) };
 }
 
@@ -53,4 +54,17 @@ export function signInSearch(search: Input): { redirect?: string } {
   const redirect = text(search.redirect, 500);
   // Only same-app paths: never bounce a fresh admin token to another origin.
   return { redirect: redirect && /^\/(?![/\\])/.test(redirect) && !redirect.includes("\\") && !redirect.startsWith("/sign-in") ? redirect : undefined };
+}
+
+/** Growth looks further back by default: renewals are monthly at the quickest. */
+export function growthSearch(search: Input): { days: Range } {
+  const days = Number(search.days);
+  return { days: (RANGES as readonly number[]).includes(days) ? (days as Range) : 90 };
+}
+
+export const WEEK_RANGES = [8, 12, 26] as const;
+
+export function retentionSearch(search: Input): { weeks: (typeof WEEK_RANGES)[number] } {
+  const weeks = Number(search.weeks);
+  return { weeks: (WEEK_RANGES as readonly number[]).includes(weeks) ? (weeks as (typeof WEEK_RANGES)[number]) : 12 };
 }

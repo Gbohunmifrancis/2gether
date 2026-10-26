@@ -4,10 +4,11 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError } from "../api/client";
 import type { AdminSession, Enrollment } from "../api/types";
 import { setSession } from "../auth/session";
-import { Mark } from "../components/Icon";
+import { Mascot } from "../components/Art";
 import { errorMessage, Notice } from "../components/ui";
 
 const route = getRouteApi("/sign-in");
+const DEMO = import.meta.env.VITE_DEMO === "1";
 
 type Step = { kind: "password" } | { kind: "code" } | { kind: "enroll"; secret: string; uri: string };
 
@@ -71,14 +72,34 @@ export function SignInPage() {
     setError(null);
   };
 
+  /** Demo mode: the pretend API takes any email, password and code. */
+  async function demo() {
+    setBusy(true);
+    try {
+      const session = await api<AdminSession>("/api/admin/auth/login", {
+        method: "POST",
+        anonymous: true,
+        body: { email: "ada@heartpact.app", password: "demo", code: "123456" },
+      });
+      setSession(session);
+      await navigate({ href: redirect ?? "/", replace: true });
+    } catch (failure) {
+      setError(errorMessage(failure));
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="auth">
       <main className="card">
-        <div className="brand" style={{ padding: 0 }}>
-          <Mark />
-          <div>
-            <b>heartpact</b>
-            <span>Admin</span>
+        <div className="auth-top">
+          {/* The mark comes alive here: it waves hello, and looks worried when something goes wrong. */}
+          <Mascot mood={step.kind === "password" ? (error ? "worried" : "hello") : error ? "worried" : "idle"} size={58} title="Heartpact" />
+          <div className="brand" style={{ padding: 0 }}>
+            <div>
+              <b>heartpact</b>
+              <span>Admin</span>
+            </div>
           </div>
         </div>
 
@@ -118,6 +139,16 @@ export function SignInPage() {
               <button className="btn filled block" type="submit" disabled={busy || !email || !password}>
                 {busy ? "Checking…" : "Continue"}
               </button>
+              {DEMO ? (
+                <>
+                  <button className="btn outline block" type="button" onClick={() => void demo()} disabled={busy}>
+                    Try the demo
+                  </button>
+                  <p className="small faint" style={{ textAlign: "center" }}>
+                    Demo mode: made-up data, no server. Any email, password and six-digit code works (000000 never does).
+                  </p>
+                </>
+              ) : null}
             </form>
           </>
         ) : (

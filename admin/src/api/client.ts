@@ -49,11 +49,46 @@ export interface RequestOptions {
   signal?: AbortSignal;
 }
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+/* Step-up: destructive actions want a fresh authenticator code. The API answers 403 with one of these codes; the
+   dashboard asks for the code (StepUpDialog registers the prompt) and sends the same request again with it. */
+export const STEP_UP_REQUIRED = "admin.step_up_required";
+export const STEP_UP_INVALID = "admin.step_up_invalid";
+export const STEP_UP_CANCELLED = "admin.step_up_cancelled";
+
+export interface StepUpPrompt {
+  /** Ask for a code. `invalid` is true when the last one was refused. Resolves null when the admin cancels. */
+  ask(request: { invalid: boolean; message: string }): Promise<string | null>;
+  /** The retried request finished: `ok` false means it failed for another reason (the error shows elsewhere). */
+  settle(ok: boolean): void;
+}
+
+let stepUpPrompt: StepUpPrompt | null = null;
+
+/** Registers who asks for step-up codes; returns the unregister. */
+export function setStepUpPrompt(prompt: StepUpPrompt | null): () => void {
+  stepUpPrompt = prompt;
+  return () => {
+    if (stepUpPrompt === prompt) stepUpPrompt = null;
+  };
+}
+
+export const isStepUp = (error: unknown): error is ApiError =>
+  error instanceof ApiError && error.status === 403 && (error.code === STEP_UP_REQUIRED || error.code === STEP_UP_INVALID);
+
+export const BASE_URL = BASE;
+
+/** The headers every admin call carries: JSON, and the bearer token unless anonymous. */
+export function authHeaders(anonymous = false): Record<string, string> {
   const headers: Record<string, string> = { accept: "application/json" };
-  if (options.body !== undefined) headers["content-type"] = "application/json";
-  const session = options.anonymous ? null : getSession();
+  const session = anonymous ? null : getSession();
   if (session) headers.authorization = `Bearer ${session.accessToken}`;
+  return headers;
+}
+
+async function send<T>(path: string, options: RequestOptions, adminCode?: string): Promise<T> {
+  const headers = authHeaders(options.anonymous);
+  if (options.body !== undefined) headers["content-type"] = "application/json";
+  if (adminCode) headers["x-admin-code"] = adminCode;
 
   let response: Response;
   try {
@@ -85,6 +120,36 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     throw toApiError(response.status, body);
   }
   return body as T;
+}
+
+export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  try {
+    return await send<T>(path, options);
+  } catch (error) {
+    const prompt = stepUpPrompt;
+    if (!isStepUp(error) || options.anonymous || !prompt) throw error;
+    // Ask, retry with the code; a refused code asks again with the server's message. Each code works once.
+    let refusal: ApiError = error;
+    for (;;) {
+      const code = await prompt.ask({ invalid: refusal.code === STEP_UP_INVALID, message: refusal.message });
+      if (code === null) throw new ApiError(403, STEP_UP_CANCELLED, "Cancelled. Nothing was changed.");
+      try {
+        const result = await send<T>(path, options, code);
+        prompt.settle(true);
+        return result;
+      } catch (retryError) {
+        if (isStepUp(retryError)) {
+          refusal = retryError;
+          continue;
+        }
+        prompt.settle(false);
+        // Five wrong codes in 15 minutes and the server stops listening for a while.
+        if (retryError instanceof ApiError && retryError.status === 429)
+          throw new ApiError(429, retryError.code, "Too many tries. Wait a few minutes and try again.", retryError.body);
+        throw retryError;
+      }
+    }
+  }
 }
 
 /** Builds a query string from the defined, non-empty values. */
