@@ -1,20 +1,20 @@
 package app.heartpact.ui.play
 
+import android.content.Context
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import app.heartpact.i18n.tr
-import app.heartpact.ui.components.HeartButton
-import app.heartpact.ui.theme.Heartpact
+import app.heartpact.ui.play.skills.PhoneSkillBests
+import app.heartpact.ui.play.skills.PracticeScreen
+import app.heartpact.ui.play.skills.SkillRoundFrame
+import app.heartpact.ui.play.skills.newPlay
+import app.heartpact.ui.play.skills.skillIcon
 
 /*
  * Heart skills: tiny tests of precision, each round a few seconds, scored 0 to 100 with one honest note on what to fix.
@@ -77,21 +77,18 @@ data class SkillResult(val kind: SkillKind, val score: Int, val note: String)
  * One round of [kind], from first touch to the score: the instruction, the play, then the score revealed (counted up,
  * circled, stamped) with its note. [seed] picks the shape or target, so both partners in a duel get the same round.
  * [onDone] gets the result once the reveal has finished; [onAgain] (practice) offers a new round.
+ * Fills the space it's given and draws its own dotted page.
  */
 @Composable
 fun SkillRound(kind: SkillKind, seed: Long, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null) {
-    // Placeholder until the games land (skills/): a button that scores a round, so the duel and picker can be built.
-    Column(modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(kind.instruction, style = Heartpact.type.bodyLarge, color = Heartpact.colors.ink2)
-        HeartButton(tr("Play"), { onDone(SkillResult(kind, (seed % 101).toInt().coerceAtLeast(0), "")) }, Modifier.padding(top = 16.dp))
-    }
+    val play = remember(kind, seed) { newPlay(kind, seed) }
+    SkillRoundFrame(play, onDone, modifier, onAgain)
 }
 
 /** The game's picture on its picker blob: a simple line icon in [tint]. */
 @Composable
 fun SkillIcon(kind: SkillKind, tint: Color, size: Dp, modifier: Modifier = Modifier) {
-    // Placeholder until the games land: a heart for every game.
-    Canvas(modifier.size(size)) { drawPath(unitHeart(this.size.minDimension * 0.7f).apply { translate(center) }, tint) }
+    Canvas(modifier.size(size)) { skillIcon(kind, tint) }
 }
 
 /**
@@ -100,12 +97,23 @@ fun SkillIcon(kind: SkillKind, tint: Color, size: Dp, modifier: Modifier = Modif
  */
 @Composable
 fun SkillPracticeScreen(kind: SkillKind, onBack: () -> Unit) {
-    // Placeholder until the games land.
-    SkillRound(kind, System.nanoTime(), onDone = {}, onAgain = {})
+    PracticeScreen(kind, onBack, rememberSkillBests())
 }
 
 /** Best practice scores, kept on the phone. */
 interface SkillBests {
     fun best(kind: SkillKind): Int?
     fun record(result: SkillResult)
+
+    companion object {
+        /** The phone's own best scores (its preferences, keyed by [SkillKind.name]). */
+        fun of(context: Context): SkillBests = PhoneSkillBests(context.applicationContext)
+    }
+}
+
+/** The phone's best scores, for a screen. */
+@Composable
+fun rememberSkillBests(): SkillBests {
+    val context = LocalContext.current
+    return remember { SkillBests.of(context) }
 }
