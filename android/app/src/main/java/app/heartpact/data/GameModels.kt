@@ -274,6 +274,46 @@ data class TriviaState(
     val completed: Boolean = false,
 )
 
+/**
+ * One Heart to heart round as the person holding the phone sees it: which skill game and its seed (the same for both),
+ * their own score, and the partner's only once they've played it too ([played] says the partner has).
+ */
+@Serializable
+data class DuelRound(
+    val index: Int = 0,
+    /** A `SkillKind` name (ui/play). */
+    val kind: String = "",
+    val seed: Long = 0,
+    val mine: Int? = null,
+    val partner: Int? = null,
+    val played: Boolean = false,
+    /** Whoever scored higher, once both have played; null for a tie. */
+    val winner: String? = null,
+    val tie: Boolean = false,
+) {
+    /** Both scores are in and showing. */
+    val revealed: Boolean get() = mine != null && partner != null
+}
+
+@Serializable
+data class SkillDuelState(
+    val players: List<String> = emptyList(),
+    val phase: String = "playing",
+    val totalRounds: Int = 5,
+    val rounds: List<DuelRound> = emptyList(),
+    /** Rounds won over the rounds both have played; a tie is a heart each. */
+    val hearts: Map<String, Int> = emptyMap(),
+    /** Each partner's points, once both have played every round. */
+    val totals: Map<String, Int>? = null,
+    /** The higher total; null until the end, and for a perfect tie. */
+    val winner: String? = null,
+    val tie: Boolean = false,
+    /** The difference in points, at the end. */
+    val margin: Int? = null,
+) {
+    val finished: Boolean get() = totals != null
+}
+
 /** Whose versions of the games the couple plays: "ng" for Nigerian couples (Naija content), else "global". */
 @Serializable
 data class GameRegionView(val region: String = "global")

@@ -8,6 +8,7 @@ import app.heartpact.data.GridMatchState
 import app.heartpact.data.ICallOnState
 import app.heartpact.data.MemoryState
 import app.heartpact.data.QuizState
+import app.heartpact.data.SkillDuelState
 import app.heartpact.data.TruthOrDareState
 import app.heartpact.data.WordDashState
 import app.heartpact.data.TriviaState
@@ -29,11 +30,12 @@ object GamePlay {
     fun grid(s: GameSession): GridMatchState = runCatching { json.decodeFromString(GridMatchState.serializer(), s.stateJson) }.getOrDefault(GridMatchState())
     fun drawAndGuess(s: GameSession): DrawAndGuessState = runCatching { json.decodeFromString(DrawAndGuessState.serializer(), s.stateJson) }.getOrDefault(DrawAndGuessState())
     fun trivia(s: GameSession): TriviaState = runCatching { json.decodeFromString(TriviaState.serializer(), s.stateJson) }.getOrDefault(TriviaState())
+    fun skillDuel(s: GameSession): SkillDuelState = runCatching { json.decodeFromString(SkillDuelState.serializer(), s.stateJson) }.getOrDefault(SkillDuelState())
     /** The session's content region from its setup: "ng" for Nigerian couples, else "global". */
     fun region(s: GameSession): String = runCatching { json.parseToJsonElement(s.setupJson).jsonObject["region"]?.jsonPrimitive?.content }.getOrNull() ?: "global"
 
     /** The games the app offers (docs/games.md). */
-    val offered = listOf(GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
+    val offered = listOf(GameType.SkillDuel, GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
         GameType.TruthOrDare, GameType.WordDash, GameType.Handwriting, GameType.TicTacToe, GameType.ConnectFour)
 
     /** A session's name; Nigerian couples' trivia is Naija trivia. */
@@ -99,6 +101,7 @@ object GamePlay {
             GameType.TicTacToe, GameType.ConnectFour -> grid(s).scores
             GameType.Handwriting -> return trn(drawAndGuess(s).scores[me] ?: 0, "{count} drawing guessed", "{count} drawings guessed")
             GameType.Trivia -> trivia(s).scores
+            GameType.SkillDuel -> skillDuel(s).let { d -> if (d.totals != null) return duelOutcome(d, me, partner) else d.hearts }
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0
@@ -107,6 +110,19 @@ object GamePlay {
             mine > theirs -> tr("You won, {mine} to {theirs}", "mine" to mine, "theirs" to theirs)
             theirs > mine -> tr("{partner} won, {theirs} to {mine}", "partner" to partner, "theirs" to theirs, "mine" to mine)
             else -> tr("A draw, {score} each", "score" to mine)
+        }
+    }
+
+    /** A finished duel is won on total points (the hearts, rounds won, stand in before the totals are known). */
+    private fun duelOutcome(d: SkillDuelState, me: String, partner: String): String {
+        val totals = d.totals.orEmpty()
+        val mine = totals[me] ?: 0
+        val theirs = totals.entries.firstOrNull { it.key != me }?.value ?: 0
+        val by = d.margin ?: kotlin.math.abs(mine - theirs)
+        return when {
+            mine > theirs -> trn(by, "You won the duel by {count} point", "You won the duel by {count} points")
+            theirs > mine -> trn(by, "{partner} won the duel by {count} point", "{partner} won the duel by {count} points", "partner" to partner)
+            else -> trn(mine, "A perfect tie, {count} point each", "A perfect tie, {count} points each")
         }
     }
 

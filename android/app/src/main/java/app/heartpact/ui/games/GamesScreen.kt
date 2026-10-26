@@ -204,6 +204,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
+        GameType.SkillDuel -> SkillDuelBoard(s, me, partnerName, busy, actions)
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
