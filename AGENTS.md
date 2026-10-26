@@ -33,6 +33,8 @@ Clients talk only to `Twogether.Api`. Dependency direction is:
 ```powershell
 dotnet build Twogether.slnx
 dotnet test Twogether.slnx
+# The PostgreSQL tests (tests/Twogether.IntegrationTests) skip unless this points at a throwaway server; CI sets it.
+$env:TWOGETHER_TEST_POSTGRES = "Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=postgres"
 
 cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug
