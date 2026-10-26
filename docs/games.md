@@ -17,8 +17,8 @@ is not needed: REST plus the couple hub covers everything.
 
 - **I call on** is played against the clock: 15 seconds to answer once one player has submitted, 20 to judge. The
   timeout worker closes rounds that run out, and a late move is treated as the timeout.
-- **Same answer** (`coupleQuiz`, and the other quiz-style types) and **memory match** are turn by turn and have no
-  turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
+- **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match** and **Heart to heart** are turn by
+  turn and have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
 - An invite nobody answers ends after a day, and a turn-by-turn game left alone for a week ends, so a forgotten game
   never blocks a new one. Both send `GameEnded`.
 
@@ -48,6 +48,16 @@ is not needed: REST plus the couple hub covers everything.
   `undo`, `clear` and `pass`; the guesser sends `guess` (any case or accents, a leading "a"/"an"/"the" ignored, in
   English or their own language). A right guess gives both a point; three wrong ones or a pass end the round with
   none. Strokes and guesses cross, so the app queues its moves and resends one that gets `game.version_conflict`.
+- **Heart to heart** (`skillDuel`): five skill rounds (Heart skills, `ui/play`), the same for both: the setup draws a
+  seed and from it five of the six kinds (`FairShare`, `FillTheHeart`, `OtherHalf`, `Heartbeat`, `KissTheCenter`,
+  `PromiseRing`, the app's `SkillKind` names), none twice, each with its own seed, so both get the same shape or
+  target. Both play at once, in any order, on their own time (no clock). The phone scores a round 0–100 and sends
+  `score` (`index` the round 0–4, `value` `{"score": n}`, a whole number; each round once). Each round in `rounds`
+  shows `kind`, `seed`, `mine`, and `played` (the partner has played it); the partner's score (`partner`), the
+  round's `winner` and `tie` show only once you've played that round too. A round goes to the higher score, a tie is a
+  heart each (`hearts`, counted over rounds both have played). Once both have played all five, `totals`, `winner`
+  (the higher total; null and `tie` for equal totals) and `margin` (the difference in points) show. The hearts are
+  the game's scores in the history; the declared winner is the higher total.
 
 # Adding a game
 
@@ -94,6 +104,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
+| Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
 
 ## Text
 

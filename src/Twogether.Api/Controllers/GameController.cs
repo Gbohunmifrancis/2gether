@@ -203,6 +203,7 @@ public sealed class GameController(
         GameType.TicTacToe => Loc.T("{name} invited you to play Tic-tac-toe.", ("name", name)),
         GameType.ConnectFour => Loc.T("{name} invited you to play Connect four.", ("name", name)),
         GameType.Trivia => Loc.T("{name} invited you to play Trivia.", ("name", name)),
+        GameType.SkillDuel => Loc.T("{name} invited you to play Heart to heart.", ("name", name)),
         _ => Loc.T("{name} invited you to a game.", ("name", name)),
     };
 }
