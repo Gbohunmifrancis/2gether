@@ -117,6 +117,7 @@ public sealed class CycleSharingDatabaseTests : IDisposable
 
     private static readonly DateTime Jan = new(2026, 1, 10, 9, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime Mar = new(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime Apr = new(2026, 4, 10, 9, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime May = new(2026, 5, 10, 9, 0, 0, DateTimeKind.Utc);
 
     private static User Person(ApplicationDbContext db, string name)
@@ -134,22 +135,23 @@ public sealed class CycleSharingDatabaseTests : IDisposable
         db.CycleProfiles.Add(profile);
     }
 
-    /// <summary>A couple of <paramref name="a"/> and someone new, linked in January; ended at <paramref name="endedAt"/> when given.</summary>
-    private static Couple Linked(ApplicationDbContext db, User a, DateTime? endedAt)
+    /// <summary>A couple of <paramref name="a"/> and someone new, linked at <paramref name="linkedAt"/> (January by default); ended at <paramref name="endedAt"/> when given.</summary>
+    private static Couple Linked(ApplicationDbContext db, User a, DateTime? endedAt, DateTime? linkedAt = null)
     {
         var partner = Person(db, "Ex");
-        var couple = Couple.Create(a.Id, Jan);
-        couple.LinkPartner(partner.Id, Jan);
-        if (endedAt is { } at) couple.Dissolve(at);
-        else { a.SetCouple(couple.Id, Jan); partner.SetCouple(couple.Id, Jan); }
+        var at = linkedAt ?? Jan;
+        var couple = Couple.Create(a.Id, at);
+        couple.LinkPartner(partner.Id, at);
+        if (endedAt is { } ended) couple.Dissolve(ended);
+        else { a.SetCouple(couple.Id, at); partner.SetCouple(couple.Id, at); }
         db.Couples.Add(couple);
         return couple;
     }
 
     [Fact]
-    public async Task Old_breakups_stop_sharing_but_a_level_chosen_since_or_in_a_couple_stays()
+    public async Task Old_breakups_stop_sharing_but_a_level_chosen_since_or_in_a_first_couple_stays()
     {
-        Guid leftOver, leftOverInviting, choseWhileSingle, linkedNow, neverLinked, onlyAnInvite;
+        Guid leftOver, leftOverInviting, choseWhileSingle, inheritedByNewPartner, firstCouple, choseInNewCouple, neverLinked, onlyAnInvite;
         await using (var db = database.CreateContext())
         {
             // Broke up in March, before the fix; the level is still the one her ex saw.
@@ -173,12 +175,25 @@ public sealed class CycleSharingDatabaseTests : IDisposable
             Linked(db, cara, endedAt: Mar);
             choseWhileSingle = cara.Id;
 
-            // Linked to someone now, whatever ended before.
+            // Broke up in March and linked with someone new in May: the new partner inherited her ex's level.
             var dee = Person(db, "Dee");
             Shares(db, dee, ShareLevel.FullDetail, Jan);
             Linked(db, dee, endedAt: Mar);
-            Linked(db, dee, endedAt: null);
-            linkedNow = dee.Id;
+            Linked(db, dee, endedAt: null, linkedAt: May);
+            inheritedByNewPartner = dee.Id;
+
+            // Still with her first partner: nothing ended, nothing to undo.
+            var gia = Person(db, "Gia");
+            Shares(db, gia, ShareLevel.FullDetail, Jan);
+            Linked(db, gia, endedAt: null);
+            firstCouple = gia.Id;
+
+            // Broke up in March, linked again in April, then chose a level for the new partner in May.
+            var hana = Person(db, "Hana");
+            Shares(db, hana, ShareLevel.PredictionsOnly, May);
+            Linked(db, hana, endedAt: Mar);
+            Linked(db, hana, endedAt: null, linkedAt: Apr);
+            choseInNewCouple = hana.Id;
 
             // Never in a couple at all.
             var eve = Person(db, "Eve");
@@ -205,7 +220,9 @@ public sealed class CycleSharingDatabaseTests : IDisposable
             Assert.Equal(ShareLevel.None, levels[leftOver]);
             Assert.Equal(ShareLevel.None, levels[leftOverInviting]);
             Assert.Equal(ShareLevel.PredictionsOnly, levels[choseWhileSingle]);
-            Assert.Equal(ShareLevel.FullDetail, levels[linkedNow]);
+            Assert.Equal(ShareLevel.None, levels[inheritedByNewPartner]);
+            Assert.Equal(ShareLevel.FullDetail, levels[firstCouple]);
+            Assert.Equal(ShareLevel.PredictionsOnly, levels[choseInNewCouple]);
             Assert.Equal(ShareLevel.PredictionsOnly, levels[neverLinked]);
             Assert.Equal(ShareLevel.PredictionsOnly, levels[onlyAnInvite]);
         }

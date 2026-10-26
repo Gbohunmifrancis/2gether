@@ -12,25 +12,27 @@ public static class DatabaseSchemaUpgrade
 
     /// <summary>
     /// Before <c>CycleSharing.StopSharingAsync</c>, a breakup left the owner's share level as it was, ready for whoever
-    /// came next. This puts it back to none for people not in an active couple whose level is still the one that was in
-    /// place when a linked couple of theirs ended: the profile hasn't been saved since that couple's end. A level saved
-    /// after the breakup (chosen while single) is newer than every ended couple and is left alone, and anyone in an
-    /// active couple is never touched. Every breakup since the fix leaves the level at none, so once the old rows are
-    /// done this matches nothing: safe on every boot. Plain SQL that SQLite runs too, for the test.
+    /// came next. This puts it back to none when the level is still the one that was in place when a linked couple of
+    /// theirs ended (the profile hasn't been saved since that couple's end) and they are either single now or in a couple
+    /// that linked after that save, so a new partner inherited it. A level saved after the breakup (chosen while single,
+    /// or in the current couple) is newer and is left alone, and a first couple that never ended is never touched. Since
+    /// the fix every breakup and every new link leaves the level at none, so once the old rows are done this matches
+    /// nothing: safe on every boot. Plain SQL that SQLite runs too, for the test.
     /// </summary>
     public const string StopCycleSharingAfterOldBreakupsSql = """
         UPDATE cycle_profiles SET "ShareLevelWithPartner" = 'None'
         WHERE "ShareLevelWithPartner" <> 'None'
-          AND NOT EXISTS (
-              SELECT 1 FROM couples active
-              WHERE active."Status" = 'Active'
-                AND (active."UserAId" = cycle_profiles."UserId" OR active."UserBId" = cycle_profiles."UserId"
-                    OR active."Id" = (SELECT u."CoupleId" FROM users u WHERE u."Id" = cycle_profiles."UserId")))
           AND EXISTS (
               SELECT 1 FROM couples ended
               WHERE ended."Status" = 'Dissolved' AND ended."LinkedAtUtc" IS NOT NULL AND ended."DissolvedAtUtc" IS NOT NULL
                 AND (ended."UserAId" = cycle_profiles."UserId" OR ended."UserBId" = cycle_profiles."UserId")
-                AND ended."DissolvedAtUtc" >= cycle_profiles."UpdatedAtUtc");
+                AND ended."DissolvedAtUtc" >= cycle_profiles."UpdatedAtUtc")
+          AND NOT EXISTS (
+              SELECT 1 FROM couples active
+              WHERE active."Status" = 'Active'
+                AND (active."UserAId" = cycle_profiles."UserId" OR active."UserBId" = cycle_profiles."UserId"
+                    OR active."Id" = (SELECT u."CoupleId" FROM users u WHERE u."Id" = cycle_profiles."UserId"))
+                AND (active."LinkedAtUtc" IS NULL OR active."LinkedAtUtc" < cycle_profiles."UpdatedAtUtc"));
         """;
 
     private const string Sql = """

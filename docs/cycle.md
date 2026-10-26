@@ -11,8 +11,9 @@ shares: `none`, `predictionsOnly` or `fullDetail` (predictions plus the logs).
 - The share level is chosen for one partner. A breakup, a new link, and the partner's account deletion all set it back
   to `none` (`CycleSharing.StopSharingAsync`), so a new partner never inherits it. Breakups from before that left
   the level as it was; on boot, `DatabaseSchemaUpgrade.StopCycleSharingAfterOldBreakupsSql` sets it to `none` for
-  anyone not in an active couple whose profile hasn't been saved since a linked couple of theirs ended. A level chosen
-  after the breakup, or by someone in an active couple, is left alone.
+  anyone whose profile hasn't been saved since a linked couple of theirs ended and who is single now or linked again
+  after that save (the new partner inherited it). A level chosen after the breakup, or by someone still in their first
+  couple, is left alone.
 - At `fullDetail` the partner sees the last 120 logs dated on or after the day the couple linked, never earlier ones.
   Shared logs carry the date, flow, symptoms, mood and notes, not `hadSex` or `protectionUsed`.
 - When claiming isn't possible because the partner owns the calendar, claim answers `409 cycle.unavailable` without
