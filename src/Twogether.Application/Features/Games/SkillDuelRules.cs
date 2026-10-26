@@ -130,6 +130,22 @@ public sealed class SkillDuelRules : IGameRules
         return new GameScoreSummary(PlayedTotals(state), played, finished ? DuelWinner(state) : null);
     }
 
+    /// <summary>
+    /// For the admin insights: every score played (its round's kind and the points), and the gap between the two totals
+    /// over the rounds both have played (null before any). Numbers only.
+    /// </summary>
+    public static SkillDuelTally Tally(string stateJson)
+    {
+        var state = Read(stateJson);
+        var scores = new List<(string Kind, int Score)>();
+        foreach (var player in state.Players)
+            for (var round = 0; round < state.Rounds.Count; round++)
+                if (ScoreOf(state, player, round) is { } score) scores.Add((state.Rounds[round].Kind, score));
+        var totals = PlayedTotals(state).Values.ToList();
+        var anyPlayed = Enumerable.Range(0, state.Rounds.Count).Any(round => Both(state, round));
+        return new SkillDuelTally(scores, anyPlayed && totals.Count == 2 ? Math.Abs(totals[0] - totals[1]) : null);
+    }
+
     /// <summary>The score in <c>{"score": n}</c>: a whole number from 0 to 100, nothing else.</summary>
     private static int? ParseScore(string? value)
     {
@@ -229,3 +245,6 @@ public sealed class SkillDuelRules : IGameRules
         public string Phase { get; set; } = PlayingPhase;
     }
 }
+
+/// <summary>A duel's scores as the admin insights read them: (kind, points) per round played, and the totals' gap.</summary>
+public sealed record SkillDuelTally(IReadOnlyList<(string Kind, int Score)> Scores, int? Margin);

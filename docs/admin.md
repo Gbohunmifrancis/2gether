@@ -37,6 +37,14 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | Overview | People, linked couples, daily/weekly/monthly active, couples on Plus; active people, sign-ups and couples linked per day; devices and app versions |
 | Engagement | Dares completed vs missed (and by exercise), meals logged and food scans, photos shared, questions answered, games finished, how many use location, cycle and pregnancy |
 | Revenue | Estimated monthly revenue, paying and complimentary couples, subscriptions started and ended, active by plan and state |
+| Funnel | People who signed up in the window and how far they got, in order: invited or joined, linked, first dare set, first dare done, first heart (both completed a dare the other set), active in days 8-14, Plus; median hours between steps |
+| Retention | Couples by the week they linked, and the share with either partner active in each week after (blank for weeks still to come) |
+| Rhythm | Weekday × hour (UTC) heatmaps of actions, dares completed and alarms rung |
+| Dares | By exercise: set, completed, missed, called off, completion rate, median seconds from alarm to camera and on camera, average confidence, completions the checks flagged; early starts, median rep target, couples by current streak |
+| Games | By game: begun, finished, abandoned, median minutes; Heart to heart scores by skill (10-point buckets) and duel ties and margins |
+| Growth | Plus ending in 7 and 30 days, renewed vs lapsed, the path from sign-up to Plus (linked, hit the scan limit, album near full), median days to Plus, Plus couples by country |
+| World | People, couples, Plus couples and weekly active people by the country chosen at sign-up |
+| Top couples | Most hearts (dares completed), then games, then dares set, with streak and Plus |
 | Users | Search by email, name, user id or couple id; filter active, disabled or not in a couple |
 | A user | Account, couple and partner, activity counts, devices, subscriptions, grants and admin history. Disable or re-enable, sign out everywhere, email a reset code, give the couple Plus, delete the account |
 | Payments | Every Play subscription: sync with Google, stop renewal, refund the latest payment, or revoke (refund and end now). Complimentary Plus grants, with end |
@@ -44,6 +52,9 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | System | Which services are configured, push and clean-up queues, list prices, and the admins |
 
 Analytics windows are 7, 30, 90 or 365 days; filters, pages and windows are in the URL, so a view can be shared.
+Every chart leaves out internal (test and team) accounts and the admins, and couples with one of them in. "Active"
+means the person did something that day: started or completed a dare, logged a meal, synced a photo, answered a
+question, finished or played a game, or signed in. Rates that can't be computed show "—".
 
 Every action that changes an account or money asks for confirmation, and most need a **reason**, which goes into
 the audit log. Deleting an account also needs the account's email typed out. It erases everything, exactly as the

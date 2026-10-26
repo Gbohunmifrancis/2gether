@@ -65,10 +65,12 @@ public sealed record RevenueDto(
 
 /// <summary>
 /// Aggregates for the admin dashboard. Counts and sums only: nothing here reads what couples wrote,
-/// photographed, logged about their bodies, or where they are.
+/// photographed, logged about their bodies, or where they are. Measured people only (<see cref="AdminScope"/>).
 /// </summary>
 public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider clock, AdminSettings settings)
 {
+    private readonly Insights.MeasuredScope measured = new(db, settings);
+
     public static int ClampDays(int days) => Math.Clamp(days, 7, 365);
 
     /// <summary>Every day in the window, with zero where nothing happened.</summary>
@@ -94,26 +96,29 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
         days = ClampDays(days);
         var (fromUtc, from, to) = Window(days);
         var today = to;
-        var totalUsers = await db.Users.CountAsync(ct);
-        var newUsers = await db.Users.CountAsync(user => user.CreatedAtUtc >= fromUtc, ct);
-        var disabled = await db.Users.CountAsync(user => user.DisabledAtUtc != null, ct);
-        var couples = await db.Couples.GroupBy(couple => couple.Status).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
+        var users = measured.Users;
+        var userIds = measured.UserIds;
+        var activity = db.UserActivityDays.Where(item => userIds.Contains(item.UserId));
+        var totalUsers = await users.CountAsync(ct);
+        var newUsers = await users.CountAsync(user => user.CreatedAtUtc >= fromUtc, ct);
+        var disabled = await users.CountAsync(user => user.DisabledAtUtc != null, ct);
+        var couples = await measured.Couples.GroupBy(couple => couple.Status).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
         int CouplesIn(CoupleStatus status) => couples.FirstOrDefault(item => item.Key == status)?.Count ?? 0;
 
-        var activeToday = await db.UserActivityDays.CountAsync(item => item.Day == today, ct);
+        var activeToday = await activity.CountAsync(item => item.Day == today, ct);
         var weekFrom = today.AddDays(-6);
         var monthFrom = today.AddDays(-29);
-        var activeWeek = await db.UserActivityDays.Where(item => item.Day >= weekFrom).Select(item => item.UserId).Distinct().CountAsync(ct);
-        var activeMonth = await db.UserActivityDays.Where(item => item.Day >= monthFrom).Select(item => item.UserId).Distinct().CountAsync(ct);
+        var activeWeek = await activity.Where(item => item.Day >= weekFrom).Select(item => item.UserId).Distinct().CountAsync(ct);
+        var activeMonth = await activity.Where(item => item.Day >= monthFrom).Select(item => item.UserId).Distinct().CountAsync(ct);
 
-        var signups = (await db.Users.Where(user => user.CreatedAtUtc >= fromUtc).GroupBy(user => user.CreatedAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct))
+        var signups = (await users.Where(user => user.CreatedAtUtc >= fromUtc).GroupBy(user => user.CreatedAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct))
             .Select(row => (row.Key, row.Count));
-        var active = (await db.UserActivityDays.Where(item => item.Day >= from).GroupBy(item => item.Day).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct))
+        var active = (await activity.Where(item => item.Day >= from).GroupBy(item => item.Day).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct))
             .Select(row => (row.Key, (double)row.Count));
-        var linked = (await db.Couples.Where(couple => couple.LinkedAtUtc != null && couple.LinkedAtUtc >= fromUtc).GroupBy(couple => couple.LinkedAtUtc!.Value.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct))
+        var linked = (await measured.Couples.Where(couple => couple.LinkedAtUtc != null && couple.LinkedAtUtc >= fromUtc).GroupBy(couple => couple.LinkedAtUtc!.Value.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct))
             .Select(row => (row.Key, row.Count));
 
-        var activeDevices = db.DeviceRegistrations.Where(device => device.DisabledAtUtc == null && device.LastSeenAtUtc >= clock.UtcNow.AddDays(-30));
+        var activeDevices = db.DeviceRegistrations.Where(device => userIds.Contains(device.UserId) && device.DisabledAtUtc == null && device.LastSeenAtUtc >= clock.UtcNow.AddDays(-30));
         var platforms = await activeDevices.GroupBy(device => device.Platform).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
         var versions = await activeDevices.GroupBy(device => device.AppVersion ?? "unknown").Select(group => new { group.Key, Count = group.Count() }).OrderByDescending(item => item.Count).Take(8).ToListAsync(ct);
 
@@ -133,7 +138,9 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
     {
         days = ClampDays(days);
         var (fromUtc, from, to) = Window(days);
-        var occurrences = db.ExerciseOccurrences.Where(item => item.ScheduledAtUtc >= fromUtc);
+        var userIds = measured.UserIds;
+        var coupleIds = measured.CoupleIds;
+        var occurrences = db.ExerciseOccurrences.Where(item => item.ScheduledAtUtc >= fromUtc && userIds.Contains(item.UserId));
         var byStatus = await occurrences.GroupBy(item => item.Status).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
         int Dares(ExerciseOccurrenceStatus status) => byStatus.FirstOrDefault(item => item.Key == status)?.Count ?? 0;
         var completed = Dares(ExerciseOccurrenceStatus.Completed);
@@ -143,9 +150,9 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
         var missedByDay = (await occurrences.Where(item => item.Status == ExerciseOccurrenceStatus.Missed).GroupBy(item => item.ScheduledAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
         var byExercise = await occurrences.GroupBy(item => item.ExerciseType).Select(group => new { group.Key, Count = group.Count() }).OrderByDescending(item => item.Count).ToListAsync(ct);
 
-        var entries = db.FoodEntries.Where(item => item.LoggedAtUtc >= fromUtc);
+        var entries = db.FoodEntries.Where(item => item.LoggedAtUtc >= fromUtc && userIds.Contains(item.UserId));
         var foodByDay = (await entries.GroupBy(item => item.LoggedAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
-        var scans = db.FoodScans.Where(item => item.CreatedAtUtc >= fromUtc);
+        var scans = db.FoodScans.Where(item => item.CreatedAtUtc >= fromUtc && userIds.Contains(item.UserId));
         var scanStats = await scans.GroupBy(_ => 1).Select(group => new
         {
             Total = group.Count(),
@@ -154,14 +161,14 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
             Output = group.Sum(item => (long)item.OutputTokens),
         }).SingleOrDefaultAsync(ct);
 
-        var photos = db.Memories.Where(item => item.Status == MemoryStatus.Ready && item.ReadyAtUtc >= fromUtc);
+        var photos = db.Memories.Where(item => item.Status == MemoryStatus.Ready && item.ReadyAtUtc >= fromUtc && userIds.Contains(item.UploadedByUserId));
         var photoStats = await photos.GroupBy(_ => 1).Select(group => new { Count = group.Count(), Bytes = group.Sum(item => item.SizeBytes) }).SingleOrDefaultAsync(ct);
         var photosByDay = (await photos.GroupBy(item => item.ReadyAtUtc!.Value.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
 
-        var answers = db.DailyAnswers.Where(item => item.CreatedAtUtc >= fromUtc);
+        var answers = db.DailyAnswers.Where(item => item.CreatedAtUtc >= fromUtc && userIds.Contains(item.UserId));
         var answersByDay = (await answers.GroupBy(item => item.CreatedAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
 
-        var games = db.GameSessions.Where(item => item.Status == GameSessionStatus.Completed && item.EndedAtUtc >= fromUtc);
+        var games = db.GameSessions.Where(item => item.Status == GameSessionStatus.Completed && item.EndedAtUtc >= fromUtc && coupleIds.Contains(item.CoupleId));
         var gamesByType = await games.GroupBy(item => item.GameType).Select(group => new { group.Key, Count = group.Count() }).OrderByDescending(item => item.Count).ToListAsync(ct);
 
         var now = clock.UtcNow;
@@ -181,9 +188,9 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
             gamesByType.Sum(item => item.Count),
             gamesByType.Select(item => new NamedCount(Camel(item.Key.ToString()), item.Count)).ToList(),
             // Live shares only: a phone that went quiet past the lease no longer counts.
-            await db.CoupleLocations.CountAsync(item => item.SharingEnabled && item.LastSeenAtUtc > now - Twogether.Core.Entities.CoupleLocation.Lease && (item.PausedUntilUtc == null || item.PausedUntilUtc < now), ct),
-            await db.Pregnancies.CountAsync(item => item.Status == PregnancyStatus.Active, ct),
-            await db.Users.CountAsync(user => user.CycleOwner, ct));
+            await db.CoupleLocations.CountAsync(item => userIds.Contains(item.UserId) && item.SharingEnabled && item.LastSeenAtUtc > now - Twogether.Core.Entities.CoupleLocation.Lease && (item.PausedUntilUtc == null || item.PausedUntilUtc < now), ct),
+            await db.Pregnancies.CountAsync(item => item.Status == PregnancyStatus.Active && userIds.Contains(item.UserId), ct),
+            await measured.Users.CountAsync(user => user.CycleOwner, ct));
     }
 
     public async Task<RevenueDto> RevenueAsync(int days, CancellationToken ct)
@@ -191,17 +198,19 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
         days = ClampDays(days);
         var (fromUtc, from, to) = Window(days);
         var now = clock.UtcNow;
-        var granting = await db.StoreSubscriptions
+        var subscriptions = MeasuredSubscriptions;
+        var granting = await subscriptions
             .Where(item => (item.Status == StoreSubscriptionStatus.Active || item.Status == StoreSubscriptionStatus.Canceled || item.Status == StoreSubscriptionStatus.InGracePeriod) && item.ExpiresAtUtc > now)
             .Select(item => new { item.ProductId, item.UserId, item.AutoRenewing })
             .ToListAsync(ct);
         var byProduct = granting.GroupBy(item => item.ProductId).Select(group => new NamedCount(group.Key, group.Count())).OrderByDescending(item => item.Count).ToList();
         // Only renewing subscriptions bring money next month.
         var monthly = granting.Where(item => item.AutoRenewing).Sum(item => settings.MonthlyPrices.GetValueOrDefault(item.ProductId));
-        var byStatus = await db.StoreSubscriptions.GroupBy(item => item.Status).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
-        var created = (await db.StoreSubscriptions.Where(item => item.CreatedAtUtc >= fromUtc).GroupBy(item => item.CreatedAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
-        var ended = (await db.StoreSubscriptions.Where(item => item.Status == StoreSubscriptionStatus.Expired && item.ExpiresAtUtc >= fromUtc && item.ExpiresAtUtc <= now).GroupBy(item => item.ExpiresAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
-        var complimentary = await db.PlusGrants.Where(item => item.RevokedAtUtc == null && item.ExpiresAtUtc > now).Select(item => item.CoupleId).Distinct().CountAsync(ct);
+        var byStatus = await subscriptions.GroupBy(item => item.Status).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct);
+        var created = (await subscriptions.Where(item => item.CreatedAtUtc >= fromUtc).GroupBy(item => item.CreatedAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
+        var ended = (await subscriptions.Where(item => item.Status == StoreSubscriptionStatus.Expired && item.ExpiresAtUtc >= fromUtc && item.ExpiresAtUtc <= now).GroupBy(item => item.ExpiresAtUtc.Date).Select(group => new { group.Key, Count = group.Count() }).ToListAsync(ct)).Select(row => (row.Key, row.Count));
+        var coupleIds = measured.CoupleIds;
+        var complimentary = await db.PlusGrants.Where(item => item.RevokedAtUtc == null && item.ExpiresAtUtc > now && coupleIds.Contains(item.CoupleId)).Select(item => item.CoupleId).Distinct().CountAsync(ct);
         return new RevenueDto(
             days, settings.Currency, Math.Round(monthly, 2),
             await PayingCouplesAsync(ct), complimentary,
@@ -212,11 +221,20 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
             granting.Count(item => !item.AutoRenewing));
     }
 
+    private IQueryable<Twogether.Core.Entities.StoreSubscription> MeasuredSubscriptions
+    {
+        get
+        {
+            var userIds = measured.UserIds;
+            return db.StoreSubscriptions.Where(item => userIds.Contains(item.UserId));
+        }
+    }
+
     /// <summary>Couples with paid Plus: a buyer's current couple, counted once even if both pay.</summary>
     private async Task<int> PayingCouplesAsync(CancellationToken ct)
     {
         var now = clock.UtcNow;
-        return await db.StoreSubscriptions
+        return await MeasuredSubscriptions
             .Where(item => (item.Status == StoreSubscriptionStatus.Active || item.Status == StoreSubscriptionStatus.Canceled || item.Status == StoreSubscriptionStatus.InGracePeriod) && item.ExpiresAtUtc > now)
             .Join(db.Users, subscription => subscription.UserId, user => user.Id, (subscription, user) => user.CoupleId)
             .Where(coupleId => coupleId != null)
@@ -227,12 +245,13 @@ public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider c
     private async Task<int> PlusCouplesAsync(CancellationToken ct)
     {
         var now = clock.UtcNow;
-        var paying = await db.StoreSubscriptions
+        var paying = await MeasuredSubscriptions
             .Where(item => (item.Status == StoreSubscriptionStatus.Active || item.Status == StoreSubscriptionStatus.Canceled || item.Status == StoreSubscriptionStatus.InGracePeriod) && item.ExpiresAtUtc > now)
             .Join(db.Users, subscription => subscription.UserId, user => user.Id, (subscription, user) => user.CoupleId)
             .Where(coupleId => coupleId != null).Select(coupleId => coupleId!.Value)
             .Distinct().ToListAsync(ct);
-        var granted = await db.PlusGrants.Where(item => item.RevokedAtUtc == null && item.ExpiresAtUtc > now).Select(item => item.CoupleId).Distinct().ToListAsync(ct);
+        var coupleIds = measured.CoupleIds;
+        var granted = await db.PlusGrants.Where(item => item.RevokedAtUtc == null && item.ExpiresAtUtc > now && coupleIds.Contains(item.CoupleId)).Select(item => item.CoupleId).Distinct().ToListAsync(ct);
         return paying.Union(granted).Count();
     }
 

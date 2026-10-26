@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Compile Include="..\Twogether.UnitTests\Support\Fakes.cs" Link="Support\Fakes.cs" />
+    <Compile Include="..\Twogether.UnitTests\Support\InsightsData.cs" Link="Support\InsightsData.cs" />
   </ItemGroup>
 
 </Project>
