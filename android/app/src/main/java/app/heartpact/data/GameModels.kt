@@ -10,6 +10,8 @@ enum class GameType {
     @SerialName("coupleQuiz") CoupleQuiz, @SerialName("memoryMatch") MemoryMatch, @SerialName("iCallOn") ICallOn,
     @SerialName("guessMyAnswer") GuessMyAnswer, @SerialName("wordDash") WordDash, @SerialName("handwriting") Handwriting, @SerialName("truthOrDare") TruthOrDare,
     @SerialName("wouldYouRather") WouldYouRather, @SerialName("ticTacToe") TicTacToe, @SerialName("connectFour") ConnectFour, @SerialName("trivia") Trivia,
+    /** Heart to heart: the same skill rounds for both, scores side by side (ui/play). */
+    @SerialName("skillDuel") SkillDuel,
 }
 
 @Serializable

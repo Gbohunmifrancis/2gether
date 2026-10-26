@@ -51,6 +51,7 @@ object GamePlay {
         GameType.TicTacToe -> tr("Tic-tac-toe")
         GameType.ConnectFour -> tr("Connect four")
         GameType.Trivia -> if (region == "ng") tr("Naija trivia") else tr("Trivia")
+        GameType.SkillDuel -> tr("Heart to heart")
     }
 
     /** The button that accepts an invite: one whole phrase per game. */
@@ -66,6 +67,7 @@ object GamePlay {
         GameType.TicTacToe -> tr("Play Tic-tac-toe")
         GameType.ConnectFour -> tr("Play Connect four")
         GameType.Trivia -> if (region == "ng") tr("Play Naija trivia") else tr("Play Trivia")
+        GameType.SkillDuel -> tr("Play Heart to heart")
     }
 
     fun blurb(type: GameType, region: String? = null) = when (type) {
@@ -81,6 +83,7 @@ object GamePlay {
         GameType.Handwriting -> tr("One draws a secret word, the other has three guesses. Swap each round, six rounds.")
         GameType.Trivia -> if (region == "ng") tr("Ten questions on Naija music, Nollywood, food and more. You both answer, then see who got it.")
             else tr("Ten questions, four choices each. You both answer, then the right one shows.")
+        GameType.SkillDuel -> tr("The same five skill rounds for both of you, each on your own time. Your scores show side by side.")
         else -> tr("Take turns answering.")
     }
 
