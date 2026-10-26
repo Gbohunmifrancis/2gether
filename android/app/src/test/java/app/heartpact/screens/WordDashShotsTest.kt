@@ -27,7 +27,7 @@ class WordDashShotsTest {
     private val myTurn = session("""{"players":["maya","theo"],"scores":{"maya":2,"theo":1},"letter":"G","startLetter":"S","chain":$chain,"chainNumber":4,"maxChains":15,"target":5,"turnSeconds":20,"phase":"playing"}""")
     private val theirTurn = session("""{"players":["maya","theo"],"scores":{"maya":2,"theo":1},"letter":"E","startLetter":"S","chain":$shorter,"chainNumber":4,"maxChains":15,"target":5,"turnSeconds":20,"phase":"playing"}""", turn = "theo", deadline = "2026-10-11T18:00:04Z")
     private val newChain = session("""{"players":["maya","theo"],"scores":{"maya":3,"theo":1},"letter":"M","startLetter":"M","chain":[],"chainNumber":5,"maxChains":15,"target":5,"turnSeconds":20,"phase":"playing","lastResult":"timeout","timedOut":"theo","lastChain":["sunset","tulip"]}""", turn = "theo", deadline = "2026-10-11T18:00:20Z")
-    private val done = session("""{"players":["maya","theo"],"scores":{"maya":5,"theo":3},"letter":null,"startLetter":"B","chain":[],"chainNumber":8,"phase":"completed","lastResult":"timeout","timedOut":"theo","winnerUserId":"maya"}""", GameStatus.Completed, null, null)
+    private val done = session("""{"players":["maya","theo"],"scores":{"maya":5,"theo":3},"letter":null,"startLetter":"B","chain":[],"chainNumber":8,"phase":"completed","lastResult":"timeout","timedOut":"theo","winnerUserId":"maya"}""", GameStatus.Completed, null, null).copy(endedAtUtc = "2026-10-11T17:59:00Z")
 
     @Test fun myTurn() = shot("games-worddash") { screen(myTurn) }
     @Test fun myTurnNight() = shot("games-worddash-night", night = true) { screen(myTurn) }

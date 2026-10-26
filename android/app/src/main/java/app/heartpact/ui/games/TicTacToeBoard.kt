@@ -39,16 +39,19 @@ import kotlin.math.sin
 fun TicTacToeBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
     GridMatchFrame(s, me, partnerName, busy, tr("Your turn: pick a square")) { _, shown ->
         StickerCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                (0 until 3).forEach { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        (0 until 3).forEach { column ->
-                            val index = row * 3 + column
-                            Square(index, shown.cells.getOrNull(index), index in shown.line, shown.line.isNotEmpty(), shown.canMove, me, partnerName,
-                                Modifier.weight(1f)) { actions.onAct(s, "place", null, index) }
+            Box {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    (0 until 3).forEach { row ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            (0 until 3).forEach { column ->
+                                val index = row * 3 + column
+                                Square(index, shown.cells.getOrNull(index), index in shown.line, shown.line.isNotEmpty(), shown.canMove, me, partnerName,
+                                    Modifier.weight(1f)) { actions.onAct(s, "place", null, index) }
+                            }
                         }
                     }
                 }
+                WinLine(shown.line, 3, 3, 8.dp, Modifier.matchParentSize().padding(12.dp))
             }
         }
     }
@@ -58,7 +61,8 @@ fun TicTacToeBoard(s: GameSession, me: String, partnerName: String, busy: Boolea
 private fun Square(index: Int, owner: String?, winning: Boolean, decided: Boolean, canMove: Boolean, me: String, partnerName: String, modifier: Modifier, onPlace: () -> Unit) {
     val colors = Heartpact.colors
     // A new piece pops in; a cleared board empties at once. Pieces already down when the board opens don't move.
-    val placed by animateFloatAsState(if (owner != null) 1f else 0f, if (owner != null) gentle(spring(0.5f, Spring.StiffnessMediumLow)) else snap(), label = "place")
+    val placed by animateFloatAsState(if (owner != null) 1f else 0f, if (owner != null) gentle(spring(0.38f, Spring.StiffnessMedium)) else snap(), label = "place")
+    val pulse = winPulse(winning)
     // The winning line lifts once and its squares take the winner's colour; the rest step back.
     val lifted by animateFloatAsState(if (winning) 1f else 0f, gentle(tween(700)), label = "line")
     val dimmed by animateFloatAsState(if (decided && !winning) 1f else 0f, gentle(tween(500)), label = "dim")
@@ -76,10 +80,12 @@ private fun Square(index: Int, owner: String?, winning: Boolean, decided: Boolea
         contentAlignment = Alignment.Center,
     ) {
         if (side != null) {
-            val pop = 1f + 0.12f * sin(PI.toFloat() * lifted)
+            val pop = (1f + 0.12f * sin(PI.toFloat() * lifted)) * (1f + 0.08f * pulse)
             Box(Modifier.size(72.dp).graphicsLayer {
                 scaleX = placed * pop
                 scaleY = placed * pop
+                // Spun in as it lands, like a sticker slapped down.
+                rotationZ = (1f - placed) * -25f
                 alpha = 1f - 0.55f * dimmed
             }, contentAlignment = Alignment.Center) { HalfHeartPiece(side, 72.dp) }
         }

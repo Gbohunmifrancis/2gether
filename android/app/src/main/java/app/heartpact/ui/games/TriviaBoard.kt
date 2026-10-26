@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -44,28 +45,37 @@ import app.heartpact.ui.theme.Shapes
 internal fun TriviaBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
     val colors = Heartpact.colors
     val t = GamePlay.trivia(s)
-    Scores(t.scores, me, partnerName) { trn(it, "{count} point", "{count} points") }
-    if (!t.completed) Text(tr("Question {round} of {rounds}", "round" to minOf(t.round + 1, t.totalRounds), "rounds" to t.totalRounds), style = Heartpact.type.small, color = colors.ink2)
+    val finished = s.status == GameStatus.Completed || t.completed
+    if (!finished) {
+        Scoreboard(t.scores, me, partnerName, waitingOn(t.players, me, t.answered)) { trn(it, "{count} point", "{count} points") }
+        Text(tr("Question {round} of {rounds}", "round" to minOf(t.round + 1, t.totalRounds), "rounds" to t.totalRounds), style = Heartpact.type.small, color = colors.ink2)
+    }
     t.reveal?.let { RevealCard(it, me, partnerName) }
 
     val question = t.question
-    if (s.status == GameStatus.Completed || t.completed || question == null) {
+    if (finished) return
+    if (question == null) {
         Text(GamePlay.outcome(s, me, partnerName), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
         return
     }
 
-    Text(question.text, style = Heartpact.type.headline.copy(fontSize = 24.sp, lineHeight = 29.sp), color = colors.ink, modifier = Modifier.padding(top = 16.dp))
-    val mine = t.myAnswer
-    val partnerIn = t.answered.any { it != me }
-    when {
-        mine != null -> Text(tr("Locked in. Waiting for {partner}…", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
-        partnerIn -> NoteCard(tr("{partner} has answered. Your pick?", "partner" to partnerName), Modifier.padding(top = 12.dp))
-        else -> Text(tr("Pick one. {partner} is answering too.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
-    }
-    val canPick = mine == null && s.status == GameStatus.InProgress && !busy
-    Column(Modifier.padding(top = 4.dp)) {
-        question.options.forEachIndexed { index, option ->
-            Option(index, option, picked = mine == index, faded = mine != null && mine != index, enabled = canPick) { actions.onAct(s, "answer", null, index) }
+    // Each question is dealt in fresh.
+    DealIn(t.round) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(question.text, style = Heartpact.type.headline.copy(fontSize = 24.sp, lineHeight = 29.sp), color = colors.ink, modifier = Modifier.padding(top = 16.dp))
+            val mine = t.myAnswer
+            val partnerIn = t.answered.any { it != me }
+            when {
+                mine != null -> Text(tr("Locked in. Waiting for {partner}…", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
+                partnerIn -> NoteCard(tr("{partner} has answered. Your pick?", "partner" to partnerName), Modifier.padding(top = 12.dp))
+                else -> Text(tr("Pick one. {partner} is answering too.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
+            }
+            val canPick = mine == null && s.status == GameStatus.InProgress && !busy
+            Column(Modifier.padding(top = 4.dp)) {
+                question.options.forEachIndexed { index, option ->
+                    Option(index, option, picked = mine == index, faded = mine != null && mine != index, enabled = canPick) { actions.onAct(s, "answer", null, index) }
+                }
+            }
         }
     }
 }
@@ -76,8 +86,10 @@ private val letters = listOf("A", "B", "C", "D")
 private fun Option(index: Int, text: String, picked: Boolean, faded: Boolean, enabled: Boolean, onPick: () -> Unit) {
     val colors = Heartpact.colors
     val actor = Heartpact.actor
+    val pick = pickedFlip(picked)
     Row(
         Modifier.fillMaxWidth().padding(top = 10.dp).alpha(if (faded) 0.5f else 1f)
+            .graphicsLayer { scaleX = pick.bump; scaleY = pick.bump }
             .clip(Shapes.Field)
             .background(if (picked) actor.soft else colors.sticker)
             .border(2.dp, if (picked) actor.action else colors.rule, Shapes.Field)
@@ -86,7 +98,7 @@ private fun Option(index: Int, text: String, picked: Boolean, faded: Boolean, en
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(30.dp).clip(CircleShape).background(if (picked) actor.action else colors.sticker2), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(30.dp).graphicsLayer { rotationY = pick.turn }.clip(CircleShape).background(if (picked) actor.action else colors.sticker2), contentAlignment = Alignment.Center) {
             Text(letters.getOrElse(index) { "${index + 1}" }, style = Heartpact.type.label, color = if (picked) colors.onAction else colors.ink2)
         }
         Text(text, style = Heartpact.type.bodyLarge, color = if (picked) actor.onSoft else colors.ink, modifier = Modifier.padding(start = 12.dp).weight(1f))
@@ -102,7 +114,12 @@ private fun RevealCard(reveal: TriviaReveal, me: String, partnerName: String) {
     val theirPick = reveal.picks.entries.firstOrNull { it.key != me }?.value
     val iWasRight = myPick == reveal.answer
     val theyWereRight = theirPick == reveal.answer
-    StickerCard(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+    val stamp = when {
+        iWasRight && theyWereRight -> tr("Both right!")
+        iWasRight -> tr("Right!")
+        else -> null
+    }
+    RoundReveal(reveal.round, stamp, hearts = iWasRight, Modifier.padding(top = 12.dp)) { StickerCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(when {
                 iWasRight && theyWereRight -> tr("You both got it right")
@@ -118,7 +135,7 @@ private fun RevealCard(reveal: TriviaReveal, me: String, partnerName: String) {
             Pick(tr("You picked {answer}", "answer" to options.getOrElse(myPick ?: -1) { "—" }), iWasRight)
             Pick(tr("{partner} picked {answer}", "partner" to partnerName, "answer" to options.getOrElse(theirPick ?: -1) { "—" }), theyWereRight)
         }
-    }
+    } }
 }
 
 @Composable

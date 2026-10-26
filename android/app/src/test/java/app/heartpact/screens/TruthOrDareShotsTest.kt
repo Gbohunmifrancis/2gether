@@ -29,7 +29,7 @@ class TruthOrDareShotsTest {
     private val waiting = session("""{"players":["maya","theo"],"scores":{"maya":3,"theo":2},"turn":6,"totalTurns":10,"phase":"judging","chooser":"maya","judge":"theo","choice":"truth",
         "prompt":"Wetin be the first thing you notice about me?"}""", turn = "theo")
     private val done = session("""{"players":["maya","theo"],"scores":{"maya":4,"theo":3},"turn":10,"totalTurns":10,"phase":"completed",
-        "last":{"chooser":"theo","choice":"truth","prompt":"When do you miss me the most?","result":"done"}}""", GameStatus.Completed, null)
+        "last":{"chooser":"theo","choice":"truth","prompt":"When do you miss me the most?","result":"done"}}""", GameStatus.Completed, null).copy(endedAtUtc = "2026-10-11T17:59:00Z")
 
     @Test fun choosing() = shot("games-truthordare-choose") { screen(choosing) }
     @Test fun choosingNight() = shot("games-truthordare-choose-night", night = true) { screen(choosing) }
