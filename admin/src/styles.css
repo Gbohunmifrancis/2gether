@@ -47,6 +47,17 @@
   --chart-2: #7480d4;
   --chart-3: #b9bfe9;
   --radius: 26px;
+  /* The pen pink: the app's one warm accent. Sparingly: Plus, the busiest hour, a heart. */
+  --pen: #ff5c8a;
+  --pen-soft: #ffe1ea;
+  --pen-ink: #c2185b;
+  /* The mark's halves, and the ink of the left half's eye. */
+  --art-left: #1f2557;
+  --art-right: #7480d4;
+  --art-left-ink: #ffffff;
+  --art-left-catch: #1f2557;
+  --online: #22a06b;
+  --glass: rgba(227, 229, 246, 0.82);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -82,6 +93,15 @@
     --chart-1: #e6e8ff;
     --chart-2: #8d97e6;
     --chart-3: #4a5290;
+    --pen: #ff7aa0;
+    --pen-soft: #4a2032;
+    --pen-ink: #ff9bb8;
+    --art-left: #e6e8ff;
+    --art-right: #a9b1f2;
+    --art-left-ink: #161a3d;
+    --art-left-catch: #ffffff;
+    --online: #5fd39b;
+    --glass: rgba(16, 19, 43, 0.8);
   }
 }
 
@@ -175,10 +195,10 @@ svg {
 /* Shell: a sidebar on desks, a top bar with a scrolling tab strip on phones */
 .shell {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: 236px minmax(0, 1fr);
   min-height: 100vh;
   /* The sidebar's colour runs the full height of long pages, behind the sticky sidebar. */
-  background: linear-gradient(to right, var(--page-2) 248px, var(--page) 248px);
+  background: linear-gradient(to right, var(--page-2) 236px, var(--page) 236px);
 }
 .side {
   position: sticky;
@@ -187,8 +207,10 @@ svg {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 22px 14px;
+  padding: 20px 12px 16px;
   background: var(--page-2);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .brand {
   display: flex;
@@ -228,9 +250,9 @@ svg {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 44px;
+  height: 36px;
   padding: 0 14px;
-  border-radius: 22px;
+  border-radius: 18px;
   font-weight: 700;
   color: var(--ink-2);
   text-decoration: none;
@@ -259,7 +281,7 @@ svg {
 }
 .main {
   min-width: 0;
-  padding: 28px 32px 64px;
+  padding: 8px 32px 40px;
   max-width: 1320px;
 }
 .topbar {
@@ -304,7 +326,7 @@ svg {
     display: none;
   }
   .main {
-    padding: 20px 16px 48px;
+    padding: 8px 16px 32px;
   }
 }
 

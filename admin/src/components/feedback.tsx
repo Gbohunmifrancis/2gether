@@ -1,31 +1,48 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { errorMessage, Notice } from "./ui";
 
-/* Toasts: one line, gone after a few seconds, announced politely. */
+/* Toasts: one line, gone after a few seconds, announced politely. Live moments bring their own art and tone. */
 
-interface Toast {
-  id: number;
-  text: string;
-  bad?: boolean;
+export interface ToastOptions {
+  tone?: "bad" | "good" | "warn" | "plus";
+  art?: ReactNode;
+  /** Small text under the line. */
+  sub?: ReactNode;
+  ms?: number;
 }
 
-const ToastContext = createContext<(text: string, bad?: boolean) => void>(() => {});
+interface Toast extends ToastOptions {
+  id: number;
+  text: ReactNode;
+  leaving?: boolean;
+}
+
+type ShowToast = (text: ReactNode, bad?: boolean | ToastOptions) => void;
+
+const ToastContext = createContext<ShowToast>(() => {});
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const next = useRef(0);
-  const show = useCallback((text: string, bad?: boolean) => {
+  const show = useCallback<ShowToast>((text, options) => {
     const id = ++next.current;
-    setToasts((items) => [...items.slice(-2), { id, text, bad }]);
-    setTimeout(() => setToasts((items) => items.filter((item) => item.id !== id)), 4500);
+    const extra: ToastOptions = typeof options === "object" ? options : options ? { tone: "bad" } : {};
+    setToasts((items) => [...items.slice(-3), { id, text, ...extra }]);
+    const ms = extra.ms ?? 4500;
+    setTimeout(() => setToasts((items) => items.map((item) => (item.id === id ? { ...item, leaving: true } : item))), ms);
+    setTimeout(() => setToasts((items) => items.filter((item) => item.id !== id)), ms + 260);
   }, []);
   return (
     <ToastContext.Provider value={show}>
       {children}
       <div className="toasts" aria-live="polite">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`toast${toast.bad ? " bad" : ""}`}>
-            {toast.text}
+          <div key={toast.id} className={`toast${toast.tone ? ` ${toast.tone}` : ""}${toast.leaving ? " leaving" : ""}${toast.art ? " has-art" : ""}`}>
+            {toast.art ? <span className="toast-art">{toast.art}</span> : null}
+            <span>
+              {toast.text}
+              {toast.sub ? <small>{toast.sub}</small> : null}
+            </span>
           </div>
         ))}
       </div>

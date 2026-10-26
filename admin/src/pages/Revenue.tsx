@@ -15,7 +15,7 @@ export function RevenuePage() {
   return (
     <>
       <PageHead title="Revenue" sub="Heartpact Plus through Google Play, plus the couples you've given Plus.">
-        <RangePicker to="/revenue" days={days} />
+        <RangePicker days={days} />
       </PageHead>
       {error ? (
         <ErrorState error={error} retry={() => void refetch()} />

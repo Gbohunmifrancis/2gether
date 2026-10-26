@@ -15,7 +15,7 @@ export function EngagementPage() {
   return (
     <>
       <PageHead title="Engagement" sub="What couples do together: dares, meals, photos, questions and games.">
-        <RangePicker to="/engagement" days={days} />
+        <RangePicker days={days} />
       </PageHead>
       {error ? (
         <ErrorState error={error} retry={() => void refetch()} />

@@ -92,6 +92,8 @@ export interface UserRow {
   password: boolean;
   coupleStatus: CoupleStatus | null;
   paying: boolean;
+  /** Test or team account, left out of analytics (v2; absent from older APIs). */
+  internal?: boolean;
 }
 
 export interface PersonRef {
@@ -182,6 +184,8 @@ export interface UserDetail {
   grants: Grant[];
   activity: ActivityCounts;
   history: AuditRow[];
+  /** Test or team account, left out of analytics (v2; absent from older APIs). */
+  internal?: boolean;
 }
 
 export interface Feature {
@@ -229,4 +233,184 @@ export interface Enrollment {
   message: string;
   secret: string;
   otpauthUri: string;
+}
+
+// ---- Console v2 (docs/admin/contract-v2.md) ---------------------------------------------------------------------
+
+export type LiveKind =
+  "signedUp" | "coupleLinked" | "coupleEnded" | "dareCompleted" | "dareMissed" | "gameFinished" | "plusStarted" | "plusEnded" | "accountDeleted" | "alert";
+
+export type Severity = "info" | "good" | "warn" | "bad";
+
+export interface LiveEvent {
+  id: string;
+  kind: LiveKind;
+  atUtc: string;
+  userId: string | null;
+  displayName: string | null;
+  partnerName: string | null;
+  detail: string | null;
+  severity: Severity;
+}
+
+export interface Pulse {
+  nowUtc: string;
+  onlineNow: number;
+  activeToday: number;
+  ringingNow: number;
+  onCameraNow: number;
+  openGames: number;
+  heartsToday: number;
+  signupsToday: number;
+  couplesLinkedToday: number;
+  plusStartedToday: number;
+  recent: LiveEvent[];
+}
+
+export type FunnelKey = "signedUp" | "invitedOrJoined" | "linked" | "firstDareSet" | "firstDareDone" | "firstHeart" | "activeWeek2" | "plus";
+
+export interface FunnelStep {
+  key: FunnelKey;
+  count: number;
+  medianHoursFromPrevious: number | null;
+}
+
+export interface Funnel {
+  days: number;
+  steps: FunnelStep[];
+}
+
+export interface Cohort {
+  weekStart: string;
+  size: number;
+  retained: (number | null)[];
+}
+
+export interface Retention {
+  weeks: number;
+  cohorts: Cohort[];
+}
+
+/** 7x24: [weekday 0=Monday..6][hour 0..23], UTC. */
+export type WeekGrid = number[][];
+
+export interface Rhythm {
+  days: number;
+  actions: WeekGrid;
+  daresDone: WeekGrid;
+  rings: WeekGrid;
+}
+
+export interface ExerciseInsight {
+  exercise: string;
+  set: number;
+  completed: number;
+  missed: number;
+  calledOff: number;
+  completionRate: number | null;
+  medianSecondsToStart: number | null;
+  medianSecondsOnCamera: number | null;
+  averageConfidence: number | null;
+  checksFailed: number;
+}
+
+export interface DareInsights {
+  days: number;
+  exercises: ExerciseInsight[];
+  earlyStarts: number;
+  medianRepsTarget: number | null;
+  streaks: { length: string; couples: number }[];
+}
+
+export interface GameInsights {
+  days: number;
+  types: { type: string; started: number; finished: number; abandoned: number; medianMinutes: number | null }[];
+  skills: { kind: string; rounds: number; averageScore: number | null; buckets: number[] }[];
+  duels: { finished: number; ties: number; medianMargin: number | null };
+}
+
+export type GrowthPathKey = "signedUp" | "linked" | "hitScanLimit" | "nearAlbumLimit" | "plus";
+
+export interface Growth {
+  days: number;
+  endingIn7Days: number;
+  endingIn30Days: number;
+  renewed: number;
+  lapsed: number;
+  renewalRate: number | null;
+  path: { key: GrowthPathKey; count: number }[];
+  medianDaysToPlus: number | null;
+  plusByCountry: NamedCount[];
+}
+
+export interface CountryRow {
+  code: string;
+  people: number;
+  couples: number;
+  plus: number;
+  activeWeek: number;
+}
+
+export interface World {
+  countries: CountryRow[];
+  unknown: number;
+}
+
+export interface TopCouple {
+  coupleId: string;
+  names: [string, string];
+  hearts: number;
+  daresSet: number;
+  games: number;
+  streak: number;
+  plus: boolean;
+  linkedAtUtc: string;
+}
+
+export type ProbeStatus = "up" | "degraded" | "down" | "off";
+export type WorkerStatus = "ok" | "late" | "failing" | "unknown";
+
+export interface Health {
+  nowUtc: string;
+  probes: { name: "database" | "storage" | "push" | "email" | "foodModel"; status: ProbeStatus; latencyMs: number | null; detail: string | null }[];
+  workers: { name: string; lastRunUtc: string | null; lastErrorUtc: string | null; lastError: string | null; everySeconds: number; status: WorkerStatus }[];
+  queues: { name: string; waiting: number; oldestUtc: string | null }[];
+  storageBytes: number;
+  foodScanCost: { days: number; inputTokens: number; outputTokens: number; estimatedCost: number | null; currency: string };
+  notMonitored: string[];
+}
+
+export interface Alert {
+  key: string;
+  severity: "warn" | "bad";
+  title: string;
+  detail: string;
+  sinceUtc: string;
+  link: string | null;
+}
+
+export type JourneyKind =
+  | "signedUp"
+  | "linked"
+  | "unlinked"
+  | "active"
+  | "dareSet"
+  | "dareCompleted"
+  | "dareMissed"
+  | "mealLogged"
+  | "photoSynced"
+  | "questionAnswered"
+  | "gameFinished"
+  | "plusStarted"
+  | "plusEnded"
+  | "adminAction";
+
+export interface JourneyDay {
+  day: string;
+  events: { kind: JourneyKind; count: number; detail: string | null }[];
+}
+
+export interface Journey {
+  days: number;
+  items: JourneyDay[];
 }
