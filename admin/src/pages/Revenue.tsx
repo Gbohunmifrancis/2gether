@@ -3,7 +3,9 @@ import { getRouteApi, Link } from "@tanstack/react-router";
 import { queries } from "../api/queries";
 import { BarList, TimeChart } from "../components/charts";
 import { RangePicker } from "../components/RangePicker";
+import { KpiSticker } from "../components/Kpi";
 import { Card, ErrorState, LoadingCards, Notice, PageHead, Stat } from "../components/ui";
+import { ChartCard, seriesTable } from "../components/Viz";
 import { count, humanize, money, plural, productLabel } from "../lib/format";
 
 const route = getRouteApi("/_app/revenue");
@@ -24,8 +26,20 @@ export function RevenuePage() {
       ) : (
         <>
           <div className="grid cols-4">
-            <Stat label="Monthly revenue (estimate)" value={money(data.estimatedMonthlyRevenue, data.currency)} hint="Renewing subscriptions × list price" />
-            <Stat label="Paying couples" value={count(data.payingCouples)} hint={`${plural(data.renewingOff, "subscription")} set not to renew`} />
+            <KpiSticker
+              label="Monthly revenue (estimate)"
+              icon="revenue"
+              tone="pen"
+              value={data.estimatedMonthlyRevenue}
+              format={(value) => money(value, data.currency)}
+              hint="Renewing subscriptions × list price"
+            />
+            <KpiSticker
+              label="Paying couples"
+              icon="couples"
+              value={data.payingCouples}
+              hint={`${plural(data.renewingOff, "subscription")} set not to renew`}
+            />
             <Stat
               label="Complimentary Plus"
               value={count(data.complimentaryCouples)}
@@ -43,7 +57,16 @@ export function RevenuePage() {
           </div>
 
           <div className="grid cols-3">
-            <Card title="Started and ended" className="span-2">
+            <ChartCard
+              title="Started and ended"
+              className="span-2"
+              table={() =>
+                seriesTable("Subscriptions started and ended", [
+                  { name: "Started", values: data.newSubscriptions },
+                  { name: "Ended", values: data.ended },
+                ])
+              }
+            >
               <TimeChart
                 label={`Subscriptions started and ended per day, last ${days} days`}
                 series={[
@@ -51,7 +74,7 @@ export function RevenuePage() {
                   { name: "Ended", values: data.ended, color: "var(--chart-2)" },
                 ]}
               />
-            </Card>
+            </ChartCard>
             <div className="grid" style={{ alignContent: "start" }}>
               <Card title="Active by plan">
                 <BarList items={data.activeByProduct} format={(item) => productLabel(item.name)} empty="No active subscriptions." />

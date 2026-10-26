@@ -3,8 +3,11 @@ import { getRouteApi } from "@tanstack/react-router";
 import { queries } from "../api/queries";
 import { BarList, SplitBar, TimeChart } from "../components/charts";
 import { RangePicker } from "../components/RangePicker";
-import { Card, ErrorState, LoadingCards, PageHead, Stat } from "../components/ui";
-import { bytes, compact, count, humanize, percent } from "../lib/format";
+import { KpiSticker } from "../components/Kpi";
+import { Card, ErrorState, LoadingCards, PageHead } from "../components/ui";
+import { ChartCard, seriesTable } from "../components/Viz";
+import { bytes, compact, count, percent } from "../lib/format";
+import { exerciseLabel, gameLabel } from "../lib/labels";
 
 const route = getRouteApi("/_app/engagement");
 
@@ -24,14 +27,28 @@ export function EngagementPage() {
       ) : (
         <>
           <div className="grid cols-4">
-            <Stat label="Dares completed" value={count(data.daresCompleted)} hint={`${percent(data.completionRate)} of dares done or missed`} />
-            <Stat label="Meals logged" value={count(data.foodEntries)} hint={`${count(data.foodScans)} photo scans · ${count(data.foodScansFailed)} failed`} />
-            <Stat label="Photos shared" value={count(data.photosSynced)} hint={`${bytes(data.photoBytesSynced)} stored`} />
-            <Stat label="Questions answered" value={count(data.questionsAnswered)} hint={`${count(data.gamesCompleted)} games finished`} />
+            <KpiSticker label="Dares completed" icon="check" value={data.daresCompleted} hint={`${percent(data.completionRate)} of dares done or missed`} />
+            <KpiSticker
+              label="Meals logged"
+              icon="meal"
+              value={data.foodEntries}
+              hint={`${count(data.foodScans)} photo scans · ${count(data.foodScansFailed)} failed`}
+            />
+            <KpiSticker label="Photos shared" icon="photo" value={data.photosSynced} hint={`${bytes(data.photoBytesSynced)} stored`} />
+            <KpiSticker label="Questions answered" icon="question" value={data.questionsAnswered} hint={`${count(data.gamesCompleted)} games finished`} />
           </div>
 
           <div className="grid cols-3">
-            <Card title="Dares per day" className="span-2">
+            <ChartCard
+              title="Dares per day"
+              className="span-2"
+              table={() =>
+                seriesTable("Dares per day", [
+                  { name: "Completed", values: data.daresCompletedByDay },
+                  { name: "Missed", values: data.daresMissedByDay },
+                ])
+              }
+            >
               <TimeChart
                 label={`Dares completed and missed per day, last ${days} days`}
                 kind="bars"
@@ -40,7 +57,7 @@ export function EngagementPage() {
                   { name: "Missed", values: data.daresMissedByDay, color: "var(--chart-3)" },
                 ]}
               />
-            </Card>
+            </ChartCard>
             <Card title="How dares end">
               <SplitBar
                 parts={[
@@ -52,40 +69,40 @@ export function EngagementPage() {
               <h3 className="title-s" style={{ margin: "22px 0 12px" }}>
                 By exercise
               </h3>
-              <BarList items={data.daresByExercise} format={(item) => humanize(item.name)} empty="No dares yet." />
+              <BarList items={data.daresByExercise} format={(item) => exerciseLabel(item.name)} empty="No dares yet." />
             </Card>
           </div>
 
           <div className="grid cols-3">
-            <Card title="Meals logged">
+            <ChartCard title="Meals logged" table={() => seriesTable("Meals logged per day", [{ name: "Meals", values: data.foodEntriesByDay }])}>
               <TimeChart
                 label={`Meals logged per day, last ${days} days`}
                 kind="bars"
                 height={160}
                 series={[{ name: "Meals", values: data.foodEntriesByDay, color: "var(--chart-2)" }]}
               />
-            </Card>
-            <Card title="Photos shared">
+            </ChartCard>
+            <ChartCard title="Photos shared" table={() => seriesTable("Photos shared per day", [{ name: "Photos", values: data.photosByDay }])}>
               <TimeChart
                 label={`Photos shared per day, last ${days} days`}
                 kind="bars"
                 height={160}
                 series={[{ name: "Photos", values: data.photosByDay, color: "var(--chart-2)" }]}
               />
-            </Card>
-            <Card title="Questions answered">
+            </ChartCard>
+            <ChartCard title="Questions answered" table={() => seriesTable("Answers per day", [{ name: "Answers", values: data.answersByDay }])}>
               <TimeChart
                 label={`Answers per day, last ${days} days`}
                 kind="bars"
                 height={160}
                 series={[{ name: "Answers", values: data.answersByDay, color: "var(--chart-2)" }]}
               />
-            </Card>
+            </ChartCard>
           </div>
 
           <div className="grid cols-2">
             <Card title="Games finished" aside={`${count(data.gamesCompleted)} in ${days} days`}>
-              <BarList items={data.gamesByType} format={(item) => humanize(item.name)} empty="No games finished yet." />
+              <BarList items={data.gamesByType} format={(item) => gameLabel(item.name)} empty="No games finished yet." />
             </Card>
             <Card title="Features in use" aside="Right now">
               <div className="list">

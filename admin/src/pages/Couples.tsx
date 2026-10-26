@@ -11,17 +11,20 @@ import { count, date, plural } from "../lib/format";
 
 const route = getRouteApi("/_app/couples");
 
-/** Up to 10 hearts drawn, then a count: enough to feel, not to clutter. */
+/** The hearts they made, as a number and a little row of them popping in (one per five, up to six). */
 function Hearts({ hearts }: { hearts: number }) {
-  const shown = Math.min(10, hearts);
+  const shown = Math.min(6, Math.ceil(hearts / 5));
   return (
     <div className="heart-row" aria-label={plural(hearts, "heart")}>
-      {Array.from({ length: shown }, (_, index) => (
-        <span key={index} className="heart-pop" style={{ "--i": index } as CSSProperties}>
-          <MiniHeart size={17} />
-        </span>
-      ))}
-      {hearts > shown ? <span className="small muted">+{count(hearts - shown)}</span> : null}
+      <b className="heart-count">{count(hearts)}</b>
+      <span className="small muted">hearts</span>
+      <span className="heart-pops" aria-hidden="true">
+        {Array.from({ length: shown }, (_, index) => (
+          <span key={index} className="heart-pop" style={{ "--i": index } as CSSProperties}>
+            <MiniHeart size={15} tone={index === shown - 1 && hearts % 5 ? "left" : "both"} />
+          </span>
+        ))}
+      </span>
     </div>
   );
 }

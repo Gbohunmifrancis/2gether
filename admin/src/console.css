@@ -1521,10 +1521,14 @@ dialog.step-up {
     transform: translate(calc(50px + var(--dx)), -46px) scale(calc(var(--s) * 0.8)) rotate(var(--r));
   }
 }
-.auth-mascot {
-  display: grid;
-  place-items: center;
-  margin: -6px 0 18px;
+.auth-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 6px;
+}
+.auth-top .brand b {
+  font-size: 24px;
 }
 
 /* ---- Charts: draw-on, grow, small multiples --------------------------------------------------------------- */
@@ -2741,4 +2745,15 @@ dialog.step-up {
     width: 220px;
     height: 180px;
   }
+}
+
+.heart-count {
+  font: 600 22px/1 "Sora";
+  letter-spacing: -0.03em;
+  margin-right: 4px;
+}
+.heart-pops {
+  display: inline-flex;
+  gap: 1px;
+  margin-left: 8px;
 }

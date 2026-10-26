@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError } from "../api/client";
 import type { AdminSession, Enrollment } from "../api/types";
 import { setSession } from "../auth/session";
-import { Mark, Mascot } from "../components/Art";
+import { Mascot } from "../components/Art";
 import { errorMessage, Notice } from "../components/ui";
 
 const route = getRouteApi("/sign-in");
@@ -92,14 +92,14 @@ export function SignInPage() {
   return (
     <div className="auth">
       <main className="card">
-        <div className="auth-mascot">
-          <Mascot mood={step.kind === "password" ? "hello" : error ? "worried" : "idle"} size={64} />
-        </div>
-        <div className="brand" style={{ padding: 0 }}>
-          <Mark />
-          <div>
-            <b>heartpact</b>
-            <span>Admin</span>
+        <div className="auth-top">
+          {/* The mark comes alive here: it waves hello, and looks worried when something goes wrong. */}
+          <Mascot mood={step.kind === "password" ? (error ? "worried" : "hello") : error ? "worried" : "idle"} size={58} title="Heartpact" />
+          <div className="brand" style={{ padding: 0 }}>
+            <div>
+              <b>heartpact</b>
+              <span>Admin</span>
+            </div>
           </div>
         </div>
 
