@@ -81,6 +81,17 @@ class LocationMathTest {
         assertFalse(LocationMath.acceptsPoints(SharingStatus.Off))
     }
 
+    @Test fun `a sharing phone stops when the hub says its own person's share is off`() {
+        // Signed out (or stopped) on another phone: the same person's share reads off.
+        assertTrue(LocationMath.saysMyShareIsOff(SharingState("maya", "Maya", SharingStatus.Off), "maya"))
+        // The partner stopping, or my own pause, is not a reason to stop here.
+        assertFalse(LocationMath.saysMyShareIsOff(SharingState("theo", "Theo", SharingStatus.Off), "maya"))
+        assertFalse(LocationMath.saysMyShareIsOff(SharingState("maya", "Maya", SharingStatus.Paused, pausedUntilUtc = "2026-10-11T19:00:00Z"), "maya"))
+        assertFalse(LocationMath.saysMyShareIsOff(SharingState("maya", "Maya", SharingStatus.Sharing), "maya"))
+        assertFalse(LocationMath.saysMyShareIsOff(null, "maya"))
+        assertFalse(LocationMath.saysMyShareIsOff(SharingState("maya", "Maya", SharingStatus.Off), null))
+    }
+
     @Test fun `two points land inside the frame, the right way round`() {
         val (me, them) = LocationMath.place(6.4300, 3.4200, 6.4400, 3.4350, aspect = 390f / 520f)
         listOf(me, them).forEach { (x, y) -> assertTrue(x in 0.2f..0.8f && y in 0.2f..0.8f) }

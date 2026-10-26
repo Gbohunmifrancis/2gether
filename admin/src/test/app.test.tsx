@@ -3,7 +3,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
-import type { AdminSession, Page, UserDetail, UserRow } from "../api/types";
+import type { AdminSession, GameInsights, Page, UserDetail, UserRow } from "../api/types";
 import { getSession, setSession } from "../auth/session";
 
 type Handler = (method: string, path: string, body: unknown) => { status: number; body?: unknown } | undefined;
@@ -214,6 +214,22 @@ describe("the dashboard", () => {
 
     await waitFor(() => expect(app.router.state.location.pathname).toBe("/users"));
     expect(calls.find((call) => call.method === "POST")?.body).toEqual({ confirmEmail: "MAYA@example.com", reason: "Asked by email, ticket 41" });
+  });
+
+  it("shows the duels' usual winning margin in hearts", async () => {
+    const games: GameInsights = {
+      days: 30,
+      types: [{ type: "skillDuel", started: 3, finished: 2, abandoned: 0, medianMinutes: 40 }],
+      skills: [],
+      duels: { finished: 2, ties: 1, medianMargin: 0.5 },
+    };
+    mockApi((method, path) => (method === "GET" && path.startsWith("/api/admin/analytics/games") ? { status: 200, body: games } : undefined));
+    act(() => setSession(admin));
+    start("/games");
+
+    expect(await screen.findByText("Usual winning margin")).toBeTruthy();
+    expect(await screen.findByLabelText("0.5 hearts")).toBeTruthy();
+    expect(screen.queryByText(/pts/)).toBeNull();
   });
 
   it("signs out when the server stops accepting the token", async () => {

@@ -56,7 +56,16 @@ class SkillDuelShotsTest {
         round(2, "PromiseRing", 70, 70, tie = true),
         round(3, "OtherHalf", 100, 20, winner = "maya"),
         round(4, "KissTheCenter", 55, 50, winner = "maya"),
-    ), 4 to 2, """"totals":{"maya":355,"theo":280},"winner":"maya","tie":false,"margin":75""", phase = "completed")
+    ), 4 to 2, """"totals":{"maya":355,"theo":280},"winner":"maya","tie":false,"decidedBy":"hearts","margin":2,"pointMargin":75""", phase = "completed")
+
+    /** Four hearts each: the points broke the tie, and the result says so. */
+    private val wonOnPoints = state(listOf(
+        round(0, "FairShare", 90, 60, winner = "maya"),
+        round(1, "Heartbeat", 10, 20, winner = "theo"),
+        round(2, "PromiseRing", 50, 50, tie = true),
+        round(3, "OtherHalf", 50, 50, tie = true),
+        round(4, "KissTheCenter", 50, 50, tie = true),
+    ), 4 to 4, """"totals":{"maya":250,"theo":230},"winner":"maya","tie":false,"decidedBy":"points","margin":0,"pointMargin":20""", phase = "completed")
 
     @Test fun inviteWaiting() = shot("games-duel-invite") {
         GamesScreen(GamesUi(listOf(GameSession("w1", "c", GameType.SkillDuel, GameStatus.Waiting, invitedByUserId = "theo"))), "maya", "Theo", GameActions(), { now })
@@ -75,4 +84,5 @@ class SkillDuelShotsTest {
 
     @Test fun done() = shot("games-duel-done") { screen("d1", finished, GameStatus.Completed) }
     @Test fun doneNight() = shot("games-duel-done-night", night = true) { screen("d2", finished, GameStatus.Completed) }
+    @Test fun doneOnPoints() = shot("games-duel-done-points") { screen("d3", wonOnPoints, GameStatus.Completed) }
 }

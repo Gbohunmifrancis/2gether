@@ -299,7 +299,7 @@ export function games(days: number): GameInsights {
       const average = buckets.reduce((total, value, bucket) => total + value * (bucket * 10 + 5), 0) / Math.max(1, rounds);
       return { kind, rounds, averageScore: Math.round(average * 10) / 10, buckets };
     }),
-    duels: { finished: Math.round(412 * scale), ties: Math.round(19 * scale), medianMargin: 37 },
+    duels: { finished: Math.round(412 * scale), ties: Math.round(7 * scale), medianMargin: 1 },
   };
 }
 

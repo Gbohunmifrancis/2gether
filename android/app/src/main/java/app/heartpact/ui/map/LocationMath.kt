@@ -1,5 +1,6 @@
 package app.heartpact.ui.map
 
+import app.heartpact.data.SharingState
 import app.heartpact.data.SharingStatus
 import app.heartpact.data.SharingStatusView
 import app.heartpact.data.utc
@@ -117,6 +118,13 @@ object LocationMath {
      * milliseconds; while your own share is off or paused you see nobody, as the mutual rule says.
      */
     fun acceptsPoints(myStatus: SharingStatus): Boolean = myStatus == SharingStatus.Sharing
+
+    /**
+     * Whether a hub update says this person's own share is off: stopped on another of their phones, by signing
+     * out there, or by signing out everywhere. The sharing phone then checks with the server and stops.
+     */
+    fun saysMyShareIsOff(state: SharingState?, myUserId: String?): Boolean =
+        state != null && myUserId != null && state.userId == myUserId && state.status == SharingStatus.Off
 
     /**
      * Two points on a drawn map: an equirectangular projection around their midpoint, scaled so both sit
