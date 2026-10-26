@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -77,7 +78,8 @@ internal fun MemoryBoard(s: GameSession, me: String, partnerName: String, busy: 
     LaunchedEffect(matchKey) { if (matchKey != null) { delay(250); haptics.thud() } }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         m.cards.chunked(3).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // The row with a pair just found sits on top, so its hearts fly over the cards around it.
+            Row(Modifier.zIndex(if (matchKey != null && row.any { it.index in pair }) 1f else 0f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { card ->
                     val value = card.value ?: shown[card.index]
                     val faded = card.value == null && value != null
@@ -121,7 +123,7 @@ private fun MemoryCard(index: Int, value: Int?, matched: Boolean, faded: Boolean
     val alpha by animateFloatAsState(if (matched) 0.6f else if (faded) 0.82f else 1f, gentle(tween(600, delayMillis = 500)), label = "card")
     val showFace = turn.value > 90f
     val label = (value ?: face)?.takeIf { faceUp }?.let { GamePlay.cardLabel(it, theme) } ?: tr("Face-down card {number}", "number" to index + 1)
-    Box(modifier.aspectRatio(0.8f)) {
+    Box(modifier.aspectRatio(0.8f).zIndex(if (celebrate != null) 1f else 0f)) {
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer {

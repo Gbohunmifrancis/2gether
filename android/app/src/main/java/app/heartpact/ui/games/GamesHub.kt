@@ -294,7 +294,7 @@ private fun PickBlob(
     val wobble = if (selected && !motionOff()) rememberWobble(2800) else 0f
     val phase = wobble * 2f * PI.toFloat()
     val beat = order * 0.17f
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier.graphicsLayer { alpha = appear.value.coerceIn(0f, 1f) }, horizontalAlignment = Alignment.CenterHorizontally) {
         BoxWithConstraints(
             Modifier.fillMaxWidth().aspectRatio(1f)
                 .clickable(remember { MutableInteractionSource() }, indication = null, role = Role.Button) {
@@ -315,7 +315,6 @@ private fun PickBlob(
                         scaleX = a * (1f + breathe + 0.09f * boing.value)
                         scaleY = a * (1f + breathe - 0.09f * boing.value)
                         rotationZ = if (selected) 5f * sin(phase) else 0f
-                        alpha = a.coerceIn(0f, 1f)
                     }
                     .drawWithCache {
                         val inset = 8.dp.toPx()
