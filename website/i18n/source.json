@@ -687,7 +687,7 @@
    "privacy/index.html"
   ]
  },
- "Heartpact is run by [COMPANY NAME], [POSTAL ADDRESS], [COUNTRY] (\"we\", \"us\"). We are the controller of the personal data described in this policy. If you have a question or want to use any of your rights, email us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>.": {
+ "Heartpact is run by HeartPact, 651 N Broad Street, Middletown, Delaware 19709, USA (\"we\", \"us\"). We are the controller of the personal data described in this policy. If you have a question or want to use any of your rights, email us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2032,7 +2032,7 @@
    "privacy/index.html"
   ]
  },
- "We are based in [COUNTRY], and our servers are in [SERVER REGION]. Some of our providers, including Google, Cloudflare and Anthropic, may process data in the United States and other countries. Where the law requires it, we rely on recognised safeguards for these transfers, such as the European Commission's Standard Contractual Clauses and the UK's equivalent, or an adequacy decision.": {
+ "We are based in the United States, and our servers are in [SERVER REGION]. If you use Heartpact from outside the United States, including from the UK or the European Economic Area, your data is transferred to the United States. Some of our providers, including Google, Cloudflare and Anthropic, may also process data in other countries. Where the law requires it, we rely on recognised safeguards for these transfers, such as the European Commission's Standard Contractual Clauses and the UK's equivalent, or an adequacy decision.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2057,7 +2057,7 @@
    "terms/index.html"
   ]
  },
- "[COMPANY NAME]<br>[POSTAL ADDRESS]<br>[COUNTRY]<br>Email: <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>": {
+ "HeartPact<br>651 N Broad Street, Middletown, Delaware 19709<br>USA<br>Email: <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>": {
   "kind": "text",
   "pages": [
    "privacy/index.html",
@@ -2082,7 +2082,7 @@
    "terms/index.html"
   ]
  },
- "Welcome to Heartpact. These terms are the agreement between you and [COMPANY NAME], [POSTAL ADDRESS], [COUNTRY] (\"we\", \"us\"), and they apply whenever you use the Heartpact app, our website or the service behind them. We have tried to keep them short and readable. By creating an account, you agree to them. If you do not agree, please do not use Heartpact.": {
+ "Welcome to Heartpact. These terms are the agreement between you and HeartPact, 651 N Broad Street, Middletown, Delaware 19709, USA (\"we\", \"us\"), and they apply whenever you use the Heartpact app, our website or the service behind them. We have tried to keep them short and readable. By creating an account, you agree to them. If you do not agree, please do not use Heartpact.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
