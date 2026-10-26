@@ -32,6 +32,8 @@ public sealed class User : BaseEntity
     public string? DisabledReason { get; private set; }
     /// <summary>Last authenticated request, at most every 15 minutes; for active-user analytics.</summary>
     public DateTime? LastActiveAtUtc { get; private set; }
+    /// <summary>Set by an admin for test and team accounts: they work as usual but are left out of analytics.</summary>
+    public bool IsInternal { get; private set; }
 
     public static User Create(string email, string displayName, DateOnly dateOfBirth, DateTime utcNow, string? passwordHash = null, string? googleId = null, bool cycleOwner = false, Gender gender = Gender.PreferNotToSay)
     {
@@ -111,6 +113,12 @@ public sealed class User : BaseEntity
     {
         GoogleId = googleId;
         EmailVerified = true;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void MarkInternal(bool internalAccount, DateTime utcNow)
+    {
+        IsInternal = internalAccount;
         UpdatedAtUtc = utcNow;
     }
 

@@ -467,5 +467,8 @@ public static class DatabaseSchemaUpgrade
 
         -- Ending a pregnancy now stops sharing it; pregnancies ended before that stop too.
         UPDATE pregnancies SET "ShareWithPartner" = false WHERE "Status" = 'Ended' AND "ShareWithPartner";
+
+        -- Admin: test and team accounts, left out of analytics.
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "IsInternal" boolean NOT NULL DEFAULT false;
         """;
 }
