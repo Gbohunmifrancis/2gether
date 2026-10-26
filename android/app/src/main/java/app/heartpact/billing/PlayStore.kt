@@ -6,6 +6,7 @@ import android.util.Log
 import app.heartpact.i18n.tr
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
+import com.android.billingclient.api.BillingClient.OnPurchasesUpdatedSubResponseCode
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
@@ -74,8 +75,21 @@ object PlayMessages {
     val UNREACHABLE get() = tr("Can't reach Google Play. Check your connection and try again.")
     val NOT_ON_SALE get() = tr("Plus isn't on sale in your country yet.")
     val FAILED get() = tr("Google Play couldn't finish that. Try again in a moment.")
+    val DECLINED get() = tr("Your payment was declined: there wasn't enough money on that payment method. Try another one in Google Play.")
+    val INELIGIBLE get() = tr("This offer isn't available on your Google account. Pick the plan without it.")
 
-    fun forCode(code: Int): String = when (code) {
+    /**
+     * [subCode] is Play Billing 9's more specific reason for a failed purchase
+     * ([BillingClient.OnPurchasesUpdatedSubResponseCode]); it wins over the general [code] when it says something.
+     */
+    fun forCode(code: Int, subCode: Int = OnPurchasesUpdatedSubResponseCode.NO_APPLICABLE_SUB_RESPONSE_CODE): String = when (subCode) {
+        OnPurchasesUpdatedSubResponseCode.PAYMENT_DECLINED_DUE_TO_INSUFFICIENT_FUNDS -> DECLINED
+        OnPurchasesUpdatedSubResponseCode.USER_INELIGIBLE -> INELIGIBLE
+        else -> general(code)
+    }
+
+    // Since Play Billing 9, a Play Store the system blocks (an OEM kids mode) answers BILLING_UNAVAILABLE, not ERROR.
+    private fun general(code: Int): String = when (code) {
         BillingResponseCode.BILLING_UNAVAILABLE, BillingResponseCode.FEATURE_NOT_SUPPORTED -> UNAVAILABLE
         BillingResponseCode.SERVICE_UNAVAILABLE, BillingResponseCode.SERVICE_DISCONNECTED,
         BillingResponseCode.SERVICE_TIMEOUT, BillingResponseCode.NETWORK_ERROR -> UNREACHABLE
@@ -155,7 +169,7 @@ class GooglePlayStore(context: Context) : PlayStore {
             BillingResponseCode.OK -> null
             BillingResponseCode.ITEM_ALREADY_OWNED -> { _updates.tryEmit(PurchaseUpdate.AlreadyOwned); null }
             BillingResponseCode.USER_CANCELED -> null
-            else -> PlayMessages.forCode(result.responseCode)
+            else -> PlayMessages.forCode(result.responseCode, result.onPurchasesUpdatedSubResponseCode)
         }
     }
 
@@ -163,7 +177,7 @@ class GooglePlayStore(context: Context) : PlayStore {
         BillingResponseCode.OK -> PurchaseUpdate.Bought(purchases.orEmpty().map(::toStore))
         BillingResponseCode.USER_CANCELED -> PurchaseUpdate.Cancelled
         BillingResponseCode.ITEM_ALREADY_OWNED -> PurchaseUpdate.AlreadyOwned
-        else -> PurchaseUpdate.Failed(PlayMessages.forCode(result.responseCode))
+        else -> PurchaseUpdate.Failed(PlayMessages.forCode(result.responseCode, result.onPurchasesUpdatedSubResponseCode))
     }
 
     private fun toStore(purchase: Purchase) = StorePurchase(

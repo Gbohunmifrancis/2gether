@@ -387,14 +387,14 @@
  "Google Play isn't available on this phone. Check you're signed in to the Play Store.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:73"
+   "app/heartpact/billing/PlayStore.kt:74"
   ],
   "code": "val UNAVAILABLE get() = tr(\"Google Play isn't available on this phone. Check you're signed in to the Play Store.\")"
  },
  "Can't reach Google Play. Check your connection and try again.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:74",
+   "app/heartpact/billing/PlayStore.kt:75",
    "app/heartpact/ui/plus/PlusViewModel.kt:107"
   ],
   "code": "val UNREACHABLE get() = tr(\"Can't reach Google Play. Check your connection and try again.\")"
@@ -402,7 +402,7 @@
  "Plus isn't on sale in your country yet.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:75",
+   "app/heartpact/billing/PlayStore.kt:76",
    "app/heartpact/ui/plus/PlusViewModel.kt:80"
   ],
   "code": "val NOT_ON_SALE get() = tr(\"Plus isn't on sale in your country yet.\")"
@@ -410,9 +410,23 @@
  "Google Play couldn't finish that. Try again in a moment.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:76"
+   "app/heartpact/billing/PlayStore.kt:77"
   ],
   "code": "val FAILED get() = tr(\"Google Play couldn't finish that. Try again in a moment.\")"
+ },
+ "Your payment was declined: there wasn't enough money on that payment method. Try another one in Google Play.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlayStore.kt:78"
+  ],
+  "code": "val DECLINED get() = tr(\"Your payment was declined: there wasn't enough money on that payment method. Try another one in Google Play.\")"
+ },
+ "This offer isn't available on your Google account. Pick the plan without it.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlayStore.kt:79"
+  ],
+  "code": "val INELIGIBLE get() = tr(\"This offer isn't available on your Google account. Pick the plan without it.\")"
  },
  "Yearly": {
   "plural": false,
