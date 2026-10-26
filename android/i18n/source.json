@@ -266,12 +266,12 @@
    "app/heartpact/alarm/AlarmViewModel.kt:48",
    "app/heartpact/location/LocationShareService.kt:85",
    "app/heartpact/ui/AppNav.kt:248",
-   "app/heartpact/ui/AppNav.kt:386",
-   "app/heartpact/ui/AppNav.kt:398",
-   "app/heartpact/ui/AppNav.kt:408",
-   "app/heartpact/ui/AppNav.kt:422",
-   "app/heartpact/ui/AppNav.kt:435",
-   "app/heartpact/ui/AppNav.kt:450"
+   "app/heartpact/ui/AppNav.kt:387",
+   "app/heartpact/ui/AppNav.kt:399",
+   "app/heartpact/ui/AppNav.kt:409",
+   "app/heartpact/ui/AppNav.kt:423",
+   "app/heartpact/ui/AppNav.kt:436",
+   "app/heartpact/ui/AppNav.kt:451"
   ],
   "code": "val partnerName: String = tr(\"your partner\"),"
  },
@@ -1267,7 +1267,7 @@
  "Play together": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:337",
+   "app/heartpact/ui/AppNav.kt:338",
    "app/heartpact/ui/games/GamesHub.kt:184"
   ],
   "code": "CardRow(tr(\"Play together\"), subtitle = tr(\"Same answer, memory match, I call on\"),"
@@ -1275,14 +1275,14 @@
  "Same answer, memory match, I call on": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:337"
+   "app/heartpact/ui/AppNav.kt:338"
   ],
   "code": "CardRow(tr(\"Play together\"), subtitle = tr(\"Same answer, memory match, I call on\"),"
  },
  "Pregnancy mode": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:339",
+   "app/heartpact/ui/AppNav.kt:340",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:246"
   ],
   "code": "CardRow(tr(\"Pregnancy mode\"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),"
@@ -1290,7 +1290,7 @@
  "You": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:429",
+   "app/heartpact/ui/AppNav.kt:430",
    "app/heartpact/ui/games/GameLife.kt:167",
    "app/heartpact/ui/games/GameLife.kt:308",
    "app/heartpact/ui/games/ICallOnBoard.kt:65",
@@ -2585,73 +2585,87 @@
   ],
   "code": "return if (late == 0) tr(\"Period due today.\") else trn(late, \"Period late by {count} day.\", \"Period late by {count} days.\")"
  },
+ "{partner}'s period is due today.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/cycle/CyclePlan.kt:72"
+  ],
+  "code": "return if (late == 0) tr(\"{partner}'s period is due today.\", \"partner\" to partner)"
+ },
  "{partner} sees nothing of your cycle.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:66"
+   "app/heartpact/ui/cycle/CyclePlan.kt:79"
   ],
   "code": "CycleShare.None -> tr(\"{partner} sees nothing of your cycle.\", \"partner\" to partner)"
  },
  "{partner} sees your next period and fertile window. Not your logs or notes.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:67"
+   "app/heartpact/ui/cycle/CyclePlan.kt:80"
   ],
   "code": "CycleShare.PredictionsOnly -> tr(\"{partner} sees your next period and fertile window. Not your logs or notes.\", \"partner\" to partner)"
  },
  "{partner} sees your predictions and what you log, including notes.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:68"
+   "app/heartpact/ui/cycle/CyclePlan.kt:81"
   ],
   "code": "CycleShare.FullDetail -> tr(\"{partner} sees your predictions and what you log, including notes.\", \"partner\" to partner)"
  },
  "Day {day} · private": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:73"
+   "app/heartpact/ui/cycle/CyclePlan.kt:87"
   ],
   "code": "CycleShare.None -> tr(\"Day {day} · private\", \"day\" to cycleDay)"
  },
  "Day {day} · {partner} sees everything": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:74"
+   "app/heartpact/ui/cycle/CyclePlan.kt:88"
   ],
   "code": "CycleShare.FullDetail -> tr(\"Day {day} · {partner} sees everything\", \"day\" to cycleDay, \"partner\" to partner)"
  },
  "Day {day} · {partner} sees predictions": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:75"
+   "app/heartpact/ui/cycle/CyclePlan.kt:89"
   ],
   "code": "else -> tr(\"Day {day} · {partner} sees predictions\", \"day\" to cycleDay, \"partner\" to partner)"
  },
  "Set up your cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:77"
+   "app/heartpact/ui/cycle/CyclePlan.kt:91"
   ],
   "code": "owner -> tr(\"Set up your cycle\")"
+ },
+ "{partner}'s period is due today": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/cycle/CyclePlan.kt:92"
+  ],
+  "code": "partnerDay != null && partnerDaysLate == 0 -> tr(\"{partner}'s period is due today\", \"partner\" to partner)"
  },
  "Day {day} of {partner}'s cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:78"
+   "app/heartpact/ui/cycle/CyclePlan.kt:94"
   ],
   "code": "partnerDay != null -> tr(\"Day {day} of {partner}'s cycle\", \"day\" to partnerDay, \"partner\" to partner)"
  },
  "Track your cycle, privately": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:79"
+   "app/heartpact/ui/cycle/CyclePlan.kt:95"
   ],
   "code": "else -> tr(\"Track your cycle, privately\")"
  },
  "Today": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:89",
+   "app/heartpact/ui/cycle/CyclePlan.kt:105",
    "app/heartpact/ui/cycle/CycleScreen.kt:194",
    "app/heartpact/ui/home/Home.kt:74",
    "app/heartpact/ui/today/TodayTab.kt:83"
@@ -2661,7 +2675,7 @@
  "Yesterday": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:90",
+   "app/heartpact/ui/cycle/CyclePlan.kt:106",
    "app/heartpact/ui/us/UsText.kt:49"
   ],
   "code": "today.minusDays(1) -> tr(\"Yesterday\")"
@@ -2669,56 +2683,56 @@
  "Cramps": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:102"
+   "app/heartpact/ui/cycle/CyclePlan.kt:118"
   ],
   "code": "\"Cramps\" -> tr(\"Cramps\")"
  },
  "Tired": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:103"
+   "app/heartpact/ui/cycle/CyclePlan.kt:119"
   ],
   "code": "\"Tired\" -> tr(\"Tired\")"
  },
  "Headache": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:104"
+   "app/heartpact/ui/cycle/CyclePlan.kt:120"
   ],
   "code": "\"Headache\" -> tr(\"Headache\")"
  },
  "Bloating": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:105"
+   "app/heartpact/ui/cycle/CyclePlan.kt:121"
   ],
   "code": "\"Bloating\" -> tr(\"Bloating\")"
  },
  "Tender": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:106"
+   "app/heartpact/ui/cycle/CyclePlan.kt:122"
   ],
   "code": "\"Tender\" -> tr(\"Tender\")"
  },
  "Acne": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:107"
+   "app/heartpact/ui/cycle/CyclePlan.kt:123"
   ],
   "code": "\"Acne\" -> tr(\"Acne\")"
  },
  "Cravings": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:108"
+   "app/heartpact/ui/cycle/CyclePlan.kt:124"
   ],
   "code": "\"Cravings\" -> tr(\"Cravings\")"
  },
  "Back pain": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/cycle/CyclePlan.kt:109"
+   "app/heartpact/ui/cycle/CyclePlan.kt:125"
   ],
   "code": "\"Back pain\" -> tr(\"Back pain\")"
  },
@@ -2739,6 +2753,24 @@
   "code": "return trn(cycleLength, \"Of about {count} day. Next period likely {dates}.\", \"Of about {count} days. Next period likely {dates}.\", \"dates\" to likely(next))",
   "one": "Of about {count} day. Next period likely {dates}.",
   "other": "Of about {count} days. Next period likely {dates}."
+ },
+ "{partner}'s period is {count} day late.|{partner}'s period is {count} days late.": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/cycle/CyclePlan.kt:73"
+  ],
+  "code": "else trn(late, \"{partner}'s period is {count} day late.\", \"{partner}'s period is {count} days late.\", \"partner\" to partner)",
+  "one": "{partner}'s period is {count} day late.",
+  "other": "{partner}'s period is {count} days late."
+ },
+ "{partner}'s period is {count} day late|{partner}'s period is {count} days late": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/cycle/CyclePlan.kt:93"
+  ],
+  "code": "partnerDay != null && partnerDaysLate != null -> trn(partnerDaysLate, \"{partner}'s period is {count} day late\", \"{partner}'s period is {count} days late\", \"partner\" to partner)",
+  "one": "{partner}'s period is {count} day late",
+  "other": "{partner}'s period is {count} days late"
  },
  "Opening your calendar…": {
   "plural": false,

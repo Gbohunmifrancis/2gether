@@ -327,9 +327,10 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 extraRows = {
                                     val cycleMode = cycleSummaryUi.mode
                                     if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
-                                        val partnerDay = cycleSummaryUi.shared?.prediction?.cycleDay
+                                        val partnerPrediction = cycleSummaryUi.shared?.prediction
                                         CardRow(if (cycleMode == CycleMode.Partner) tr("{partner}'s cycle", "partner" to partner) else tr("Your cycle"),
-                                            subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner, partnerDay),
+                                            subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner,
+                                                partnerPrediction?.cycleDay, partnerPrediction?.daysLate),
                                             icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
                                     CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),

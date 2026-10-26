@@ -185,7 +185,7 @@ private fun Partner(ui: CycleUi, partnerName: String, today: LocalDate) {
         Text(tr("{partner} shares their cycle with you, but there's nothing to predict right now.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2)
         return
     }
-    Big(prediction.cycleDay, CyclePlan.summary(prediction, profile.averageCycleLengthDays))
+    Big(prediction.cycleDay, CyclePlan.partnerSummary(prediction, profile.averageCycleLengthDays, partnerName))
     Strip(CyclePlan.strip(prediction, shared.logs, profile.averagePeriodLengthDays, today))
     val todayLog = shared.logs.firstOrNull { it.logDate == today.toString() }
     if (profile.shareLevel == CycleShare.FullDetail && todayLog != null) {

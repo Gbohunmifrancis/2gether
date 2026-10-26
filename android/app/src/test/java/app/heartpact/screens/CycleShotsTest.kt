@@ -37,6 +37,7 @@ class CycleShotsTest {
         shot("cycle-setup") { CycleScreen(CycleUi(CycleMode.Setup), "Theo", CycleActions(), today) }
         shot("cycle-partner") { CycleScreen(CycleUi(CycleMode.Partner, shared = SharedCycle(CycleProfile(shareLevel = CycleShare.PredictionsOnly), prediction)), "Maya", CycleActions(), today) }
         val late = prediction.copy(lastPeriodStart = "2026-09-30", cycleDay = 32, daysLate = 3)
+        shot("cycle-partner-late") { CycleScreen(CycleUi(CycleMode.Partner, shared = SharedCycle(CycleProfile(shareLevel = CycleShare.PredictionsOnly), late)), "Maya", CycleActions(), LocalDate.of(2026, 10, 31)) }
         shot("cycle-late") { CycleScreen(CycleUi(CycleMode.Owner, CycleProfile(lastPeriodStartDate = "2026-09-30"), late, logs.take(5)), "Theo", CycleActions(), LocalDate.of(2026, 10, 31)) }
         shot("cycle-settings") { CycleScreen(CycleUi(CycleMode.Setup, CycleProfile(shareLevel = CycleShare.PredictionsOnly, lastPeriodStartDate = "2026-09-30"), prediction, editing = true), "Theo", CycleActions(), today) }
     }

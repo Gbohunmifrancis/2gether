@@ -4,8 +4,34 @@ namespace Twogether.Infrastructure.Persistence;
 
 public static class DatabaseSchemaUpgrade
 {
-    public static Task ApplyAsync(ApplicationDbContext database, CancellationToken cancellationToken = default)
-        => database.Database.ExecuteSqlRawAsync(Sql, Array.Empty<object>(), cancellationToken);
+    public static async Task ApplyAsync(ApplicationDbContext database, CancellationToken cancellationToken = default)
+    {
+        await database.Database.ExecuteSqlRawAsync(Sql, Array.Empty<object>(), cancellationToken);
+        await database.Database.ExecuteSqlRawAsync(StopCycleSharingAfterOldBreakupsSql, Array.Empty<object>(), cancellationToken);
+    }
+
+    /// <summary>
+    /// Before <c>CycleSharing.StopSharingAsync</c>, a breakup left the owner's share level as it was, ready for whoever
+    /// came next. This puts it back to none for people not in an active couple whose level is still the one that was in
+    /// place when a linked couple of theirs ended: the profile hasn't been saved since that couple's end. A level saved
+    /// after the breakup (chosen while single) is newer than every ended couple and is left alone, and anyone in an
+    /// active couple is never touched. Every breakup since the fix leaves the level at none, so once the old rows are
+    /// done this matches nothing: safe on every boot. Plain SQL that SQLite runs too, for the test.
+    /// </summary>
+    public const string StopCycleSharingAfterOldBreakupsSql = """
+        UPDATE cycle_profiles SET "ShareLevelWithPartner" = 'None'
+        WHERE "ShareLevelWithPartner" <> 'None'
+          AND NOT EXISTS (
+              SELECT 1 FROM couples active
+              WHERE active."Status" = 'Active'
+                AND (active."UserAId" = cycle_profiles."UserId" OR active."UserBId" = cycle_profiles."UserId"
+                    OR active."Id" = (SELECT u."CoupleId" FROM users u WHERE u."Id" = cycle_profiles."UserId")))
+          AND EXISTS (
+              SELECT 1 FROM couples ended
+              WHERE ended."Status" = 'Dissolved' AND ended."LinkedAtUtc" IS NOT NULL AND ended."DissolvedAtUtc" IS NOT NULL
+                AND (ended."UserAId" = cycle_profiles."UserId" OR ended."UserBId" = cycle_profiles."UserId")
+                AND ended."DissolvedAtUtc" >= cycle_profiles."UpdatedAtUtc");
+        """;
 
     private const string Sql = """
         ALTER TABLE couples ADD COLUMN IF NOT EXISTS "DissolvedAtUtc" timestamp with time zone NULL;

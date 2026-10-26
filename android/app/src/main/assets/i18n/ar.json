@@ -1562,6 +1562,24 @@
  "{partner}'s drawing": "رسمة {partner}",
  "{partner}'s half is on. Yours sticks at {target}.": "نصف {partner} في مكانه. ويلتصق نصفك عند {target}.",
  "{partner}'s heart": "قلب {partner}",
+ "{partner}'s period is due today": "الدورة الشهرية لـ{partner} متوقعة اليوم",
+ "{partner}'s period is due today.": "الدورة الشهرية لـ{partner} متوقعة اليوم.",
+ "{partner}'s period is {count} day late.|{partner}'s period is {count} days late.": {
+  "zero": "الدورة الشهرية لـ{partner} متأخرة {count} يوم.",
+  "one": "الدورة الشهرية لـ{partner} متأخرة يومًا واحدًا.",
+  "two": "الدورة الشهرية لـ{partner} متأخرة يومين.",
+  "few": "الدورة الشهرية لـ{partner} متأخرة {count} أيام.",
+  "many": "الدورة الشهرية لـ{partner} متأخرة {count} يومًا.",
+  "other": "الدورة الشهرية لـ{partner} متأخرة {count} يوم."
+ },
+ "{partner}'s period is {count} day late|{partner}'s period is {count} days late": {
+  "zero": "الدورة الشهرية لـ{partner} متأخرة {count} يوم",
+  "one": "الدورة الشهرية لـ{partner} متأخرة يومًا واحدًا",
+  "two": "الدورة الشهرية لـ{partner} متأخرة يومين",
+  "few": "الدورة الشهرية لـ{partner} متأخرة {count} أيام",
+  "many": "الدورة الشهرية لـ{partner} متأخرة {count} يومًا",
+  "other": "الدورة الشهرية لـ{partner} متأخرة {count} يوم"
+ },
  "{partner}'s time ran out: a point for you. New chain: {partner} starts.": "انتهى وقت {partner}: نقطة لك. سلسلة جديدة: البداية لـ{partner}.",
  "{partner}'s truth": "سؤال صراحة لـ{partner}",
  "{partner}'s turn": "دور {partner}",

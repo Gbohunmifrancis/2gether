@@ -52,6 +52,22 @@ class CyclePlanTest {
         assertEquals("Period due today.", CyclePlan.summary(late.copy(daysLate = 0), 28))
     }
 
+    @Test fun `a partner sees a late period by the owner's name, and only when the server says it is late`() {
+        val late = prediction.copy(lastPeriodStart = "2026-09-30", cycleDay = 32, daysLate = 3)
+        assertEquals("Maya's period is 3 days late.", CyclePlan.partnerSummary(late, 28, "Maya"))
+        assertEquals("Maya's period is 1 day late.", CyclePlan.partnerSummary(late.copy(daysLate = 1), 28, "Maya"))
+        assertEquals("Maya's period is due today.", CyclePlan.partnerSummary(late.copy(daysLate = 0), 28, "Maya"))
+        // On time (or rolled forward, as for a private pregnancy): the owner's own wording, with no hint.
+        assertEquals("Of about 28 days. Next period likely 27–29 October.", CyclePlan.partnerSummary(prediction, 28, "Maya"))
+        assertEquals(null, CyclePlan.partnerSummary(CyclePrediction(), 28, "Maya"))
+        // The Us row says the same instead of a day count that keeps climbing.
+        assertEquals("Maya's period is 3 days late", CyclePlan.usRow(false, null, null, "Maya", 32, 3))
+        assertEquals("Maya's period is due today", CyclePlan.usRow(false, null, null, "Maya", 29, 0))
+        assertEquals("Day 12 of Maya's cycle", CyclePlan.usRow(false, null, null, "Maya", 12, null))
+        // The owner's own row is unchanged by a partner value.
+        assertEquals("Day 32 · private", CyclePlan.usRow(true, 32, app.heartpact.data.CycleShare.None, "Theo", null, 3))
+    }
+
     @Test fun `past days can be logged for two months`() {
         assertTrue(CyclePlan.canLog(today, today))
         assertTrue(CyclePlan.canLog(today.minusDays(60), today))
