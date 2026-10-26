@@ -69,7 +69,7 @@ public sealed record RevenueDto(
 /// </summary>
 public sealed class AdminAnalytics(IApplicationDbContext db, IDateTimeProvider clock, AdminSettings settings)
 {
-    private readonly Insights.MeasuredScope measured = new(db, settings);
+    private readonly MeasuredScope measured = new(db, settings);
 
     public static int ClampDays(int days) => Math.Clamp(days, 7, 365);
 
