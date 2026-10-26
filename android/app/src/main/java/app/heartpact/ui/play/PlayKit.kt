@@ -342,6 +342,11 @@ fun Modifier.dottedPage(colour: Color, step: Dp = 22.dp): Modifier = drawBehind 
 /** A gentle, endless wobble for things waiting to be picked (0 to 1, looping). */
 @Composable
 fun rememberWobble(periodMs: Int = 3200): Float {
+    // Still when animations are off, and in screenshot tests, which wait for the screen to settle.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val still = app.heartpact.ui.graphics.LocalStillLogo.current ||
+        remember { android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+    if (still) return 0f
     val loop = rememberInfiniteTransition(label = "wobble")
     val p by loop.animateFloat(0f, 1f, infiniteRepeatable(tween(periodMs, easing = LinearEasing)), label = "p")
     return p

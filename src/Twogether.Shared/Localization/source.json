@@ -6,27 +6,13 @@
   ],
   "code": "MemorySyncText.ReminderBody(pending, partnerName ?? Loc.T(\"your partner\")),"
  },
- "Time to move": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:91"
-  ],
-  "code": "notification = Notification.Create(goal.AssignedUserId, goal.CoupleId, NotificationType.ExerciseDue, Loc.T(\"Time to move\"),"
- },
- "{dare}: {target}. The alarm stops when the camera counts you in.": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:92"
-  ],
-  "code": "Loc.T(\"{dare}: {target}. The alarm stops when the camera counts you in.\", (\"dare\", ExerciseText.Title(goal.Title, goal.ExerciseType)),"
- },
  "Your partner": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:110",
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:140",
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:148",
-   "Twogether.Api/Controllers/ExerciseController.cs:527",
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:146",
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:183",
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:189",
+   "Twogether.Api/Controllers/ExerciseController.cs:537",
    "Twogether.Api/Controllers/FoodController.cs:85",
    "Twogether.Api/Controllers/MemoriesController.Sync.cs:201",
    "Twogether.Api/Controllers/MemoriesController.cs:431",
@@ -36,26 +22,40 @@
    "Twogether.Api/Hubs/CoupleHub.cs:56",
    "Twogether.Application/Features/Questions/DailyQuestionContracts.cs:52"
   ],
-  "code": "await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.AlarmStarted, ExerciseMapper.ToDto(occurrence, (names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\"))), cancellationToken);"
+  "code": "await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.AlarmStarted, ExerciseMapper.ToDto(occurrence, names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\")), cancellationToken);"
+ },
+ "Time to move": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:155"
+  ],
+  "code": "return Notification.Create(goal.AssignedUserId, goal.CoupleId, NotificationType.ExerciseDue, Loc.T(\"Time to move\"),"
+ },
+ "{dare}: {target}. The alarm stops when the camera counts you in.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:156"
+  ],
+  "code": "Loc.T(\"{dare}: {target}. The alarm stops when the camera counts you in.\", (\"dare\", ExerciseText.Title(goal.Title, goal.ExerciseType)),"
  },
  "You missed {dare} today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:139"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:182"
   ],
   "code": "? Loc.T(\"You missed {dare} today.\", (\"dare\", dare))"
  },
  "{name} missed {dare} today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:140"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:183"
   ],
   "code": ": Loc.T(\"{name} missed {dare} today.\", (\"name\", names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\")), (\"dare\", dare));"
  },
  "Dare missed": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:141"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:184"
   ],
   "code": "notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, Loc.T(\"Dare missed\"), body, data, now));"
  },
@@ -376,147 +376,147 @@
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/ExerciseController.cs:64",
-   "Twogether.Api/Controllers/ExerciseController.cs:91"
+   "Twogether.Api/Controllers/ExerciseController.cs:92"
   ],
   "code": "if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError(\"exercise.invalid_assignee\", Loc.T(\"Goals can only be assigned to you or your partner.\")));"
  },
  "{name} finished {dare}: {target}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:323"
+   "Twogether.Api/Controllers/ExerciseController.cs:329"
   ],
   "code": "var done = Loc.T(\"{name} finished {dare}: {target}.\", (\"name\", Name(names, occurrence.UserId)),"
  },
  "Dare done": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:325"
+   "Twogether.Api/Controllers/ExerciseController.cs:331"
   ],
   "code": "notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T(\"Dare done\") : Loc.T(\"Dare done, worth a look\"),"
  },
  "Dare done, worth a look": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:325"
+   "Twogether.Api/Controllers/ExerciseController.cs:331"
   ],
   "code": "notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T(\"Dare done\") : Loc.T(\"Dare done, worth a look\"),"
  },
  "{name} asks to call off today's {dare}": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:400"
+   "Twogether.Api/Controllers/ExerciseController.cs:406"
   ],
   "code": "Loc.T(\"{name} asks to call off today's {dare}\", (\"name\", asker), (\"dare\", ExerciseText.InSentence(occurrence.Title, occurrence.ExerciseType))),"
  },
  "Let {name} off today, or keep the alarm ringing.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:401"
+   "Twogether.Api/Controllers/ExerciseController.cs:407"
   ],
   "code": "note.Value ?? Loc.T(\"Let {name} off today, or keep the alarm ringing.\", (\"name\", asker)),"
  },
  "Dare set": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:487"
+   "Twogether.Api/Controllers/ExerciseController.cs:497"
   ],
   "code": "GoalChange.Set => (Loc.T(\"Dare set\"), forYou ? Loc.T(\"{name} set {dare} for you: {target} at {time}.\", args)"
  },
  "{name} set {dare} for you: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:487"
+   "Twogether.Api/Controllers/ExerciseController.cs:497"
   ],
   "code": "GoalChange.Set => (Loc.T(\"Dare set\"), forYou ? Loc.T(\"{name} set {dare} for you: {target} at {time}.\", args)"
  },
  "{name} set {dare} for themselves: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:488"
+   "Twogether.Api/Controllers/ExerciseController.cs:498"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} set {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} set {dare}: {target} at {time}.\", args)),"
  },
  "{name} set {dare}: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:488"
+   "Twogether.Api/Controllers/ExerciseController.cs:498"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} set {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} set {dare}: {target} at {time}.\", args)),"
  },
  "Dare updated": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:489"
+   "Twogether.Api/Controllers/ExerciseController.cs:499"
   ],
   "code": "GoalChange.Updated => (Loc.T(\"Dare updated\"), forYou ? Loc.T(\"{name} updated {dare} for you: {target} at {time}.\", args)"
  },
  "{name} updated {dare} for you: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:489"
+   "Twogether.Api/Controllers/ExerciseController.cs:499"
   ],
   "code": "GoalChange.Updated => (Loc.T(\"Dare updated\"), forYou ? Loc.T(\"{name} updated {dare} for you: {target} at {time}.\", args)"
  },
  "{name} updated {dare} for themselves: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:490"
+   "Twogether.Api/Controllers/ExerciseController.cs:500"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} updated {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} updated {dare}: {target} at {time}.\", args)),"
  },
  "{name} updated {dare}: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:490"
+   "Twogether.Api/Controllers/ExerciseController.cs:500"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} updated {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} updated {dare}: {target} at {time}.\", args)),"
  },
  "Dare paused": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:491"
+   "Twogether.Api/Controllers/ExerciseController.cs:501"
   ],
   "code": "_ => (Loc.T(\"Dare paused\"), forYou ? Loc.T(\"{name} paused {dare} for you: {target} at {time}.\", args)"
  },
  "{name} paused {dare} for you: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:491"
+   "Twogether.Api/Controllers/ExerciseController.cs:501"
   ],
   "code": "_ => (Loc.T(\"Dare paused\"), forYou ? Loc.T(\"{name} paused {dare} for you: {target} at {time}.\", args)"
  },
  "{name} paused {dare} for themselves: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:492"
+   "Twogether.Api/Controllers/ExerciseController.cs:502"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} paused {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} paused {dare}: {target} at {time}.\", args)),"
  },
  "{name} paused {dare}: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:492"
+   "Twogether.Api/Controllers/ExerciseController.cs:502"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} paused {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} paused {dare}: {target} at {time}.\", args)),"
  },
  "{dare} was changed while it was ringing, so today does not count.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:504"
+   "Twogether.Api/Controllers/ExerciseController.cs:514"
   ],
   "code": "? Loc.T(\"{dare} was changed while it was ringing, so today does not count.\", (\"dare\", dare))"
  },
  "{name} let you off {dare} today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:505"
+   "Twogether.Api/Controllers/ExerciseController.cs:515"
   ],
   "code": ": Loc.T(\"{name} let you off {dare} today.\", (\"name\", Name(names, actorId)), (\"dare\", dare));"
  },
  "Skipped today": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:506"
+   "Twogether.Api/Controllers/ExerciseController.cs:516"
   ],
   "code": "return Notification.Create(occurrence.UserId, couple.Id, NotificationType.ExerciseCancelled, Loc.T(\"Skipped today\"), body,"
  },
@@ -675,6 +675,7 @@
    "Twogether.Api/Controllers/GameController.cs:136",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:143",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:118",
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:209",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:110"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"game.invalid_state\", Loc.T(\"This game session is corrupted. End it and start a new game.\")));"
@@ -784,10 +785,17 @@
   ],
   "code": "GameType.Trivia => Loc.T(\"{name} invited you to play Trivia.\", (\"name\", name)),"
  },
- "{name} invited you to a game.": {
+ "{name} invited you to play Heart to heart.": {
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/GameController.cs:206"
+  ],
+  "code": "GameType.SkillDuel => Loc.T(\"{name} invited you to play Heart to heart.\", (\"name\", name)),"
+ },
+ "{name} invited you to a game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:207"
   ],
   "code": "_ => Loc.T(\"{name} invited you to a game.\", (\"name\", name)),"
  },
@@ -1253,7 +1261,7 @@
  "The note must be at most {max} characters.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:44"
+   "Twogether.Application/Features/Exercise/ExerciseGoalRules.cs:61"
   ],
   "code": "return Error.Validation(\"exercise.invalid_note\", Loc.T(\"The note must be at most {max} characters.\", (\"max\", ExerciseOccurrence.MaxCallOffNoteLength)));"
  },
@@ -6626,6 +6634,7 @@
   "uses": [
    "Twogether.Application/Features/Games/DrawAndGuessRules.cs:55",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:46",
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:65",
    "Twogether.Application/Features/Games/TriviaRules.cs:49",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:48"
   ],
@@ -6637,6 +6646,7 @@
    "Twogether.Application/Features/Games/DrawAndGuessRules.cs:56",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:45",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:51",
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:63",
    "Twogether.Application/Features/Games/TriviaRules.cs:48",
    "Twogether.Application/Features/Games/TruthOrDareRules.cs:43",
    "Twogether.Application/Features/Games/WordDashRules.cs:54",
@@ -6795,6 +6805,34 @@
    "Twogether.Application/Features/Games/WordDashRules.cs:59"
   ],
   "code": "if (state.Players[state.TurnIndex] != move.Actor) throw new InvalidOperationException(Loc.T(\"It's your partner's turn.\"));"
+ },
+ "Heart to heart expects a score.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:61"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Heart to heart expects a score.\"));"
+ },
+ "Pick one of the five rounds.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:67"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Pick one of the five rounds.\"));"
+ },
+ "A score is a whole number from 0 to 100.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:68"
+  ],
+  "code": "var score = ParseScore(move.Value) ?? throw new InvalidOperationException(Loc.T(\"A score is a whole number from 0 to 100.\"));"
+ },
+ "You already played this round.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:69"
+  ],
+  "code": "if (mine[round] is not null) throw new InvalidOperationException(Loc.T(\"You already played this round.\"));"
  },
  "Pick a square on the board.": {
   "plural": false,
@@ -7194,28 +7232,28 @@
  "Open the camera and start the exercise first.": {
   "plural": false,
   "uses": [
-   "Twogether.Core/Exercise/ExerciseVerification.cs:22"
+   "Twogether.Core/Exercise/ExerciseVerification.cs:27"
   ],
   "code": "return Error.Validation(\"exercise.not_started\", Loc.T(\"Open the camera and start the exercise first.\"));"
  },
  "Keep going: {achieved} of {target} so far.": {
   "plural": false,
   "uses": [
-   "Twogether.Core/Exercise/ExerciseVerification.cs:24"
+   "Twogether.Core/Exercise/ExerciseVerification.cs:29"
   ],
   "code": "return Error.Validation(\"exercise.target_not_met\", Loc.T(\"Keep going: {achieved} of {target} so far.\", (\"achieved\", achievedCount), (\"target\", target)));"
  },
  "The camera could not see you clearly. Step into better light and keep your whole body in frame.": {
   "plural": false,
   "uses": [
-   "Twogether.Core/Exercise/ExerciseVerification.cs:26"
+   "Twogether.Core/Exercise/ExerciseVerification.cs:31"
   ],
   "code": "return Error.Validation(\"exercise.low_confidence\", Loc.T(\"The camera could not see you clearly. Step into better light and keep your whole body in frame.\"));"
  },
  "That was faster than the exercise can be done. Keep going until the time is up.": {
   "plural": false,
   "uses": [
-   "Twogether.Core/Exercise/ExerciseVerification.cs:30"
+   "Twogether.Core/Exercise/ExerciseVerification.cs:35"
   ],
   "code": "return Error.Validation(\"exercise.too_fast\", Loc.T(\"That was faster than the exercise can be done. Keep going until the time is up.\"));"
  },

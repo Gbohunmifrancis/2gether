@@ -125,7 +125,9 @@ public sealed class SkillDuelRules : IGameRules
         var state = Read(stateJson);
         var played = Enumerable.Range(0, state.Rounds.Count).Count(index => Both(state, index));
         var finished = state.Players.All(player => Finished(state, player));
-        return new GameScoreSummary(Hearts(state), played, finished ? DuelWinner(state) : null);
+        // The score kept for the history is the points over the rounds both have played, so its winner is always
+        // the duel's: the higher total (hearts only colour the rounds).
+        return new GameScoreSummary(PlayedTotals(state), played, finished ? DuelWinner(state) : null);
     }
 
     /// <summary>The score in <c>{"score": n}</c>: a whole number from 0 to 100, nothing else.</summary>
@@ -173,6 +175,9 @@ public sealed class SkillDuelRules : IGameRules
         var leaders = totals.Where(item => item.total == best).ToList();
         return leaders.Count == 1 ? leaders[0].player : null;
     }
+
+    private static Dictionary<Guid, int> PlayedTotals(State state) => state.Players.ToDictionary(player => player,
+        player => Enumerable.Range(0, state.Rounds.Count).Where(round => Both(state, round)).Sum(round => ScoreOf(state, player, round) ?? 0));
 
     /// <summary>Hearts over the rounds both have played: the higher score wins one, a tie gives one each.</summary>
     private static Dictionary<Guid, int> Hearts(State state)

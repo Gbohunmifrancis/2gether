@@ -180,9 +180,9 @@ public sealed class SkillDuelRulesTests
         var round = View(tied, theo).GetProperty("rounds")[1];
         Assert.True(round.GetProperty("tie").GetBoolean());
         Assert.Equal(JsonValueKind.Null, round.GetProperty("winner").ValueKind);
-        var hearts = engine.Summarise(GameType.SkillDuel, tied.StateJson).Scores;
-        Assert.Equal(1, hearts[maya]);
-        Assert.Equal(1, hearts[theo]);
+        var hearts = View(tied, theo).GetProperty("hearts");
+        Assert.Equal(1, hearts.GetProperty(maya.ToString()).GetInt32());
+        Assert.Equal(1, hearts.GetProperty(theo.ToString()).GetInt32());
     }
 
     [Fact]
@@ -206,8 +206,9 @@ public sealed class SkillDuelRulesTests
         Assert.Equal(2, view.GetProperty("hearts").GetProperty(theo.ToString()).GetInt32());
 
         var summary = engine.Summarise(GameType.SkillDuel, done.StateJson);
-        Assert.Equal(4, summary.Scores[maya]);
-        Assert.Equal(2, summary.Scores[theo]);
+        // The history keeps the points, so its winner is always the duel's.
+        Assert.Equal(355, summary.Scores[maya]);
+        Assert.Equal(280, summary.Scores[theo]);
         Assert.Equal(5, summary.RoundsPlayed);
         Assert.Equal(maya, summary.DeclaredWinnerUserId);
 
