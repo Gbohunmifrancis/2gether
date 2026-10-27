@@ -12,22 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.outlined.Diversity1
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.Restaurant
-import androidx.compose.material.icons.outlined.Today
-import androidx.compose.material.icons.rounded.Diversity1
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.PhotoLibrary
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material.icons.rounded.Today
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,11 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.i18n.tr
@@ -50,7 +40,9 @@ import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.WidthClass
 import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.widthClass
+import app.heartpact.ui.graphics.Icon3D
 import app.heartpact.ui.graphics.LiveLogo
+import app.heartpact.ui.graphics.TabIcon3D
 import app.heartpact.ui.graphics.LogoMood
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
@@ -63,12 +55,12 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-enum class Tab(val icon: ImageVector, val selectedIcon: ImageVector) {
-    Today(Icons.Outlined.Today, Icons.Rounded.Today),
-    Pacts(Icons.Outlined.FavoriteBorder, Icons.Rounded.Favorite),
-    Food(Icons.Outlined.Restaurant, Icons.Rounded.Restaurant),
-    Us(Icons.Outlined.Diversity1, Icons.Rounded.Diversity1),
-    Album(Icons.Outlined.PhotoLibrary, Icons.Rounded.PhotoLibrary);
+enum class Tab(val icon: Icon3D) {
+    Today(Icon3D.Today),
+    Pacts(Icon3D.Pacts),
+    Food(Icon3D.Food),
+    Us(Icon3D.Us),
+    Album(Icon3D.Album);
 
     val label: String get() = when (this) {
         Today -> tr("Today")
@@ -141,11 +133,12 @@ private fun EmptyPage(who: Who, pose: Pose, title: String, body: String, mood: M
     }
 }
 
-/** Material 3 navigation bar in the sticker world: deep page fill, the active tab in a white pill. */
+/** Material 3 navigation bar in the sticker world: deep page fill, the active tab in a white pill, its 3D icon popping
+ *  out of it (TabIcon3D). */
 @Composable
 private fun NavBar(current: Tab, onSelect: (Tab) -> Unit) {
     val colors = Heartpact.colors
-    Row(Modifier.fillMaxWidth().background(colors.page2).navigationBarsPadding().height(80.dp).padding(top = 12.dp, start = 8.dp, end = 8.dp)) {
+    Row(Modifier.fillMaxWidth().background(colors.page2).navigationBarsPadding().height(88.dp).padding(top = 10.dp, start = 8.dp, end = 8.dp)) {
         Tab.entries.forEach { tab ->
             val on = tab == current
             Column(
@@ -153,12 +146,19 @@ private fun NavBar(current: Tab, onSelect: (Tab) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Box(Modifier.width(64.dp).height(32.dp).clip(Shapes.Pill).background(if (on) colors.sticker else colors.page2), contentAlignment = Alignment.Center) {
-                    Icon(if (on) tab.selectedIcon else tab.icon, null, Modifier.size(22.dp), tint = if (on) Heartpact.actor.action else colors.ink2)
-                }
+                TabIconPill(tab, on, width = 64.dp)
                 Text(tab.label, style = Heartpact.type.labelSmall.copy(fontSize = 12.sp, fontWeight = if (on) FontWeight.ExtraBold else FontWeight.SemiBold), color = if (on) colors.ink else colors.ink2)
             }
         }
+    }
+}
+
+/** The tab's pill, white when selected, with the 3D icon standing a little proud of it. */
+@Composable
+private fun TabIconPill(tab: Tab, on: Boolean, width: Dp) {
+    Box(Modifier.width(width).height(40.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.matchParentSize().clip(Shapes.Pill).background(if (on) Heartpact.colors.sticker else Heartpact.colors.page2))
+        TabIcon3D(tab.icon, selected = on, size = 58.dp, modifier = Modifier.requiredSize(58.dp))
     }
 }
 
@@ -182,9 +182,7 @@ private fun NavRail(current: Tab, onSelect: (Tab) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Box(Modifier.width(56.dp).height(32.dp).clip(Shapes.Pill).background(if (on) colors.sticker else colors.page2), contentAlignment = Alignment.Center) {
-                    Icon(if (on) tab.selectedIcon else tab.icon, null, Modifier.size(22.dp), tint = if (on) Heartpact.actor.action else colors.ink2)
-                }
+                TabIconPill(tab, on, width = 56.dp)
                 Text(tab.label, style = Heartpact.type.labelSmall.copy(fontSize = 12.sp, fontWeight = if (on) FontWeight.ExtraBold else FontWeight.SemiBold),
                     color = if (on) colors.ink else colors.ink2, maxLines = 1)
             }

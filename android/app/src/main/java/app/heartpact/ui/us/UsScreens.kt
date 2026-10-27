@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.HeartBroken
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonRemove
@@ -49,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.heartpact.ui.graphics.Icon3D
 import app.heartpact.data.Countries
 import app.heartpact.data.DailyQuestion
 import app.heartpact.data.Gender
@@ -147,11 +147,11 @@ fun UsTab(
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
         location()
         StickerCard(Modifier.padding(horizontal = 12.dp)) {
-            CardRow(tr("Today's question"), subtitle = UsText.questionStatus(ui.question, partnerName), icon = Icons.Outlined.Forum, onClick = onQuestion) { Chevron() }
+            CardRow(tr("Today's question"), subtitle = UsText.questionStatus(ui.question, partnerName), icon3d = Icon3D.Question, onClick = onQuestion) { Chevron() }
             extraRows()
         }
         StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
-            CardRow(tr("Notifications"), subtitle = UsText.notifications(ui.preferences), icon = Icons.Outlined.NotificationsNone, onClick = onNotifications) { Chevron() }
+            CardRow(tr("Notifications"), subtitle = UsText.notifications(ui.preferences), icon3d = Icon3D.Bell, onClick = onNotifications) { Chevron() }
         }
     }
     if (pickingCountry && onCountry != null) {

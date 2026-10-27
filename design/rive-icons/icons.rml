@@ -4202,5 +4202,405 @@
 </Artboard>
 <ComponentAsset artboardId="0:252" name="bell"/>
 
-<Artboard styleId="0:265" x="0" y="-660" width="1800" height="600" name="Sheet"><LayoutComponentStyle name="Style" id="0:265"/><NestedArtboard artboardId="0:104" x="0.0" y="0.0" scaleX="1.5" scaleY="1.5" name="today"><NestedStateMachine animationId="0:106" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:118" x="300.0" y="0.0" scaleX="1.5" scaleY="1.5" name="pacts"><NestedStateMachine animationId="0:120" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:132" x="600.0" y="0.0" scaleX="1.5" scaleY="1.5" name="food"><NestedStateMachine animationId="0:134" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:146" x="900.0" y="0.0" scaleX="1.5" scaleY="1.5" name="us"><NestedStateMachine animationId="0:148" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:160" x="1200.0" y="0.0" scaleX="1.5" scaleY="1.5" name="album"><NestedStateMachine animationId="0:162" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:173" x="1500.0" y="0.0" scaleX="1.5" scaleY="1.5" name="cycle"><NestedStateMachine animationId="0:175" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:186" x="0.0" y="300.0" scaleX="1.5" scaleY="1.5" name="plus"><NestedStateMachine animationId="0:188" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:199" x="300.0" y="300.0" scaleX="1.5" scaleY="1.5" name="games"><NestedStateMachine animationId="0:201" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:212" x="600.0" y="300.0" scaleX="1.5" scaleY="1.5" name="dares"><NestedStateMachine animationId="0:214" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:226" x="900.0" y="300.0" scaleX="1.5" scaleY="1.5" name="location"><NestedStateMachine animationId="0:228" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:239" x="1200.0" y="300.0" scaleX="1.5" scaleY="1.5" name="question"><NestedStateMachine animationId="0:241" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:252" x="1500.0" y="300.0" scaleX="1.5" scaleY="1.5" name="bell"><NestedStateMachine animationId="0:254" name="Icon"/></NestedArtboard><Fill name="Page"><SolidColor colorValue="FFE3E5F6" name="C"/></Fill></Artboard>
+
+<Artboard isComponent="true" viewModelId="0:101" viewModelInstanceId="0:103" defaultStateMachineId="0:267" styleId="0:266" x="480" y="480" width="200" height="200" name="pregnancy" id="0:265">
+<LayoutComponentStyle name="Style" id="0:266"/>
+<Node x="100" y="144" name="Icon" id="0:275">
+<Node x="-100" y="-144" name="Art">
+<Node name="Wheel L">
+<Shape x="0" y="0" name="Wheel L face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="69.20" y="124.10" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="79.70" y="134.60" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="69.20" y="145.10" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="58.70" y="134.60" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="58.7" startY="124.1" endX="79.7" endY="145.1" name="Lit"><GradientStop colorValue="FF50557C" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel L side 1">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="69.57" y="125.08" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="80.07" y="135.58" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="69.57" y="146.08" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="59.07" y="135.58" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF191E48" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel L side 2">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="69.95" y="126.06" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="80.45" y="136.56" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="69.95" y="147.06" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="59.45" y="136.56" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF181C45" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel L side 3">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="70.32" y="127.04" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="80.82" y="137.54" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="70.32" y="148.04" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="59.82" y="137.54" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF171B42" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel L side 4">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="70.69" y="128.03" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="81.19" y="138.53" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="70.69" y="149.03" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="60.19" y="138.53" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF161A40" name="C"/></Fill>
+</Shape>
+</Node>
+<Node name="Wheel R">
+<Shape x="0" y="0" name="Wheel R face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="116.80" y="124.10" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="127.30" y="134.60" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="116.80" y="145.10" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="106.30" y="134.60" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="106.3" startY="124.1" endX="127.3" endY="145.1" name="Lit"><GradientStop colorValue="FF50557C" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel R side 1">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="117.17" y="125.08" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="127.67" y="135.58" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="117.17" y="146.08" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="106.67" y="135.58" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF191E48" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel R side 2">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="117.55" y="126.06" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="128.05" y="136.56" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="117.55" y="147.06" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="107.05" y="136.56" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF181C45" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel R side 3">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="117.92" y="127.04" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="128.42" y="137.54" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="117.92" y="148.04" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="107.42" y="137.54" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF171B42" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Wheel R side 4">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="118.29" y="128.03" inRotation="3.1416" inDistance="5.80" outRotation="0.0000" outDistance="5.80"/>
+<CubicDetachedVertex x="128.79" y="138.53" inRotation="-1.5708" inDistance="5.80" outRotation="1.5708" outDistance="5.80"/>
+<CubicDetachedVertex x="118.29" y="149.03" inRotation="0.0000" inDistance="5.80" outRotation="3.1416" outDistance="5.80"/>
+<CubicDetachedVertex x="107.79" y="138.53" inRotation="1.5708" inDistance="5.80" outRotation="-1.5708" outDistance="5.80"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF161A40" name="C"/></Fill>
+</Shape>
+</Node>
+<Node name="Heart">
+<Shape x="0" y="0" name="Heart face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="101.40" y="116.57" inRotation="-0.6023" inDistance="9.24" outRotation="-2.5393" outDistance="9.24"/>
+<CubicDetachedVertex x="92.36" y="103.72" inRotation="1.8491" inDistance="3.47" outRotation="-1.2925" outDistance="3.47"/>
+<CubicDetachedVertex x="101.40" y="102.53" inRotation="-2.3884" inDistance="5.22" outRotation="-0.7532" outDistance="5.22"/>
+<CubicDetachedVertex x="110.44" y="103.72" inRotation="-1.8491" inDistance="3.47" outRotation="1.2925" outDistance="3.47"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="92.4" startY="102.5" endX="110.4" endY="116.6" name="Lit"><GradientStop colorValue="FFF6F7FD" position="0"/><GradientStop colorValue="FFF4F5FC" position="0.55"/><GradientStop colorValue="FFD8D9E3" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Heart side 1">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="101.73" y="117.44" inRotation="-0.6023" inDistance="9.24" outRotation="-2.5393" outDistance="9.24"/>
+<CubicDetachedVertex x="92.69" y="104.59" inRotation="1.8491" inDistance="3.47" outRotation="-1.2925" outDistance="3.47"/>
+<CubicDetachedVertex x="101.73" y="103.40" inRotation="-2.3884" inDistance="5.22" outRotation="-0.7532" outDistance="5.22"/>
+<CubicDetachedVertex x="110.78" y="104.59" inRotation="-1.8491" inDistance="3.47" outRotation="1.2925" outDistance="3.47"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFA4A5B3" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Heart side 2">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="102.06" y="118.31" inRotation="-0.6023" inDistance="9.24" outRotation="-2.5393" outDistance="9.24"/>
+<CubicDetachedVertex x="93.02" y="105.46" inRotation="1.8491" inDistance="3.47" outRotation="-1.2925" outDistance="3.47"/>
+<CubicDetachedVertex x="102.06" y="104.27" inRotation="-2.3884" inDistance="5.22" outRotation="-0.7532" outDistance="5.22"/>
+<CubicDetachedVertex x="111.11" y="105.46" inRotation="-1.8491" inDistance="3.47" outRotation="1.2925" outDistance="3.47"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF9495A4" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Heart side 3">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="102.39" y="119.19" inRotation="-0.6023" inDistance="9.24" outRotation="-2.5393" outDistance="9.24"/>
+<CubicDetachedVertex x="93.35" y="106.33" inRotation="1.8491" inDistance="3.47" outRotation="-1.2925" outDistance="3.47"/>
+<CubicDetachedVertex x="102.39" y="105.14" inRotation="-2.3884" inDistance="5.22" outRotation="-0.7532" outDistance="5.22"/>
+<CubicDetachedVertex x="111.44" y="106.33" inRotation="-1.8491" inDistance="3.47" outRotation="1.2925" outDistance="3.47"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF858696" name="C"/></Fill>
+</Shape>
+</Node>
+<Node name="Hood">
+<Shape x="67.8" y="68.8" name="Hood gloss"><Ellipse width="22.4" height="16.8" originX="0.5" originY="0.5" name="Path"/><Fill name="F"><RadialGradient startX="0" startY="0" endX="11.2" endY="0" name="G"><GradientStop colorValue="82FFFFFF" position="0"/><GradientStop colorValue="00FFFFFF" position="1"/></RadialGradient></Fill><ClippingShape sourceId="0:276" name="Clip"/></Shape>
+<Shape x="0" y="0" name="Hood face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="51.00" y="94.00" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="93.00" y="52.00" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="93.00" y="94.00"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="51.0" startY="52.0" endX="93.0" endY="94.0" name="Lit"><GradientStop colorValue="FFF680A9" position="0"/><GradientStop colorValue="FFF45C91" position="0.55"/><GradientStop colorValue="FFD85384" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood clip" id="0:276"><PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="51.00" y="94.00" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="93.00" y="52.00" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="93.00" y="94.00"/>
+</PointsPath></Shape>
+<Shape x="0" y="0" name="Hood side 1">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="51.31" y="94.82" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="93.31" y="52.82" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="93.31" y="94.82"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFAD4471" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 2">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="51.62" y="95.64" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="93.62" y="53.64" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="93.62" y="95.64"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFA8426F" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 3">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="51.93" y="96.45" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="93.93" y="54.45" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="93.93" y="96.45"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFA2406C" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 4">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="52.24" y="97.27" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="94.24" y="55.27" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="94.24" y="97.27"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF9C3E6A" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 5">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="52.55" y="98.09" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="94.55" y="56.09" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="94.55" y="98.09"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF963D67" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 6">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="52.86" y="98.91" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="94.86" y="56.91" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="94.86" y="98.91"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF903B64" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 7">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="53.18" y="99.73" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="95.18" y="57.73" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="95.18" y="99.73"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF8B3962" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Hood side 8">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="53.49" y="100.54" inRotation="0.0000" inDistance="0.00" outRotation="-1.5708" outDistance="25.20"/>
+<CubicDetachedVertex x="95.49" y="58.54" inRotation="3.1416" inDistance="23.80" outRotation="0.0000" outDistance="0.00"/>
+<StraightVertex x="95.49" y="100.54"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF85375F" name="C"/></Fill>
+</Shape>
+</Node>
+<Node name="Basket">
+<Shape x="70.6" y="102.4" name="Basket gloss"><Ellipse width="33.6" height="14.0" originX="0.5" originY="0.5" name="Path"/><Fill name="F"><RadialGradient startX="0" startY="0" endX="16.8" endY="0" name="G"><GradientStop colorValue="6EFFFFFF" position="0"/><GradientStop colorValue="00FFFFFF" position="1"/></RadialGradient></Fill><ClippingShape sourceId="0:277" name="Clip"/></Shape>
+<Shape x="0" y="0" name="Basket face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="45.40" y="94.00" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="140.60" y="94.00" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="93.00" y="126.20" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="45.4" startY="94.0" endX="140.6" endY="126.2" name="Lit"><GradientStop colorValue="FF747DCC" position="0"/><GradientStop colorValue="FF4D58BE" position="0.55"/><GradientStop colorValue="FF454FAC" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket clip" id="0:277"><PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="45.40" y="94.00" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="140.60" y="94.00" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="93.00" y="126.20" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath></Shape>
+<Shape x="0" y="0" name="Basket side 1">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="45.73" y="94.87" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="140.93" y="94.87" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="93.33" y="127.07" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF3A4292" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 2">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="46.06" y="95.74" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="141.26" y="95.74" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="93.66" y="127.94" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF39408F" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 3">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="46.39" y="96.62" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="141.59" y="96.62" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="93.99" y="128.82" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF383F8C" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 4">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="46.73" y="97.49" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="141.93" y="97.49" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="94.33" y="129.69" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF373E8A" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 5">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="47.06" y="98.36" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="142.26" y="98.36" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="94.66" y="130.56" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF363D88" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 6">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="47.39" y="99.23" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="142.59" y="99.23" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="94.99" y="131.43" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF343C85" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 7">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="47.72" y="100.11" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="142.92" y="100.11" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="95.32" y="132.31" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF333A82" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 8">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="48.05" y="100.98" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="143.25" y="100.98" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="95.65" y="133.18" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF323980" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 9">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="48.38" y="101.85" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="143.58" y="101.85" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="95.98" y="134.05" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF31387E" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 10">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="48.72" y="102.72" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="143.92" y="102.72" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="96.32" y="134.92" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF30367B" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 11">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="49.05" y="103.60" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="144.25" y="103.60" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="96.65" y="135.80" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF2F3578" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Basket side 12">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="49.38" y="104.47" inRotation="1.5708" inDistance="19.60" outRotation="0.0000" outDistance="0.00"/>
+<CubicDetachedVertex x="144.58" y="104.47" inRotation="0.0000" inDistance="0.00" outRotation="1.5708" outDistance="19.60"/>
+<CubicDetachedVertex x="96.98" y="136.67" inRotation="0.0000" inDistance="28.00" outRotation="3.1416" outDistance="28.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF2E3476" name="C"/></Fill>
+</Shape>
+</Node>
+<Node name="Handle">
+<Shape x="0" y="0" name="Handle face">
+<PointsPath isClosed="false" isClockwise="true" name="Path">
+<StraightVertex x="140.60" y="94.00"/>
+<StraightVertex x="149.00" y="70.20"/>
+<StraightVertex x="157.40" y="70.20"/>
+</PointsPath>
+<Stroke thickness="7.00" cap="round" join="round" name="Paint"><LinearGradient startX="137.1" startY="66.7" endX="160.9" endY="97.5" name="Lit"><GradientStop colorValue="FF50557C" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Handle side 1">
+<PointsPath isClosed="false" isClockwise="true" name="Path">
+<StraightVertex x="140.97" y="94.98"/>
+<StraightVertex x="149.37" y="71.18"/>
+<StraightVertex x="157.77" y="71.18"/>
+</PointsPath>
+<Stroke thickness="7.00" cap="round" join="round" name="Paint"><SolidColor colorValue="FF191E48" name="C"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Handle side 2">
+<PointsPath isClosed="false" isClockwise="true" name="Path">
+<StraightVertex x="141.35" y="95.96"/>
+<StraightVertex x="149.75" y="72.16"/>
+<StraightVertex x="158.15" y="72.16"/>
+</PointsPath>
+<Stroke thickness="7.00" cap="round" join="round" name="Paint"><SolidColor colorValue="FF181C45" name="C"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Handle side 3">
+<PointsPath isClosed="false" isClockwise="true" name="Path">
+<StraightVertex x="141.72" y="96.94"/>
+<StraightVertex x="150.12" y="73.14"/>
+<StraightVertex x="158.52" y="73.14"/>
+</PointsPath>
+<Stroke thickness="7.00" cap="round" join="round" name="Paint"><SolidColor colorValue="FF171B42" name="C"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Handle side 4">
+<PointsPath isClosed="false" isClockwise="true" name="Path">
+<StraightVertex x="142.09" y="97.93"/>
+<StraightVertex x="150.49" y="74.13"/>
+<StraightVertex x="158.89" y="74.13"/>
+</PointsPath>
+<Stroke thickness="7.00" cap="round" join="round" name="Paint"><SolidColor colorValue="FF161A40" name="C"/></Stroke>
+</Shape>
+</Node>
+</Node>
+</Node>
+<Shape x="100.0" y="159.8" scaleY="0.18" name="Shadow" id="0:278"><PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="0.00" y="-46.20" inRotation="3.1416" inDistance="25.52" outRotation="0.0000" outDistance="25.52"/>
+<CubicDetachedVertex x="46.20" y="0.00" inRotation="-1.5708" inDistance="25.52" outRotation="1.5708" outDistance="25.52"/>
+<CubicDetachedVertex x="0.00" y="46.20" inRotation="0.0000" inDistance="25.52" outRotation="3.1416" outDistance="25.52"/>
+<CubicDetachedVertex x="-46.20" y="0.00" inRotation="1.5708" inDistance="25.52" outRotation="-1.5708" outDistance="25.52"/>
+</PointsPath><Fill name="F"><RadialGradient startX="0" startY="0" endX="46.2" endY="0" name="G"><GradientStop colorValue="7810132B" position="0"/><GradientStop colorValue="3C10132B" position="0.55"/><GradientStop colorValue="0010132B" position="1"/></RadialGradient></Fill></Shape>
+<StateMachine name="Icon" id="0:267">
+<StateMachineLayer name="Main" id="0:268">
+<AnyState x="0" y="-150"/><ExitState x="600" y="-150"/>
+<EntryState x="0" y="0"><StateTransition stateToId="0:269"/></EntryState>
+<AnimationState x="200" y="0" animationId="0:272" id="0:269">
+<StateTransition stateToId="0:270"><TransitionViewModelCondition opValue="equal"><TransitionPropertyViewModelComparator><BindablePropertyBoolean><DataBindContext sourcePathIds="0:101-0:102" propertyKey="634"/></BindablePropertyBoolean></TransitionPropertyViewModelComparator><TransitionValueBooleanComparator value="true"/></TransitionViewModelCondition></StateTransition>
+</AnimationState>
+<AnimationState x="400" y="0" animationId="0:273" id="0:270">
+<StateTransition stateToId="0:271" enableExitTime="true" exitTimeIsPercetange="true" exitTime="100"/>
+</AnimationState>
+<AnimationState x="400" y="150" animationId="0:274" id="0:271">
+<StateTransition stateToId="0:269" duration="250"><TransitionViewModelCondition opValue="equal"><TransitionPropertyViewModelComparator><BindablePropertyBoolean><DataBindContext sourcePathIds="0:101-0:102" propertyKey="634"/></BindablePropertyBoolean></TransitionPropertyViewModelComparator><TransitionValueBooleanComparator value="false"/></TransitionViewModelCondition></StateTransition>
+</AnimationState>
+</StateMachineLayer>
+</StateMachine>
+<LinearAnimation loopValue="loop" duration="180" name="Idle" id="0:272"><KeyedObject objectId="0:275"><KeyedProperty property="y"><KeyFrameDouble value="144" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="139" frame="90" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="144" frame="180" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="rotation"><KeyFrameDouble value="-0.025" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.025" frame="90" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="-0.025" frame="180" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:278"><KeyedProperty property="scaleX"><KeyFrameDouble value="1" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.86" frame="90" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1" frame="180" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:278"><KeyedProperty property="opacity"><KeyFrameDouble value="1" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.7" frame="90" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1" frame="180" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject></LinearAnimation>
+<LinearAnimation duration="34" name="Pop" id="0:273"><KeyedObject objectId="0:275"><KeyedProperty property="scaleX"><KeyFrameDouble value="1" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.16" frame="8" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.94" frame="16" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1" frame="24" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.08" frame="34" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="scaleY"><KeyFrameDouble value="1" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.84" frame="8" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.18" frame="16" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.04" frame="24" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.08" frame="34" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="y"><KeyFrameDouble value="144" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="144" frame="8" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="128" frame="16" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="144" frame="26" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="142" frame="34" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="rotation"><KeyFrameDouble value="0" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="-0.12" frame="12" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.08" frame="22" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0" frame="34" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:278"><KeyedProperty property="scaleX"><KeyFrameDouble value="1" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1" frame="8" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.7" frame="16" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.05" frame="26" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1" frame="34" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject></LinearAnimation>
+<LinearAnimation loopValue="loop" duration="60" name="Active" id="0:274"><KeyedObject objectId="0:275"><KeyedProperty property="scaleX"><KeyFrameDouble value="1.08" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.08" frame="60" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="scaleY"><KeyFrameDouble value="1.08" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.08" frame="60" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="y"><KeyFrameDouble value="142" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="136" frame="30" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="142" frame="60" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:275"><KeyedProperty property="rotation"><KeyFrameDouble value="-0.05" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.05" frame="30" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="-0.05" frame="60" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:278"><KeyedProperty property="scaleX"><KeyFrameDouble value="1" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.8" frame="30" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1" frame="60" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject></LinearAnimation>
+</Artboard>
+<ComponentAsset artboardId="0:265" name="pregnancy"/>
+
+<Artboard styleId="0:279" x="0" y="-960" width="1800" height="900" name="Sheet"><LayoutComponentStyle name="Style" id="0:279"/><NestedArtboard artboardId="0:104" x="0.0" y="0.0" scaleX="1.5" scaleY="1.5" name="today"><NestedStateMachine animationId="0:106" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:118" x="300.0" y="0.0" scaleX="1.5" scaleY="1.5" name="pacts"><NestedStateMachine animationId="0:120" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:132" x="600.0" y="0.0" scaleX="1.5" scaleY="1.5" name="food"><NestedStateMachine animationId="0:134" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:146" x="900.0" y="0.0" scaleX="1.5" scaleY="1.5" name="us"><NestedStateMachine animationId="0:148" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:160" x="1200.0" y="0.0" scaleX="1.5" scaleY="1.5" name="album"><NestedStateMachine animationId="0:162" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:173" x="1500.0" y="0.0" scaleX="1.5" scaleY="1.5" name="cycle"><NestedStateMachine animationId="0:175" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:186" x="0.0" y="300.0" scaleX="1.5" scaleY="1.5" name="plus"><NestedStateMachine animationId="0:188" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:199" x="300.0" y="300.0" scaleX="1.5" scaleY="1.5" name="games"><NestedStateMachine animationId="0:201" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:212" x="600.0" y="300.0" scaleX="1.5" scaleY="1.5" name="dares"><NestedStateMachine animationId="0:214" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:226" x="900.0" y="300.0" scaleX="1.5" scaleY="1.5" name="location"><NestedStateMachine animationId="0:228" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:239" x="1200.0" y="300.0" scaleX="1.5" scaleY="1.5" name="question"><NestedStateMachine animationId="0:241" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:252" x="1500.0" y="300.0" scaleX="1.5" scaleY="1.5" name="bell"><NestedStateMachine animationId="0:254" name="Icon"/></NestedArtboard><NestedArtboard artboardId="0:265" x="0.0" y="600.0" scaleX="1.5" scaleY="1.5" name="pregnancy"><NestedStateMachine animationId="0:267" name="Icon"/></NestedArtboard><Fill name="Page"><SolidColor colorValue="FFE3E5F6" name="C"/></Fill></Artboard>
 </Rive>

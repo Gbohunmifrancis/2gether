@@ -212,10 +212,11 @@ def shape_open(g, name, sid=None):
     return f'<Shape {at} name="{name}"{ident}>'
 
 
-def paint(g, inner):
-    """A Fill, or for a line a Stroke, around the given colour element."""
+def paint(g, inner, effect=None):
+    """A Fill, or for a line a Stroke, around the given colour element. effect: a GroupEffect id every stroke uses."""
     if g[0] == "line":
-        return f'<Stroke thickness="{g[2] * S:.2f}" cap="round" join="round" name="Paint">{inner}</Stroke>'
+        use = f'<TargetEffect targetId="{effect}" name="Effect"/>' if effect else ""
+        return f'<Stroke thickness="{g[2] * S:.2f}" cap="round" join="round" name="Paint">{inner}{use}</Stroke>'
     return f'<Fill name="Paint">{inner}</Fill>'
 
 
@@ -233,7 +234,7 @@ def part(p):
     grad = (f'<LinearGradient startX="{a[0]:.1f}" startY="{a[1]:.1f}" endX="{b[0]:.1f}" endY="{b[1]:.1f}" name="Lit">'
             f'<GradientStop colorValue="{hexc(hi)}" position="0"/><GradientStop colorValue="{hexc(base)}" position="0.55"/>'
             f'<GradientStop colorValue="{hexc(lo)}" position="1"/></LinearGradient>')
-    out.append(paint(g, grad) if g[0] == "line" else f'<Fill name="Face">{grad}</Fill>')
+    out.append(paint(g, grad, p.get("effect")) if g[0] == "line" else f'<Fill name="Face">{grad}</Fill>')
     out.append("</Shape>")
     if p.get("gloss") and g[0] != "line":
         gx, gy, grx, gry = p["gloss"]
@@ -257,7 +258,7 @@ def part(p):
             col = mix(side_top, side_bottom, t)
             out.append(shape_open(g, f'{p["name"]} side {i}'))
             out.append(geometry(g, dx, dy))
-            out.append(paint(g, f'<SolidColor colorValue="{hexc(col)}" name="C"/>'))
+            out.append(paint(g, f'<SolidColor colorValue="{hexc(col)}" name="C"/>', p.get("effect")))
             out.append("</Shape>")
     out.append("</Node>")
     return "\n".join(out)

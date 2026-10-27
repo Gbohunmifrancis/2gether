@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes icons.rml: Heartpact's 3D icons, one 200x200 artboard each, plus a Sheet artboard showing them all.
 
-    python3 tools/build_icons.py && ~/.rive/bin/rive . --once     # -> build/heartpact_icons.riv
+    python3 tools/build_icons.py && ~/.rive/bin/rive . --once     # -> build/heartpact_icons.riv (with splash.rml)
 
 Every icon floats gently at rest ("Idle") and pops when its view model's `active` turns true ("Pop", then "Active",
 a livelier loop), settling back when it turns false. The app sets `active` on the selected tab.
@@ -130,6 +130,14 @@ ICONS = {
                                         "C81 72 83 69 80 67 C76 64 73 61 73 57 L73 43 C73 29 65 17 50 17 Z"), color=INDIGO, depth=8, gloss=(38, 32, 9, 12), glossA=120),
         dict(name="Clapper", geom=("ellipse", 50, 79, 7, 6.5), color=PINK, depth=3),
     ]),
+    "pregnancy": dict(shadow=(66, 90), parts=[
+        dict(name="Wheel L", geom=("ellipse", 28, 79, 7.5, 7.5), color=NAVY, depth=3),
+        dict(name="Wheel R", geom=("ellipse", 62, 79, 7.5, 7.5), color=NAVY, depth=3),
+        dict(name="Heart", geom=("path", heart(51, 60, 0.17)), color=WHITE, depth=2),
+        dict(name="Hood", geom=("path", "M15 50 C15 32 28 20 45 20 L45 50 Z"), color=PINK, depth=5, gloss=(27, 32, 8, 6), glossA=130),
+        dict(name="Basket", geom=("path", "M11 50 L79 50 C79 64 65 73 45 73 C25 73 11 64 11 50 Z"), color=INDIGO, depth=8, gloss=(29, 56, 12, 5), glossA=110),
+        dict(name="Handle", geom=("line", "M79 50 L85 33 L91 33", 5), color=NAVY, depth=3),
+    ]),
 }
 
 PIVOT_Y = 144  # icons squash and stretch from their base
@@ -229,6 +237,8 @@ def main():
     out.append(sheet(boards))
     out.append("</Rive>")
     pathlib.Path(__file__).resolve().parent.parent.joinpath("icons.rml").write_text("\n".join(out) + "\n")
+    import build_splash  # changes rml3d's scale, so it goes last
+    build_splash.main()
 
 
 if __name__ == "__main__":

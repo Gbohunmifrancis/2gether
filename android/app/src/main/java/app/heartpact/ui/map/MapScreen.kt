@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.heartpact.ui.graphics.Icon3D
 import app.heartpact.BuildConfig
 import app.heartpact.data.LocationPoint
 import app.heartpact.data.SharingStatus
@@ -252,7 +253,7 @@ fun LocationCard(ui: LocationUi, partnerName: String, onOpen: () -> Unit, onShar
     }
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(bottom = 14.dp)) {
         if (ui.points.isNotEmpty()) SketchMap(ui.points, Modifier.fillMaxWidth().height(150.dp), character = 44.dp)
-        CardRow(LocationMath.headline(ui.status, partnerName), subtitle = subtitle, icon = Icons.Outlined.LocationOn, onClick = onOpen) {
+        CardRow(LocationMath.headline(ui.status, partnerName), subtitle = subtitle, icon3d = Icon3D.Location, onClick = onOpen) {
             val (label, action) = when (ui.myStatus) {
                 SharingStatus.Off -> tr("Share") to onShare
                 SharingStatus.Paused -> tr("Resume") to (if (ui.sendingHere) onResume else onShare)

@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.heartpact.ui.graphics.Icon3D
+import app.heartpact.ui.graphics.Icon3DStill
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.Shapes
 
@@ -59,6 +61,7 @@ fun CardRow(
     icon: ImageVector? = null,
     divider: Boolean = false,
     onClick: (() -> Unit)? = null,
+    icon3d: Icon3D? = null,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = Heartpact.colors
@@ -68,7 +71,8 @@ fun CardRow(
     }
     if (onClick != null) m = m.clickable(role = Role.Button, onClick = onClick)
     Row(m.defaultMinSize(minHeight = 54.dp).padding(horizontal = 18.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        icon?.let { Icon(it, null, Modifier.size(22.dp), tint = colors.ink2) }
+        // A 3D icon (feature rows) takes the flat icon's place, bigger: its art fills about two thirds of the square.
+        if (icon3d != null) Icon3DStill(icon3d, 44.dp) else icon?.let { Icon(it, null, Modifier.size(22.dp), tint = colors.ink2) }
         Column(Modifier.weight(1f)) {
             Text(title, style = Heartpact.type.label.copy(fontSize = Heartpact.type.label.fontSize * 1.035f), color = colors.ink)
             subtitle?.let { Text(it, style = Heartpact.type.small, color = colors.ink2) }

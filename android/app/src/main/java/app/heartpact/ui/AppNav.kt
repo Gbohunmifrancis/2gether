@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import app.heartpact.ui.graphics.Icon3D
 import app.heartpact.alarm.AlarmActivity
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmSlot
@@ -25,10 +26,6 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChildCare
-import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.material.icons.outlined.SportsEsports
-import androidx.compose.material.icons.outlined.WorkspacePremium
 import app.heartpact.billing.PlusOffers
 import app.heartpact.ui.plus.PlusScreen
 import app.heartpact.ui.plus.PlusSummaryViewModel
@@ -331,14 +328,14 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                         CardRow(if (cycleMode == CycleMode.Partner) tr("{partner}'s cycle", "partner" to partner) else tr("Your cycle"),
                                             subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner,
                                                 partnerPrediction?.cycleDay, partnerPrediction?.daysLate),
-                                            icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
+                                            icon3d = Icon3D.Cycle, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
                                     CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),
-                                        icon = Icons.Outlined.WorkspacePremium, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
+                                        icon3d = Icon3D.Plus, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
                                     CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"),
-                                        icon = Icons.Outlined.SportsEsports, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
+                                        icon3d = Icon3D.Games, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
                                     CardRow(tr("Pregnancy mode"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
-                                        icon = Icons.Outlined.ChildCare, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
+                                        icon3d = Icon3D.Pregnancy, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
                                 },
                             )
                         },

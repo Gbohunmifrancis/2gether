@@ -1,11 +1,16 @@
-# Heartpact 3D icons (Rive)
+# Heartpact 3D icons and splash (Rive)
 
-Twelve glossy, extruded icons in the app's colours, built as one Rive file with the
+Thirteen glossy, extruded icons in the app's colours, and the 3D splash, built as one Rive file with the
 [Rive CLI](https://rive.app/docs/cli/getting-started). Each icon is its own 200×200 artboard, named:
 
 | Tabs | Features |
 |---|---|
-| `today`, `pacts`, `food`, `us`, `album` | `cycle`, `plus`, `games`, `dares`, `location`, `question`, `bell` |
+| `today`, `pacts`, `food`, `us`, `album` | `cycle`, `plus`, `games`, `dares`, `location`, `question`, `bell`, `pregnancy` |
+
+`splash` (400×400, `splash.rml`, from `tools/build_splash.py`) is the launch moment on the app's splash timeline
+(`SplashTimeline` in `android/.../ui/splash/Splash.kt`), so the love sound still lands on its heartbeats: the two
+halves hop in with their faces, lean together, close their eyes and join; the tick draws on, the eyes open, the heart
+beats twice and blinks. It is transparent; the app draws the indigo background and the wordmark.
 
 `Sheet` shows them all at 1.5× on the page colour, for looking at; the app never loads it.
 
@@ -30,19 +35,28 @@ the 3D look, and the build script writes `icons.rml`:
 - **Gloss:** a highlight on the larger parts, clipped to the face.
 - **Shadow:** an oval under the icon, a radial gradient squashed flat.
 
-No feathers, scripts or images, so the file renders the same in every runtime, needs no signing, and is about 95 KB for
-all twelve.
+No feathers, scripts or images, so the file renders the same in every runtime and needs no signing; with the splash
+it is about 115 KB.
 
 The colours are the app's tokens (`DESIGN.md`): navy `#1F2557`, indigo `#4D58BE`, periwinkle `#7480D4`, soft
 `#D5D8F6`, white, and the heart pink `#F45C91`.
+
+## In the app
+
+`android/app/src/main/res/raw/heartpact_icons.riv` is this project's build, and
+`res/drawable-nodpi/icon3d_<name>.webp` are the stills (`tools/export_stills.py`: each icon at rest, rendered on black
+and on white to recover its transparency, 256 px). The app plays only the selected tab in Rive; the other tabs, the rows
+and anywhere Rive can't run use the stills. See `ui/graphics/Icon3D.kt`.
 
 ## Building
 
 ```bash
 curl -fsSL https://releases.rive.app/cli/install.sh | sh     # once; on Linux it also needs libegl1, libgles2, libx11-6
-python3 tools/build_icons.py                                  # writes icons.rml
+python3 tools/build_icons.py                                  # writes icons.rml and splash.rml
 ~/.rive/bin/rive . --verify && ~/.rive/bin/rive inspect . --summary
 ~/.rive/bin/rive . --once                                     # build/heartpact_icons.riv
+cp build/heartpact_icons.riv ../../android/app/src/main/res/raw/  # into the app
+python3 tools/export_stills.py                                # the stills, into the app
 ~/.rive/bin/rive . --screenshot=build/sheet.png --advance=1   # every icon, as a png
 ~/.rive/bin/rive .                                            # live preview window, rebuilds on save
 ```

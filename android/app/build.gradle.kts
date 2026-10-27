@@ -122,6 +122,8 @@ dependencies {
     // The fused provider for location sharing on phones older than Android 12 (the version billing already brings).
     implementation(libs.play.location)
     implementation(libs.billing.ktx)
+    // Plays the 3D icons and the splash: res/raw/heartpact_icons.riv, built in design/rive-icons.
+    implementation(libs.rive.android)
     implementation(libs.play.integrity)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.credentials)

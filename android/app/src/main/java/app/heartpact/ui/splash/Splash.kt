@@ -10,6 +10,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.snapshotFlow
+import app.heartpact.ui.graphics.LocalRiveFile
+import app.rive.Fit
+import app.rive.Rive
+import app.rive.RiveFile
+import app.rive.RivePointerInputMode
+import app.rive.rememberArtboardResult
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
+import app.rive.Result as RiveResult
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -85,6 +99,10 @@ object SplashTimeline {
 /**
  * Plays the splash, then calls [onFinished]. A tap skips it (and stops the sound); with animations off it shows the
  * last frame briefly, silently.
+ *
+ * It plays in 3D from the app's Rive file (artboard `splash`, built in design/rive-icons on this same timeline) when
+ * the file is ready within a moment and its first frame has drawn; the sound and the clock start with that frame so
+ * the heartbeats land together. Otherwise, and in tests, it draws [SplashScene] itself.
  */
 @Composable
 fun AnimatedSplash(onFinished: () -> Unit) {
@@ -94,6 +112,11 @@ fun AnimatedSplash(onFinished: () -> Unit) {
     val animated = remember { Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f }
     val sound = remember { if (animated) SplashSound.load(context) else null }
     var skipped by remember { mutableStateOf(false) }
+    val riveFile by rememberUpdatedState(LocalRiveFile.current)
+    // null while deciding, then whether the 3D splash is playing.
+    var inRive by remember { mutableStateOf<Boolean?>(null) }
+    var riveDrawn by remember { mutableStateOf(false) }
+    var started by remember { mutableStateOf(false) }
     // Played through, the last shimmer rings on into the next screen; skipped, it stops with the tap.
     DisposableEffect(sound) {
         onDispose {
@@ -105,9 +128,13 @@ fun AnimatedSplash(onFinished: () -> Unit) {
     }
     LaunchedEffect(Unit) {
         if (!animated) {
+            inRive = false
             time = SplashTimeline.END
             kotlinx.coroutines.delay(500)
         } else {
+            inRive = withTimeoutOrNull(RIVE_WAIT_MS) { snapshotFlow { riveFile }.first { it != null } } != null
+            if (inRive == true && withTimeoutOrNull(RIVE_WAIT_MS) { snapshotFlow { riveDrawn }.first { it } } == null) inRive = false
+            started = true
             sound?.start()
             val start = withFrameMillis { it }
             while (time < SplashTimeline.END) {
@@ -116,14 +143,44 @@ fun AnimatedSplash(onFinished: () -> Unit) {
         }
         finish()
     }
-    SplashScene(
-        timeMs = time,
-        modifier = Modifier.clickable(remember { MutableInteractionSource() }, indication = null) { skipped = true; finish() },
-    )
+    val skip = Modifier.clickable(remember { MutableInteractionSource() }, indication = null) { skipped = true; finish() }
+    val file = riveFile
+    if (inRive != false && file != null) {
+        SplashScene(timeMs = time, modifier = skip, art = { RiveSplashArt(file, playing = started, onDrawn = { riveDrawn = true }) })
+    } else {
+        // Until it's decided, the scene at 0 ms: the background alone, the same in both.
+        SplashScene(timeMs = if (inRive == null) 0f else time, modifier = skip)
+    }
 }
 
+/** How long the splash waits for the Rive file to load, and then for its first frame, before drawing itself. */
+private const val RIVE_WAIT_MS = 450L
+
+/**
+ * The Rive splash, placed where [drawScene] draws its heart: the artboard's heart is 182 of its 400 units wide, and
+ * the drawn one 100 units of 1.27 dp, centred at 47% of the height.
+ */
 @Composable
-fun SplashScene(timeMs: Float, modifier: Modifier = Modifier) {
+private fun BoxScope.RiveSplashArt(file: RiveFile, playing: Boolean, onDrawn: () -> Unit) {
+    val artboard = rememberArtboardResult(file, "splash")
+    if (artboard !is RiveResult.Success) return
+    BoxWithConstraints(Modifier.matchParentSize()) {
+        val side = 127.dp * 400f / 182f
+        Rive(
+            file,
+            Modifier.size(side).align(Alignment.Center).offset(y = maxHeight * -0.03f),
+            playing = playing,
+            artboard = artboard.value,
+            fit = Fit.Contain(),
+            pointerInputMode = RivePointerInputMode.PassThrough,
+            onBitmapAvailable = { onDrawn() },
+        )
+    }
+}
+
+/** The splash at [timeMs]: the background, the scene ([art], or [drawScene] by default) and the wordmark. */
+@Composable
+fun SplashScene(timeMs: Float, modifier: Modifier = Modifier, art: (@Composable BoxScope.() -> Unit)? = null) {
     val density = LocalDensity.current
     val wordProgress = ease(progress(timeMs, SplashTimeline.WORD_START, SplashTimeline.WORD_END))
     Box(
@@ -132,7 +189,7 @@ fun SplashScene(timeMs: Float, modifier: Modifier = Modifier) {
             .background(Brush.radialGradient(listOf(Color(0xFF2C3474), Art.SplashIndigo, Color(0xFF1A1F4D)), radius = with(density) { 520.dp.toPx() }))
             .semantics { contentDescription = "Heartpact" },
     ) {
-        Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
+        if (art != null) art() else Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
             drawScene(timeMs, unit = 1.27.dp.toPx())
         }
         Text(
