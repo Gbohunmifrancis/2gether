@@ -3,19 +3,31 @@ import { api, qs } from "./client";
 import type {
   AdminIdentity,
   AdminRow,
+  Alert,
   AuditRow,
+  DareInsights,
   Engagement,
+  Funnel,
+  GameInsights,
   Grant,
+  Growth,
+  Health,
+  Journey,
   Overview,
   Page,
+  Pulse,
+  Retention,
   Revenue,
+  Rhythm,
   SubscriptionRow,
   SystemStatus,
+  TopCouple,
   UserDetail,
   UserRow,
+  World,
 } from "./types";
 
-export type UserStatusFilter = "active" | "disabled" | "unlinked";
+export type UserStatusFilter = "active" | "disabled" | "unlinked" | "internal";
 
 export const queries = {
   me: () => queryOptions({ queryKey: ["me"], queryFn: () => api<AdminIdentity>("/api/admin/auth/me"), staleTime: 5 * 60_000 }),
@@ -52,6 +64,27 @@ export const queries = {
       placeholderData: keepPreviousData,
     }),
 
+  pulse: () => queryOptions({ queryKey: ["analytics", "pulse"], queryFn: () => api<Pulse>("/api/admin/analytics/pulse") }),
+  funnel: (days: number) => queryOptions({ queryKey: ["analytics", "funnel", days], queryFn: () => api<Funnel>(`/api/admin/analytics/funnel${qs({ days })}`) }),
+  retention: (weeks: number) =>
+    queryOptions({ queryKey: ["analytics", "retention", weeks], queryFn: () => api<Retention>(`/api/admin/analytics/retention${qs({ weeks })}`) }),
+  rhythm: (days: number) => queryOptions({ queryKey: ["analytics", "rhythm", days], queryFn: () => api<Rhythm>(`/api/admin/analytics/rhythm${qs({ days })}`) }),
+  dares: (days: number) =>
+    queryOptions({ queryKey: ["analytics", "dares", days], queryFn: () => api<DareInsights>(`/api/admin/analytics/dares${qs({ days })}`) }),
+  games: (days: number) =>
+    queryOptions({ queryKey: ["analytics", "games", days], queryFn: () => api<GameInsights>(`/api/admin/analytics/games${qs({ days })}`) }),
+  growth: (days: number) => queryOptions({ queryKey: ["analytics", "growth", days], queryFn: () => api<Growth>(`/api/admin/analytics/growth${qs({ days })}`) }),
+  world: () => queryOptions({ queryKey: ["analytics", "world"], queryFn: () => api<World>("/api/admin/analytics/world") }),
+  topCouples: (days: number, limit = 12) =>
+    queryOptions({
+      queryKey: ["analytics", "couples", days, limit],
+      queryFn: () => api<TopCouple[]>(`/api/admin/analytics/couples/top${qs({ days, limit })}`),
+    }),
+  journey: (id: string, days: number) =>
+    queryOptions({ queryKey: ["journey", id, days], queryFn: () => api<Journey>(`/api/admin/users/${id}/journey${qs({ days })}`) }),
+  health: () => queryOptions({ queryKey: ["health"], queryFn: () => api<Health>("/api/admin/system/health"), refetchInterval: 30_000 }),
+  alerts: () => queryOptions({ queryKey: ["alerts"], queryFn: () => api<Alert[]>("/api/admin/alerts"), refetchInterval: 60_000 }),
+
   system: () => queryOptions({ queryKey: ["system"], queryFn: () => api<SystemStatus>("/api/admin/system"), refetchInterval: 60_000 }),
   admins: () => queryOptions({ queryKey: ["admins"], queryFn: () => api<AdminRow[]>("/api/admin/admins") }),
 };
@@ -72,6 +105,8 @@ export const actions = {
 
   grantPlus: (coupleId: string, days: number, reason: string) => post<Grant>(`/api/admin/couples/${coupleId}/grants`, { days, reason }),
   revokeGrant: (id: string) => post(`/api/admin/grants/${id}/revoke`),
+
+  setInternal: (id: string, internal: boolean, reason: string) => post(`/api/admin/users/${id}/internal`, { internal, reason }),
 
   resetAuthenticator: (userId: string) => post(`/api/admin/admins/${userId}/reset-authenticator`),
 };

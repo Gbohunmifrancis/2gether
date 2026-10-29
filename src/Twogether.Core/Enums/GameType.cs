@@ -8,5 +8,10 @@ public enum GameType
     WordDash,
     Handwriting,
     TruthOrDare,
-    ICallOn
+    ICallOn,
+    WouldYouRather,
+    TicTacToe,
+    ConnectFour,
+    Trivia,
+    SkillDuel
 }

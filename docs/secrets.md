@@ -14,6 +14,7 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `FIREBASE_SENDER_ID` | push | Project settings → Cloud Messaging: Sender ID (`project_number`) |
 | `MAPS_API_KEY` | the location map | Google Cloud console → APIs & Services → Credentials: an API key with "Maps SDK for Android" enabled, restricted to the app's package and signing certificate. Without it the app draws its own map of the two of you |
 | `GOOGLE_WEB_CLIENT_ID` | "Continue with Google" | Google Cloud console → APIs & Services → Credentials: the **Web application** OAuth client id (`…apps.googleusercontent.com`). Also create an **Android** OAuth client for package `app.heartpact` with your signing certificate's SHA-1, or Google refuses the sign-in. Without it the button is hidden |
+| `PLAY_INTEGRITY_PROJECT_NUMBER` | proving a finished dare came from the genuine app | the **number** of the Google Cloud project linked in Play Console → App integrity. Without it no token is sent. See `docs/exercise-checks.md` |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | signed release bundle | chosen when the keystore was made |
 | `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to the `API_URL` variable, else `https://api.heartpact.app/` |
@@ -41,6 +42,7 @@ Google Play happen in `.github/workflows/deploy.yml` (see `docs/deploy.md`).
 | `Auth__GoogleClientIds` | Google sign-in | the same web client id as `GOOGLE_WEB_CLIENT_ID` (comma-separate several). Without it the server answers 503 to Google sign-in |
 | `Food__AnthropicApiKey` (or `ANTHROPIC_API_KEY`) | food photo estimates | without it the app logs meals by hand |
 | `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
+| `Integrity__Provider` = `playIntegrity` (`Integrity__PackageName`, `Integrity__CredentialsJson` optional) | flagging finished dares from a modified app or tampered phone | reuses the billing package and service account unless set. Turn on after a build with `PLAY_INTEGRITY_PROJECT_NUMBER` ships. See `docs/exercise-checks.md` |
 | `ForwardedHeaders__Enabled` = `true` | behind a proxy (Railway) | |
 | `Admin__Emails` | the admin dashboard | who may sign in, comma-separated; each signs up in the app first, then enrolls an authenticator. See `docs/admin.md` |
 | `Admin__MonthlyPrices__<productId>`, `Admin__Currency`, `Admin__TokenHours` | the admin dashboard | list prices for the revenue estimate (monthly equivalent), their currency (default `USD`), admin session hours (default 4) |

@@ -11,8 +11,11 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Couple;
 using Twogether.Application.Features.Exercise;
+using Twogether.Application.Features.Cycle;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -57,7 +60,7 @@ public sealed class CoupleController(
             actor.SetCouple(couple.Id, clock.UtcNow);
         }
         if (couple.Status != CoupleStatus.PendingInvite)
-            return Conflict(new ApiError("couple.already_linked", "This couple is already linked."));
+            return Conflict(new ApiError("couple.already_linked", Loc.T("This couple is already linked.")));
 
         var existing = await db.PartnerInvites.Where(invite => invite.CoupleId == couple.Id && invite.Status == PartnerInviteStatus.Pending).ToListAsync(cancellationToken);
         foreach (var invite in existing) invite.Revoke(clock.UtcNow);
@@ -105,9 +108,9 @@ public sealed class CoupleController(
                 if (limiter.RetryAfter(AttemptRules.InviteCodeGlobal, "all") is not null)
                     logger.LogError("Wrong invite codes reached the global budget of {Max} per hour; codes are paused. Possible guessing attack.", AttemptRules.InviteCodeGlobal.MaxFailures);
             }
-            return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+            return NotFound(new ApiError("invite.invalid", Loc.T("This invitation is invalid or expired.")));
         }
-        if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError("invite.self", "You cannot accept your own invitation."));
+        if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError("invite.self", Loc.T("You cannot accept your own invitation.")));
 
         var couple = await db.Couples.SingleAsync(item => item.Id == invite.CoupleId, cancellationToken);
         if (!couple.CanAcceptPartner)
@@ -116,13 +119,13 @@ public sealed class CoupleController(
             // it back with a stranger in it. Retire it so it fails the same way from now on.
             invite.Revoke(clock.UtcNow);
             await db.SaveChangesAsync(cancellationToken);
-            return NotFound(new ApiError("invite.invalid", "This invitation is invalid or expired."));
+            return NotFound(new ApiError("invite.invalid", Loc.T("This invitation is invalid or expired.")));
         }
         var user = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         if (user.CoupleId.HasValue && user.CoupleId != couple.Id)
         {
             var previous = await db.Couples.SingleOrDefaultAsync(item => item.Id == user.CoupleId.Value, cancellationToken);
-            if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError("couple.already_linked", "You are already linked to a partner."));
+            if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError("couple.already_linked", Loc.T("You are already linked to a partner.")));
             previous.Dissolve(clock.UtcNow);
             await RevokePendingInvitesAsync(previous.Id, cancellationToken);
         }
@@ -130,17 +133,44 @@ public sealed class CoupleController(
         couple.LinkPartner(user.Id, clock.UtcNow);
         user.SetCouple(couple.Id, clock.UtcNow);
         invite.Accept(clock.UtcNow);
-        var connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, "You are connected", $"{user.DisplayName} joined your private space.", null, clock.UtcNow);
+        await CycleSharing.StopSharingAsync(db, [user.Id, invite.InviterUserId], clock.UtcNow, cancellationToken);
+        Notification connected;
+        using (Loc.Use(await db.LanguageOfAsync(invite.InviterUserId, cancellationToken)))
+            connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, Loc.T("You are connected"),
+                Loc.T("{name} joined your private space.", ("name", user.DisplayName)), null, clock.UtcNow);
         db.Notifications.Add(connected);
         await db.SaveChangesAsync(cancellationToken);
         await hub.Clients.Group(CoupleHub.UserGroupName(invite.InviterUserId)).SendAsync("CoupleConnected", new { userId = user.Id, displayName = user.DisplayName }, cancellationToken);
         await hub.Clients.Group(CoupleHub.UserGroupName(invite.InviterUserId)).SendAsync("NotificationCreated", NotificationController.ToDto(connected), cancellationToken);
         var accessToken = tokenService.CreateAccessToken(user.Id, couple.Id, user.Email, user.DisplayName, clock.UtcNow);
-        return Ok(new AuthResponse(accessToken, new AuthUserDto(user.Id, user.Email, user.DisplayName, couple.Id, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender)));
+        return Ok(new AuthResponse(accessToken, new AuthUserDto(user.Id, user.Email, user.DisplayName, couple.Id, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender,
+            user.CountryCode, Twogether.Core.Users.ContentRegions.For(user.CountryCode))));
     }
 
+    /// <summary>
+    /// The alarm worker can open or move a dare in the same moment, which fails the save. Nothing
+    /// was written or announced then, so this starts once more from the fresh state; a second clash
+    /// answers 409 and the person simply tries again.
+    /// </summary>
     [HttpPost("breakup")]
     public async Task<IActionResult> BreakUp(CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return await BreakUpOnceAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                ((DbContext)db).ChangeTracker.Clear();
+                logger.LogInformation(exception, "Breakup for user {UserId} raced another write (attempt {Attempt}).", currentUser.UserId, attempt + 1);
+                if (attempt > 0) return Conflict(new ApiError("couple.breakup_conflict", Loc.T("Something changed in your couple space just now. Try again.")));
+            }
+        }
+    }
+
+    private async Task<IActionResult> BreakUpOnceAsync(CancellationToken cancellationToken)
     {
         if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return NotFound();
         var couple = await db.Couples.SingleOrDefaultAsync(item => item.Id == currentUser.CoupleId.Value && item.Status == CoupleStatus.Active, cancellationToken);
@@ -148,6 +178,8 @@ public sealed class CoupleController(
         var actor = await db.Users.SingleAsync(item => item.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = couple.UserAId == actor.Id ? couple.UserBId : couple.UserAId;
         var cancelledAlarms = await StopExerciseGoalsAsync(couple.Id, cancellationToken);
+        // Neither partner's last point outlives the couple.
+        await Twogether.Application.Features.Location.LocationRetention.DeleteCoupleAsync(db, couple.Id, cancellationToken);
         var endedGames = await db.GameSessions
             .Where(session => session.CoupleId == couple.Id
                 && (session.Status == GameSessionStatus.WaitingForPartner || session.Status == GameSessionStatus.InProgress || session.Status == GameSessionStatus.Paused))
@@ -155,12 +187,15 @@ public sealed class CoupleController(
         foreach (var session in endedGames) session.EndBy(actor.Id, clock.UtcNow);
         couple.Dissolve(clock.UtcNow);
         await RevokePendingInvitesAsync(couple.Id, cancellationToken);
+        await CycleSharing.StopSharingAsync(db, partnerId is { } sharedWith ? [actor.Id, sharedWith] : [actor.Id], clock.UtcNow, cancellationToken);
         actor.SetCouple(null, clock.UtcNow);
         if (partnerId is { } linkedPartnerId)
         {
             var partner = await db.Users.SingleAsync(item => item.Id == linkedPartnerId, cancellationToken);
             partner.SetCouple(null, clock.UtcNow);
-            var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, "Your couple space was ended", $"{actor.DisplayName} ended the connection.", null, clock.UtcNow);
+            using var _ = Loc.Use(partner.Language);
+            var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T("Your couple space was ended"),
+                Loc.T("{name} ended the connection.", ("name", actor.DisplayName)), null, clock.UtcNow);
             db.Notifications.Add(notification);
             await db.SaveChangesAsync(cancellationToken);
             await hub.Clients.Group(CoupleHub.UserGroupName(linkedPartnerId)).SendAsync("CoupleEnded", new CoupleEndedDto(actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
@@ -171,8 +206,11 @@ public sealed class CoupleController(
             await hub.Clients.Group(CoupleHub.GroupName(couple.Id)).SendAsync("GameEnded", new GameEndedDto(session.Id, actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
         // The actor's other devices: they reconnect and lose the old couple's groups.
         await hub.Clients.Group(CoupleHub.UserGroupName(actor.Id)).SendAsync("CoupleEnded", new CoupleEndedDto(actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
+        // Each dare under its owner's name: the partner's are theirs, not the actor's.
+        var partnerName = partnerId is { } owner ? db.Users.Local.SingleOrDefault(user => user.Id == owner)?.DisplayName : null;
         foreach (var occurrence in cancelledAlarms)
-            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled, ExerciseMapper.ToDto(occurrence, actor.DisplayName), cancellationToken);
+            await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.Cancelled,
+                ExerciseMapper.ToDto(occurrence, occurrence.UserId == actor.Id ? actor.DisplayName : partnerName ?? actor.DisplayName), cancellationToken);
         return NoContent();
     }
 

@@ -9,6 +9,7 @@ import app.heartpact.data.SyncItem
 import app.heartpact.data.SyncItemStatus
 import app.heartpact.data.SyncRequest
 import app.heartpact.data.apiCall
+import app.heartpact.i18n.tr
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -67,7 +68,7 @@ class SyncEngine(private val api: HeartpactApi, private val uploads: OkHttpClien
                     SyncItemStatus.Removed -> queue.removed(photo.clientId)
                     SyncItemStatus.Rejected -> {
                         val error = result.error
-                        queue.rejected(photo.clientId, error?.code ?: "rejected", error?.message ?: "This photo couldn't be added.")
+                        queue.rejected(photo.clientId, error?.code ?: "rejected", error?.message ?: tr("This photo couldn't be added."))
                         refused++
                         if (error?.code == "memories.quota_exceeded") albumFull = true
                     }
@@ -87,7 +88,7 @@ class SyncEngine(private val api: HeartpactApi, private val uploads: OkHttpClien
                         when (item.status) {
                             SyncCompleteStatus.Ready -> { queue.synced(photo.clientId); synced++; lastReady = item.memoryId }
                             SyncCompleteStatus.NotUploaded -> Unit // stays waiting; the next sync renews its links
-                            SyncCompleteStatus.Rejected -> { queue.rejected(photo.clientId, item.error?.code ?: "rejected", item.error?.message ?: "The upload didn't match the photo. Try again."); refused++ }
+                            SyncCompleteStatus.Rejected -> { queue.rejected(photo.clientId, item.error?.code ?: "rejected", item.error?.message ?: tr("The upload didn't match the photo. Try again.")); refused++ }
                             SyncCompleteStatus.NotFound -> queue.removed(photo.clientId)
                         }
                     }
@@ -120,6 +121,6 @@ class SyncEngine(private val api: HeartpactApi, private val uploads: OkHttpClien
     }
 
     private companion object {
-        const val OFFLINE = "You're offline. The rest will sync next time."
+        val OFFLINE get() = tr("You're offline. The rest will sync next time.")
     }
 }

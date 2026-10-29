@@ -8,6 +8,9 @@ using Twogether.Application.Features.Memories;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
+using Twogether.Infrastructure.Persistence;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -18,8 +21,8 @@ namespace Twogether.Api.Controllers;
 /// </summary>
 public sealed partial class MemoriesController
 {
-    private static readonly ApiError SyncInProgress = new("memories.sync_in_progress", "Another sync from your account is running. Try again in a moment.");
-    private static readonly ApiError ClientIdTaken = new("memories.client_id_taken", "This photo was already shared in an earlier album.");
+    private static ApiError SyncInProgress => new("memories.sync_in_progress", Loc.T("Another sync from your account is running. Try again in a moment."));
+    private static ApiError ClientIdTaken => new("memories.client_id_taken", Loc.T("This photo was already shared in an earlier album."));
 
     /// <summary>What the phone has waiting. Called whenever its queue changes and on app start.</summary>
     [HttpPut("sync/pending")]
@@ -75,10 +78,13 @@ public sealed partial class MemoriesController
         var items = request.Items!;
         var now = clock.UtcNow;
         var clientIds = items.Select(item => (Guid?)item.ClientId).ToList();
+        var entitlement = await entitlements.ForUserAsync(userId, cancellationToken);
+        // One check-and-reserve at a time per couple, so both partners syncing at once cannot overfill the album.
+        await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+        await Database.LockAsync(LockScope.AlbumQuota, couple.Id, cancellationToken);
         var existing = await db.Memories
             .Where(item => item.UploadedByUserId == userId && clientIds.Contains(item.ClientId))
             .ToDictionaryAsync(item => item.ClientId!.Value, cancellationToken);
-        var entitlement = await entitlements.ForUserAsync(userId, cancellationToken);
         var used = await UsedBytesAsync(couple, cancellationToken);
         var quotaExceeded = false;
 
@@ -130,6 +136,7 @@ public sealed partial class MemoriesController
             logger.LogInformation(exception, "Album sync for user {UserId} raced another sync.", userId);
             return Conflict(SyncInProgress);
         }
+        await transaction.CommitAsync(cancellationToken);
 
         var results = outcomes.Select(outcome => new SyncItemResultDto(
             outcome.Item.ClientId,
@@ -163,11 +170,13 @@ public sealed partial class MemoriesController
         var memories = await db.Memories
             .Where(item => ids.Contains(item.Id) && item.CoupleId == couple.Id && item.UploadedByUserId == userId && item.Status != MemoryStatus.Deleting)
             .ToDictionaryAsync(item => item.Id, cancellationToken);
+        var entitlement = await entitlements.ForUserAsync(userId, cancellationToken);
+        var room = new AlbumRoom(await UsedBytesAsync(couple, cancellationToken), entitlement.Limits.MemoriesBytes);
         var outcomes = new List<(Guid Id, Memory? Memory, UploadOutcome? Outcome)>(ids.Count);
         foreach (var id in ids)
         {
             if (!memories.TryGetValue(id, out var memory)) outcomes.Add((id, null, null));
-            else outcomes.Add((id, memory, await VerifyUploadAsync(memory, cancellationToken)));
+            else outcomes.Add((id, memory, await VerifyUploadAsync(memory, room, cancellationToken)));
         }
         var added = outcomes.Where(item => item.Outcome == UploadOutcome.BecameReady).Select(item => item.Memory!).ToList();
 
@@ -187,8 +196,9 @@ public sealed partial class MemoriesController
             if (synced > 0 && partnerId is { } partner)
             {
                 // The notification row is the push outbox: saved together with the memories it announces.
+                using var _ = Loc.Use(await db.LanguageOfAsync(partner, cancellationToken));
                 notice = Notification.Create(partner, couple.Id, NotificationType.MemoriesSynced, MemorySyncText.SyncedTitle,
-                    MemorySyncText.SyncedBody(names.GetValueOrDefault(userId, "Your partner"), synced),
+                    MemorySyncText.SyncedBody(names.GetValueOrDefault(userId) ?? Loc.T("Your partner"), synced),
                     JsonSerializer.Serialize(new { count = synced }), now);
                 db.Notifications.Add(notice);
             }
@@ -206,15 +216,17 @@ public sealed partial class MemoriesController
         }
 
         foreach (var (_, memory, outcome) in outcomes)
-            if (outcome == UploadOutcome.Rejected) await TryDeleteAsync(memory!, cancellationToken);
+            if (outcome is UploadOutcome.Rejected or UploadOutcome.OverQuota) await TryDeleteAsync(memory!, cancellationToken);
         foreach (var memory in added) await ChangedAsync(couple, memory.Id, "added", cancellationToken);
         if (notice is not null) await ExerciseEvents.NotificationAsync(hub, notice, cancellationToken);
 
+        var full = QuotaExceeded(entitlement.Plan);
         var items = outcomes.Select(item => item.Outcome switch
         {
             null => new SyncCompleteItemDto(item.Id, SyncCompleteStatus.NotFound),
             UploadOutcome.NotUploaded => new SyncCompleteItemDto(item.Id, SyncCompleteStatus.NotUploaded, Error: new MemorySyncErrorDto(NotUploaded.Code, NotUploaded.Message)),
             UploadOutcome.Rejected => new SyncCompleteItemDto(item.Id, SyncCompleteStatus.Rejected, Error: new MemorySyncErrorDto(UploadRejected.Code, UploadRejected.Message)),
+            UploadOutcome.OverQuota => new SyncCompleteItemDto(item.Id, SyncCompleteStatus.Rejected, Error: new MemorySyncErrorDto(full.Code, full.Message)),
             _ => new SyncCompleteItemDto(item.Id, SyncCompleteStatus.Ready, ToDto(item.Memory!, names))
         }).ToList();
         logger.LogInformation("Album sync completion for user {UserId}: {Items} item(s), {Added} newly ready, finished {Finished}, partner notified {Notified}.",

@@ -27,7 +27,7 @@ enum class CoupleSide {
 }
 
 @Serializable
-data class RegisterRequest(val email: String, val password: String, val displayName: String, val dateOfBirth: String, val gender: Gender)
+data class RegisterRequest(val email: String, val password: String, val displayName: String, val dateOfBirth: String, val gender: Gender, val countryCode: String? = null)
 
 @Serializable
 data class LoginRequest(val email: String, val password: String)
@@ -43,7 +43,15 @@ data class AuthUser(
     val mapColor: String? = null,
     val cycleOwner: Boolean = false,
     val gender: Gender = Gender.PreferNotToSay,
+    /** ISO 3166-1 alpha-2; null for accounts made before the app asked. */
+    val countryCode: String? = null,
+    /** Whose content to show: africa, mena, southasia, eastasia, latam or default (the server maps the country). */
+    val region: String = "default",
 )
+
+/** The whole profile is sent back with each change; a left-out country or gender stays as it is. */
+@Serializable
+data class UpdateProfileRequest(val displayName: String, val avatarUrl: String?, val mapColor: String?, val countryCode: String? = null, val gender: Gender? = null)
 
 @Serializable
 data class AuthResponse(val accessToken: String, val user: AuthUser)
@@ -79,4 +87,4 @@ data class ResetPasswordRequest(val email: String, val code: String, val newPass
 
 /** First call with just the token; a new account answers auth.profile_required and the app sends it again with a birthday. */
 @Serializable
-data class GoogleSignInRequest(val idToken: String, val dateOfBirth: String? = null, val gender: Gender = Gender.PreferNotToSay, val displayName: String? = null)
+data class GoogleSignInRequest(val idToken: String, val dateOfBirth: String? = null, val gender: Gender = Gender.PreferNotToSay, val displayName: String? = null, val countryCode: String? = null)

@@ -11,16 +11,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.ReportGmailerrorred
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PhotoCamera
@@ -34,6 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.utc
+import app.heartpact.i18n.Dates
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -69,16 +72,39 @@ fun TodayTab(
     onKeep: (String) -> Unit,
     onNewDare: () -> Unit,
     now: Instant = Instant.now(),
+    onExactAlarmsAsked: () -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val view = ui.view
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+    if (ui.askExactAlarms) ExactAlarmsAsk(onExactAlarmsAsked)
+    // With room, my dare sits beside the rest: the week, my dare for my partner and a new one.
+    AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
-            Text("Today", style = Heartpact.type.headline, color = colors.ink)
-            val date = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM"))
-            Text(if (view != null) "$date · ${view.hearts} ${if (view.hearts == 1) "heart" else "hearts"} this week" else date,
+            Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
+            val date = LocalDate.now().format(Dates.formatter("EEEE d MMMM"))
+            Text(if (view != null) trn(view.hearts, "{date} · {count} heart this week", "{date} · {count} hearts this week", "date" to date) else date,
                 style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
+    }, second = {
+        view?.let { Week(it) }
+        view?.let { v ->
+            StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) {
+                val ringing = v.partnerRinging
+                val next = v.partnerNext
+                val done = v.partnerDone
+                when {
+                    ringing != null -> CardRow(tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.exerciseType.titleOf(ringing.title).lowercase()),
+                        subtitle = tr("{progress} · rings until {time}", "progress" to ringing.exerciseType.progress(ringing.achievedCount, ringing.target),
+                            "time" to time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))), icon = Icons.Rounded.Alarm)
+                    done != null -> PartnerDone(done, partnerName)
+                    next != null -> CardRow(tr("Your dare for {partner}", "partner" to partnerName), subtitle = tr("{dare} · rings at {time}", "dare" to next.exerciseType.label(next.target).replaceFirstChar { it.uppercase() },
+                        "time" to time(utc(next.nextDueAtUtc))), icon = Icons.Rounded.Alarm)
+                    else -> CardRow(tr("No dare for {partner} yet", "partner" to partnerName), subtitle = tr("Set one and stick your half on first"), icon = Icons.Rounded.Alarm)
+                }
+            }
+        }
+        HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
+    }) {
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp)) }
         if (!ui.readiness.ready) Readiness(ui)
         view?.partnerRinging?.takeIf { it.callOffRequestedAtUtc != null && it.id !in ui.kept }?.let { CallOffRequest(it, partnerName, ui.busy, onCallOff, onKeep) }
@@ -87,25 +113,11 @@ fun TodayTab(
             view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
                 Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Character(Who.Both, Pose.Wave, 100.dp)
-                    Text("No dare for you yet", style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
-                    Text("When $partnerName sets you one, their half of the heart lands here first.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                    Text(tr("No dare for you yet"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
+                    Text(tr("When {partner} sets you one, their half of the heart lands here first.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 }
             }
         }
-        view?.let { Week(it) }
-        view?.let { v ->
-            StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) {
-                val ringing = v.partnerRinging
-                val next = v.partnerNext
-                when {
-                    ringing != null -> CardRow("$partnerName's ${ringing.title.lowercase()} is ringing",
-                        subtitle = "${ringing.achievedCount} of ${ringing.target} counted · rings until ${time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))}", icon = Icons.Rounded.Alarm)
-                    next != null -> CardRow("Your dare for $partnerName", subtitle = "${next.target} ${next.exerciseType.displayName.lowercase()} · rings at ${time(utc(next.nextDueAtUtc))}", icon = Icons.Rounded.Alarm)
-                    else -> CardRow("No dare for $partnerName yet", subtitle = "Set one and stick your half on first", icon = Icons.Rounded.Alarm)
-                }
-            }
-        }
-        HeartButton("New dare for $partnerName", onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
     }
 }
 
@@ -117,19 +129,20 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
     Box(Modifier.padding(horizontal = 12.dp).padding(top = 30.dp)) {
         StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Dare, lift = 14.dp) {
             Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp, bottom = 14.dp)) {
-                Text("${dare.goal.target} ${dare.goal.exerciseType.displayName.lowercase()} by ${time(dare.dueAt)}", style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(end = 70.dp))
-                Text(if (dare.setByPartner) "$partnerName's dare · your phone rings if you don't" else "Your own dare · your phone rings if you don't", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                Text(tr("{dare} by {time}", "dare" to dare.goal.exerciseType.label(dare.goal.target).replaceFirstChar { it.uppercase() }, "time" to time(dare.dueAt)), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(end = 70.dp))
+                Text(if (dare.setByPartner) tr("{partner}'s dare · your phone rings if you don't", "partner" to partnerName) else tr("Your own dare · your phone rings if you don't"), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (occurrence != null) {
                         val left = Duration.between(now, utc(occurrence.completeByUtc ?: occurrence.deadlineUtc)).toMinutes().coerceAtLeast(0)
                         Text("$left", style = Heartpact.type.display, color = colors.ink)
-                        Text("minutes left\n${occurrence.achievedCount} of ${occurrence.target} counted", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(bottom = 4.dp))
+                        Text(trn(left, "minute left\n{progress}", "minutes left\n{progress}",
+                            "progress" to occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target)), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(bottom = 4.dp))
                     } else {
                         val until = Duration.between(now, dare.dueAt)
                         val label = when {
-                            until.toMinutes() < 60 -> "Rings in ${until.toMinutes().coerceAtLeast(1)} minutes"
-                            dare.dueAt.atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now() -> "Rings today at ${time(dare.dueAt)}"
-                            else -> "Rings tomorrow at ${time(dare.dueAt)}"
+                            until.toMinutes() < 60 -> trn(until.toMinutes().coerceAtLeast(1), "Rings in {count} minute", "Rings in {count} minutes")
+                            dare.dueAt.atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now() -> tr("Rings today at {time}", "time" to time(dare.dueAt))
+                            else -> tr("Rings tomorrow at {time}", "time" to time(dare.dueAt))
                         }
                         Text(label, style = Heartpact.type.titleSmall, color = colors.ink)
                     }
@@ -137,16 +150,16 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
                 Row(Modifier.padding(top = 14.dp).fillMaxWidth().clip(Shapes.Well).background(colors.sticker2).padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     val partnerHalf = if (dare.setByPartner) HalfState.Stuck else HalfState.Slot
                     if (mySide == Side.Left) HeartSticker(HalfState.Slot, partnerHalf, 46.dp) else HeartSticker(partnerHalf, HalfState.Slot, 46.dp)
-                    Text(if (dare.setByPartner) "$partnerName stuck their half on. Do the reps and the camera sticks yours." else "Do the reps and the camera sticks your half.", style = Heartpact.type.body.copy(fontSize = 13.sp), color = colors.ink)
+                    Text(if (dare.setByPartner) tr("{partner} stuck their half on. Do the reps and the camera sticks yours.", "partner" to partnerName) else tr("Do the reps and the camera sticks your half."), style = Heartpact.type.body.copy(fontSize = 13.sp), color = colors.ink)
                 }
                 val dueToday = dare.dueAt.atZone(ZoneId.systemDefault()).toLocalDate() == now.atZone(ZoneId.systemDefault()).toLocalDate()
                 when {
-                    dare.ringing -> HeartButton("Start on camera", { onStartCamera(dare) }, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera)
+                    dare.ringing -> HeartButton(tr("Start on camera"), { onStartCamera(dare) }, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera)
                     dueToday && dare.dueAt.isAfter(now) -> {
-                        HeartButton("Do it now", { onDoItNow(dare) }, Modifier.padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.PhotoCamera)
-                        Text("Done before ${time(dare.dueAt)}, it won't ring today.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        HeartButton(tr("Do it now"), { onDoItNow(dare) }, Modifier.padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.PhotoCamera)
+                        Text(tr("Done before {time}, it won't ring today.", "time" to time(dare.dueAt)), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp).fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
-                    else -> Text("You can do it any time on the day, or ask $partnerName to call it off once it rings.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
+                    else -> Text(tr("You can do it any time on the day, or ask {partner} to call it off once it rings.", "partner" to partnerName), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
                 }
             }
         }
@@ -154,13 +167,26 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
     }
 }
 
+/** My partner's finished dare: when, and what the camera noticed, flags first. */
+@Composable
+private fun PartnerDone(done: ExerciseOccurrence, partnerName: String) {
+    val checks = done.checks
+    val line = checks?.partnerLine()
+    val flagged = checks?.flagged == true
+    CardRow(
+        tr("{partner} finished {dare}", "partner" to partnerName, "dare" to done.exerciseType.label(done.achievedCount)),
+        subtitle = listOfNotNull(done.completedAtUtc?.let { tr("at {time}", "time" to time(utc(it))) }, line).joinToString(" · "),
+        icon = if (flagged) Icons.Rounded.ReportGmailerrorred else Icons.Rounded.Favorite,
+    )
+}
+
 @Composable
 private fun Week(view: TodayView) {
     val colors = Heartpact.colors
-    val fmt = DateTimeFormatter.ofPattern("d MMM")
+    val fmt = Dates.formatter("d MMM")
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("${view.week.first().first.format(DateTimeFormatter.ofPattern("d"))}–${view.week.last().first.format(fmt)}", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.weight(1f))
+            Text("${view.week.first().first.format(Dates.formatter("d"))}–${view.week.last().first.format(fmt)}", style = Heartpact.type.label, color = colors.ink, modifier = Modifier.weight(1f))
             view.week.forEach { (_, sticker) ->
                 when (sticker) {
                     DaySticker.Heart -> HeartSticker(HalfState.Stuck, HalfState.Stuck, 26.dp)
@@ -181,21 +207,43 @@ private fun CallOffRequest(occurrence: ExerciseOccurrence, partnerName: String, 
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Character(if (LocalActor.current == Side.Left) Who.Right else Who.Left, Pose.Stand, 54.dp)
-                Text("$partnerName asks to call off today's ${occurrence.title.lowercase()}", style = Heartpact.type.title, color = colors.ink)
+                Text(tr("{partner} asks to call off today's {exercise}", "partner" to partnerName, "exercise" to occurrence.exerciseType.titleOf(occurrence.title).lowercase()), style = Heartpact.type.title, color = colors.ink)
             }
             occurrence.callOffNote?.let {
                 Text("“$it”", style = Heartpact.type.body, color = colors.right.onSoft, modifier = Modifier.padding(top = 12.dp).fillMaxWidth().clip(Shapes.Well).background(colors.right.tint).padding(12.dp))
             }
             Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PeeledHeart(30.dp)
-                Text("If you agree, the alarm stops and today goes on both your pages as a peeled heart.", style = Heartpact.type.small, color = colors.ink2)
+                Text(tr("If you agree, the alarm stops and today goes on both your pages as a peeled heart."), style = Heartpact.type.small, color = colors.ink2)
             }
             Row(Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeartButton("Keep it", { onKeep(occurrence.id) }, Modifier.weight(1f), kind = ButtonKind.Outline)
-                HeartButton("Call it off together", { onCallOff(occurrence.id) }, Modifier.weight(1f), busy = busy)
+                HeartButton(tr("Keep it"), { onKeep(occurrence.id) }, Modifier.weight(1f), kind = ButtonKind.Outline)
+                HeartButton(tr("Call it off together"), { onCallOff(occurrence.id) }, Modifier.weight(1f), busy = busy)
             }
         }
     }
+}
+
+/**
+ * Asked once, the first time I have a dare and the phone may not set exact alarms (Android 14 and later
+ * start with it off). Allow opens the system page for it; either answer stops this asking again.
+ */
+@Composable
+private fun ExactAlarmsAsk(onAnswered: () -> Unit) {
+    val context = LocalContext.current
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onAnswered,
+        icon = { androidx.compose.material3.Icon(Icons.Rounded.Alarm, null) },
+        title = { Text(tr("Let your dares ring on time")) },
+        text = { Text(tr("A dare rings at the minute it's due only if Heartpact may set alarms. Without that, Android can hold it back by up to an hour. Turn on \"Alarms & reminders\" for Heartpact on the next screen.")) },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = {
+                onAnswered()
+                app.heartpact.alarm.AlarmReadiness.exactAlarmSettings(context)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }) { Text(tr("Allow")) }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onAnswered) { Text(tr("Not now")) } },
+    )
 }
 
 @Composable
@@ -204,14 +252,14 @@ private fun Readiness(ui: TodayUi) {
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val r = ui.readiness
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(bottom = 6.dp)) {
-        Text("Get your alarm ready", style = Heartpact.type.titleSmall, color = Heartpact.colors.ink, modifier = Modifier.padding(start = 18.dp, top = 14.dp))
-        if (!r.notifications) CardRow("Allow notifications", subtitle = "So a dare can ring at all", icon = Icons.Rounded.Notifications, onClick = {
+        Text(tr("Get your alarm ready"), style = Heartpact.type.titleSmall, color = Heartpact.colors.ink, modifier = Modifier.padding(start = 18.dp, top = 14.dp))
+        if (!r.notifications) CardRow(tr("Allow notifications"), subtitle = tr("So a dare can ring at all"), icon = Icons.Rounded.Notifications, onClick = {
             if (Build.VERSION.SDK_INT >= 33) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         })
-        if (!r.exactAlarms) CardRow("Ring on time", subtitle = "Allow exact alarms, or it may ring a few minutes late", icon = Icons.Rounded.Alarm, divider = !r.notifications, onClick = {
+        if (!r.exactAlarms) CardRow(tr("Ring on time"), subtitle = tr("Allow exact alarms, or Android may ring it up to an hour late"), icon = Icons.Rounded.Alarm, divider = !r.notifications, onClick = {
             app.heartpact.alarm.AlarmReadiness.exactAlarmSettings(context)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         })
-        if (!r.fullScreen) CardRow("Ring over the lock screen", subtitle = "Allow full-screen alarms, or it shows as a notification", icon = Icons.Rounded.FullscreenExit, divider = true, onClick = {
+        if (!r.fullScreen) CardRow(tr("Ring over the lock screen"), subtitle = tr("Allow full-screen alarms, or it shows as a notification"), icon = Icons.Rounded.FullscreenExit, divider = true, onClick = {
             app.heartpact.alarm.AlarmReadiness.fullScreenSettings(context)?.let { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         })
     }

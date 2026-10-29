@@ -11,5 +11,7 @@ public sealed class CoupleLocationConfiguration : IEntityTypeConfiguration<Coupl
         builder.ToTable("couple_locations");
         builder.HasKey(item => item.Id);
         builder.HasIndex(item => new { item.CoupleId, item.UserId }).IsUnique();
+        // The sweep deletes rows nobody has touched for a week.
+        builder.HasIndex(item => item.UpdatedAtUtc);
     }
 }

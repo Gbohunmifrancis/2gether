@@ -1,5 +1,6 @@
 using System.Globalization;
 using Twogether.Core.Entities;
+using Twogether.Core.Enums;
 using Twogether.Core.Exercise;
 
 namespace Twogether.Application.Features.Exercise;
@@ -45,7 +46,18 @@ public static class ExerciseMapper
         occurrence.Confidence,
         occurrence.StateVersion,
         occurrence.CallOffRequestedAtUtc,
-        occurrence.CallOffNote);
+        occurrence.CallOffNote,
+        ToDto(occurrence.Checks, occurrence.Integrity));
+
+    public static ExerciseChecksDto ToDto(ExerciseCheckCounts checks, ExerciseIntegrity integrity) => new(
+        checks.FormFaults,
+        checks.FastReps,
+        checks.ChallengesPassed,
+        checks.ChallengesMissed,
+        checks.PhoneMovedReps,
+        checks.OutOfFrameSeconds,
+        integrity,
+        checks.Flags(integrity));
 
     public static ExerciseDefinitionDto ToDto(ExerciseDefinition definition) => new(
         definition.Type,

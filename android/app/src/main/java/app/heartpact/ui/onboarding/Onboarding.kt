@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
@@ -58,25 +59,25 @@ fun OnboardingScreen(onDone: () -> Unit, initialPage: Int = 0) {
         Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (pager.currentPage > 0) {
                 IconButton(onClick = { scope.launch { pager.animateScrollToPage(pager.currentPage - 1) } }) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = colors.ink2)
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr("Back"), tint = colors.ink2)
                 }
             }
             Box(Modifier.weight(1f))
-            if (pager.currentPage < pages - 1) HeartButton("Skip", onDone, kind = ButtonKind.Text, fillWidth = false)
+            if (pager.currentPage < pages - 1) HeartButton(tr("Skip"), onDone, kind = ButtonKind.Text, fillWidth = false)
         }
         HorizontalPager(pager, Modifier.weight(1f)) { page ->
             when (page) {
-                0 -> Page("Dare each other to move.", "Set a dare for your partner. At the time you pick, their phone rings and the camera counts the reps.") { DareArt() }
-                1 -> Page("Every promise you keep becomes a heart.", "Your partner sticks on their half when they set the dare. Do the reps and the camera sticks on yours.") { HeartsArt() }
-                else -> Page("Nothing is shared until you choose.", "Everything starts private. You can always see what your partner can see, and change it in one tap.") { PrivateArt() }
+                0 -> Page(tr("Dare each other to move."), tr("Set a dare for your partner. At the time you pick, their phone rings and the camera counts the reps.")) { DareArt() }
+                1 -> Page(tr("Every promise you keep becomes a heart."), tr("Your partner sticks on their half when they set the dare. Do the reps and the camera sticks on yours.")) { HeartsArt() }
+                else -> Page(tr("Nothing is shared until you choose."), tr("Everything starts private. You can always see what your partner can see, and change it in one tap.")) { PrivateArt() }
             }
         }
         Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
             PagerDots(pages, pager.currentPage, Modifier.weight(1f))
             if (pager.currentPage < pages - 1) {
-                HeartButton("Next", { scope.launch { pager.animateScrollToPage(pager.currentPage + 1) } }, fillWidth = false, trailingIcon = Icons.AutoMirrored.Rounded.ArrowForward)
+                HeartButton(tr("Next"), { scope.launch { pager.animateScrollToPage(pager.currentPage + 1) } }, fillWidth = false, trailingIcon = Icons.AutoMirrored.Rounded.ArrowForward)
             } else {
-                HeartButton("Get started", onDone, fillWidth = false)
+                HeartButton(tr("Get started"), onDone, fillWidth = false)
             }
         }
     }
@@ -96,13 +97,13 @@ private fun BoxScope.DareArt() {
     val colors = Heartpact.colors
     StickerCard(Modifier.align(Alignment.Center).padding(end = 46.dp).rotate(-3f), shape = Shapes.Dare, lift = 14.dp) {
         Column(Modifier.padding(18.dp)) {
-            Text("20 sit-ups by 8:00", style = Heartpact.type.title, color = colors.ink)
-            Text("Theo's dare for Maya", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+            Text(tr("20 sit-ups by 8:00"), style = Heartpact.type.title, color = colors.ink)
+            Text(tr("Theo's dare for Maya"), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
             Row(Modifier.padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Rounded.Alarm, null, tint = colors.right.action)
-                Text("Rings at 8:00 until it's done", style = Heartpact.type.label, color = colors.ink)
+                Text(tr("Rings at 8:00 until it's done"), style = Heartpact.type.label, color = colors.ink)
             }
-            HeartButton("Start on camera", {}, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera, height = 40.dp, fillWidth = false)
+            HeartButton(tr("Start on camera"), {}, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera, height = 40.dp, fillWidth = false)
         }
     }
     Character(Who.Right, Pose.Wave, 118.dp, Modifier.align(Alignment.TopEnd).padding(top = 24.dp))
@@ -131,8 +132,8 @@ private fun BoxScope.HeartsArt() {
 private fun BoxScope.PrivateArt() {
     Character(Who.Left, Pose.Rest, 96.dp, Modifier.align(Alignment.TopEnd).padding(top = 30.dp), mood = Mood.Smile)
     StickerCard(Modifier.align(Alignment.Center).padding(top = 90.dp).fillMaxWidth()) {
-        CardRow("Photos stay on your phone", subtitle = "until you tap Sync", icon = Icons.Rounded.PhotoLibrary)
-        CardRow("Location only while you both share", subtitle = "either of you can pause it", icon = Icons.Rounded.LocationOn, divider = true)
-        CardRow("You choose what your partner sees", subtitle = "of your cycle, food and goals", icon = Icons.Rounded.WaterDrop, divider = true)
+        CardRow(tr("Photos stay on your phone"), subtitle = tr("until you tap Sync"), icon = Icons.Rounded.PhotoLibrary)
+        CardRow(tr("Location only while you both share"), subtitle = tr("either of you can pause it"), icon = Icons.Rounded.LocationOn, divider = true)
+        CardRow(tr("You choose what your partner sees"), subtitle = tr("of your cycle, food and goals"), icon = Icons.Rounded.WaterDrop, divider = true)
     }
 }

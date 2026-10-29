@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>अपना Heartpact अकाउंट हटाओ</title>
+<meta name="description" content="अपना Heartpact अकाउंट और उसका डेटा हटाओ, ऐप से या उसके बिना।">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.app/hi/delete-account/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/delete.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.app/delete-account/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.app/fr/delete-account/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.app/pt/delete-account/">
+<link rel="alternate" hreflang="es" href="https://heartpact.app/es/delete-account/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.app/ar/delete-account/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.app/hi/delete-account/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.app/delete-account/">
+<script type="application/json" id="strings">{"Checking your account…": "तुम्हारा अकाउंट देख रहे हैं…", "Email or password is incorrect. If you signed up with Google, email support@heartpact.app from that address and we’ll delete it.": "ईमेल या पासवर्ड गलत है। अगर Google से साइन अप किया था, तो उसी पते से support@heartpact.app पर ईमेल करो, हम अकाउंट हटा देंगे।", "Something went wrong. Try again, or email support@heartpact.app.": "कुछ गड़बड़ हो गई। फिर कोशिश करो, या support@heartpact.app पर ईमेल करो।", "The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera": "कसरत वाली स्क्रीन जंपिंग जैक्स गिन रही है, 20 में से 12, कैमरे की तस्वीर पर पोज़ की रेखाएँ बनी हैं", "The workout screen counting squats, 9 of 15, with the pose drawn over the camera": "कसरत वाली स्क्रीन स्क्वैट्स गिन रही है, 15 में से 9, कैमरे की तस्वीर पर पोज़ की रेखाएँ बनी हैं", "Tick the box to confirm you understand this can't be undone.": "बॉक्स पर टिक करके पुष्टि करो कि तुम्हें पता है, इसे वापस नहीं लाया जा सकता।", "Too many attempts. Wait a few minutes and try again.": "बहुत ज़्यादा कोशिशें हो गईं। कुछ मिनट रुककर फिर कोशिश करो।", "We couldn't reach Heartpact. Check your connection and try again.": "Heartpact से जुड़ नहीं पा रहे। कनेक्शन देखकर फिर कोशिश करो।", "You have a Heartpact Plus subscription that will keep renewing. Cancel it in Google Play first, or tick the box below and delete anyway.": "तुम्हारा Heartpact Plus सब्सक्रिप्शन रिन्यू होता रहेगा। पहले उसे Google Play में रद्द करो, या नीचे दिए बॉक्स पर टिक करके फिर भी हटाओ।", "Your account and everything in it has been deleted. If you were linked, your partner has been unlinked.": "तुम्हारा अकाउंट और उसमें मौजूद सब कुछ हटा दिया गया है। अगर तुम्हारा पैक्ट था, तो पार्टनर का लिंक भी हटा दिया गया है।"}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">सीधे कंटेंट पर जाओ</a>
+<header class="page-head">
+  <div class="wrap">
+    <a class="brand" href="/hi/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+    <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">ऐप पाओ</a>
+  </div>
+</header>
+
+<main id="main" class="doc">
+  <h1>अपना अकाउंट हटाओ</h1>
+  <p class="updated">अकाउंट तुरंत और हमेशा के लिए हट जाता है। इसे वापस नहीं लाया जा सकता।</p>
+
+  <h2>ऐप में</h2>
+  <p>Heartpact खोलो, <b>हम</b> पर जाओ, <b>मेरा अकाउंट हटाओ</b> पर टैप करो, और अपना पासवर्ड डालो।</p>
+
+  <h2>यहीं, बिना ऐप के</h2>
+  <p>ईमेल और पासवर्ड से बने अकाउंट के लिए। Google से साइन अप किया था? उसी पते से हमें ईमेल करो (नीचे), हम अकाउंट हटा देंगे।</p>
+  <form id="delete-form" class="form" novalidate>
+    <label>ईमेल <input name="email" type="email" autocomplete="email" required></label>
+    <label>पासवर्ड <input name="password" type="password" autocomplete="current-password" required></label>
+    <label class="check"><input name="sure" type="checkbox"> मुझे पता है कि मेरा अकाउंट और उसमें मौजूद सब कुछ हमेशा के लिए हट जाएगा।</label>
+    <div id="renew-box" hidden>
+      <label class="check"><input id="renew-ack" type="checkbox"> फिर भी हटाओ। मुझे पता है कि जब तक मैं इसे <a href="https://play.google.com/store/account/subscriptions">Google Play में रद्द न करूँ</a>, मेरा Plus सब्सक्रिप्शन रिन्यू होता रहेगा।</label>
+    </div>
+    <button type="submit">मेरा अकाउंट हटाओ</button>
+  </form>
+  <p id="delete-status" class="status" role="status" tabindex="-1" hidden></p>
+
+  <h2>क्या-क्या हटेगा</h2>
+  <ul>
+    <li>तुम्हारी प्रोफ़ाइल और साइन-इन की जानकारी।</li>
+    <li>तुम्हारे पीरियड और प्रेगनेंसी के रिकॉर्ड, फ़ूड लॉग, चुनौतियाँ और उनके नतीजे, रोज़ के जवाब, तुम्हारे भेजे मैसेज, डिवाइस और नोटिफ़िकेशन।</li>
+    <li>साझा एल्बम में तुम्हारी जोड़ी गई फ़ोटो और वीडियो। ये कुछ ही मिनटों में स्टोरेज से हटा दी जाती हैं।</li>
+    <li>तुम दोनों के खेले हुए गेम।</li>
+  </ul>
+  <p>अगर तुम्हारा पैक्ट है, तो पार्टनर का लिंक हट जाएगा और उन्हें बता दिया जाएगा कि तुमने Heartpact छोड़ दिया है। जो उन्होंने खुद जोड़ा था (उनकी फ़ोटो, जवाब और मैसेज), वह उन्हीं का रहेगा।</p>
+  <p><b>अकाउंट हटाने से Heartpact Plus रद्द नहीं होता।</b> जब तक तुम <a href="https://play.google.com/store/account/subscriptions">सब्सक्रिप्शन रद्द न करो</a>, Google Play पैसे लेता रहेगा।</p>
+
+  <h2>साइन इन नहीं हो रहा?</h2>
+  <p>अपने अकाउंट वाले ईमेल पते से <a href="mailto:support@heartpact.app?subject=Delete%20my%20account">support@heartpact.app</a> पर ईमेल करो, हम तुम्हारे लिए अकाउंट हटा देंगे।</p>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="कानूनी">
+      <a href="/hi/privacy/">प्राइवेसी पॉलिसी</a>
+      <a href="/hi/terms/">इस्तेमाल की शर्तें</a>
+      <a href="/hi/delete-account/">अपना अकाउंट हटाओ</a>
+      <a href="mailto:support@heartpact.app">संपर्क</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="भाषा">
+      <a href="/delete-account/" lang="en" hreflang="en" data-lang="en">English</a>
+      <a href="/fr/delete-account/" lang="fr" hreflang="fr" data-lang="fr">Français</a>
+      <a href="/pt/delete-account/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/delete-account/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/delete-account/" lang="ar" hreflang="ar" data-lang="ar">العربية</a>
+      <a href="/hi/delete-account/" lang="hi" hreflang="hi" data-lang="hi" aria-current="true">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

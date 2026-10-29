@@ -2,6 +2,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Account;
 
@@ -18,7 +19,8 @@ public sealed record AccountErasure(
     string DisplayName,
     Guid? FormerPartnerId,
     Notification? PartnerNotice,
-    IReadOnlyList<ExerciseOccurrence> CancelledAlarms);
+    IReadOnlyList<ExerciseOccurrence> CancelledAlarms,
+    string? FormerPartnerName = null);
 
 /// <summary>
 /// Removes a user and everything about them in one transaction. An active couple is ended first, as
@@ -37,10 +39,10 @@ public static class AccountDeletionRules
         if (user.PasswordHash is not null)
             return !string.IsNullOrEmpty(request.Password) && hasher.Verify(request.Password, user.PasswordHash)
                 ? Result.Success()
-                : Error.Unauthorized("account.confirmation_failed", "Your password is incorrect.");
+                : Error.Unauthorized("account.confirmation_failed", Loc.T("Your password is incorrect."));
         return string.Equals(request.ConfirmEmail?.Trim(), user.Email, StringComparison.OrdinalIgnoreCase)
             ? Result.Success()
-            : Error.Validation("account.confirmation_failed", "Type your account email to confirm.");
+            : Error.Validation("account.confirmation_failed", Loc.T("Type your account email to confirm."));
     }
 
     /// <summary>

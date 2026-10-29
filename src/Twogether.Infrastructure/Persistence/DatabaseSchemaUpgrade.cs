@@ -4,8 +4,36 @@ namespace Twogether.Infrastructure.Persistence;
 
 public static class DatabaseSchemaUpgrade
 {
-    public static Task ApplyAsync(ApplicationDbContext database, CancellationToken cancellationToken = default)
-        => database.Database.ExecuteSqlRawAsync(Sql, Array.Empty<object>(), cancellationToken);
+    public static async Task ApplyAsync(ApplicationDbContext database, CancellationToken cancellationToken = default)
+    {
+        await database.Database.ExecuteSqlRawAsync(Sql, Array.Empty<object>(), cancellationToken);
+        await database.Database.ExecuteSqlRawAsync(StopCycleSharingAfterOldBreakupsSql, Array.Empty<object>(), cancellationToken);
+    }
+
+    /// <summary>
+    /// Before <c>CycleSharing.StopSharingAsync</c>, a breakup left the owner's share level as it was, ready for whoever
+    /// came next. This puts it back to none when the level is still the one that was in place when a linked couple of
+    /// theirs ended (the profile hasn't been saved since that couple's end) and they are either single now or in a couple
+    /// that linked after that save, so a new partner inherited it. A level saved after the breakup (chosen while single,
+    /// or in the current couple) is newer and is left alone, and a first couple that never ended is never touched. Since
+    /// the fix every breakup and every new link leaves the level at none, so once the old rows are done this matches
+    /// nothing: safe on every boot. Plain SQL that SQLite runs too, for the test.
+    /// </summary>
+    public const string StopCycleSharingAfterOldBreakupsSql = """
+        UPDATE cycle_profiles SET "ShareLevelWithPartner" = 'None'
+        WHERE "ShareLevelWithPartner" <> 'None'
+          AND EXISTS (
+              SELECT 1 FROM couples ended
+              WHERE ended."Status" = 'Dissolved' AND ended."LinkedAtUtc" IS NOT NULL AND ended."DissolvedAtUtc" IS NOT NULL
+                AND (ended."UserAId" = cycle_profiles."UserId" OR ended."UserBId" = cycle_profiles."UserId")
+                AND ended."DissolvedAtUtc" >= cycle_profiles."UpdatedAtUtc")
+          AND NOT EXISTS (
+              SELECT 1 FROM couples active
+              WHERE active."Status" = 'Active'
+                AND (active."UserAId" = cycle_profiles."UserId" OR active."UserBId" = cycle_profiles."UserId"
+                    OR active."Id" = (SELECT u."CoupleId" FROM users u WHERE u."Id" = cycle_profiles."UserId"))
+                AND (active."LinkedAtUtc" IS NULL OR active."LinkedAtUtc" < cycle_profiles."UpdatedAtUtc"));
+        """;
 
     private const string Sql = """
         ALTER TABLE couples ADD COLUMN IF NOT EXISTS "DissolvedAtUtc" timestamp with time zone NULL;
@@ -39,6 +67,8 @@ public static class DatabaseSchemaUpgrade
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "DisabledAtUtc" timestamp with time zone NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "DisabledReason" character varying(500) NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS "LastActiveAtUtc" timestamp with time zone NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "CountryCode" character varying(2) NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "Language" character varying(8) NOT NULL DEFAULT 'en';
         CREATE TABLE IF NOT EXISTS admin_accounts (
             "Id" uuid NOT NULL,
             "UserId" uuid NOT NULL,
@@ -195,6 +225,13 @@ public static class DatabaseSchemaUpgrade
         -- "Ask to call it off": advisory, set by the assigned partner while the alarm rings.
         ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "CallOffRequestedAtUtc" timestamp with time zone NULL;
         ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "CallOffNote" character varying(140) NULL;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "FormFaults" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "FastReps" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "ChallengesPassed" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "ChallengesMissed" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "PhoneMovedReps" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "OutOfFrameSeconds" integer NOT NULL DEFAULT 0;
+        ALTER TABLE exercise_occurrences ADD COLUMN IF NOT EXISTS "Integrity" character varying(20) NOT NULL DEFAULT 'NotChecked';
 
         CREATE TABLE IF NOT EXISTS food_entries (
             "Id" uuid NOT NULL,
@@ -440,5 +477,36 @@ public static class DatabaseSchemaUpgrade
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_couple_locations_CoupleId_UserId" ON couple_locations ("CoupleId", "UserId");
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_game_results_GameSessionId" ON game_results ("GameSessionId");
         CREATE INDEX IF NOT EXISTS "IX_game_results_CoupleId_EndedAtUtc" ON game_results ("CoupleId", "EndedAtUtc");
+
+        -- Location: a stopped share keeps no coordinates, the time of the fix is kept apart from
+        -- the row's, and a share lapses when its phone goes quiet. Existing shares start their
+        -- lease from their last change, so a phone that is no longer sending reads as off.
+        ALTER TABLE couple_locations ALTER COLUMN "Latitude" DROP NOT NULL;
+        ALTER TABLE couple_locations ALTER COLUMN "Longitude" DROP NOT NULL;
+        ALTER TABLE couple_locations ALTER COLUMN "AccuracyMeters" DROP NOT NULL;
+        ALTER TABLE couple_locations ADD COLUMN IF NOT EXISTS "FixAtUtc" timestamp with time zone NULL;
+        ALTER TABLE couple_locations ADD COLUMN IF NOT EXISTS "LastSeenAtUtc" timestamp with time zone NULL;
+        UPDATE couple_locations SET "FixAtUtc" = "UpdatedAtUtc" WHERE "FixAtUtc" IS NULL AND "SharingEnabled" AND "Latitude" IS NOT NULL;
+        UPDATE couple_locations SET "LastSeenAtUtc" = "UpdatedAtUtc" WHERE "LastSeenAtUtc" IS NULL;
+        ALTER TABLE couple_locations ALTER COLUMN "LastSeenAtUtc" SET NOT NULL;
+        UPDATE couple_locations SET "Latitude" = NULL, "Longitude" = NULL, "AccuracyMeters" = NULL, "FixAtUtc" = NULL WHERE NOT "SharingEnabled" AND "Latitude" IS NOT NULL;
+        DELETE FROM couple_locations WHERE "CoupleId" IN (SELECT "Id" FROM couples WHERE "Status" = 'Dissolved');
+        CREATE INDEX IF NOT EXISTS "IX_couple_locations_UpdatedAtUtc" ON couple_locations ("UpdatedAtUtc");
+
+        -- Ending a pregnancy now stops sharing it; pregnancies ended before that stop too.
+        UPDATE pregnancies SET "ShareWithPartner" = false WHERE "Status" = 'Ended' AND "ShareWithPartner";
+
+        -- Admin: test and team accounts, left out of analytics.
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "IsInternal" boolean NOT NULL DEFAULT false;
+
+        -- Admin live feed: that an account was deleted, and when. Nothing about whose it was.
+        CREATE TABLE IF NOT EXISTS account_deletions (
+            "Id" uuid NOT NULL,
+            "WasInternal" boolean NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_account_deletions" PRIMARY KEY ("Id")
+        );
+        CREATE INDEX IF NOT EXISTS "IX_account_deletions_CreatedAtUtc" ON account_deletions ("CreatedAtUtc");
         """;
 }

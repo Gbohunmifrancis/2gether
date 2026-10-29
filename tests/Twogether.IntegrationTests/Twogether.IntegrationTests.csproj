@@ -18,4 +18,14 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Twogether.Api\Twogether.Api.csproj" />
+    <ProjectReference Include="..\..\src\Twogether.Infrastructure\Twogether.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Twogether.UnitTests\Support\Fakes.cs" Link="Support\Fakes.cs" />
+    <Compile Include="..\Twogether.UnitTests\Support\InsightsData.cs" Link="Support\InsightsData.cs" />
+  </ItemGroup>
+
 </Project>

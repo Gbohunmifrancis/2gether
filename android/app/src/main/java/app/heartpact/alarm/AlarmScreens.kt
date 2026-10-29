@@ -43,6 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
+import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
@@ -101,7 +104,7 @@ fun AlarmRinging(
     val asked = occurrence.callOffRequestedAtUtc != null
     val me = if (mySide == Side.Left) Who.Left else Who.Right
     val is24Hour = android.text.format.DateFormat.is24HourFormat(androidx.compose.ui.platform.LocalContext.current)
-    Column(Modifier.fillMaxSize().background(Ink).statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)) {
+    Column(Modifier.fillMaxSize().background(Ink).readable().statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
                 val (clockFace, meridiem) = bigClock(occurrence.scheduledAtUtc, is24Hour)
@@ -111,7 +114,7 @@ fun AlarmRinging(
                 }
                 Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Rounded.Alarm, null, tint = OnInk, modifier = Modifier.size(20.dp))
-                    Text(if (setByPartner) "$partnerName's dare is ringing" else "Your dare is ringing", style = Heartpact.type.bodyLarge, color = OnInk)
+                    Text(if (setByPartner) tr("{partner}'s dare is ringing", "partner" to partnerName) else tr("Your dare is ringing"), style = Heartpact.type.bodyLarge, color = OnInk)
                 }
             }
             Character(me, Pose.Stand, 104.dp, mood = Mood.Worried)
@@ -119,35 +122,35 @@ fun AlarmRinging(
         Spacer(Modifier.weight(1f))
         StickerCard(shape = Shapes.Dare) {
             Column(Modifier.padding(20.dp)) {
-                Text(occurrence.title, style = Heartpact.type.title, color = Heartpact.colors.ink)
-                Text("${occurrence.achievedCount} of ${occurrence.target} counted · stops at ${occurrence.target}", style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                Text(occurrence.exerciseType.titleOf(occurrence.title), style = Heartpact.type.title, color = Heartpact.colors.ink)
+                Text(occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target), style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 Row(Modifier.padding(top = 14.dp).fillMaxWidth().clip(Shapes.Well).background(Heartpact.colors.sticker2).padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (mySide == Side.Left) HeartSticker(HalfState.Slot, HalfState.Stuck, 42.dp) else HeartSticker(HalfState.Stuck, HalfState.Slot, 42.dp)
-                    Text(if (setByPartner) "$partnerName's half is on. Yours sticks at ${occurrence.target}." else "Your half sticks at ${occurrence.target}.", style = Heartpact.type.body, color = Heartpact.colors.ink)
+                    Text(if (setByPartner) tr("{partner}'s half is on. Yours sticks at {target}.", "partner" to partnerName, "target" to occurrence.target) else tr("Your half sticks at {target}.", "target" to occurrence.target), style = Heartpact.type.body, color = Heartpact.colors.ink)
                 }
-                HeartButton("Start on camera", onStart, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera, busy = busy)
+                HeartButton(tr("Start on camera"), onStart, Modifier.padding(top = 14.dp), icon = Icons.Rounded.PhotoCamera, busy = busy)
             }
         }
         Row(Modifier.padding(top = 16.dp).fillMaxWidth().clip(Shapes.Well).background(Color.White.copy(alpha = 0.07f)).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (setByPartner) Character(if (me == Who.Left) Who.Right else Who.Left, Pose.Stand, 52.dp, mood = Mood.Worried)
             Column {
-                Text(if (asked) "You asked $partnerName to call it off" else "$partnerName can see it's ringing", style = Heartpact.type.label, color = OnInk)
-                Text(if (asked) "If $partnerName agrees, it stops for both of you." else "Your count goes to $partnerName when you finish.", style = Heartpact.type.small, color = OnInk.copy(alpha = 0.8f))
+                Text(if (asked) tr("You asked {partner} to call it off", "partner" to partnerName) else tr("{partner} can see it's ringing", "partner" to partnerName), style = Heartpact.type.label, color = OnInk)
+                Text(if (asked) tr("If {partner} agrees, it stops for both of you.", "partner" to partnerName) else tr("Your count goes to {partner} when you finish.", "partner" to partnerName), style = Heartpact.type.small, color = OnInk.copy(alpha = 0.8f))
             }
         }
         Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("%d:%02d".format(left.toMinutes(), left.seconds % 60), style = Heartpact.type.displaySmall.copy(fontSize = 52.sp), color = OnInk)
-            Text("left to ring", style = Heartpact.type.body, color = OnInk.copy(alpha = 0.8f), modifier = Modifier.padding(bottom = 8.dp))
+            Text(tr("left to ring"), style = Heartpact.type.body, color = OnInk.copy(alpha = 0.8f), modifier = Modifier.padding(bottom = 8.dp))
         }
         note?.let { Text(it, style = Heartpact.type.small, color = Color(0xFFFFB4AB), modifier = Modifier.padding(top = 8.dp)) }
         Spacer(Modifier.weight(1f))
         if (setByPartner && !asked) {
             Box(Modifier.fillMaxWidth().clip(Shapes.Pill).background(Color.White.copy(alpha = 0.12f))) {
-                HeartButton("Ask $partnerName to call it off", { asking = true }, kind = ButtonKind.Text, height = 56.dp, contentColor = OnInk)
+                HeartButton(tr("Ask {partner} to call it off", "partner" to partnerName), { asking = true }, kind = ButtonKind.Text, height = 56.dp, contentColor = OnInk)
             }
         }
-        HeartButton("Silence on this phone", onSilence, kind = ButtonKind.Text, icon = Icons.Rounded.NotificationsOff, contentColor = OnInk)
-        Text("Silencing keeps the dare open until ${localTime(deadline.toString())}.", style = Heartpact.type.small, color = OnInk.copy(alpha = 0.8f),
+        HeartButton(tr("Silence on this phone"), onSilence, kind = ButtonKind.Text, icon = Icons.Rounded.NotificationsOff, contentColor = OnInk)
+        Text(tr("Silencing keeps the dare open until {time}.", "time" to localTime(deadline.toString())), style = Heartpact.type.small, color = OnInk.copy(alpha = 0.8f),
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
     }
     if (asking) AskOffDialog(partnerName, onSend = { asking = false; onAskOff(it) }, onDismiss = { asking = false })
@@ -158,15 +161,15 @@ private fun AskOffDialog(partnerName: String, onSend: (String?) -> Unit, onDismi
     var note by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ask $partnerName to call it off?") },
+        title = { Text(tr("Ask {partner} to call it off?", "partner" to partnerName)) },
         text = {
             Column {
-                Text("If $partnerName agrees, the alarm stops and today goes on your page as a peeled heart.", style = Heartpact.type.body)
-                HeartField("Add a note (optional)", note, { note = it.take(140) }, Modifier.padding(top = 12.dp))
+                Text(tr("If {partner} agrees, the alarm stops and today goes on your page as a peeled heart.", "partner" to partnerName), style = Heartpact.type.body)
+                HeartField(tr("Add a note (optional)"), note, { note = it.take(140) }, Modifier.padding(top = 12.dp))
             }
         },
-        confirmButton = { TextButton(onClick = { onSend(note) }) { Text("Ask $partnerName") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Not now") } },
+        confirmButton = { TextButton(onClick = { onSend(note) }) { Text(tr("Ask {partner}", "partner" to partnerName)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Not now")) } },
     )
 }
 
@@ -176,12 +179,17 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
     val colors = Heartpact.colors
     val done = occurrence.completedAtUtc?.let { utc(it) }
     val scheduled = utc(occurrence.scheduledAtUtc)
-    val timing = when {
-        done == null -> ""
-        done.isBefore(scheduled) -> "${Duration.between(done, scheduled).toMinutes().coerceAtLeast(1)} minutes before it would ring."
-        else -> "while it was ringing."
+    val progress = occurrence.exerciseType.progress(occurrence.achievedCount, occurrence.target).replaceFirstChar { it.uppercase() }
+    val summary = when {
+        done == null -> progress
+        done.isBefore(scheduled) -> {
+            val early = Duration.between(done, scheduled).toMinutes().coerceAtLeast(1)
+            trn(early, "{progress} at {time},\n{count} minute before it would ring.", "{progress} at {time},\n{count} minutes before it would ring.",
+                "progress" to progress, "time" to localTime(done.toString()))
+        }
+        else -> tr("{progress} at {time},\nwhile it was ringing.", "progress" to progress, "time" to localTime(done.toString()))
     }
-    Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding().padding(12.dp)) {
+    Column(Modifier.fillMaxSize().background(colors.page).readable().statusBarsPadding().navigationBarsPadding().padding(12.dp)) {
         StickerCard(Modifier.fillMaxWidth().weight(1f), shape = Shapes.Dare) {
             Column(Modifier.fillMaxSize().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 // Mockup 20: your half sticks next to the one your partner set, then you both cheer.
@@ -191,43 +199,50 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
                     StickingHeart(mySide, 104.dp, frozenAtMs = frozenAtMs, onWhole = { whole = true })
                     Character(Who.Both, Pose.Cheer, 150.dp, Modifier.graphicsLayer { alpha = cheer; scaleX = 0.8f + 0.2f * cheer; scaleY = 0.8f + 0.2f * cheer })
                 }
-                Text("Heart complete", style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
-                Text("${occurrence.achievedCount} of ${occurrence.target} ${occurrence.exerciseType.displayName.lowercase()} at ${done?.let { localTime(it.toString()) } ?: ""},\n$timing",
+                Text(tr("Heart complete"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
+                Text(summary,
                     style = Heartpact.type.bodyLarge, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))
-                Text("The same heart goes on $partnerName's page.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 18.dp))
+                Text(tr("The same heart goes on {partner}'s page.", "partner" to partnerName), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 18.dp))
             }
         }
-        HeartButton("Done", onDone, Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp, bottom = 12.dp))
+        HeartButton(tr("Done"), onDone, Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp, bottom = 12.dp))
     }
 }
 
 @Composable
 fun AlarmEnded(reason: EndReason, partnerName: String, onDone: () -> Unit) {
     val colors = Heartpact.colors
-    Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    Column(Modifier.fillMaxSize().background(colors.page).readable().statusBarsPadding().navigationBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         when (reason) {
             EndReason.LetOff -> PeeledHeart(96.dp)
             EndReason.Missed -> HeartSticker(HalfState.Slot, HalfState.Slot, 96.dp)
             EndReason.Gone -> Character(Who.Both, Pose.Stand, 120.dp)
         }
         Text(when (reason) {
-            EndReason.LetOff -> "Called off together"
-            EndReason.Missed -> "The window closed"
-            EndReason.Gone -> "Nothing is ringing"
+            EndReason.LetOff -> tr("Called off together")
+            EndReason.Missed -> tr("The window closed")
+            EndReason.Gone -> tr("Nothing is ringing")
         }, style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 18.dp))
         Text(when (reason) {
-            EndReason.LetOff -> "$partnerName agreed. Today goes on your page as a peeled heart."
-            EndReason.Missed -> "Today's dare wasn't done in time. Tomorrow is a new page."
-            EndReason.Gone -> "This dare was changed or already finished."
+            EndReason.LetOff -> tr("{partner} agreed. Today goes on your page as a peeled heart.", "partner" to partnerName)
+            EndReason.Missed -> tr("Today's dare wasn't done in time. Tomorrow is a new page.")
+            EndReason.Gone -> tr("This dare was changed or already finished.")
         }, style = Heartpact.type.bodyLarge, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
-        HeartButton("Done", onDone, Modifier.padding(top = 28.dp))
+        HeartButton(tr("Done"), onDone, Modifier.padding(top = 28.dp))
     }
 }
 
+/**
+ * While the alarm finds its dare on the server (offline, this can last the whole window). It may be
+ * ringing meanwhile, so the way out is on screen here too unless [onSilence] is null.
+ */
 @Composable
-fun AlarmLoading(note: String?) {
-    Column(Modifier.fillMaxSize().background(Ink).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+fun AlarmLoading(note: String?, onSilence: (() -> Unit)? = null) {
+    Column(Modifier.fillMaxSize().background(Ink).readable().statusBarsPadding().navigationBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.weight(1f))
         CircularProgressIndicator(color = OnInk)
-        Text(note ?: "Checking today's dare…", style = Heartpact.type.body, color = OnInk, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 16.dp))
+        Text(note ?: tr("Checking today's dare…"), style = Heartpact.type.body, color = OnInk, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 16.dp))
+        Spacer(Modifier.weight(1f))
+        onSilence?.let { HeartButton(tr("Silence on this phone"), it, kind = ButtonKind.Text, icon = Icons.Rounded.NotificationsOff, contentColor = OnInk) }
     }
 }

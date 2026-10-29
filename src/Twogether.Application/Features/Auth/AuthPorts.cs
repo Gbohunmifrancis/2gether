@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Auth;
 
@@ -58,10 +59,7 @@ public static class PasswordResetRules
 
     public static EmailMessage Email(string to, string code) => new(
         to,
-        $"Your Heartpact code: {code}",
-        $"""
-        Your code to reset your Heartpact password is {code}.
-
-        It works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.
-        """);
+        Loc.T("Your Heartpact code: {code}", ("code", code)),
+        // In the language of the request that asked for it (the app sends Accept-Language).
+        Loc.T("Your code to reset your Heartpact password is {code}.\n\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.", ("code", code)));
 }

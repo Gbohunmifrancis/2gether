@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Account;
+using Twogether.Application.Features.Cycle;
+using Twogether.Application.Features.Notifications;
+using Twogether.Application.Features.Pregnancy;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Infrastructure.Persistence;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Infrastructure.Account;
 
@@ -13,11 +17,31 @@ namespace Twogether.Infrastructure.Account;
 /// other member is left to own them; when one is, those rows stay with that partner and mention the
 /// deleted person by an id that no longer resolves to anyone.
 /// Memory photos cannot be removed inside a database transaction, so the rows are marked for the
-/// cleanup worker with their captions already wiped; the worker deletes the objects within minutes.
+/// cleanup worker with their captions already wiped; the worker deletes the objects within minutes,
+/// once no upload link handed out for them still works.
 /// </summary>
 public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clock) : IAccountEraser
 {
+    /// <summary>
+    /// Another writer can change a row this reads in the same moment: the alarm worker opening a
+    /// dare, or the partner deleting their own account. Then it starts once more from what is there
+    /// now; a second clash is left to the caller as <see cref="DbUpdateConcurrencyException"/>.
+    /// </summary>
     public async Task<AccountErasure?> EraseAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await EraseOnceAsync(userId, cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The transaction rolled back; forget what it had loaded.
+            db.ChangeTracker.Clear();
+            return await EraseOnceAsync(userId, cancellationToken);
+        }
+    }
+
+    private async Task<AccountErasure?> EraseOnceAsync(Guid userId, CancellationToken cancellationToken)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var user = await db.Users.SingleOrDefaultAsync(item => item.Id == userId, cancellationToken);
@@ -25,6 +49,8 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         var now = clock.UtcNow;
 
         var (partnerId, notice, cancelled) = await EndActiveCoupleAsync(user, now, cancellationToken);
+        // Loaded above; the partner's own cancelled dares are announced under their name.
+        var partnerName = db.Users.Local.SingleOrDefault(item => item.Id == partnerId)?.DisplayName;
         await db.SaveChangesAsync(cancellationToken);
 
         var couples = await db.Couples.AsNoTracking()
@@ -53,12 +79,36 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
 
         await db.CycleDayLogs.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.CycleProfiles.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
-        // Appointments and kick sessions cascade with the pregnancy.
+        // Appointments and kick sessions cascade with the pregnancy, and the partner's "shared pregnancy mode with
+        // you" notice goes with it.
+        foreach (var pregnancyId in await db.Pregnancies.Where(item => item.UserId == userId).Select(item => item.Id).ToListAsync(cancellationToken))
+        {
+            var sharedNotice = PregnancyNotices.SharedData(pregnancyId);
+            await db.Notifications.Where(item => item.Type == NotificationType.PregnancyUpdated && item.DataJson == sharedNotice).ExecuteDeleteAsync(cancellationToken);
+        }
         await db.Pregnancies.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
+        // Appointments the person added to someone else's pregnancy stay in that health record, but what they wrote
+        // goes: a plain title in the owner's language, no place, no notes.
+        var owners = await db.PregnancyAppointments.Where(item => item.CreatedByUserId == userId)
+            .Join(db.Pregnancies, item => item.PregnancyId, pregnancy => pregnancy.Id, (item, pregnancy) => pregnancy.UserId)
+            .Distinct().ToListAsync(cancellationToken);
+        foreach (var ownerId in owners)
+        {
+            string title;
+            using (Loc.Use(await db.LanguageOfAsync(ownerId, cancellationToken))) title = Loc.T("Appointment");
+            await db.PregnancyAppointments
+                .Where(item => item.CreatedByUserId == userId && db.Pregnancies.Any(pregnancy => pregnancy.Id == item.PregnancyId && pregnancy.UserId == ownerId))
+                .ExecuteUpdateAsync(set => set
+                    .SetProperty(item => item.Title, title)
+                    .SetProperty(item => item.Location, (string?)null)
+                    .SetProperty(item => item.Notes, (string?)null)
+                    .SetProperty(item => item.UpdatedAtUtc, now), cancellationToken);
+        }
         await db.FoodEntries.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.FoodScans.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.NutritionTargets.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
-        await db.CoupleLocations.Where(item => item.UserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
+        // Every couple the person was in, the partner's last point included.
+        await db.CoupleLocations.Where(item => item.UserId == userId || coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.DeviceRegistrations.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.NotificationPreferences.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         // Also cascades from users; removed here so the list above stays the whole story.
@@ -74,10 +124,13 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         await db.GameResults.Where(item => coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.GameSessions.Where(item => coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.Couples.Where(item => orphaned.Contains(item.Id)).ExecuteDeleteAsync(cancellationToken);
+        // Only that it happened, for the admin live feed: no id, name or anything else of theirs.
+        db.AccountDeletions.Add(AccountDeletion.Record(user.IsInternal, now));
+        await db.SaveChangesAsync(cancellationToken);
         await db.Users.Where(item => item.Id == userId).ExecuteDeleteAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
-        return new AccountErasure(userId, user.DisplayName, partnerId, notice, cancelled);
+        return new AccountErasure(userId, user.DisplayName, partnerId, notice, cancelled, partnerName);
     }
 
     private async Task<(Guid? PartnerId, Notification? Notice, List<ExerciseOccurrence> Cancelled)> EndActiveCoupleAsync(User user, DateTime now, CancellationToken cancellationToken)
@@ -100,7 +153,10 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
 
         var partner = await db.Users.SingleAsync(item => item.Id == linkedPartnerId, cancellationToken);
         partner.SetCouple(null, now);
-        var notice = Notification.Create(linkedPartnerId, coupleId, NotificationType.Breakup, "Your couple space was ended", $"{user.DisplayName} deleted their account.", null, now);
+        await CycleSharing.StopSharingAsync(db, [linkedPartnerId], now, cancellationToken);
+        using var _ = Loc.Use(partner.Language);
+        var notice = Notification.Create(linkedPartnerId, coupleId, NotificationType.Breakup, Loc.T("Your couple space was ended"),
+            Loc.T("{name} deleted their account.", ("name", user.DisplayName)), null, now);
         db.Notifications.Add(notice);
         return (linkedPartnerId, notice, ringing);
     }

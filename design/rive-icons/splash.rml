@@ -1,0 +1,424 @@
+<Rive version="1" kind="fragment">
+<Artboard defaultStateMachineId="0:5003" styleId="0:5002" x="0" y="1400" width="400" height="400" name="splash" id="0:5001">
+<LayoutComponentStyle name="Style" id="0:5002"/>
+<GroupEffect name="Draw tick" id="0:5012"><TrimPath start="0" end="0" name="Trim" id="0:5013"/></GroupEffect>
+<Node x="200.00" y="200.80" name="Mark" id="0:5007"><Node x="-200.00" y="-200.80" name="Mark art"><Node name="Tick">
+<Shape x="0" y="0" name="Tick face">
+<PointsPath isClosed="false" isClockwise="false" name="Path">
+<StraightVertex x="168.80" y="217.60"/>
+<StraightVertex x="192.80" y="241.60"/>
+<StraightVertex x="236.00" y="198.40"/>
+</PointsPath>
+<Stroke thickness="19.20" cap="round" join="round" name="Paint"><LinearGradient startX="159.2" startY="188.8" endX="245.6" endY="251.2" name="Lit"><GradientStop colorValue="FF50557C" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient><TargetEffect targetId="0:5012" name="Effect"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Tick side 1">
+<PointsPath isClosed="false" isClockwise="false" name="Path">
+<StraightVertex x="169.44" y="219.28"/>
+<StraightVertex x="193.44" y="243.28"/>
+<StraightVertex x="236.64" y="200.08"/>
+</PointsPath>
+<Stroke thickness="19.20" cap="round" join="round" name="Paint"><SolidColor colorValue="FF191E48" name="C"/><TargetEffect targetId="0:5012" name="Effect"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Tick side 2">
+<PointsPath isClosed="false" isClockwise="false" name="Path">
+<StraightVertex x="170.08" y="220.97"/>
+<StraightVertex x="194.08" y="244.97"/>
+<StraightVertex x="237.28" y="201.77"/>
+</PointsPath>
+<Stroke thickness="19.20" cap="round" join="round" name="Paint"><SolidColor colorValue="FF181C45" name="C"/><TargetEffect targetId="0:5012" name="Effect"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Tick side 3">
+<PointsPath isClosed="false" isClockwise="false" name="Path">
+<StraightVertex x="170.72" y="222.65"/>
+<StraightVertex x="194.72" y="246.65"/>
+<StraightVertex x="237.92" y="203.45"/>
+</PointsPath>
+<Stroke thickness="19.20" cap="round" join="round" name="Paint"><SolidColor colorValue="FF171B42" name="C"/><TargetEffect targetId="0:5012" name="Effect"/></Stroke>
+</Shape>
+<Shape x="0" y="0" name="Tick side 4">
+<PointsPath isClosed="false" isClockwise="false" name="Path">
+<StraightVertex x="171.36" y="224.33"/>
+<StraightVertex x="195.36" y="248.33"/>
+<StraightVertex x="238.56" y="205.13"/>
+</PointsPath>
+<Stroke thickness="19.20" cap="round" join="round" name="Paint"><SolidColor colorValue="FF161A40" name="C"/><TargetEffect targetId="0:5012" name="Effect"/></Stroke>
+</Shape>
+</Node>
+<Node x="200.00" y="282.40" name="Maya" id="0:5008"><Node x="-200.00" y="-282.40" name="Maya art"><Node x="159.20" y="162.40" name="Maya eyes" id="0:5010"><Node x="-159.20" y="-162.40" name="Maya eyes art"><Node name="Maya glint L">
+<Shape x="0" y="0" name="Maya glint L face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="144.56" y="155.92" inRotation="3.1416" inDistance="1.59" outRotation="0.0000" outDistance="1.59"/>
+<CubicDetachedVertex x="147.44" y="158.80" inRotation="-1.5708" inDistance="1.59" outRotation="1.5708" outDistance="1.59"/>
+<CubicDetachedVertex x="144.56" y="161.68" inRotation="0.0000" inDistance="1.59" outRotation="3.1416" outDistance="1.59"/>
+<CubicDetachedVertex x="141.68" y="158.80" inRotation="1.5708" inDistance="1.59" outRotation="-1.5708" outDistance="1.59"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="141.7" startY="155.9" endX="147.4" endY="161.7" name="Lit"><GradientStop colorValue="FFFFFFFF" position="0"/><GradientStop colorValue="FFFFFFFF" position="0.55"/><GradientStop colorValue="FFE2E2E5" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node>
+<Node name="Maya eye L">
+<Shape x="0" y="0" name="Maya eye L face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="147.20" y="152.80" inRotation="3.1416" inDistance="4.37" outRotation="0.0000" outDistance="4.37"/>
+<CubicDetachedVertex x="155.12" y="162.40" inRotation="-1.5708" inDistance="5.30" outRotation="1.5708" outDistance="5.30"/>
+<CubicDetachedVertex x="147.20" y="172.00" inRotation="0.0000" inDistance="4.37" outRotation="3.1416" outDistance="4.37"/>
+<CubicDetachedVertex x="139.28" y="162.40" inRotation="1.5708" inDistance="5.30" outRotation="-1.5708" outDistance="5.30"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="139.3" startY="152.8" endX="155.1" endY="172.0" name="Lit"><GradientStop colorValue="FF626689" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node>
+<Node name="Maya glint R">
+<Shape x="0" y="0" name="Maya glint R face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="168.56" y="155.92" inRotation="3.1416" inDistance="1.59" outRotation="0.0000" outDistance="1.59"/>
+<CubicDetachedVertex x="171.44" y="158.80" inRotation="-1.5708" inDistance="1.59" outRotation="1.5708" outDistance="1.59"/>
+<CubicDetachedVertex x="168.56" y="161.68" inRotation="0.0000" inDistance="1.59" outRotation="3.1416" outDistance="1.59"/>
+<CubicDetachedVertex x="165.68" y="158.80" inRotation="1.5708" inDistance="1.59" outRotation="-1.5708" outDistance="1.59"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="165.7" startY="155.9" endX="171.4" endY="161.7" name="Lit"><GradientStop colorValue="FFFFFFFF" position="0"/><GradientStop colorValue="FFFFFFFF" position="0.55"/><GradientStop colorValue="FFE2E2E5" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node>
+<Node name="Maya eye R">
+<Shape x="0" y="0" name="Maya eye R face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="171.20" y="152.80" inRotation="3.1416" inDistance="4.37" outRotation="0.0000" outDistance="4.37"/>
+<CubicDetachedVertex x="179.12" y="162.40" inRotation="-1.5708" inDistance="5.30" outRotation="1.5708" outDistance="5.30"/>
+<CubicDetachedVertex x="171.20" y="172.00" inRotation="0.0000" inDistance="4.37" outRotation="3.1416" outDistance="4.37"/>
+<CubicDetachedVertex x="163.28" y="162.40" inRotation="1.5708" inDistance="5.30" outRotation="-1.5708" outDistance="5.30"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="163.3" startY="152.8" endX="179.1" endY="172.0" name="Lit"><GradientStop colorValue="FF626689" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node></Node></Node><Node name="Cheek L">
+<Shape x="0" y="0" name="Cheek L face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="137.60" y="176.32" inRotation="3.1416" inDistance="4.51" outRotation="0.0000" outDistance="4.51"/>
+<CubicDetachedVertex x="145.76" y="181.60" inRotation="-1.5708" inDistance="2.92" outRotation="1.5708" outDistance="2.92"/>
+<CubicDetachedVertex x="137.60" y="186.88" inRotation="0.0000" inDistance="4.51" outRotation="3.1416" outDistance="4.51"/>
+<CubicDetachedVertex x="129.44" y="181.60" inRotation="1.5708" inDistance="2.92" outRotation="-1.5708" outDistance="2.92"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="129.4" startY="176.3" endX="145.8" endY="186.9" name="Lit"><GradientStop colorValue="FFF680A9" position="0"/><GradientStop colorValue="FFF45C91" position="0.55"/><GradientStop colorValue="FFD85384" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node><Node name="Maya body">
+<Shape x="152.0" y="157.6" name="Maya body gloss"><Ellipse width="76.8" height="48.0" originX="0.5" originY="0.5" name="Path"/><Fill name="F"><RadialGradient startX="0" startY="0" endX="38.4" endY="0" name="G"><GradientStop colorValue="78FFFFFF" position="0"/><GradientStop colorValue="00FFFFFF" position="1"/></RadialGradient></Fill><ClippingShape sourceId="0:5014" name="Clip"/></Shape>
+<Shape x="0" y="0" name="Maya body face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="200.00" y="282.40" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="108.80" y="152.80" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="200.00" y="140.80" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="108.8" startY="140.8" endX="200.0" endY="282.4" name="Lit"><GradientStop colorValue="FFF6F7FD" position="0"/><GradientStop colorValue="FFF4F5FC" position="0.55"/><GradientStop colorValue="FFD8D9E3" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body clip" id="0:5014"><PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="200.00" y="282.40" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="108.80" y="152.80" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="200.00" y="140.80" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath></Shape>
+<Shape x="0" y="0" name="Maya body side 1">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="200.55" y="283.84" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="109.35" y="154.24" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="200.55" y="142.24" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFB0B1BE" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 2">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="201.10" y="285.28" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="109.90" y="155.68" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="201.10" y="143.68" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFACADBB" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 3">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="201.64" y="286.73" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="110.44" y="157.13" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="201.64" y="145.13" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFA9AAB8" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 4">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="202.19" y="288.17" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="110.99" y="158.57" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="202.19" y="146.57" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFA6A7B5" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 5">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="202.74" y="289.61" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="111.54" y="160.01" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="202.74" y="148.01" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FFA3A4B2" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 6">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="203.29" y="291.05" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="112.09" y="161.45" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="203.29" y="149.45" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF9FA0AF" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 7">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="203.84" y="292.50" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="112.64" y="162.90" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="203.84" y="150.90" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF9C9DAC" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 8">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="204.38" y="293.94" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="113.18" y="164.34" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="204.38" y="152.34" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF999AA8" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 9">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="204.93" y="295.38" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="113.73" y="165.78" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="204.93" y="153.78" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF9596A5" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 10">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="205.48" y="296.82" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="114.28" y="167.22" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="205.48" y="155.22" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF9293A2" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 11">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="206.03" y="298.26" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="114.83" y="168.66" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="206.03" y="156.66" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF8F909F" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 12">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="206.58" y="299.71" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="115.38" y="170.11" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="206.58" y="158.11" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF8C8D9C" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 13">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="207.12" y="301.15" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="115.92" y="171.55" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="207.12" y="159.55" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF888999" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Maya body side 14">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="207.67" y="302.59" inRotation="0.0000" inDistance="0.00" outRotation="-2.5393" outDistance="93.20"/>
+<CubicDetachedVertex x="116.47" y="172.99" inRotation="1.8491" inDistance="34.94" outRotation="-1.2925" outDistance="34.94"/>
+<CubicDetachedVertex x="207.67" y="160.99" inRotation="-2.3884" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF858696" name="C"/></Fill>
+</Shape>
+</Node></Node></Node>
+<Node x="200.00" y="282.40" name="Theo" id="0:5009"><Node x="-200.00" y="-282.40" name="Theo art"><Node x="240.80" y="162.40" name="Theo eyes" id="0:5011"><Node x="-240.80" y="-162.40" name="Theo eyes art"><Node name="Theo glint L">
+<Shape x="0" y="0" name="Theo glint L face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="226.16" y="155.92" inRotation="3.1416" inDistance="1.59" outRotation="0.0000" outDistance="1.59"/>
+<CubicDetachedVertex x="229.04" y="158.80" inRotation="-1.5708" inDistance="1.59" outRotation="1.5708" outDistance="1.59"/>
+<CubicDetachedVertex x="226.16" y="161.68" inRotation="0.0000" inDistance="1.59" outRotation="3.1416" outDistance="1.59"/>
+<CubicDetachedVertex x="223.28" y="158.80" inRotation="1.5708" inDistance="1.59" outRotation="-1.5708" outDistance="1.59"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="223.3" startY="155.9" endX="229.0" endY="161.7" name="Lit"><GradientStop colorValue="FFFFFFFF" position="0"/><GradientStop colorValue="FFFFFFFF" position="0.55"/><GradientStop colorValue="FFE2E2E5" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node>
+<Node name="Theo eye L">
+<Shape x="0" y="0" name="Theo eye L face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="228.80" y="152.80" inRotation="3.1416" inDistance="4.37" outRotation="0.0000" outDistance="4.37"/>
+<CubicDetachedVertex x="236.72" y="162.40" inRotation="-1.5708" inDistance="5.30" outRotation="1.5708" outDistance="5.30"/>
+<CubicDetachedVertex x="228.80" y="172.00" inRotation="0.0000" inDistance="4.37" outRotation="3.1416" outDistance="4.37"/>
+<CubicDetachedVertex x="220.88" y="162.40" inRotation="1.5708" inDistance="5.30" outRotation="-1.5708" outDistance="5.30"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="220.9" startY="152.8" endX="236.7" endY="172.0" name="Lit"><GradientStop colorValue="FF626689" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node>
+<Node name="Theo glint R">
+<Shape x="0" y="0" name="Theo glint R face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="250.16" y="155.92" inRotation="3.1416" inDistance="1.59" outRotation="0.0000" outDistance="1.59"/>
+<CubicDetachedVertex x="253.04" y="158.80" inRotation="-1.5708" inDistance="1.59" outRotation="1.5708" outDistance="1.59"/>
+<CubicDetachedVertex x="250.16" y="161.68" inRotation="0.0000" inDistance="1.59" outRotation="3.1416" outDistance="1.59"/>
+<CubicDetachedVertex x="247.28" y="158.80" inRotation="1.5708" inDistance="1.59" outRotation="-1.5708" outDistance="1.59"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="247.3" startY="155.9" endX="253.0" endY="161.7" name="Lit"><GradientStop colorValue="FFFFFFFF" position="0"/><GradientStop colorValue="FFFFFFFF" position="0.55"/><GradientStop colorValue="FFE2E2E5" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node>
+<Node name="Theo eye R">
+<Shape x="0" y="0" name="Theo eye R face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="252.80" y="152.80" inRotation="3.1416" inDistance="4.37" outRotation="0.0000" outDistance="4.37"/>
+<CubicDetachedVertex x="260.72" y="162.40" inRotation="-1.5708" inDistance="5.30" outRotation="1.5708" outDistance="5.30"/>
+<CubicDetachedVertex x="252.80" y="172.00" inRotation="0.0000" inDistance="4.37" outRotation="3.1416" outDistance="4.37"/>
+<CubicDetachedVertex x="244.88" y="162.40" inRotation="1.5708" inDistance="5.30" outRotation="-1.5708" outDistance="5.30"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="244.9" startY="152.8" endX="260.7" endY="172.0" name="Lit"><GradientStop colorValue="FF626689" position="0"/><GradientStop colorValue="FF1F2557" position="0.55"/><GradientStop colorValue="FF1D2251" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node></Node></Node><Node name="Cheek R">
+<Shape x="0" y="0" name="Cheek R face">
+<PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="262.40" y="176.32" inRotation="3.1416" inDistance="4.51" outRotation="0.0000" outDistance="4.51"/>
+<CubicDetachedVertex x="270.56" y="181.60" inRotation="-1.5708" inDistance="2.92" outRotation="1.5708" outDistance="2.92"/>
+<CubicDetachedVertex x="262.40" y="186.88" inRotation="0.0000" inDistance="4.51" outRotation="3.1416" outDistance="4.51"/>
+<CubicDetachedVertex x="254.24" y="181.60" inRotation="1.5708" inDistance="2.92" outRotation="-1.5708" outDistance="2.92"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="254.2" startY="176.3" endX="270.6" endY="186.9" name="Lit"><GradientStop colorValue="FFF680A9" position="0"/><GradientStop colorValue="FFF45C91" position="0.55"/><GradientStop colorValue="FFD85384" position="1"/></LinearGradient></Fill>
+</Shape>
+</Node><Node name="Theo body">
+<Shape x="243.2" y="152.8" name="Theo body gloss"><Ellipse width="57.6" height="33.6" originX="0.5" originY="0.5" name="Path"/><Fill name="F"><RadialGradient startX="0" startY="0" endX="28.8" endY="0" name="G"><GradientStop colorValue="78FFFFFF" position="0"/><GradientStop colorValue="00FFFFFF" position="1"/></RadialGradient></Fill><ClippingShape sourceId="0:5015" name="Clip"/></Shape>
+<Shape x="0" y="0" name="Theo body face">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="200.00" y="282.40" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="291.20" y="152.80" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="200.00" y="140.80" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Face"><LinearGradient startX="200.0" startY="140.8" endX="291.2" endY="282.4" name="Lit"><GradientStop colorValue="FFBCC2F5" position="0"/><GradientStop colorValue="FFA9B1F2" position="0.55"/><GradientStop colorValue="FF969DDA" position="1"/></LinearGradient></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body clip" id="0:5015"><PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="200.00" y="282.40" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="291.20" y="152.80" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="200.00" y="140.80" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath></Shape>
+<Shape x="0" y="0" name="Theo body side 1">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="200.55" y="283.84" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="291.75" y="154.24" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="200.55" y="142.24" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF7B81B6" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 2">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="201.10" y="285.28" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="292.30" y="155.68" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="201.10" y="143.68" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF797EB3" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 3">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="201.64" y="286.73" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="292.84" y="157.13" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="201.64" y="145.13" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF767CB0" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 4">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="202.19" y="288.17" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="293.39" y="158.57" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="202.19" y="146.57" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF747AAE" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 5">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="202.74" y="289.61" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="293.94" y="160.01" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="202.74" y="148.01" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF7278AB" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 6">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="203.29" y="291.05" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="294.49" y="161.45" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="203.29" y="149.45" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF7075A8" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 7">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="203.84" y="292.50" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="295.04" y="162.90" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="203.84" y="150.90" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF6E73A5" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 8">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="204.38" y="293.94" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="295.58" y="164.34" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="204.38" y="152.34" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF6B71A2" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 9">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="204.93" y="295.38" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="296.13" y="165.78" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="204.93" y="153.78" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF696E9F" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 10">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="205.48" y="296.82" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="296.68" y="167.22" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="205.48" y="155.22" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF676C9C" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 11">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="206.03" y="298.26" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="297.23" y="168.66" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="206.03" y="156.66" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF656A9A" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 12">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="206.58" y="299.71" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="297.78" y="170.11" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="206.58" y="158.11" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF626897" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 13">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="207.12" y="301.15" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="298.32" y="171.55" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="207.12" y="159.55" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF606594" name="C"/></Fill>
+</Shape>
+<Shape x="0" y="0" name="Theo body side 14">
+<PointsPath isClosed="true" isClockwise="false" name="Path">
+<CubicDetachedVertex x="207.67" y="302.59" inRotation="0.0000" inDistance="0.00" outRotation="-0.6023" outDistance="93.20"/>
+<CubicDetachedVertex x="298.87" y="172.99" inRotation="1.2925" inDistance="34.94" outRotation="-1.8491" outDistance="34.94"/>
+<CubicDetachedVertex x="207.67" y="160.99" inRotation="-0.7532" inDistance="52.64" outRotation="0.0000" outDistance="0.00"/>
+</PointsPath>
+<Fill name="Paint"><SolidColor colorValue="FF5E6391" name="C"/></Fill>
+</Shape>
+</Node></Node></Node></Node></Node>
+<Shape x="200.0" y="313.6" scaleY="0.18" name="Shadow" id="0:5016"><PointsPath isClosed="true" isClockwise="true" name="Path">
+<CubicDetachedVertex x="0.00" y="-91.20" inRotation="3.1416" inDistance="50.37" outRotation="0.0000" outDistance="50.37"/>
+<CubicDetachedVertex x="91.20" y="0.00" inRotation="-1.5708" inDistance="50.37" outRotation="1.5708" outDistance="50.37"/>
+<CubicDetachedVertex x="0.00" y="91.20" inRotation="0.0000" inDistance="50.37" outRotation="3.1416" outDistance="50.37"/>
+<CubicDetachedVertex x="-91.20" y="0.00" inRotation="1.5708" inDistance="50.37" outRotation="-1.5708" outDistance="50.37"/>
+</PointsPath><Fill name="F"><RadialGradient startX="0" startY="0" endX="91.2" endY="0" name="G"><GradientStop colorValue="7810132B" position="0"/><GradientStop colorValue="3C10132B" position="0.55"/><GradientStop colorValue="0010132B" position="1"/></RadialGradient></Fill></Shape>
+<StateMachine name="Splash" id="0:5003">
+<StateMachineLayer name="Main" id="0:5004">
+<AnyState x="0" y="-150"/><ExitState x="400" y="-150"/>
+<EntryState x="0" y="0"><StateTransition stateToId="0:5005"/></EntryState>
+<AnimationState x="200" y="0" animationId="0:5006" id="0:5005"/>
+</StateMachineLayer>
+</StateMachine>
+<LinearAnimation duration="198" name="Splash" id="0:5006"><KeyedObject objectId="0:5008"><KeyedProperty property="x"><KeyFrameDouble value="-130.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="-130.0000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="183.2000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="183.2000" frame="117" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="200.0000" frame="132" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5008"><KeyedProperty property="y"><KeyFrameDouble value="282.4000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="252.4000" frame="22" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="35" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="252.4000" frame="48" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="61" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="252.4000" frame="74" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="270.4000" frame="96" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="105" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5008"><KeyedProperty property="rotation"><KeyFrameDouble value="0.0000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.1400" frame="96" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="105" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5008"><KeyedProperty property="scaleY"><KeyFrameDouble value="0.9000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0400" frame="13" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="31" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.9000" frame="35" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0400" frame="39" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="57" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.9000" frame="61" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0400" frame="65" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="83" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.9200" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="93" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5009"><KeyedProperty property="x"><KeyFrameDouble value="530.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="530.0000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="216.8000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="216.8000" frame="117" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble><KeyFrameDouble value="200.0000" frame="132" interpolationType="cubic"><CubicEaseInterpolator x1="0.25" y1="0.1" x2="0.25" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5009"><KeyedProperty property="y"><KeyFrameDouble value="282.4000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="252.4000" frame="22" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="35" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="252.4000" frame="48" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="61" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="252.4000" frame="74" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="270.4000" frame="96" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="282.4000" frame="105" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5009"><KeyedProperty property="rotation"><KeyFrameDouble value="0.0000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="-0.1400" frame="96" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="105" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5009"><KeyedProperty property="scaleY"><KeyFrameDouble value="0.9000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0400" frame="13" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="31" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.9000" frame="35" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0400" frame="39" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="57" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.9000" frame="61" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0400" frame="65" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="83" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.9200" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="93" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5007"><KeyedProperty property="scaleX"><KeyFrameDouble value="1.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="132" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="159" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1000" frame="163" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="168" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="170" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0500" frame="173" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="177" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="177" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1000" frame="181" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="186" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="188" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0500" frame="191" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="195" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5007"><KeyedProperty property="scaleY"><KeyFrameDouble value="1.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="132" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="159" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1000" frame="163" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="168" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="170" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0500" frame="173" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="177" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="177" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1000" frame="181" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="186" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="188" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0500" frame="191" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="195" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5013"><KeyedProperty property="end"><KeyFrameDouble value="0.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.3" y1="0" x2="0.2" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="132" interpolationType="cubic"><CubicEaseInterpolator x1="0.3" y1="0" x2="0.2" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="147" interpolationType="cubic"><CubicEaseInterpolator x1="0.3" y1="0" x2="0.2" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5010"><KeyedProperty property="opacity"><KeyFrameDouble value="1.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="105" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="117" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="147" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="159" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5011"><KeyedProperty property="opacity"><KeyFrameDouble value="1.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="105" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="117" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="147" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="159" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5010"><KeyedProperty property="scaleY"><KeyFrameDouble value="1.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="186" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.1000" frame="190" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="194" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5011"><KeyedProperty property="scaleY"><KeyFrameDouble value="1.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="186" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.1000" frame="190" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="194" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5016"><KeyedProperty property="opacity"><KeyFrameDouble value="0.0000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="0.0000" frame="9" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject><KeyedObject objectId="0:5016"><KeyedProperty property="scaleX"><KeyFrameDouble value="0.6000" frame="0" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="87" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="159" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1000" frame="163" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="168" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="170" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0500" frame="173" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="177" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="177" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.1000" frame="181" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="186" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="188" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0500" frame="191" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble><KeyFrameDouble value="1.0000" frame="195" interpolationType="cubic"><CubicEaseInterpolator x1="0.42" y1="0" x2="0.58" y2="1"/></KeyFrameDouble></KeyedProperty></KeyedObject></LinearAnimation>
+</Artboard>
+</Rive>

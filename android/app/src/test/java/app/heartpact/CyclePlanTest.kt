@@ -31,16 +31,60 @@ class CyclePlanTest {
         assertEquals(3, strip.count { it.kind == DayKind.Period })
     }
 
-    @Test fun `flow after a dry stretch, well into the cycle, starts a new period`() {
-        val start = LocalDate.of(2026, 9, 30)
-        assertTrue(CyclePlan.startsNewPeriod(FlowLevel.Light, LocalDate.of(2026, 10, 27), start, 5, emptyList()))
-        assertFalse("still the same period", CyclePlan.startsNewPeriod(FlowLevel.Heavy, LocalDate.of(2026, 10, 2), start, 5, emptyList()))
-        assertFalse("spotting is not a period", CyclePlan.startsNewPeriod(FlowLevel.Spotting, LocalDate.of(2026, 10, 27), start, 5, emptyList()))
-        assertFalse("continuing yesterday's flow", CyclePlan.startsNewPeriod(FlowLevel.Light, LocalDate.of(2026, 10, 28), start, 5, listOf(CycleDayLog("2026-10-27", FlowLevel.Medium))))
+    @Test fun `a rolled-forward cycle draws its assumed period as a prediction, not as one that happened`() {
+        // The server rolled 2 Sep forward to 30 Sep: nothing says the period on 30 Sep came.
+        val rolled = prediction.copy(lastPeriodStart = "2026-09-02")
+        assertEquals(List(5) { DayKind.Predicted }, CyclePlan.strip(rolled, emptyList(), 5, today).take(5).map { it.kind })
+        // The real last start (logged, or set by the owner) is drawn as a period.
+        assertEquals(List(5) { DayKind.Period }, CyclePlan.strip(prediction.copy(lastPeriodStart = "2026-09-30"), emptyList(), 5, today).take(5).map { it.kind })
+    }
+
+    @Test fun `a late period runs the strip to today with no period drawn where it was due`() {
+        val lateToday = LocalDate.of(2026, 10, 31)
+        val late = prediction.copy(lastPeriodStart = "2026-09-30", cycleDay = 32, daysLate = 3)
+        val logs = listOf("2026-09-30", "2026-10-01", "2026-10-02").map { CycleDayLog(it, FlowLevel.Medium) }
+        val strip = CyclePlan.strip(late, logs, 5, lateToday)
+        assertEquals(lateToday, strip.last().date)
+        assertTrue(strip.last().today)
+        assertTrue(strip.none { it.kind == DayKind.Predicted })
+        assertEquals(DayKind.Plain, strip.first { it.date == LocalDate.of(2026, 10, 28) }.kind)
+        assertEquals("Period late by 3 days.", CyclePlan.summary(late, 28))
+        assertEquals("Period due today.", CyclePlan.summary(late.copy(daysLate = 0), 28))
+    }
+
+    @Test fun `a partner sees a late period by the owner's name, and only when the server says it is late`() {
+        val late = prediction.copy(lastPeriodStart = "2026-09-30", cycleDay = 32, daysLate = 3)
+        assertEquals("Maya's period is 3 days late.", CyclePlan.partnerSummary(late, 28, "Maya"))
+        assertEquals("Maya's period is 1 day late.", CyclePlan.partnerSummary(late.copy(daysLate = 1), 28, "Maya"))
+        assertEquals("Maya's period is due today.", CyclePlan.partnerSummary(late.copy(daysLate = 0), 28, "Maya"))
+        // On time (or rolled forward, as for a private pregnancy): the owner's own wording, with no hint.
+        assertEquals("Of about 28 days. Next period likely 27–29 October.", CyclePlan.partnerSummary(prediction, 28, "Maya"))
+        assertEquals(null, CyclePlan.partnerSummary(CyclePrediction(), 28, "Maya"))
+        // The Us row says the same instead of a day count that keeps climbing.
+        assertEquals("Maya's period is 3 days late", CyclePlan.usRow(false, null, null, "Maya", 32, 3))
+        assertEquals("Maya's period is due today", CyclePlan.usRow(false, null, null, "Maya", 29, 0))
+        assertEquals("Day 12 of Maya's cycle", CyclePlan.usRow(false, null, null, "Maya", 12, null))
+        // The owner's own row is unchanged by a partner value.
+        assertEquals("Day 32 · private", CyclePlan.usRow(true, 32, app.heartpact.data.CycleShare.None, "Theo", null, 3))
+    }
+
+    @Test fun `past days can be logged for two months`() {
+        assertTrue(CyclePlan.canLog(today, today))
+        assertTrue(CyclePlan.canLog(today.minusDays(60), today))
+        assertFalse(CyclePlan.canLog(today.minusDays(61), today))
+        assertFalse(CyclePlan.canLog(today.plusDays(1), today))
+        assertEquals("Today", CyclePlan.dayTitle(today, today))
+        assertEquals("Yesterday", CyclePlan.dayTitle(today.minusDays(1), today))
+        assertEquals("Thursday 8 October", CyclePlan.dayTitle(LocalDate.of(2026, 10, 8), today))
+    }
+
+    @Test fun `settings open on the start the forecast counts from`() {
+        assertEquals("2026-10-02", CyclePlan.lastStartForEditing(prediction.copy(lastPeriodStart = "2026-10-02"), "2026-09-01"))
+        assertEquals("2026-09-01", CyclePlan.lastStartForEditing(CyclePrediction(), "2026-09-01"))
     }
 
     @Test fun `wording`() {
-        assertEquals("Of about 28. Next period likely 27–29 October.", CyclePlan.summary(prediction, 28))
+        assertEquals("Of about 28 days. Next period likely 27–29 October.", CyclePlan.summary(prediction, 28))
         assertEquals("31 October–2 November", CyclePlan.likely(LocalDate.of(2026, 11, 1)))
         assertEquals("Day 12 · Theo sees predictions", CyclePlan.usRow(true, 12, app.heartpact.data.CycleShare.PredictionsOnly, "Theo", null))
         assertEquals("Day 12 of Maya's cycle", CyclePlan.usRow(false, null, null, "Maya", 12))

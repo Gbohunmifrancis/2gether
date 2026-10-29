@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Memories;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
 using Twogether.Core.Notifications;
 using Twogether.Infrastructure.Persistence;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Background;
 
@@ -22,11 +25,13 @@ public sealed class AlbumSyncReminderWorker(
     IServiceScopeFactory scopeFactory,
     IHubContext<CoupleHub> hub,
     IDateTimeProvider clock,
-    ILogger<AlbumSyncReminderWorker> logger) : BackgroundService
+    ILogger<AlbumSyncReminderWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
     private const int BatchSize = 100;
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan StartupDelay = TimeSpan.FromMinutes(1);
+    public const string HeartbeatName = "albumSyncReminders";
 
     public sealed record RunSummary(int Candidates, int Sent, int SkippedCategoryOff, int SkippedQuietHours, int SkippedNotDue, int SkippedClaimedElsewhere, int Failed);
 
@@ -34,6 +39,7 @@ public sealed class AlbumSyncReminderWorker(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(AlbumSyncReminderWorker), stoppingToken);
         try
         {
@@ -50,6 +56,7 @@ public sealed class AlbumSyncReminderWorker(
             try
             {
                 await RunAsync(stoppingToken);
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -58,6 +65,7 @@ public sealed class AlbumSyncReminderWorker(
             catch (Exception exception)
             {
                 logger.LogError(exception, "Album sync reminder run failed.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));
@@ -99,7 +107,8 @@ public sealed class AlbumSyncReminderWorker(
                 }
                 try
                 {
-                    var partnerName = candidate.PartnerId is { } partner ? partnerNames.GetValueOrDefault(partner, "your partner") : "your partner";
+                    // Null: the reminder says "your partner" in the reader's own language.
+                    var partnerName = candidate.PartnerId is { } partner ? partnerNames.GetValueOrDefault(partner) : null;
                     var notice = await TryRemindAsync(db, candidate, partnerName, now, cancellationToken);
                     if (notice is null) claimedElsewhere++;
                     else
@@ -165,7 +174,7 @@ public sealed class AlbumSyncReminderWorker(
     /// outbox) in the same transaction. Null when another instance claimed it first, or the
     /// person synced in the meantime.
     /// </summary>
-    private static async Task<Notification?> TryRemindAsync(ApplicationDbContext db, Candidate candidate, string partnerName, DateTime now, CancellationToken cancellationToken)
+    private static async Task<Notification?> TryRemindAsync(ApplicationDbContext db, Candidate candidate, string? partnerName, DateTime now, CancellationToken cancellationToken)
     {
         var userId = candidate.State.UserId;
         var promptedBefore = now - AlbumSyncRules.ReminderInterval;
@@ -177,8 +186,9 @@ public sealed class AlbumSyncReminderWorker(
         if (claimed != 1) return null;
 
         var pending = candidate.State.PendingCount;
+        using var _ = Loc.Use(await db.LanguageOfAsync(userId, cancellationToken));
         var notice = Notification.Create(userId, candidate.CoupleId, NotificationType.AlbumSyncReminder, MemorySyncText.ReminderTitle,
-            MemorySyncText.ReminderBody(pending, partnerName),
+            MemorySyncText.ReminderBody(pending, partnerName ?? Loc.T("your partner")),
             JsonSerializer.Serialize(new { pendingCount = pending, preferWifi = true }), now);
         db.Notifications.Add(notice);
         await db.SaveChangesAsync(cancellationToken);

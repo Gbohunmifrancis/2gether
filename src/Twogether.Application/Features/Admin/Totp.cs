@@ -78,6 +78,11 @@ public sealed class AdminSettings
     /// <summary>Estimated monthly revenue per product id, in the currency below (Admin:MonthlyPrices:{productId}).</summary>
     public IReadOnlyDictionary<string, decimal> MonthlyPrices { get; init; } = new Dictionary<string, decimal>();
     public string Currency { get; init; } = "USD";
+    /// <summary>Food photo estimate price per million tokens, in <see cref="Currency"/>; the cost estimate is null without both.</summary>
+    public decimal? FoodScanPricePerMillionInput { get; init; }
+    public decimal? FoodScanPricePerMillionOutput { get; init; }
+    /// <summary>Album storage budget in GB (10^9 bytes); the storage alert fires at 80%. Null: no alert.</summary>
+    public decimal? StorageBudgetGb { get; init; }
 
     public bool IsAdmin(string? email) => email is not null && Emails.Any(item => string.Equals(item, email.Trim(), StringComparison.OrdinalIgnoreCase));
 }

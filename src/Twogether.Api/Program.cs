@@ -40,20 +40,37 @@ var adminSettings = new Twogether.Application.Features.Admin.AdminSettings
         .Where(item => decimal.TryParse(item.Value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out _))
         .ToDictionary(item => item.Key, item => decimal.Parse(item.Value!, System.Globalization.CultureInfo.InvariantCulture)),
     Currency = builder.Configuration["Admin:Currency"] ?? "USD",
+    FoodScanPricePerMillionInput = PositiveDecimal(builder.Configuration["Admin:FoodScanPricePerMillionInput"]),
+    FoodScanPricePerMillionOutput = PositiveDecimal(builder.Configuration["Admin:FoodScanPricePerMillionOutput"]),
+    StorageBudgetGb = PositiveDecimal(builder.Configuration["Admin:StorageBudgetGb"]),
 };
+static decimal? PositiveDecimal(string? value)
+    => decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsed) && parsed > 0 ? parsed : null;
 builder.Services.AddSingleton(adminSettings);
 // Admins' authenticator secrets are encrypted at rest; older keys still read existing ones (docs/admin.md).
 builder.Services.AddSingleton(_ => new Twogether.Application.Features.Admin.AdminSecretProtector(
     builder.Configuration["Admin:SecretKey"], builder.Configuration["Admin:PreviousSecretKey"], jwtSettings.SigningKey));
 builder.Services.AddScoped<Twogether.Api.Admin.AdminAudit>();
+// Admin console v2: live feed, health and alerts (docs/admin/contract-v2.md).
+builder.Services.AddSingleton<Twogether.Application.Features.Admin.Ops.WorkerHeartbeats>();
+builder.Services.AddSingleton<Twogether.Application.Features.Admin.Ops.OpsSignals>();
+builder.Services.AddSingleton<Twogether.Application.Features.Admin.Ops.AdminAlertMonitor>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.Live.AdminLiveFeed>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.Ops.AdminAlerts>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.Ops.AdminHealth>();
+builder.Services.AddScoped<Twogether.Application.Features.Admin.People.AdminJourney>();
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<HubConnectionRegistry>();
 builder.Services.AddSingleton<GameLiveState>();
+builder.Services.AddSingleton<Twogether.Application.Features.Location.LocationFixThrottle>();
+builder.Services.AddScoped<Twogether.Api.Realtime.LocationSharingStopper>();
 builder.Services.AddHostedService<GameTimeoutWorker>();
 builder.Services.AddHostedService<ExerciseAlarmWorker>();
 builder.Services.AddHostedService<MemoryCleanupWorker>();
 builder.Services.AddHostedService<PushDispatchWorker>();
 builder.Services.AddHostedService<AlbumSyncReminderWorker>();
+builder.Services.AddHostedService<LocationSweepWorker>();
+builder.Services.AddHostedService<AdminAuditSweepWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -100,7 +117,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ?? context.Principal?.FindFirst("sub")?.Value;
                 var database = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IApplicationDbContext>();
                 var current = Guid.TryParse(subject, out var userId)
-                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId, user.SessionsValidFromUtc, user.DisabledAtUtc, user.LastActiveAtUtc }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
+                    ? await database.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId, user.SessionsValidFromUtc, user.DisabledAtUtc, user.LastActiveAtUtc, user.Language }).SingleOrDefaultAsync(context.HttpContext.RequestAborted)
                     : null;
                 if (current is null)
                 {
@@ -116,6 +133,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var clockNow = context.HttpContext.RequestServices.GetRequiredService<Twogether.Application.Common.Interfaces.IDateTimeProvider>().UtcNow;
                 if (current.LastActiveAtUtc is null || clockNow - current.LastActiveAtUtc > TimeSpan.FromMinutes(15))
                     await Twogether.Infrastructure.Admin.UserActivity.RecordAsync(database, userId, current.LastActiveAtUtc, clockNow, context.HttpContext.RequestAborted);
+                // Notifications and emails for this person are written in the language their app asks in.
+                if (context.HttpContext.Request.Headers.AcceptLanguage.Count > 0 && Twogether.Shared.Localization.Loc.Language is var language && language != current.Language)
+                    await Twogether.Infrastructure.Admin.UserActivity.SetLanguageAsync(database, userId, language, context.HttpContext.RequestAborted);
                 // A password reset ends every session that started before it.
                 if (current.SessionsValidFromUtc is { } validFrom && context.SecurityToken.ValidFrom < validFrom)
                 {
@@ -252,6 +272,10 @@ if (app.Environment.IsProduction() && string.Equals(app.Configuration["Billing:P
 {
     throw new InvalidOperationException("Billing:Provider=fake grants paid access for free and is refused in Production.");
 }
+if (app.Environment.IsProduction() && string.Equals(app.Configuration["Integrity:Provider"]?.Trim(), "fake", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException("Integrity:Provider=fake trusts any app and is refused in Production.");
+}
 
 if (app.Environment.IsProduction() && jwtSettings.SigningKey.Contains("change-before-production", StringComparison.OrdinalIgnoreCase))
 {
@@ -264,6 +288,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Messages follow the caller's Accept-Language (docs/translation.md). Only the UI language changes: numbers and dates
+// the server formats or parses stay in the invariant English culture.
+app.UseRequestLocalization(new Microsoft.AspNetCore.Builder.RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("en", "en"),
+    SupportedCultures = [System.Globalization.CultureInfo.GetCultureInfo("en")],
+    SupportedUICultures = Twogether.Shared.Localization.Loc.Languages.Select(System.Globalization.CultureInfo.GetCultureInfo).ToList(),
+    FallBackToParentUICultures = true,
+});
+app.Use((context, next) =>
+{
+    // A cached answer in one language must not be served to someone asking in another.
+    context.Response.Headers.Append("Vary", "Accept-Language");
+    return next(context);
+});
 app.UseRouting();
 app.UseResponseCaching();
 app.UseCors("Frontend");

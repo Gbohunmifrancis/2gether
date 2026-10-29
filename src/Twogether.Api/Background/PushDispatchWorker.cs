@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Push;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
@@ -16,14 +17,17 @@ public sealed class PushDispatchWorker(
     IServiceScopeFactory scopeFactory,
     IPushSender sender,
     IDateTimeProvider clock,
-    ILogger<PushDispatchWorker> logger) : BackgroundService
+    ILogger<PushDispatchWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
     private const int BatchSize = 100;
     private static readonly TimeSpan Lease = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(2);
+    public const string HeartbeatName = "pushDispatch";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(PushDispatchWorker), stoppingToken);
         logger.LogInformation("Push dispatch running with provider {Provider} (configured: {Configured}).", sender.Name, sender.IsConfigured);
         using var timer = new PeriodicTimer(Interval);
@@ -33,6 +37,7 @@ public sealed class PushDispatchWorker(
             {
                 // Drain: keep going while full batches come back, so a burst does not wait 2 s per 100.
                 while (await DispatchBatchAsync(stoppingToken) == BatchSize) { }
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -42,6 +47,7 @@ public sealed class PushDispatchWorker(
             {
                 // Claimed rows keep their lease and come back once it expires.
                 logger.LogError(exception, "Push dispatch batch failed.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
     }

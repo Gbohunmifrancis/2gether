@@ -14,6 +14,10 @@ Reads work for an unlinked user (they see their own data and no partner); writes
 - `food_scans`: audit row per photo estimate call. Never stores the photo; stores the model, token counts, latency,
   success or error code, and the accepted estimate as JSON. Drives the per-user daily quota, which comes from the couple's plan (Free 3, Plus 20 by default; see
   `docs/billing.md`), counted per UTC day, failed calls included because they were billed.
+  The row is written as pending (`errorCode` `food.scan_pending`) before the photo is sent, with the count and the
+  insert done in one step per person (a PostgreSQL advisory lock), so parallel requests cannot all pass the limit.
+  Every scan that got that far counts for the day however it ends: success, a model error, `food.not_food`, an
+  unexpected error (`food.scan_error`) or the phone giving up (`food.scan_cancelled`; a row left pending was abandoned).
 
 Totals (`FoodTotalsDto`) also carry `caloriesLow` and `caloriesHigh`: each entry's range added up, with an entry that
 has no range counted at its own calories at both ends. A partner who shares totals only therefore still shows an

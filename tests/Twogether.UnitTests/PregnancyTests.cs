@@ -56,6 +56,35 @@ public sealed class PregnancyTests
     }
 
     [Fact]
+    public void Ending_stops_sharing_and_only_the_couple_it_started_in_sees_it()
+    {
+        var coupleId = Guid.NewGuid();
+        var pregnancy = Pregnancy.Start(coupleId, Guid.NewGuid(), Today.AddDays(100), true, Now);
+        Assert.True(pregnancy.IsSharedWith(coupleId));
+        Assert.False(pregnancy.IsSharedWith(Guid.NewGuid())); // a later partner
+        pregnancy.End(Now);
+        Assert.False(pregnancy.ShareWithPartner);
+        Assert.False(pregnancy.IsSharedWith(coupleId));
+    }
+
+    [Fact]
+    public void An_overdue_pregnancy_can_still_be_edited_when_its_due_date_stays()
+    {
+        var due = Today.AddDays(-30); // past the three weeks a new due date may be
+        Assert.Equal(due, PregnancyRules.ResolveUpdatedDueDate("2026-09-10", due, Today).Value);
+        Assert.Equal("pregnancy.invalid_due_date", PregnancyRules.ResolveUpdatedDueDate("2026-09-11", due, Today).Error.Code);
+        Assert.Equal(Today.AddDays(5), PregnancyRules.ResolveUpdatedDueDate("2026-10-15", due, Today).Value);
+        Assert.Equal("pregnancy.invalid_due_date", PregnancyRules.ResolveUpdatedDueDate("not a date", due, Today).Error.Code);
+    }
+
+    [Fact]
+    public void The_shared_notice_is_found_by_the_data_it_was_created_with()
+    {
+        var id = Guid.Parse("6f9619ff-8b86-d011-b42d-00c04fc964ff");
+        Assert.Equal("{\"pregnancyId\":\"6f9619ff-8b86-d011-b42d-00c04fc964ff\"}", PregnancyNotices.SharedData(id));
+    }
+
+    [Fact]
     public void Kick_session_count_only_goes_up_and_closes_itself_after_three_hours()
     {
         var session = KickSession.Start(Guid.NewGuid(), Now);

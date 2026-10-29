@@ -17,6 +17,8 @@ import app.heartpact.data.Memory
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.UpdateMemoryRequest
 import app.heartpact.data.apiCall
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,7 +62,7 @@ class AlbumViewModel(application: Application) : AndroidViewModel(application) {
                         d.getInt(AlbumSyncWorker.SYNCED, 0), d.getInt(AlbumSyncWorker.REFUSED, 0), d.getInt(AlbumSyncWorker.LEFT, 0),
                         d.getBoolean(AlbumSyncWorker.FULL, false), d.getString(AlbumSyncWorker.STOPPED),
                     )
-                    else -> "The sync stopped. Your photos are still on this phone; try again when you're ready."
+                    else -> tr("The sync stopped. Your photos are still on this phone; try again when you're ready.")
                 }
                 _ui.update { it.copy(sync = SyncState.Idle, result = result ?: it.result) }
                 if (announce) refresh()
@@ -77,7 +79,7 @@ class AlbumViewModel(application: Application) : AndroidViewModel(application) {
             is ApiResult.Failure -> _ui.update {
                 if (page.code == STORAGE_MISSING) it.copy(storageMissing = true, note = null, loaded = true) else it.copy(note = page.message, loaded = true)
             }
-            ApiResult.Offline -> _ui.update { it.copy(note = if (it.shared.isEmpty()) "You're offline. Your shared album shows up when you're back; photos you add stay on this phone meanwhile." else null, loaded = true) }
+            ApiResult.Offline -> _ui.update { it.copy(note = if (it.shared.isEmpty()) tr("You're offline. Your shared album shows up when you're back; photos you add stay on this phone meanwhile.") else null, loaded = true) }
         }
         if (page !is ApiResult.Ok) return@launch
         (apiCall(app.json) { app.api.albumSync() } as? ApiResult.Ok)?.let { status -> _ui.update { it.copy(usage = status.value.usage) } }
@@ -104,7 +106,7 @@ class AlbumViewModel(application: Application) : AndroidViewModel(application) {
             val skipped = withContext(Dispatchers.IO) { uris.map { importer.import(it) }.filterIsInstance<PhotoImporter.Result.Skipped>() }
             if (skipped.isNotEmpty()) {
                 val first = skipped.first().reason
-                _ui.update { it.copy(result = if (skipped.size == 1) first else "${AlbumText.photos(skipped.size)} weren't added. $first") }
+                _ui.update { it.copy(result = if (skipped.size == 1) first else trn(skipped.size, "{count} photo wasn't added. {reason}", "{count} photos weren't added. {reason}", "reason" to first)) }
             }
             AlbumReminderWorker.schedule(getApplication())
             app.albumSync.reportPending()

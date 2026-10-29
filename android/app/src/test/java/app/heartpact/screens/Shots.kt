@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import app.heartpact.ui.graphics.LocalStillLogo
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.HeartpactTheme
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -12,8 +14,11 @@ import com.github.takahirom.roborazzi.captureRoboImage
 /** Screenshots land in android/app/build/screens and are compared against the PNG mockups by eye. */
 fun shot(name: String, night: Boolean = false, content: @Composable () -> Unit) {
     captureRoboImage("build/screens/$name.png") {
-        HeartpactTheme(night = night) {
-            Box(Modifier.fillMaxSize().background(Heartpact.colors.page)) { content() }
+        // The live logo held still: Roborazzi waits for the screen to stop changing.
+        CompositionLocalProvider(LocalStillLogo provides true) {
+            HeartpactTheme(night = night) {
+                Box(Modifier.fillMaxSize().background(Heartpact.colors.page)) { content() }
+            }
         }
     }
 }

@@ -2,6 +2,8 @@ package app.heartpact.data
 
 import app.heartpact.exercise.ExerciseType
 import app.heartpact.exercise.Measure
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.Instant
@@ -59,7 +61,47 @@ data class ExerciseOccurrence(
     val stateVersion: Long = 0,
     val callOffRequestedAtUtc: String? = null,
     val callOffNote: String? = null,
+    /** What the camera noticed in the session that completed it. */
+    val checks: OccurrenceChecks? = null,
 )
+
+/**
+ * The server's view of a completed session's checks. Flags and the verdict stay strings so a flag added
+ * on the server later doesn't break decoding here.
+ */
+@Serializable
+data class OccurrenceChecks(
+    val formFaults: Int = 0,
+    val fastReps: Int = 0,
+    val challengesPassed: Int = 0,
+    val challengesMissed: Int = 0,
+    val phoneMovedReps: Int = 0,
+    val outOfFrameSeconds: Int = 0,
+    val integrity: String = "notChecked",
+    val flags: List<String> = emptyList(),
+) {
+    /** What the partner reads on Today: the flags first, or reps that didn't count, or null for a clean set. */
+    fun partnerLine(): String? {
+        val parts = flags.mapNotNull { flag ->
+            when (flag) {
+                "missedCheckIn" -> trn(challengesMissed, "missed a camera check-in", "missed {count} camera check-ins")
+                "phoneMoved" -> trn(phoneMovedReps, "the phone was moving during {count} rep", "the phone was moving during {count} reps")
+                "leftFrame" -> trn(outOfFrameSeconds, "out of view for {count} second", "out of view for {count} seconds")
+                "unverifiedApp" -> tr("the app couldn't be verified")
+                else -> null
+            }
+        }
+        if (parts.isNotEmpty()) return tr("Worth a look: {problems}.", "problems" to parts.joinToString(", "))
+        val notCounted = formFaults + fastReps
+        return when {
+            notCounted > 0 -> trn(notCounted, "{count} rep didn't count", "{count} reps didn't count")
+            challengesPassed > 0 -> tr("Every camera check-in passed")
+            else -> null
+        }
+    }
+
+    val flagged: Boolean get() = flags.isNotEmpty()
+}
 
 @Serializable
 data class ExerciseToday(
@@ -68,6 +110,8 @@ data class ExerciseToday(
     val occurrences: List<ExerciseOccurrence> = emptyList(),
     val nextDueAtUtc: String? = null,
     val nextDueGoalId: String? = null,
+    /** The zone a dare set for the partner rings in, when their phone has saved one; null means this phone's own. */
+    val partnerTimeZoneId: String? = null,
 )
 
 @Serializable
@@ -80,7 +124,13 @@ data class ExerciseHistory(val days: Int, val occurrences: List<ExerciseOccurren
 data class CreateGoalRequest(val assignedUserId: String, val exerciseType: ExerciseType, val title: String?, val target: Int, val scheduledTime: String, val timeZoneId: String, val graceMinutes: Int = 30)
 
 @Serializable
-data class CompleteRequest(val achievedCount: Int, val confidence: Double)
+data class CompleteRequest(
+    val achievedCount: Int,
+    val confidence: Double,
+    val checks: app.heartpact.exercise.ExerciseChecks? = null,
+    /** A Play Integrity token for [PlayIntegrity.requestHash] of this occurrence and count. */
+    val integrityToken: String? = null,
+)
 
 @Serializable
 data class AskOffRequest(val note: String?)

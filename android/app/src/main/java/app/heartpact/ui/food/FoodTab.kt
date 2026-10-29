@@ -6,14 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BakeryDining
 import androidx.compose.material.icons.rounded.DinnerDining
@@ -54,6 +53,8 @@ import app.heartpact.data.FoodPartnerDay
 import app.heartpact.data.FoodShareLevel
 import app.heartpact.data.MealType
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
@@ -89,38 +90,39 @@ fun FoodTab(
     var editingAim by remember { mutableStateOf(false) }
     val day = ui.day
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 104.dp)) {
+        // With room, the day's total sits beside what was logged.
+        AdaptivePage(header = {
             Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)) {
-                Text("Food", style = Heartpact.type.headline, color = colors.ink)
-                Text("${today.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())} · photo estimates run about ±30%", style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
+                Text(tr("Food"), style = Heartpact.type.headline, color = colors.ink)
+                Text(tr("{weekday} · photo estimates run about ±30%", "weekday" to today.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
             }
+        }, second = if (day == null) null else ({
+            SectionHeader(tr("Logged today"), Modifier.padding(horizontal = 8.dp).padding(top = 14.dp))
+            if (day.entries.isEmpty()) {
+                StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
+                    Text(tr("Nothing yet. Snap your next meal, or log it by hand."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(18.dp))
+                }
+            } else {
+                StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
+                    day.entries.forEachIndexed { index, entry ->
+                        if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 0.dp), color = colors.rule)
+                        EntryRow(entry) { onOpenEntry(entry) }
+                    }
+                }
+            }
+            day.partner?.let { PartnerCard(it, partnerName) }
+            Row(Modifier.padding(horizontal = 12.dp).padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                HeartButton(tr("Choose a photo"), onChoosePhoto, kind = ButtonKind.Text, icon = Icons.Rounded.PhotoLibrary, fillWidth = false, height = 44.dp)
+                HeartButton(tr("Log by hand"), onLogByHand, kind = ButtonKind.Text, icon = Icons.Rounded.Edit, fillWidth = false, height = 44.dp)
+            }
+            FoodText.scansLeft(day.scanLimitPerDay - day.scansUsedToday, day.scanLimitPerDay)?.let {
+                Text(it, style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(horizontal = 24.dp))
+            }
+        }), contentPadding = PaddingValues(bottom = 104.dp)) {
             ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
-            if (day != null) {
-                Summary(day) { editingAim = true }
-                SectionHeader("Logged today", Modifier.padding(horizontal = 8.dp).padding(top = 14.dp))
-                if (day.entries.isEmpty()) {
-                    StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
-                        Text("Nothing yet. Snap your next meal, or log it by hand.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(18.dp))
-                    }
-                } else {
-                    StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
-                        day.entries.forEachIndexed { index, entry ->
-                            if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 0.dp), color = colors.rule)
-                            EntryRow(entry) { onOpenEntry(entry) }
-                        }
-                    }
-                }
-                day.partner?.let { PartnerCard(it, partnerName) }
-                Row(Modifier.padding(horizontal = 12.dp).padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    HeartButton("Choose a photo", onChoosePhoto, kind = ButtonKind.Text, icon = Icons.Rounded.PhotoLibrary, fillWidth = false, height = 44.dp)
-                    HeartButton("Log by hand", onLogByHand, kind = ButtonKind.Text, icon = Icons.Rounded.Edit, fillWidth = false, height = 44.dp)
-                }
-                FoodText.scansLeft(day.scanLimitPerDay - day.scansUsedToday, day.scanLimitPerDay)?.let {
-                    Text(it, style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(horizontal = 24.dp))
-                }
-            }
+            if (day != null) Summary(day) { editingAim = true }
         }
-        HeartButton("Snap a meal", onSnap, Modifier.align(Alignment.BottomEnd).padding(16.dp), icon = Icons.Rounded.PhotoCamera, fillWidth = false)
+        HeartButton(tr("Snap a meal"), onSnap, Modifier.align(Alignment.BottomEnd).padding(16.dp), icon = Icons.Rounded.PhotoCamera, fillWidth = false)
     }
     if (editingAim && day != null) AimDialog(day, partnerName, onDismiss = { editingAim = false }, onSave = { cal, share -> onSaveTargets(cal, share); editingAim = false })
 }
@@ -135,9 +137,9 @@ private fun Summary(day: FoodDay, onAim: () -> Unit) {
             Text(FoodText.headline(day.entries, totals), style = Heartpact.type.title.copy(fontSize = 22.sp, lineHeight = 27.sp), color = colors.ink)
             Row(Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 RangeBar(day.entries, totals.low, totals.high, aim, Modifier.weight(1f).height(26.dp))
-                Column(Modifier.padding(start = 10.dp).clickable(onClick = onAim).semantics { contentDescription = "Daily aim, about ${FoodText.n(aim)} kcal. Change it." }) {
+                Column(Modifier.padding(start = 10.dp).clickable(onClick = onAim).semantics { contentDescription = tr("Daily aim, about {calories} kcal. Change it.", "calories" to FoodText.n(aim)) }) {
                     Text("~${FoodText.n(aim)}", style = Heartpact.type.labelSmall, color = colors.ink2)
-                    Text("aim", style = Heartpact.type.labelSmall, color = colors.ink2)
+                    Text(tr("aim"), style = Heartpact.type.labelSmall, color = colors.ink2)
                 }
             }
             Text(FoodText.caption(totals, aim), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
@@ -154,7 +156,7 @@ private fun RangeBar(entries: List<FoodEntry>, low: Int, high: Int, aim: Int, mo
     val ink = colors.ink
     val track = colors.sticker2
     val scale = maxOf(aim * 1.1f, high * 1.05f, 1f)
-    Canvas(modifier.semantics { contentDescription = "About ${FoodText.range(low, high)} of ${FoodText.n(aim)} kcal" }) {
+    Canvas(modifier.semantics { contentDescription = tr("About {range} of {aim} kcal", "range" to FoodText.range(low, high), "aim" to FoodText.n(aim)) }) {
         val barH = size.height * 0.5f
         val top = (size.height - barH) / 2
         val r = CornerRadius(barH / 2, barH / 2)
@@ -196,7 +198,7 @@ private fun EntryRow(entry: FoodEntry, onClick: () -> Unit) {
         Column(horizontalAlignment = Alignment.End) {
             Text(if (entry.low != entry.high) "~${FoodText.n(entry.calories)}" else FoodText.n(entry.calories), style = Heartpact.type.label, color = colors.ink)
             if (entry.low != entry.high) Text(FoodText.range(entry.low, entry.high), style = Heartpact.type.small, color = colors.ink2)
-            else Text("kcal", style = Heartpact.type.small, color = colors.ink2)
+            else Text(tr("kcal"), style = Heartpact.type.small, color = colors.ink2)
         }
     }
 }
@@ -212,11 +214,11 @@ private fun PartnerCard(partner: FoodPartnerDay, partnerName: String) {
             Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 Text(partner.userName.ifBlank { partnerName }, style = Heartpact.type.titleSmall, color = colors.ink)
                 val estimate = totals != null && totals.low != totals.high
-                Text(FoodText.partnerLine(partner.shareLevel) + if (estimate) " · estimate" else "", style = Heartpact.type.small, color = colors.ink2)
+                Text(FoodText.partnerLine(partner.shareLevel) + if (estimate) " · " + tr("estimate") else "", style = Heartpact.type.small, color = colors.ink2)
             }
             if (totals != null) Column(horizontalAlignment = Alignment.End) {
-                Text(if (totals.entryCount == 0) "nothing yet" else FoodText.range(totals.low, totals.high), style = Heartpact.type.label, color = colors.ink)
-                if (totals.entryCount > 0) Text("kcal", style = Heartpact.type.small, color = colors.ink2)
+                Text(if (totals.entryCount == 0) tr("nothing yet") else FoodText.range(totals.low, totals.high), style = Heartpact.type.label, color = colors.ink)
+                if (totals.entryCount > 0) Text(tr("kcal"), style = Heartpact.type.small, color = colors.ink2)
             }
         }
         if (partner.shareLevel == FoodShareLevel.FullDetail && partner.entries.isNotEmpty()) {
@@ -239,12 +241,12 @@ private fun AimDialog(day: FoodDay, partnerName: String, onDismiss: () -> Unit, 
     val value = calories.toIntOrNull()?.takeIf { it in 800..6000 }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Your aim and sharing") },
+        title = { Text(tr("Your aim and sharing")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeartField("Daily aim, kcal", calories, { calories = it.filter(Char::isDigit).take(4) },
-                    keyboard = KeyboardOptions(keyboardType = KeyboardType.Number), error = if (value == null) "Between 800 and 6,000" else null)
-                Text("What $partnerName sees", style = Heartpact.type.label, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 6.dp))
+                HeartField(tr("Daily aim, kcal"), calories, { calories = it.filter(Char::isDigit).take(4) },
+                    keyboard = KeyboardOptions(keyboardType = KeyboardType.Number), error = if (value == null) tr("Between 800 and 6,000") else null)
+                Text(tr("What {partner} sees", "partner" to partnerName), style = Heartpact.type.label, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 6.dp))
                 FoodShareLevel.entries.forEach { level ->
                     Row(Modifier.fillMaxWidth().clickable { share = level }, verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = share == level, onClick = { share = level })
@@ -253,7 +255,7 @@ private fun AimDialog(day: FoodDay, partnerName: String, onDismiss: () -> Unit, 
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { value?.let { onSave(it, share) } }, enabled = value != null) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { TextButton(onClick = { value?.let { onSave(it, share) } }, enabled = value != null) { Text(tr("Save")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancel")) } },
     )
 }

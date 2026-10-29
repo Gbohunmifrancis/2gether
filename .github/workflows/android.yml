@@ -21,6 +21,7 @@ env:
   FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
   MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
   GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+  PLAY_INTEGRITY_PROJECT_NUMBER: ${{ secrets.PLAY_INTEGRITY_PROJECT_NUMBER }}
 
 jobs:
   check:
@@ -36,6 +37,8 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+      - name: Every string translated
+        run: python3 i18n/catalog.py check
       - name: Build, test, lint
         run: ./gradlew assembleDebug testDebugUnitTest lintDebug -Proborazzi.test.record=true
       - name: Screenshots
@@ -93,6 +96,8 @@ jobs:
           RateLimits__Enabled: "false"
           # Plus purchases with Google's answers faked by the token (docs/billing.md); refused in Production.
           Billing__Provider: fake
+          # Play Integrity verdicts faked by the token: "fake.pass" passes (docs/exercise-checks.md); refused in Production.
+          Integrity__Provider: fake
           # Reset codes go to the log, where the live test reads them.
           Email__Provider: log
           Media__ServiceUrl: http://127.0.0.1:9000

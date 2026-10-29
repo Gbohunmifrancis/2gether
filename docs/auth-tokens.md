@@ -38,8 +38,9 @@ A breakup also:
   tries and works once; asking again retires the previous one.
 - `POST api/auth/password/reset {email, code, newPassword}` sets the password, marks the email verified, and signs in.
   It sets `users.SessionsValidFromUtc`: `OnTokenValidated` rejects any token issued before it, and every open hub
-  connection of that user is closed, so a reset ends every other session. Tokens carry whole seconds, so the
-  cutoff is the reset's second; a wrong or expired code is `400 auth.invalid_reset_code`.
+  connection of that user is closed, so a reset ends every other session. Their location sharing stops with them, as
+  it does for the admin console's sign-out everywhere and disable. Tokens carry whole seconds, so the cutoff is the
+  reset's second; a wrong or expired code is `400 auth.invalid_reset_code`.
 - `POST api/auth/google {idToken, dateOfBirth?, gender?, displayName?}` verifies a Google ID token (signature, expiry,
   audience in `Auth:GoogleClientIds`) and requires a Google-verified email. It signs in the account linked to that
   Google id, or links the account with the same email, or creates one. Creating needs a date of birth: without

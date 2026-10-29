@@ -10,6 +10,7 @@ Clients talk only to `Twogether.Api`. Dependency direction is:
 
 - `android/`: the Heartpact Android app, Kotlin and Jetpack Compose (see `android/README.md`).
 - `admin/`: the admin dashboard, Vite + React with TanStack Router, Query and Table (see `docs/admin.md`).
+- `website/`: the marketing site, privacy policy, terms and account deletion page; static HTML, CSS and JS (see `docs/website.md`).
 - `frontend/`: Next.js App Router, strict TypeScript, REST and SignalR clients (predates the mobile pivot).
 - `src/Twogether.Shared`: result/error primitives and guards.
 - `src/Twogether.Core`: domain entities, enums, invariants, and pure algorithms.
@@ -32,6 +33,8 @@ Clients talk only to `Twogether.Api`. Dependency direction is:
 ```powershell
 dotnet build Twogether.slnx
 dotnet test Twogether.slnx
+# The PostgreSQL tests (tests/Twogether.IntegrationTests) skip unless this points at a throwaway server; CI sets it.
+$env:TWOGETHER_TEST_POSTGRES = "Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=postgres"
 
 cd android
 ./gradlew assembleDebug testDebugUnitTest lintDebug

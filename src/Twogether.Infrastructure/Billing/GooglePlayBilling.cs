@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Twogether.Application.Features.Billing;
 using Twogether.Core.Enums;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Infrastructure.Billing;
 
@@ -41,7 +42,7 @@ public sealed class GooglePlayBilling : IGooglePlayBilling, IDisposable
             var purchase = await _service.Purchases.Subscriptionsv2.Get(_packageName, purchaseToken).ExecuteAsync(cancellationToken);
             var line = purchase.LineItems?.OrderByDescending(item => item.ExpiryTimeDateTimeOffset).FirstOrDefault();
             if (line?.ProductId is null || line.ExpiryTimeDateTimeOffset is null)
-                return Error.Failure("billing.unreadable", "Google returned a subscription without a product or expiry.");
+                return Error.Failure("billing.unreadable", Loc.T("Google returned a subscription without a product or expiry."));
             return new PlaySubscriptionSnapshot(
                 line.ProductId,
                 PlayStateMapping.Map(purchase.SubscriptionState),
@@ -53,17 +54,17 @@ public sealed class GooglePlayBilling : IGooglePlayBilling, IDisposable
         }
         catch (GoogleApiException exception) when (exception.HttpStatusCode is HttpStatusCode.NotFound or HttpStatusCode.Gone or HttpStatusCode.BadRequest)
         {
-            return Error.NotFound("billing.unknown_purchase", "Google does not know this purchase.");
+            return Error.NotFound("billing.unknown_purchase", Loc.T("Google does not know this purchase."));
         }
         catch (GoogleApiException exception)
         {
             _logger.LogWarning(exception, "Google Play lookup failed with {Status}.", exception.HttpStatusCode);
-            return new Error("billing.store_unavailable", "Google Play could not be reached. Try again shortly.", ErrorType.Network);
+            return new Error("billing.store_unavailable", Loc.T("Google Play could not be reached. Try again shortly."), ErrorType.Network);
         }
         catch (HttpRequestException exception)
         {
             _logger.LogWarning(exception, "Google Play lookup failed on the network.");
-            return new Error("billing.store_unavailable", "Google Play could not be reached. Try again shortly.", ErrorType.Network);
+            return new Error("billing.store_unavailable", Loc.T("Google Play could not be reached. Try again shortly."), ErrorType.Network);
         }
     }
 
@@ -78,7 +79,7 @@ public sealed class GooglePlayBilling : IGooglePlayBilling, IDisposable
         catch (Exception exception) when (exception is GoogleApiException or HttpRequestException)
         {
             _logger.LogWarning(exception, "Acknowledging a Google Play purchase failed; the next verify or notification retries it.");
-            return new Error("billing.acknowledge_failed", "The purchase could not be acknowledged yet.", ErrorType.Network);
+            return new Error("billing.acknowledge_failed", Loc.T("The purchase could not be acknowledged yet."), ErrorType.Network);
         }
     }
 
@@ -123,13 +124,13 @@ public sealed class GooglePlayBilling : IGooglePlayBilling, IDisposable
         catch (Exception exception) when (exception is GoogleApiException or HttpRequestException)
         {
             _logger.LogWarning(exception, "Google Play {Action} failed.", action);
-            return new Error("billing.store_unavailable", "Google Play could not be reached. Try again shortly.", ErrorType.Network);
+            return new Error("billing.store_unavailable", Loc.T("Google Play could not be reached. Try again shortly."), ErrorType.Network);
         }
     }
 
     public void Dispose() => _service?.Dispose();
 
-    private static Error Unavailable() => new("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure);
+    private static Error Unavailable() => new("billing.store_unavailable", Loc.T("Billing is not configured on this server."), ErrorType.Failure);
 }
 
 /// <summary>Billing is off: nobody can buy, everyone is on Free.</summary>
@@ -137,12 +138,12 @@ public sealed class DisabledGooglePlayBilling : IGooglePlayBilling
 {
     public bool IsConfigured => false;
     public Task<Result<PlaySubscriptionSnapshot>> GetAsync(string purchaseToken, CancellationToken cancellationToken)
-        => Task.FromResult(Result.Failure<PlaySubscriptionSnapshot>(new Error("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure)));
+        => Task.FromResult(Result.Failure<PlaySubscriptionSnapshot>(new Error("billing.store_unavailable", Loc.T("Billing is not configured on this server."), ErrorType.Failure)));
     public Task<Result> AcknowledgeAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
     public Task<Result> CancelAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
     public Task<Result> RefundAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
     public Task<Result> RevokeAsync(string productId, string purchaseToken, CancellationToken cancellationToken) => Off();
-    private static Task<Result> Off() => Task.FromResult(Result.Failure(new Error("billing.store_unavailable", "Billing is not configured on this server.", ErrorType.Failure)));
+    private static Task<Result> Off() => Task.FromResult(Result.Failure(new Error("billing.store_unavailable", Loc.T("Billing is not configured on this server."), ErrorType.Failure)));
 }
 
 /// <summary>
@@ -162,7 +163,7 @@ public sealed class FakeGooglePlayBilling : IGooglePlayBilling
     {
         var parts = purchaseToken.Split('.', 5);
         if (parts.Length != 5 || parts[0] != "fake" || !int.TryParse(parts[2], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var days))
-            return Task.FromResult(Result.Failure<PlaySubscriptionSnapshot>(Error.NotFound("billing.unknown_purchase", "Google does not know this purchase.")));
+            return Task.FromResult(Result.Failure<PlaySubscriptionSnapshot>(Error.NotFound("billing.unknown_purchase", Loc.T("Google does not know this purchase."))));
         var status = parts[1] switch
         {
             "active" => StoreSubscriptionStatus.Active,

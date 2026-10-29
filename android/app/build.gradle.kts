@@ -35,6 +35,8 @@ android {
         buildConfigField("boolean", "HAS_MAPS_KEY", setting("MAPS_API_KEY").isNotBlank().toString())
         // Google sign-in: the web OAuth client id the server checks ID tokens against. Empty hides the button.
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${setting("GOOGLE_WEB_CLIENT_ID")}\"")
+        // Play Integrity: the Google Cloud project number linked in Play Console. Empty skips the check.
+        buildConfigField("String", "PLAY_INTEGRITY_PROJECT_NUMBER", "\"${setting("PLAY_INTEGRITY_PROJECT_NUMBER")}\"")
     }
 
     signingConfigs {
@@ -117,7 +119,12 @@ dependencies {
     // SignalR hands hub payloads over as Gson elements; it only declares Gson at runtime.
     implementation(libs.gson)
     implementation(libs.maps.compose)
+    // The fused provider for location sharing on phones older than Android 12 (the version billing already brings).
+    implementation(libs.play.location)
     implementation(libs.billing.ktx)
+    // Plays the 3D icons and the splash: res/raw/heartpact_icons.riv, built in design/rive-icons.
+    implementation(libs.rive.android)
+    implementation(libs.play.integrity)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.credentials)
     implementation(libs.credentials.play)

@@ -13,7 +13,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
 class SplashShotsTest {
     @Test fun frames() {
-        listOf(700, 1100, 1450, 1650, 1850, 2050, 2300, 3000).forEach { t ->
+        listOf(700, 1100, 1450, 1650, 1850, 2050, 2300, 2550, 2730, 3190, 3300).forEach { t ->
             shot("splash-%04d".format(t)) { SplashScene(timeMs = t.toFloat()) }
         }
     }

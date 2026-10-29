@@ -5,6 +5,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.exifinterface.media.ExifInterface
+import app.heartpact.i18n.tr
 import app.heartpact.media.Jpeg
 import java.io.File
 import java.io.InputStream
@@ -27,16 +28,16 @@ class PhotoImporter(private val resolver: ContentResolver, private val queue: Al
 
     suspend fun import(uri: Uri, nowMs: Long = System.currentTimeMillis()): Result {
         val type = resolver.getType(uri)?.lowercase()
-        val ext = type?.let { TYPES[it] } ?: return Result.Skipped("Only photos (JPEG, PNG, WebP or HEIC) and videos (MP4 or MOV) can go in the album.")
+        val ext = type?.let { TYPES[it] } ?: return Result.Skipped(tr("Only photos (JPEG, PNG, WebP or HEIC) and videos (MP4 or MOV) can go in the album."))
         val video = type.startsWith("video/")
         val limit = if (video) MAX_VIDEO_BYTES else MAX_BYTES
-        val tooBig = if (video) "Videos must be under 100 MB." else "Photos must be under 15 MB."
+        val tooBig = if (video) tr("Videos must be under 100 MB.") else tr("Photos must be under 15 MB.")
         // Check the size first where the picker says it: a long video shouldn't be copied just to be refused.
         if ((declaredSize(uri) ?: 0) > limit) return Result.Skipped(tooBig)
         val id = UUID.randomUUID().toString()
         val target = File(queue.photosDir, "$id$ext")
         val copied = runCatching { resolver.openInputStream(uri)!!.use { input -> target.outputStream().use { copyAtMost(input, it, limit + 1) } } }
-        if (copied.isFailure) { target.delete(); return Result.Skipped(if (video) "That video couldn't be read." else "That photo couldn't be read.") }
+        if (copied.isFailure) { target.delete(); return Result.Skipped(if (video) tr("That video couldn't be read.") else tr("That photo couldn't be read.")) }
         if (target.length() > limit) { target.delete(); return Result.Skipped(tooBig) }
         val thumbFile = File(queue.thumbsDir, "$id.jpg")
         val taken: String?
@@ -52,7 +53,7 @@ class PhotoImporter(private val resolver: ContentResolver, private val queue: Al
                 }.getOrNull()
             } catch (_: RuntimeException) {
                 target.delete()
-                return Result.Skipped("That video couldn't be read.")
+                return Result.Skipped(tr("That video couldn't be read."))
             } finally {
                 runCatching { retriever.release() }
             }

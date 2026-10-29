@@ -11,6 +11,8 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Pregnancy;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -27,26 +29,27 @@ public sealed class PregnancyController(
     IHubContext<CoupleHub> hub,
     ILogger<PregnancyController> logger) : ApiControllerBase
 {
-    private static readonly ApiError NoCouple = new("pregnancy.no_couple", "Link your partner before starting pregnancy mode.");
-    private static readonly ApiError NotOwner = new("pregnancy.not_owner", "Only the person who is pregnant can change this.");
-    private static readonly ApiError NotAppointmentAuthor = new("pregnancy.not_appointment_author", "Only the person who is pregnant, or whoever added this appointment, can change it.");
-    private static readonly ApiError Ended = new("pregnancy.ended", "This pregnancy has ended.");
+    private static ApiError NoCouple => new("pregnancy.no_couple", Loc.T("Link your partner before starting pregnancy mode."));
+    private static ApiError NotOwner => new("pregnancy.not_owner", Loc.T("Only the person who is pregnant can change this."));
+    private static ApiError NotAppointmentAuthor => new("pregnancy.not_appointment_author", Loc.T("Only the person who is pregnant, or whoever added this appointment, can change it."));
+    private static ApiError Ended => new("pregnancy.ended", Loc.T("This pregnancy has ended."));
     public const string ChangedEvent = "PregnancyChanged";
 
-    /// <summary>Active pregnancies I can see: my own, and my partner's when shared.</summary>
+    /// <summary>Active pregnancies I can see: my own, and my partner's when shared. With includeEnded, my ended ones too, so I can delete them.</summary>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<PregnancyDto>>> List([FromQuery] string? date, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<PregnancyDto>>> List([FromQuery] string? date, [FromQuery] bool includeEnded = false, CancellationToken cancellationToken = default)
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
         var userId = currentUser.UserId.Value;
         var today = ParseDay(date);
-        if (today is null) return UnprocessableEntity(new ApiError("pregnancy.invalid_date", "Date must look like yyyy-MM-dd."));
+        if (today is null) return UnprocessableEntity(new ApiError("pregnancy.invalid_date", Loc.T("Date must look like yyyy-MM-dd.")));
         var couple = await ActiveCoupleAsync(cancellationToken);
         var partnerId = couple is null ? null : PartnerOf(couple, userId);
         var coupleId = couple?.Id;
         var visible = await db.Pregnancies.AsNoTracking()
-            .Where(item => item.Status == PregnancyStatus.Active
-                && (item.UserId == userId || (partnerId != null && item.UserId == partnerId && item.CoupleId == coupleId && item.ShareWithPartner)))
+            .Where(item => (item.UserId == userId && (includeEnded || item.Status == PregnancyStatus.Active))
+                || (item.Status == PregnancyStatus.Active && partnerId != null && item.UserId == partnerId && item.CoupleId == coupleId && item.ShareWithPartner))
+            .OrderBy(item => item.Status).ThenByDescending(item => item.CreatedAtUtc)
             .ToListAsync(cancellationToken);
         var result = new List<PregnancyDto>();
         foreach (var pregnancy in visible) result.Add(await DtoAsync(pregnancy, userId, today.Value, cancellationToken));
@@ -65,7 +68,7 @@ public sealed class PregnancyController(
         var due = PregnancyRules.ResolveDueDate(request.DueDate, request.LastPeriodStart, today);
         if (due.IsFailure) return UnprocessableEntity(new ApiError(due.Error.Code, due.Error.Message));
         if (await db.Pregnancies.AnyAsync(item => item.UserId == userId && item.Status == PregnancyStatus.Active, cancellationToken))
-            return Conflict(new ApiError("pregnancy.already_active", "Pregnancy mode is already on."));
+            return Conflict(new ApiError("pregnancy.already_active", Loc.T("Pregnancy mode is already on.")));
 
         var pregnancy = Pregnancy.Start(couple.Id, userId, due.Value, request.ShareWithPartner, now);
         db.Pregnancies.Add(pregnancy);
@@ -74,7 +77,7 @@ public sealed class PregnancyController(
         try { await db.SaveChangesAsync(cancellationToken); }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" })
         {
-            return Conflict(new ApiError("pregnancy.already_active", "Pregnancy mode is already on."));
+            return Conflict(new ApiError("pregnancy.already_active", Loc.T("Pregnancy mode is already on.")));
         }
 
         if (notification is not null) await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
@@ -91,10 +94,11 @@ public sealed class PregnancyController(
         if (access.Pregnancy.Status != PregnancyStatus.Active) return Conflict(Ended);
         var now = clock.UtcNow;
         var today = DateOnly.FromDateTime(now);
-        var due = PregnancyRules.ResolveDueDate(request.DueDate, null, today);
+        var due = PregnancyRules.ResolveUpdatedDueDate(request.DueDate, access.Pregnancy.DueDate, today);
         if (due.IsFailure) return UnprocessableEntity(new ApiError(due.Error.Code, due.Error.Message));
 
         var wasShared = access.Pregnancy.ShareWithPartner;
+        if (wasShared && !request.ShareWithPartner) await ForgetSharedNoticeAsync(access.Pregnancy, cancellationToken);
         access.Pregnancy.Update(due.Value, request.ShareWithPartner, now);
         var notification = !wasShared && request.ShareWithPartner && access.Couple is not null
             ? await SharedNotificationAsync(access.Couple, access.Pregnancy, now, cancellationToken)
@@ -116,9 +120,12 @@ public sealed class PregnancyController(
         if (!access.IsOwner) return StatusCode(StatusCodes.Status403Forbidden, NotOwner);
         if (access.Pregnancy.Status != PregnancyStatus.Active) return Conflict(Ended);
         var now = clock.UtcNow;
+        // Ending stops sharing, so the notice that it was shared goes with it.
+        var wasShared = access.Pregnancy.ShareWithPartner;
+        if (wasShared) await ForgetSharedNoticeAsync(access.Pregnancy, cancellationToken);
         access.Pregnancy.End(now);
         await db.SaveChangesAsync(cancellationToken);
-        await ChangedAsync(access.Couple, access.Pregnancy, "ended", partnerMaySee: access.Pregnancy.ShareWithPartner, cancellationToken);
+        await ChangedAsync(access.Couple, access.Pregnancy, "ended", partnerMaySee: wasShared, cancellationToken);
         return Ok(await DtoAsync(access.Pregnancy, access.Pregnancy.UserId, DateOnly.FromDateTime(now), cancellationToken));
     }
 
@@ -130,6 +137,7 @@ public sealed class PregnancyController(
         if (access is null) return NotFound();
         if (!access.IsOwner) return StatusCode(StatusCodes.Status403Forbidden, NotOwner);
         var wasShared = access.Pregnancy.ShareWithPartner;
+        await ForgetSharedNoticeAsync(access.Pregnancy, cancellationToken);
         db.Pregnancies.Remove(access.Pregnancy);
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Pregnancy {PregnancyId} deleted by its owner.", pregnancyId);
@@ -236,8 +244,8 @@ public sealed class PregnancyController(
         if (access is null) return NotFound();
         if (!access.IsOwner) return StatusCode(StatusCodes.Status403Forbidden, NotOwner);
         if (request.Count is < 0 or > KickSession.MaxCount)
-            return UnprocessableEntity(new ApiError("pregnancy.invalid_kicks", $"Count must be between 0 and {KickSession.MaxCount}."));
-        if (!session.IsOpen) return Conflict(new ApiError("pregnancy.session_closed", "This kick session has already ended."));
+            return UnprocessableEntity(new ApiError("pregnancy.invalid_kicks", Loc.T("Count must be between 0 and {max}.", ("max", KickSession.MaxCount))));
+        if (!session.IsOpen) return Conflict(new ApiError("pregnancy.session_closed", Loc.T("This kick session has already ended.")));
         session.Record(request.Count, request.End, clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
         if (!session.IsOpen) await ChangedAsync(access.Couple, access.Pregnancy, "kicks", partnerMaySee: access.Pregnancy.ShareWithPartner, cancellationToken);
@@ -251,11 +259,14 @@ public sealed class PregnancyController(
             .Where(item => item.PregnancyId == pregnancy.Id && item.AtUtc >= now)
             .OrderBy(item => item.AtUtc)
             .FirstOrDefaultAsync(cancellationToken);
-        var name = await db.Users.AsNoTracking().Where(user => user.Id == pregnancy.UserId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? "Your partner";
+        var name = await db.Users.AsNoTracking().Where(user => user.Id == pregnancy.UserId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? Loc.T("Your partner");
         return PregnancyMapper.ToDto(pregnancy, name, pregnancy.UserId == (currentUser.UserId ?? viewerId), today, next);
     }
 
-    /// <summary>The owner sees their pregnancy whatever happened to the couple; the partner only while linked and shared.</summary>
+    /// <summary>
+    /// The owner sees their pregnancy whatever happened to the couple; the partner only while linked, shared and
+    /// active (ending stops sharing, and this also covers pregnancies ended before it did).
+    /// </summary>
     private async Task<PregnancyAccess?> AccessAsync(Guid pregnancyId, bool track, CancellationToken cancellationToken)
     {
         if (!currentUser.UserId.HasValue) return null;
@@ -265,16 +276,29 @@ public sealed class PregnancyController(
         if (pregnancy is null) return null;
         var couple = await ActiveCoupleAsync(cancellationToken);
         if (pregnancy.UserId == userId) return new PregnancyAccess(pregnancy, true, couple?.Id == pregnancy.CoupleId ? couple : null);
-        var visible = couple is not null && couple.Id == pregnancy.CoupleId && PartnerOf(couple, userId) == pregnancy.UserId && pregnancy.ShareWithPartner;
+        var visible = couple is not null && PartnerOf(couple, userId) == pregnancy.UserId && pregnancy.IsSharedWith(couple.Id);
         return visible ? new PregnancyAccess(pregnancy, false, couple) : null;
     }
 
     private async Task<Notification?> SharedNotificationAsync(Couple couple, Pregnancy pregnancy, DateTime now, CancellationToken cancellationToken)
     {
         if (PartnerOf(couple, pregnancy.UserId) is not { } partnerId) return null;
-        var name = await db.Users.AsNoTracking().Where(user => user.Id == pregnancy.UserId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? "Your partner";
-        return Notification.Create(partnerId, couple.Id, NotificationType.PregnancyUpdated, "Pregnancy mode",
-            $"{name} shared pregnancy mode with you.", JsonSerializer.Serialize(new { pregnancyId = pregnancy.Id }), now);
+        using var _ = Loc.Use(await db.LanguageOfAsync(partnerId, cancellationToken));
+        var name = await db.Users.AsNoTracking().Where(user => user.Id == pregnancy.UserId).Select(user => user.DisplayName).SingleOrDefaultAsync(cancellationToken) ?? Loc.T("Your partner");
+        return Notification.Create(partnerId, couple.Id, NotificationType.PregnancyUpdated, Loc.T("Pregnancy mode"),
+            Loc.T("{name} shared pregnancy mode with you.", ("name", name)), PregnancyNotices.SharedData(pregnancy.Id), now);
+    }
+
+    /// <summary>
+    /// Hidden means hidden: the partner's "shared pregnancy mode with you" goes from their inbox, and a push not sent
+    /// yet is never sent (the dispatcher only sends rows that still exist).
+    /// </summary>
+    private Task ForgetSharedNoticeAsync(Pregnancy pregnancy, CancellationToken cancellationToken)
+    {
+        var data = PregnancyNotices.SharedData(pregnancy.Id);
+        return db.Notifications
+            .Where(item => item.Type == NotificationType.PregnancyUpdated && item.UserId != pregnancy.UserId && item.DataJson == data)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
     private async Task ChangedAsync(Couple? couple, Pregnancy pregnancy, string change, bool partnerMaySee, CancellationToken cancellationToken)

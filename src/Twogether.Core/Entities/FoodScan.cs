@@ -24,23 +24,17 @@ public sealed class FoodScan : BaseEntity
     /// <summary>The accepted estimate as JSON, null when the call failed.</summary>
     public string? ResultJson { get; private set; }
 
-    public static FoodScan Succeed(Guid userId, Guid coupleId, string model, string mediaType, int imageBytes, int inputTokens, int outputTokens, int latencyMs, string resultJson, DateTime utcNow) => new()
-    {
-        UserId = userId,
-        CoupleId = coupleId,
-        Model = model,
-        MediaType = mediaType,
-        ImageBytes = imageBytes,
-        Succeeded = true,
-        InputTokens = inputTokens,
-        OutputTokens = outputTokens,
-        LatencyMs = latencyMs,
-        ResultJson = resultJson,
-        CreatedAtUtc = utcNow,
-        UpdatedAtUtc = utcNow
-    };
+    /// <summary>
+    /// The code of a scan whose estimate has not come back. Recorded before the photo is sent, so
+    /// the scan counts against the daily limit from that moment, whatever happens next: parallel
+    /// requests cannot all pass the limit, and a scan the model was already asked for still counts
+    /// if the call fails or the phone gives up waiting. A scan left with this code was abandoned.
+    /// </summary>
+    public const string PendingCode = "food.scan_pending";
 
-    public static FoodScan Fail(Guid userId, Guid coupleId, string model, string mediaType, int imageBytes, string errorCode, int latencyMs, DateTime utcNow) => new()
+    public bool IsPending => !Succeeded && ErrorCode == PendingCode;
+
+    public static FoodScan Start(Guid userId, Guid coupleId, string model, string mediaType, int imageBytes, DateTime utcNow) => new()
     {
         UserId = userId,
         CoupleId = coupleId,
@@ -48,9 +42,29 @@ public sealed class FoodScan : BaseEntity
         MediaType = mediaType,
         ImageBytes = imageBytes,
         Succeeded = false,
-        ErrorCode = errorCode,
-        LatencyMs = latencyMs,
+        ErrorCode = PendingCode,
         CreatedAtUtc = utcNow,
         UpdatedAtUtc = utcNow
     };
+
+    public void Succeed(int inputTokens, int outputTokens, int latencyMs, string resultJson, DateTime utcNow)
+    {
+        if (!IsPending) throw new InvalidOperationException("Only a pending scan can get its result.");
+        Succeeded = true;
+        ErrorCode = null;
+        InputTokens = inputTokens;
+        OutputTokens = outputTokens;
+        LatencyMs = latencyMs;
+        ResultJson = resultJson;
+        UpdatedAtUtc = utcNow;
+    }
+
+    public void Fail(string errorCode, int latencyMs, DateTime utcNow)
+    {
+        if (!IsPending) throw new InvalidOperationException("Only a pending scan can fail.");
+        if (string.IsNullOrWhiteSpace(errorCode) || errorCode == PendingCode) throw new ArgumentException("A failed scan needs its own error code.", nameof(errorCode));
+        ErrorCode = errorCode;
+        LatencyMs = latencyMs;
+        UpdatedAtUtc = utcNow;
+    }
 }

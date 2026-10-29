@@ -2,6 +2,7 @@ using System.Globalization;
 using Twogether.Core.Entities;
 using Twogether.Core.Exercise;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Notifications;
 
@@ -46,14 +47,14 @@ public static class NotificationPreferenceRules
         var start = ParseTime(request.QuietStart) ?? (request.QuietStart is null ? NotificationPreference.DefaultQuietStart : (TimeOnly?)null);
         var end = ParseTime(request.QuietEnd) ?? (request.QuietEnd is null ? NotificationPreference.DefaultQuietEnd : (TimeOnly?)null);
         if (start is null || end is null)
-            return Error.Validation("notifications.invalid_time", "Quiet hours use 24-hour times like 22:00.");
+            return Error.Validation("notifications.invalid_time", Loc.T("Quiet hours use 24-hour times like 22:00."));
         if (start == end)
-            return Error.Validation("notifications.empty_window", "Quiet hours must start and end at different times.");
+            return Error.Validation("notifications.empty_window", Loc.T("Quiet hours must start and end at different times."));
         string? zone = null;
         if (!string.IsNullOrWhiteSpace(request.TimeZoneId))
         {
             if (!ExerciseSchedule.IsKnownTimeZone(request.TimeZoneId))
-                return Error.Validation("notifications.invalid_time_zone", "That time zone is not recognised.");
+                return Error.Validation("notifications.invalid_time_zone", Loc.T("That time zone is not recognised."));
             zone = request.TimeZoneId.Trim();
         }
         return new ValidNotificationPreferences(start.Value, end.Value, zone);

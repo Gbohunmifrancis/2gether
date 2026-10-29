@@ -8,10 +8,12 @@ using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Exercise;
+using Twogether.Application.Features.Notifications;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Exercise;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -21,15 +23,16 @@ public sealed class ExerciseController(
     ICurrentUser currentUser,
     IDateTimeProvider clock,
     IHubContext<CoupleHub> hub,
+    IPlayIntegrityVerifier integrity,
     ILogger<ExerciseController> logger) : ApiControllerBase
 {
-    private static readonly ApiError NoCouple = new("exercise.no_couple", "Link your partner before setting goals.");
-    private static readonly ApiError AlarmActive = new("exercise.alarm_active", "This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today.");
-    private static readonly ApiError NotActive = new("exercise.not_active", "This alarm is no longer active.");
-    private static readonly ApiError NotAssignee = new("exercise.not_assignee", "Only the person this alarm is for can do that.");
-    private static readonly ApiError NotDueToday = new("exercise.not_due_today", "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.");
-    private static readonly ApiError AlreadyAsked = new("exercise.already_asked", "You already asked to call off today.");
-    private static readonly ApiError VersionConflict = new("exercise.version_conflict", "Someone else just changed this. Refresh and try again.");
+    private static ApiError NoCouple => new("exercise.no_couple", Loc.T("Link your partner before setting goals."));
+    private static ApiError AlarmActive => new("exercise.alarm_active", Loc.T("This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today."));
+    private static ApiError NotActive => new("exercise.not_active", Loc.T("This alarm is no longer active."));
+    private static ApiError NotAssignee => new("exercise.not_assignee", Loc.T("Only the person this alarm is for can do that."));
+    private static ApiError NotDueToday => new("exercise.not_due_today", Loc.T("Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow."));
+    private static ApiError AlreadyAsked => new("exercise.already_asked", Loc.T("You already asked to call off today."));
+    private static ApiError VersionConflict => new("exercise.version_conflict", Loc.T("Someone else just changed this. Refresh and try again."));
 
     [HttpGet("catalog")]
     public ActionResult<IReadOnlyList<ExerciseDefinitionDto>> Catalog()
@@ -58,13 +61,14 @@ public sealed class ExerciseController(
         if (time.IsFailure) return Problem(time.Error);
         var rules = ExerciseGoalRules.Validate(request.ExerciseType, request.Title, request.Target, request.TimeZoneId, request.GraceMinutes);
         if (rules.IsFailure) return Problem(rules.Error);
-        if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", "Goals can only be assigned to you or your partner."));
+        if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", Loc.T("Goals can only be assigned to you or your partner.")));
 
         var now = clock.UtcNow;
-        var goal = ExerciseGoal.Create(couple.Id, request.AssignedUserId, currentUser.UserId.Value, request.ExerciseType, request.Title, request.Target, time.Value, request.TimeZoneId.Trim(), request.GraceMinutes, now);
+        var zone = ExerciseGoalRules.ZoneFor(request.TimeZoneId, currentUser.UserId.Value, request.AssignedUserId, await AssigneeZoneAsync(request.AssignedUserId, cancellationToken));
+        var goal = ExerciseGoal.Create(couple.Id, request.AssignedUserId, currentUser.UserId.Value, request.ExerciseType, request.Title, request.Target, time.Value, zone, request.GraceMinutes, now);
         db.ExerciseGoals.Add(goal);
         var names = await NamesAsync(couple, cancellationToken);
-        var notification = GoalChangedNotification(couple, names, goal, "set", now);
+        var notification = await GoalChangedNotificationAsync(couple, names, goal, GoalChange.Set, now, cancellationToken);
         if (notification is not null) db.Notifications.Add(notification);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -85,7 +89,7 @@ public sealed class ExerciseController(
         if (time.IsFailure) return Problem(time.Error);
         var rules = ExerciseGoalRules.Validate(request.ExerciseType, request.Title, request.Target, request.TimeZoneId, request.GraceMinutes);
         if (rules.IsFailure) return Problem(rules.Error);
-        if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", "Goals can only be assigned to you or your partner."));
+        if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", Loc.T("Goals can only be assigned to you or your partner.")));
 
         var now = clock.UtcNow;
         var deactivating = goal.IsActive && !request.IsActive;
@@ -102,14 +106,15 @@ public sealed class ExerciseController(
         if (ringing is not null && (deactivating || reshaped))
         {
             ringing.Cancel(now);
-            cancelled = CancelledNotification(couple, names, ringing, now);
+            cancelled = await CancelledNotificationAsync(couple, names, ringing, now, cancellationToken);
             db.Notifications.Add(cancelled);
         }
 
-        goal.Update(request.AssignedUserId, request.ExerciseType, request.Title, request.Target, time.Value, request.TimeZoneId.Trim(), request.GraceMinutes, now);
+        var zone = ExerciseGoalRules.ZoneFor(request.TimeZoneId, currentUser.UserId.Value, request.AssignedUserId, await AssigneeZoneAsync(request.AssignedUserId, cancellationToken));
+        goal.Update(request.AssignedUserId, request.ExerciseType, request.Title, request.Target, time.Value, zone, request.GraceMinutes, now);
         if (!request.IsActive) goal.Deactivate(now);
         else if (!goal.IsActive) goal.Reactivate(now);
-        var changed = GoalChangedNotification(couple, names, goal, request.IsActive ? "updated" : "paused", now);
+        var changed = await GoalChangedNotificationAsync(couple, names, goal, request.IsActive ? GoalChange.Updated : GoalChange.Paused, now, cancellationToken);
         if (changed is not null) db.Notifications.Add(changed);
 
         var conflict = await TrySaveAsync(cancellationToken);
@@ -144,7 +149,7 @@ public sealed class ExerciseController(
         if (ringing is not null)
         {
             ringing.Cancel(now);
-            cancelled = CancelledNotification(couple, names, ringing, now);
+            cancelled = await CancelledNotificationAsync(couple, names, ringing, now, cancellationToken);
             db.Notifications.Add(cancelled);
         }
         goal.Deactivate(now);
@@ -188,12 +193,15 @@ public sealed class ExerciseController(
             .Select(item => ExerciseMapper.ToDto(item, Name(names, item.UserId)))
             .ToList();
         var next = goals.MinBy(goal => goal.NextDueAtUtc);
+        var partnerId = PartnerOf(couple, currentUser.UserId!.Value);
+        var partnerZone = partnerId is { } partner ? await AssigneeZoneAsync(partner, cancellationToken) : null;
         return Ok(new ExerciseTodayDto(
             now,
             goals.Select(goal => ExerciseMapper.ToDto(goal, Name(names, goal.AssignedUserId))).ToList(),
             occurrences,
             next?.NextDueAtUtc,
-            next?.Id));
+            next?.Id,
+            ExerciseGoalRules.IsSavedZone(partnerZone) ? partnerZone : null));
     }
 
     [HttpGet("history")]
@@ -218,7 +226,7 @@ public sealed class ExerciseController(
         foreach (var userId in Members(couple))
         {
             var today = ExerciseStats.TodayFor(userId, goals, occurrences, now);
-            stats.Add(ExerciseStats.Compute(userId, Name(names, userId), occurrences, today));
+            stats.Add(ExerciseStats.Compute(userId, Name(names, userId), occurrences, today, goals));
         }
         return Ok(new ExerciseHistoryDto(days, occurrences.Select(item => ExerciseMapper.ToDto(item, Name(names, item.UserId))).ToList(), stats));
     }
@@ -233,8 +241,8 @@ public sealed class ExerciseController(
         if (occurrence is null) return NotFound();
         if (occurrence.UserId != currentUser.UserId.Value) return Forbid();
         var now = clock.UtcNow;
-        if (!occurrence.IsAlarmActive || (occurrence.Status == ExerciseOccurrenceStatus.Alarming && occurrence.DeadlineUtc <= now))
-            return Conflict(NotActive);
+        // Closed once ringing passes its deadline, or a camera session passes CompleteByUtc: restarting can't reopen it.
+        if (!occurrence.IsOpenAt(now)) return Conflict(NotActive);
 
         occurrence.Start(now);
         var conflict = await TrySaveAsync(cancellationToken);
@@ -268,7 +276,7 @@ public sealed class ExerciseController(
             occurrence = ExerciseOccurrence.OpenEarly(goal, now);
             db.ExerciseOccurrences.Add(occurrence);
         }
-        else if (occurrence.IsAlarmActive) occurrence.Start(now);
+        else if (occurrence.IsOpenAt(now)) occurrence.Start(now);
         else return Conflict(NotActive);
 
         var conflict = await TrySaveAsync(cancellationToken);
@@ -288,9 +296,10 @@ public sealed class ExerciseController(
         var occurrence = await db.ExerciseOccurrences.SingleOrDefaultAsync(item => item.Id == occurrenceId && item.CoupleId == couple.Id, cancellationToken);
         if (occurrence is null) return NotFound();
         if (occurrence.UserId != currentUser.UserId.Value) return Forbid();
-        if (occurrence.Status != ExerciseOccurrenceStatus.InProgress) return Conflict(NotActive);
-
         var now = clock.UtcNow;
+        // Past CompleteByUtc it is missed, even if the worker hasn't marked it yet.
+        if (occurrence.Status != ExerciseOccurrenceStatus.InProgress || !occurrence.IsOpenAt(now)) return Conflict(NotActive);
+
         var achieved = Math.Clamp(request.AchievedCount, 0, 10000);
         var confidence = Math.Clamp(request.Confidence, 0, 1);
         var verdict = ExerciseVerification.Validate(occurrence.ExerciseType, occurrence.Target, achieved, confidence, occurrence.StartedAtUtc, now);
@@ -300,16 +309,29 @@ public sealed class ExerciseController(
             return Problem(verdict.Error);
         }
 
-        occurrence.Complete(achieved, confidence, now);
+        // Advisory: what the camera noticed and whether the app is genuine are stored for the partner, never a reason to refuse.
+        var sent = request.Checks?.ToCounts() ?? default;
+        var checks = sent.Clamped();
+        // The token was requested for the numbers as the app sent them, before any clamping.
+        var integrityVerdict = await integrity.VerifyAsync(request.IntegrityToken, PlayIntegrityRules.RequestHash(occurrence.Id, request.AchievedCount, sent), cancellationToken);
+        if (integrityVerdict is ExerciseIntegrity.Failed or ExerciseIntegrity.Missing)
+            logger.LogInformation("Exercise completion {OccurrenceId} has Play Integrity verdict {Verdict}", occurrence.Id, integrityVerdict);
+        occurrence.Complete(achieved, confidence, now, checks, integrityVerdict);
         var settled = await SettleGoalAsync(occurrence, now, cancellationToken);
         var names = await NamesAsync(couple, cancellationToken);
         var partnerId = PartnerOf(couple, occurrence.UserId);
         Notification? notification = null;
         if (partnerId is { } partner)
         {
-            notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, "Goal done",
-                $"{Name(names, occurrence.UserId)} finished {occurrence.Title}: {FormatTarget(occurrence)}.",
-                System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
+            using (Loc.Use(await db.LanguageOfAsync(partner, cancellationToken)))
+            {
+                var flagged = occurrence.Checks.Summary(occurrence.Integrity);
+                var done = Loc.T("{name} finished {dare}: {target}.", ("name", Name(names, occurrence.UserId)),
+                    ("dare", ExerciseText.Title(occurrence.Title, occurrence.ExerciseType)), ("target", ExerciseText.Target(occurrence.Target, occurrence.ExerciseType)));
+                notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T("Dare done") : Loc.T("Dare done, worth a look"),
+                    flagged is null ? done : done + " " + flagged,
+                    System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
+            }
             db.Notifications.Add(notification);
         }
         var conflict = await TrySaveAsync(cancellationToken);
@@ -338,7 +360,7 @@ public sealed class ExerciseController(
         occurrence.Cancel(now);
         var settled = await SettleGoalAsync(occurrence, now, cancellationToken);
         var names = await NamesAsync(couple, cancellationToken);
-        var notification = CancelledNotification(couple, names, occurrence, now);
+        var notification = await CancelledNotificationAsync(couple, names, occurrence, now, cancellationToken);
         db.Notifications.Add(notification);
         var conflict = await TrySaveAsync(cancellationToken);
         if (conflict is not null) return conflict;
@@ -379,10 +401,11 @@ public sealed class ExerciseController(
         if (partnerId is { } partner)
         {
             var asker = Name(names, occurrence.UserId);
-            notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCallOffAsked,
-                $"{asker} asks to call off today's {InSentence(occurrence)}",
-                note.Value ?? $"Let {asker} off today, or keep the alarm ringing.",
-                System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
+            using (Loc.Use(await db.LanguageOfAsync(partner, cancellationToken)))
+                notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCallOffAsked,
+                    Loc.T("{name} asks to call off today's {dare}", ("name", asker), ("dare", ExerciseText.InSentence(occurrence.Title, occurrence.ExerciseType))),
+                    note.Value ?? Loc.T("Let {name} off today, or keep the alarm ringing.", ("name", asker)),
+                    System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
             db.Notifications.Add(notification);
         }
         var conflict = await TrySaveAsync(cancellationToken);
@@ -416,6 +439,10 @@ public sealed class ExerciseController(
         logger.LogInformation("Exercise goal {GoalId} settled before it rang; next alarm {NextDueAtUtc:o}.", goal.Id, goal.NextDueAtUtc);
         return true;
     }
+
+    /// <summary>The zone the assignee's phone saved (with their notification settings); "UTC" until it has.</summary>
+    private Task<string?> AssigneeZoneAsync(Guid userId, CancellationToken cancellationToken)
+        => db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => (string?)user.TimeZoneId).SingleOrDefaultAsync(cancellationToken);
 
     private async Task<Dictionary<Guid, string>> NamesAsync(Couple couple, CancellationToken cancellationToken)
     {
@@ -452,24 +479,41 @@ public sealed class ExerciseController(
         }
     }
 
-    private Notification? GoalChangedNotification(Couple couple, Dictionary<Guid, string> names, ExerciseGoal goal, string verb, DateTime now)
+    private enum GoalChange { Set, Updated, Paused }
+
+    private async Task<Notification?> GoalChangedNotificationAsync(Couple couple, Dictionary<Guid, string> names, ExerciseGoal goal, GoalChange change, DateTime now, CancellationToken cancellationToken)
     {
         var actorId = currentUser.UserId!.Value;
         var partnerId = PartnerOf(couple, actorId);
         if (partnerId is null) return null;
-        var target = goal.AssignedUserId == partnerId ? "for you" : goal.AssignedUserId == actorId ? "for themselves" : "";
-        var body = $"{Name(names, actorId)} {verb} {goal.Title} {target}: {FormatTarget(goal.Target, goal.ExerciseType)} at {goal.ScheduledTime:HH\\:mm}.".Replace("  ", " ");
-        return Notification.Create(partnerId.Value, couple.Id, NotificationType.ExerciseGoalChanged, "Goal " + verb, body,
+        using var _ = Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken));
+        (string, object?)[] args = [("name", Name(names, actorId)), ("dare", ExerciseText.Title(goal.Title, goal.ExerciseType)),
+            ("target", ExerciseText.Target(goal.Target, goal.ExerciseType)), ("time", goal.ScheduledTime.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture))];
+        // One whole sentence per case, so every language can word it its own way.
+        var forYou = goal.AssignedUserId == partnerId;
+        var forThemselves = goal.AssignedUserId == actorId;
+        var (title, body) = change switch
+        {
+            GoalChange.Set => (Loc.T("Dare set"), forYou ? Loc.T("{name} set {dare} for you: {target} at {time}.", args)
+                : forThemselves ? Loc.T("{name} set {dare} for themselves: {target} at {time}.", args) : Loc.T("{name} set {dare}: {target} at {time}.", args)),
+            GoalChange.Updated => (Loc.T("Dare updated"), forYou ? Loc.T("{name} updated {dare} for you: {target} at {time}.", args)
+                : forThemselves ? Loc.T("{name} updated {dare} for themselves: {target} at {time}.", args) : Loc.T("{name} updated {dare}: {target} at {time}.", args)),
+            _ => (Loc.T("Dare paused"), forYou ? Loc.T("{name} paused {dare} for you: {target} at {time}.", args)
+                : forThemselves ? Loc.T("{name} paused {dare} for themselves: {target} at {time}.", args) : Loc.T("{name} paused {dare}: {target} at {time}.", args)),
+        };
+        return Notification.Create(partnerId.Value, couple.Id, NotificationType.ExerciseGoalChanged, title, body,
             System.Text.Json.JsonSerializer.Serialize(new { goalId = goal.Id }), now);
     }
 
-    private Notification CancelledNotification(Couple couple, Dictionary<Guid, string> names, ExerciseOccurrence occurrence, DateTime now)
+    private async Task<Notification> CancelledNotificationAsync(Couple couple, Dictionary<Guid, string> names, ExerciseOccurrence occurrence, DateTime now, CancellationToken cancellationToken)
     {
         var actorId = currentUser.UserId!.Value;
+        using var _ = Loc.Use(await db.LanguageOfAsync(occurrence.UserId, cancellationToken));
+        var dare = ExerciseText.Title(occurrence.Title, occurrence.ExerciseType);
         var body = actorId == occurrence.UserId
-            ? $"{occurrence.Title} was changed while it was ringing, so today does not count."
-            : $"{Name(names, actorId)} let you off {occurrence.Title} today.";
-        return Notification.Create(occurrence.UserId, couple.Id, NotificationType.ExerciseCancelled, "Skipped today", body,
+            ? Loc.T("{dare} was changed while it was ringing, so today does not count.", ("dare", dare))
+            : Loc.T("{name} let you off {dare} today.", ("name", Name(names, actorId)), ("dare", dare));
+        return Notification.Create(occurrence.UserId, couple.Id, NotificationType.ExerciseCancelled, Loc.T("Skipped today"), body,
             System.Text.Json.JsonSerializer.Serialize(new { occurrenceId = occurrence.Id, goalId = occurrence.GoalId }), now);
     }
 
@@ -490,11 +534,5 @@ public sealed class ExerciseController(
 
     private static bool IsMember(Couple couple, Guid userId) => couple.UserAId == userId || couple.UserBId == userId;
     private static Guid? PartnerOf(Couple couple, Guid userId) => couple.UserAId == userId ? couple.UserBId : couple.UserAId;
-    private static string Name(Dictionary<Guid, string> names, Guid userId) => names.GetValueOrDefault(userId, "Your partner");
-    /// <summary>"today's sit-ups": a catalog name reads lowercased mid-sentence; a title someone typed stays as written.</summary>
-    private static string InSentence(ExerciseOccurrence occurrence)
-        => occurrence.Title == ExerciseCatalog.Get(occurrence.ExerciseType).DisplayName ? occurrence.Title.ToLowerInvariant() : occurrence.Title;
-    private static string FormatTarget(ExerciseOccurrence occurrence) => FormatTarget(occurrence.Target, occurrence.ExerciseType);
-    private static string FormatTarget(int target, ExerciseType type)
-        => ExerciseCatalog.MeasureOf(type) == ExerciseMeasure.Seconds ? $"{target} s" : $"{target} reps";
+    private static string Name(Dictionary<Guid, string> names, Guid userId) => names.GetValueOrDefault(userId) ?? Loc.T("Your partner");
 }

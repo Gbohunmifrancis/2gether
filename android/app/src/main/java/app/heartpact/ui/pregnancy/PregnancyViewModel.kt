@@ -34,6 +34,8 @@ data class PregnancyUi(
     val loaded: Boolean = false,
     val busy: Boolean = false,
     val note: String? = null,
+    /** My ended pregnancies, newest first: kept until I delete them. */
+    val ended: List<Pregnancy> = emptyList(),
 )
 
 private fun <T> ApiResult<T>.note(): String? = when (this) {
@@ -50,14 +52,18 @@ class PregnancyViewModel(private val repo: PregnancyRepository, events: Flow<Str
     private var recording: Job? = null
 
     fun load() = viewModelScope.launch {
-        val list = repo.list(today().toString())
+        val list = repo.list(today().toString(), includeEnded = true)
         if (list !is ApiResult.Ok) { _ui.update { it.copy(note = list.note(), loaded = true) }; return@launch }
         // Mine first; otherwise the partner's, when they share it.
         val current = list.value.filter { it.status == PregnancyStatus.Active }.sortedByDescending { it.isMine }.firstOrNull()
+        val ended = list.value.filter { it.isMine && it.status == PregnancyStatus.Ended }.sortedByDescending { it.endedAtUtc ?: it.createdAtUtc }
         val appointments = current?.let { (repo.appointments(it.id) as? ApiResult.Ok)?.value }.orEmpty()
         val kicks = current?.let { (repo.kicks(it.id) as? ApiResult.Ok)?.value }.orEmpty()
-        _ui.update { it.copy(pregnancy = current, appointments = appointments.sortedBy { a -> a.atUtc }, kicks = kicks, loaded = true, note = null) }
+        _ui.update { it.copy(pregnancy = current, ended = ended, appointments = appointments.sortedBy { a -> a.atUtc }, kicks = kicks, loaded = true, note = null) }
     }
+
+    /** Deletes a pregnancy of mine, active or ended, with its appointments and kick counts. */
+    fun delete(id: String) = act { repo.delete(id) }
 
     fun start(dueDate: LocalDate?, lastPeriod: LocalDate?, share: Boolean) = act {
         repo.start(StartPregnancyRequest(dueDate?.toString(), lastPeriod?.toString(), share))
@@ -114,7 +120,9 @@ class PregnancyViewModel(private val repo: PregnancyRepository, events: Flow<Str
         viewModelScope.launch {
             val result = call()
             _ui.update { it.copy(busy = false, note = result.note()) }
-            load()
+            load().join()
+            // load() clears the note when it succeeds; a failed change must still say why.
+            result.note()?.let { note -> _ui.update { it.copy(note = note) } }
         }
     }
 }

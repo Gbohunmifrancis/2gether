@@ -3,6 +3,7 @@ package app.heartpact
 import app.heartpact.data.Gender
 import app.heartpact.ui.auth.SignUpForm
 import app.heartpact.ui.auth.SignUpForm.Field
+import app.heartpact.ui.auth.isAdult
 import app.heartpact.ui.auth.looksLikeEmail
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -12,7 +13,7 @@ import java.time.LocalDate
 
 class SignUpFormTest {
     private val today = LocalDate.of(2026, 10, 11)
-    private val valid = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female)
+    private val valid = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG")
 
     @Test fun `a complete form has no errors`() = assertEquals(emptyMap<Field, String>(), valid.errors(today))
 
@@ -27,9 +28,24 @@ class SignUpFormTest {
         assertTrue(Field.DateOfBirth in valid.copy(dateOfBirth = null).errors(today))
     }
 
+    @Test fun `you need to be 18 or over, as the API does`() {
+        assertFalse(Field.DateOfBirth in valid.copy(dateOfBirth = today.minusYears(18)).errors(today))
+        assertTrue(Field.DateOfBirth in valid.copy(dateOfBirth = today.minusYears(18).plusDays(1)).errors(today))
+        // Born on 29 February: 18 on 1 March in a year without one.
+        assertFalse(isAdult(LocalDate.of(2008, 2, 29), LocalDate.of(2026, 2, 28)))
+        assertTrue(isAdult(LocalDate.of(2008, 2, 29), LocalDate.of(2026, 3, 1)))
+    }
+
     @Test fun `name and gender are required`() {
         val errors = valid.copy(name = "  ", gender = null).errors(today)
         assertTrue(Field.Name in errors && Field.Gender in errors)
+    }
+
+    @Test fun `a real country is required, as the app serves content by it`() {
+        assertTrue(Field.Country in valid.copy(country = null).errors(today))
+        assertTrue(Field.Country in valid.copy(country = "Nigeria").errors(today))
+        assertTrue(Field.Country in valid.copy(country = "XX").errors(today))
+        assertFalse(Field.Country in valid.copy(country = "IN").errors(today))
     }
 
     @Test fun `email shape check`() {

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Twogether.Core.Entities;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Food;
 
@@ -93,7 +94,7 @@ public static class FoodEstimateParser
         }
     }
 
-    private static Result<FoodEstimate> Unreadable() => Error.Failure("food.estimation_unreadable", "The estimate could not be read. Try another photo.");
+    private static Result<FoodEstimate> Unreadable() => Error.Failure("food.estimation_unreadable", Loc.T("The estimate could not be read. Try another photo."));
 
     /// <summary>Models occasionally wrap JSON in a code fence; strip it rather than fail.</summary>
     private static string Trim(string json)

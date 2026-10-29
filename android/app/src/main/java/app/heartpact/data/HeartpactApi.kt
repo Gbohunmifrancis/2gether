@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -19,6 +20,9 @@ interface HeartpactApi {
 
     @GET("api/auth/me")
     suspend fun me(): Response<AuthUser>
+
+    @PUT("api/auth/profile")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): Response<AuthResponse>
 
     @GET("api/couple")
     suspend fun couple(): Response<Couple>
@@ -156,7 +160,10 @@ interface HeartpactApi {
     suspend fun sharedCycle(@Query("date") date: String): Response<SharedCycle>
 
     @GET("api/pregnancy")
-    suspend fun pregnancies(@Query("date") date: String): Response<List<Pregnancy>>
+    suspend fun pregnancies(@Query("date") date: String, @Query("includeEnded") includeEnded: Boolean = false): Response<List<Pregnancy>>
+
+    @DELETE("api/pregnancy/{id}")
+    suspend fun deletePregnancy(@Path("id") id: String): Response<Unit>
 
     @POST("api/pregnancy")
     suspend fun startPregnancy(@Body request: StartPregnancyRequest): Response<Pregnancy>
@@ -197,6 +204,16 @@ interface HeartpactApi {
     @POST("api/location/resume")
     suspend fun resumeLocation(): Response<SharingStatusView>
 
+    @POST("api/location/start")
+    suspend fun startLocation(): Response<SharingStatusView>
+
+    @POST("api/location/heartbeat")
+    suspend fun locationHeartbeat(): Response<SharingStatusView>
+
+    /** [authorization] is set by a retry after sign-out, which carries the signed-out session's token. */
+    @POST("api/location/stop")
+    suspend fun stopLocation(@Header("Authorization") authorization: String? = null): Response<Unit>
+
     @POST("api/auth/password/forgot")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<Unit>
 
@@ -205,6 +222,9 @@ interface HeartpactApi {
 
     @POST("api/auth/google")
     suspend fun googleSignIn(@Body request: GoogleSignInRequest): Response<AuthResponse>
+
+    @GET("api/game/region")
+    suspend fun gameRegion(): Response<GameRegionView>
 
     @GET("api/game/sessions")
     suspend fun gameSessions(): Response<List<GameSession>>

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Memories;
 using Twogether.Core.Enums;
 
@@ -14,10 +15,12 @@ public sealed class MemoryCleanupWorker(
     IMediaStorage storage,
     MediaSettings settings,
     IDateTimeProvider clock,
-    ILogger<MemoryCleanupWorker> logger) : BackgroundService
+    ILogger<MemoryCleanupWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
     private const int BatchSize = 100;
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
+    public const string HeartbeatName = "memoryCleanup";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -26,6 +29,8 @@ public sealed class MemoryCleanupWorker(
             logger.LogInformation("Media storage is not configured; memory cleanup is off.");
             return;
         }
+        // Only when it runs at all: with storage off there is nothing for it to keep up with.
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(MemoryCleanupWorker), stoppingToken);
         using var timer = new PeriodicTimer(Interval);
         do
@@ -35,6 +40,7 @@ public sealed class MemoryCleanupWorker(
                 while (await RecheckClosedUploadWindowsAsync(stoppingToken) == BatchSize) { }
                 // Drain: an ended album can hold thousands of photos.
                 while (await SweepAsync(stoppingToken) == BatchSize) { }
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -43,6 +49,7 @@ public sealed class MemoryCleanupWorker(
             catch (Exception exception)
             {
                 logger.LogError(exception, "Memory cleanup sweep failed.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));
@@ -128,10 +135,13 @@ public sealed class MemoryCleanupWorker(
 
         var now = clock.UtcNow;
         var abandonedBefore = now - settings.PendingLifetime;
-        // A sync retry can hand out fresh links for an old slot: it is not abandoned while one still works.
+        // Nothing goes while one of its upload links still works: a sync retry can hand out fresh
+        // links for an old slot, and a late PUT could put a deleted memory's bytes back with no row
+        // left to find them. So a deleted memory stays as a tombstone until its window has passed,
+        // and its objects are deleted (again) right before the row.
         var batch = await db.Memories
-            .Where(item => item.Status == MemoryStatus.Deleting
-                || (item.Status == MemoryStatus.Pending && item.CreatedAtUtc < abandonedBefore && (item.UploadWindowEndsAtUtc == null || item.UploadWindowEndsAtUtc < now)))
+            .Where(item => (item.UploadWindowEndsAtUtc == null || item.UploadWindowEndsAtUtc <= now)
+                && (item.Status == MemoryStatus.Deleting || (item.Status == MemoryStatus.Pending && item.CreatedAtUtc < abandonedBefore)))
             .OrderBy(item => item.CreatedAtUtc)
             .Take(BatchSize)
             .ToListAsync(cancellationToken);

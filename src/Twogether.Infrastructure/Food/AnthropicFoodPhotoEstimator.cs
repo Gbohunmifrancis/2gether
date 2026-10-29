@@ -5,6 +5,7 @@ using Anthropic.Models.Messages;
 using Microsoft.Extensions.Logging;
 using Twogether.Application.Features.Food;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Infrastructure.Food;
 
@@ -43,14 +44,13 @@ public sealed class AnthropicFoodPhotoEstimator : IFoodPhotoEstimator
     public bool IsConfigured => _client is not null;
     public string ModelName => _settings.Model;
 
-    public async Task<Result<FoodEstimate>> EstimateAsync(FoodPhoto photo, string? hint, CancellationToken cancellationToken)
+    public async Task<Result<FoodEstimate>> EstimateAsync(FoodPhoto photo, string? hint, string? countryCode, CancellationToken cancellationToken)
     {
-        if (_client is null) return Error.Failure("food.estimation_unavailable", "Photo estimates are not configured.");
+        if (_client is null) return Error.Failure("food.estimation_unavailable", Loc.T("Photo estimates are not configured."));
         var mediaType = ToMediaType(photo.MediaType);
-        if (mediaType is null) return Error.Validation("food.image_type", "Unsupported image type.");
+        if (mediaType is null) return Error.Validation("food.image_type", Loc.T("Unsupported image type."));
 
-        var userText = "Estimate this meal. Respond with the JSON object only."
-            + (string.IsNullOrWhiteSpace(hint) ? string.Empty : $" Notes from the person who ate it: {hint}");
+        var userText = FoodPrompt.UserText(hint, countryCode);
         var request = new MessageCreateParams
         {
             Model = _settings.Model,
@@ -82,7 +82,7 @@ public sealed class AnthropicFoodPhotoEstimator : IFoodPhotoEstimator
             if (stopReason.Equals("refusal", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogWarning("Food photo estimate refused by the model.");
-                return Error.Failure("food.estimation_refused", "The estimate could not be produced for this photo. Try a clearer photo of the meal.");
+                return Error.Failure("food.estimation_refused", Loc.T("The estimate could not be produced for this photo. Try a clearer photo of the meal."));
             }
             var text = string.Concat(response.Content.Select(block => block.Value).OfType<TextBlock>().Select(block => block.Text));
             var inputTokens = (int)Math.Min(response.Usage.InputTokens, int.MaxValue);
@@ -94,28 +94,28 @@ public sealed class AnthropicFoodPhotoEstimator : IFoodPhotoEstimator
         catch (AnthropicRateLimitException exception)
         {
             _logger.LogWarning(exception, "Food photo estimate rate limited.");
-            return new Error("food.estimation_busy", "The estimator is busy. Try again in a moment.", ErrorType.Network);
+            return new Error("food.estimation_busy", Loc.T("The estimator is busy. Try again in a moment."), ErrorType.Network);
         }
         catch (Anthropic5xxException exception)
         {
             _logger.LogWarning(exception, "Food photo estimate upstream error.");
-            return new Error("food.estimation_failed", "The estimator is unavailable right now. Try again later.", ErrorType.Network);
+            return new Error("food.estimation_failed", Loc.T("The estimator is unavailable right now. Try again later."), ErrorType.Network);
         }
         catch (Anthropic4xxException exception)
         {
             // Our request was wrong (bad key, bad model, oversize image): not retryable, and worth a loud log.
             _logger.LogError(exception, "Food photo estimate rejected by the API.");
-            return Error.Failure("food.estimation_failed", "The estimate could not be produced. Log the meal by hand.");
+            return Error.Failure("food.estimation_failed", Loc.T("The estimate could not be produced. Log the meal by hand."));
         }
         catch (AnthropicIOException exception)
         {
             _logger.LogWarning(exception, "Food photo estimate network failure.");
-            return new Error("food.estimation_failed", "The estimator could not be reached. Try again later.", ErrorType.Network);
+            return new Error("food.estimation_failed", Loc.T("The estimator could not be reached. Try again later."), ErrorType.Network);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("Food photo estimate timed out after {Seconds}s.", _settings.TimeoutSeconds);
-            return new Error("food.estimation_timeout", "The estimate took too long. Try again.", ErrorType.Network);
+            return new Error("food.estimation_timeout", Loc.T("The estimate took too long. Try again."), ErrorType.Network);
         }
     }
 

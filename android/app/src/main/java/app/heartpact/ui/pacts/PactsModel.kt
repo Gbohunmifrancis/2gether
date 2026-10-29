@@ -5,13 +5,25 @@ import app.heartpact.data.ExerciseHistory
 import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.OccurrenceStatus
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
 import app.heartpact.ui.today.DaySticker
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
 /** Where a dare stands today, as a word rather than a colour. */
-enum class DareStatus(val label: String) { DoneToday("Done today"), Ringing("Ringing"), MissedToday("Missed today"), CalledOff("Called off today"), LaterToday("Later today"), Tomorrow("Tomorrow") }
+enum class DareStatus {
+    DoneToday, Ringing, MissedToday, CalledOff, LaterToday, Tomorrow;
+
+    val label: String get() = when (this) {
+        DoneToday -> tr("Done today")
+        Ringing -> tr("Ringing")
+        MissedToday -> tr("Missed today")
+        CalledOff -> tr("Called off today")
+        LaterToday -> tr("Later today")
+        Tomorrow -> tr("Tomorrow")
+    }
+}
 
 data class PactCard(val goal: ExerciseGoal, val status: DareStatus, val days: List<Pair<LocalDate, DaySticker>>, val hearts: Int)
 

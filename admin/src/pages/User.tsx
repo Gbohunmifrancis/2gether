@@ -9,7 +9,8 @@ import { Icon } from "../components/Icon";
 import { GrantsTable, SubscriptionsTable, usePaymentsRefresh } from "../components/Subscriptions";
 import { Avatar, Badge, Card, ErrorState, Notice, Skeleton } from "../components/ui";
 import { actionLabel, ago, bytes, count, coupleStatusLabel, date, dateTime, humanize } from "../lib/format";
-import { SignInMethods } from "./Users";
+import { JourneyCard } from "../components/Journey";
+import { InternalBadge, isOnline, SignInMethods } from "./Users";
 
 const route = getRouteApi("/_app/users/$userId");
 
@@ -77,7 +78,7 @@ function Profile({ user }: { user: UserDetail }) {
     <>
       <header className="head">
         <div className="who" style={{ gap: 16 }}>
-          <Avatar name={user.displayName} large />
+          <Avatar name={user.displayName} large online={isOnline(user.lastActiveAtUtc)} />
           <div>
             <h1 className="headline">{user.displayName}</h1>
             <div className="muted" style={{ marginTop: 4, overflowWrap: "anywhere" }}>
@@ -87,6 +88,13 @@ function Profile({ user }: { user: UserDetail }) {
               {disabled ? <Badge tone="bad">Disabled</Badge> : <Badge tone="good">Active</Badge>}
               {user.plan === "plus" ? <Badge tone="plus">{user.complimentary ? "Plus · complimentary" : "Plus"}</Badge> : <Badge>Free</Badge>}
               {user.couple ? <Badge tone={linked ? "soft" : undefined}>{coupleStatusLabel[user.couple.status]}</Badge> : <Badge>No couple</Badge>}
+              {user.internal ? <InternalBadge /> : null}
+              {isOnline(user.lastActiveAtUtc) ? (
+                <span className="online-badge">
+                  <span className="dot" aria-hidden="true" />
+                  Online now
+                </span>
+              ) : null}
               {self ? <Badge tone="warn">You</Badge> : null}
             </div>
           </div>
@@ -142,6 +150,26 @@ function Profile({ user }: { user: UserDetail }) {
             }
           >
             Sign out everywhere
+          </button>
+          <button
+            type="button"
+            className={`btn outline${user.internal ? " on" : ""}`}
+            aria-pressed={Boolean(user.internal)}
+            onClick={() =>
+              act({
+                title: user.internal ? `Count ${user.displayName} in analytics again?` : `Mark ${user.displayName} as internal?`,
+                body: user.internal
+                  ? "Their activity goes back into every count and chart from now on."
+                  : "For test and team accounts: they get an Internal badge everywhere and are left out of every count and chart. Nothing about the account changes.",
+                confirmLabel: user.internal ? "Count them again" : "Mark internal",
+                reason: true,
+                run: ({ reason }) => actions.setInternal(user.id, !user.internal, reason),
+                done: user.internal ? "Counted in analytics again." : "Marked internal.",
+              })
+            }
+          >
+            <Icon name="flask" />
+            {user.internal ? "Internal" : "Mark internal"}
           </button>
           <button
             type="button"
@@ -270,43 +298,48 @@ function Profile({ user }: { user: UserDetail }) {
         </Card>
       ) : null}
 
-      <div className="grid cols-2">
-        <Card title="Devices">
-          {user.devices.length === 0 ? (
-            <p className="faint">No phones registered for notifications.</p>
-          ) : (
-            <div className="list">
-              {user.devices.map((device, index) => (
-                <div className="list-row" key={index}>
-                  <span>
-                    <b>{humanize(device.platform)}</b> {device.appVersion ? <span className="faint">v{device.appVersion}</span> : null}
-                  </span>
-                  <span className="small muted">{device.active ? `seen ${ago(device.lastSeenAtUtc)}` : "signed out"}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-        <Card title="Admin history" aside="Latest 20">
-          {user.history.length === 0 ? (
-            <p className="faint">No admin has touched this account.</p>
-          ) : (
-            <div className="list">
-              {user.history.map((event) => (
-                <div className="list-row" key={event.id} style={{ alignItems: "flex-start" }}>
-                  <div>
-                    <b>{actionLabel(event.action)}</b>
-                    {event.details ? <div className="small muted">{event.details}</div> : null}
-                    <div className="small faint">{event.adminEmail}</div>
+      <div className="grid cols-3">
+        <div className="span-2">
+          <JourneyCard userId={user.id} />
+        </div>
+        <div className="grid" style={{ alignContent: "start" }}>
+          <Card title="Devices">
+            {user.devices.length === 0 ? (
+              <p className="faint">No phones registered for notifications.</p>
+            ) : (
+              <div className="list">
+                {user.devices.map((device, index) => (
+                  <div className="list-row" key={index}>
+                    <span>
+                      <b>{humanize(device.platform)}</b> {device.appVersion ? <span className="faint">v{device.appVersion}</span> : null}
+                    </span>
+                    <span className="small muted">{device.active ? `seen ${ago(device.lastSeenAtUtc)}` : "signed out"}</span>
                   </div>
-                  <span className="small faint" style={{ whiteSpace: "nowrap" }}>
-                    {dateTime(event.createdAtUtc)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+                ))}
+              </div>
+            )}
+          </Card>
+          <Card title="Admin history" aside="Latest 20">
+            {user.history.length === 0 ? (
+              <p className="faint">No admin has touched this account.</p>
+            ) : (
+              <div className="list">
+                {user.history.map((event) => (
+                  <div className="list-row" key={event.id} style={{ alignItems: "flex-start" }}>
+                    <div>
+                      <b>{actionLabel(event.action)}</b>
+                      {event.details ? <div className="small muted">{event.details}</div> : null}
+                      <div className="small faint">{event.adminEmail}</div>
+                    </div>
+                    <span className="small faint" style={{ whiteSpace: "nowrap" }}>
+                      {dateTime(event.createdAtUtc)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
       </div>
 
       <Card title="Delete account" className="danger-zone">

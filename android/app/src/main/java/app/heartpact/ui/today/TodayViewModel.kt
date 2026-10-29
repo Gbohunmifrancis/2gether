@@ -7,6 +7,7 @@ import app.heartpact.HeartpactApplication
 import app.heartpact.alarm.AlarmPlan
 import app.heartpact.alarm.AlarmReadiness
 import app.heartpact.alarm.AlarmScheduler
+import app.heartpact.alarm.AlarmStore
 import app.heartpact.data.ApiResult
 import app.heartpact.data.OFFLINE_MESSAGE
 import kotlinx.coroutines.delay
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 import app.heartpact.push.Push
 import app.heartpact.push.PushInbox
 import java.time.Instant
+import java.time.ZoneId
 
 data class TodayUi(
     val view: TodayView? = null,
@@ -28,6 +30,8 @@ data class TodayUi(
     val busy: Boolean = false,
     /** Requests the person chose to keep ringing, hidden on this phone. */
     val kept: Set<String> = emptySet(),
+    /** I have a dare and this phone may not set exact alarms: explain and ask, once. */
+    val askExactAlarms: Boolean = false,
 )
 
 /**
@@ -48,6 +52,7 @@ class TodayViewModel(application: Application, private val me: String, private v
             }
         }
         viewModelScope.launch { app.pushEvents.collect { if (PushInbox.refreshesToday(it)) refreshNow() } }
+        viewModelScope.launch { saveZone() }
         // The partner's live count: patch the ringing card in place rather than refetch per rep.
         viewModelScope.launch {
             app.live.events.collect { event ->
@@ -74,7 +79,9 @@ class TodayViewModel(application: Application, private val me: String, private v
             is ApiResult.Ok -> {
                 val now = Instant.now()
                 AlarmScheduler.apply(getApplication(), AlarmPlan.plan(today.value, me, partnerName, now), now)
-                _ui.update { it.copy(view = TodayBuilder.build(today.value, history, me, now), loading = false, note = null) }
+                val view = TodayBuilder.build(today.value, history, me, now)
+                val ask = view.mine != null && !_ui.value.readiness.exactAlarms && !AlarmStore(getApplication()).exactAlarmsAsked
+                _ui.update { it.copy(view = view, loading = false, note = null, askExactAlarms = ask) }
             }
             ApiResult.Offline -> _ui.update { it.copy(loading = false, note = OFFLINE_MESSAGE) }
             is ApiResult.Failure -> _ui.update { it.copy(loading = false, note = today.message) }
@@ -95,6 +102,22 @@ class TodayViewModel(application: Application, private val me: String, private v
     }
 
     fun keepIt(occurrenceId: String) = _ui.update { it.copy(kept = it.kept + occurrenceId) }
+
+    /** Asked once; the "Ring on time" card stays until it is allowed. */
+    fun exactAlarmsAsked() {
+        AlarmStore(getApplication()).exactAlarmsAsked = true
+        _ui.update { it.copy(askExactAlarms = false) }
+    }
+
+    /**
+     * A dare my partner sets is read in my saved time zone (it rings on my phone), so keep it current. The
+     * notification settings carry it; this saves it only when it differs.
+     */
+    private suspend fun saveZone() {
+        val zone = ZoneId.systemDefault().id
+        val prefs = (app.us.preferences() as? ApiResult.Ok)?.value ?: return
+        if (prefs.timeZoneId != zone) app.us.savePreferences(prefs.copy(timeZoneId = zone))
+    }
 }
 
 @kotlinx.serialization.Serializable

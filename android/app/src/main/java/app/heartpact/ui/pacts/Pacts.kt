@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
@@ -38,7 +35,12 @@ import app.heartpact.data.ApiResult
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.utc
 import app.heartpact.exercise.Measure
+import app.heartpact.i18n.Dates
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
+import app.heartpact.ui.components.AdaptivePage
 import app.heartpact.ui.components.ButtonKind
+import app.heartpact.ui.components.CardColumns
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.StickerCard
@@ -99,34 +101,36 @@ fun PactsTab(ui: PactsUi, partnerName: String, onStop: (String) -> Unit, onNewDa
     val colors = Heartpact.colors
     var forMe by remember { mutableStateOf(initialForMe) }
     var stopping by remember { mutableStateOf<PactCard?>(null) }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+    // With room, the dares lay out in columns, like a sticker book.
+    AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 14.dp)) {
-            Text("Pacts", style = Heartpact.type.headline, color = colors.ink)
-            Text("Your sticker page · ${ui.view?.hearts ?: 0} hearts in 30 days", style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
+            Text(tr("Pacts"), style = Heartpact.type.headline, color = colors.ink)
+            Text(trn(ui.view?.hearts ?: 0, "Your sticker page · {count} heart in 30 days", "Your sticker page · {count} hearts in 30 days"), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
-        Segmented(listOf("Dares for you", "Dares you set"), if (forMe) 0 else 1) { forMe = it == 0 }
+    }, second = null, wide = true) {
+        Segmented(listOf(tr("Dares for you"), tr("Dares you set")), if (forMe) 0 else 1) { forMe = it == 0 }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
         val cards = ui.view?.let { if (forMe) it.forMe else it.bySet }
         if (cards != null && cards.isEmpty()) {
             StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
                 Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Character(if (forMe) Who.Both else Who.Right, Pose.Stand, 96.dp)
-                    Text(if (forMe) "No dares for you yet" else "You haven't dared $partnerName yet", style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
-                    Text(if (forMe) "When $partnerName sets one, it shows up here with every heart you keep." else "Set one and your half goes on first.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                    Text(if (forMe) tr("No dares for you yet") else tr("You haven't dared {partner} yet", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
+                    Text(if (forMe) tr("When {partner} sets one, it shows up here with every heart you keep.", "partner" to partnerName) else tr("Set one and your half goes on first."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
                 }
             }
         }
-        cards?.forEach { card -> PactCardView(card, partnerName, forMe, onStopRequest = { stopping = card }) }
+        CardColumns(cards.orEmpty(), most = 2) { card -> PactCardView(card, partnerName, forMe, onStopRequest = { stopping = card }) }
         Legend()
-        HeartButton("New dare for $partnerName", onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
+        HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
     }
     stopping?.let { card ->
         AlertDialog(
             onDismissRequest = { stopping = null },
-            title = { Text("Stop this dare?") },
-            text = { Text("${card.goal.target} ${card.goal.exerciseType.displayName.lowercase()} won't ring for $partnerName any more. The hearts already kept stay on both pages.") },
-            confirmButton = { TextButton(onClick = { onStop(card.goal.id); stopping = null }) { Text("Stop it") } },
-            dismissButton = { TextButton(onClick = { stopping = null }) { Text("Keep it") } },
+            title = { Text(tr("Stop this dare?")) },
+            text = { Text(tr("{dare} won't ring for {partner} any more. The hearts already kept stay on both pages.", "dare" to card.goal.exerciseType.label(card.goal.target).replaceFirstChar { it.uppercase() }, "partner" to partnerName)) },
+            confirmButton = { TextButton(onClick = { onStop(card.goal.id); stopping = null }) { Text(tr("Stop it")) } },
+            dismissButton = { TextButton(onClick = { stopping = null }) { Text(tr("Keep it")) } },
         )
     }
 }
@@ -153,13 +157,15 @@ private fun PactCardView(card: PactCard, partnerName: String, forMe: Boolean, on
     val colors = Heartpact.colors
     val goal = card.goal
     val time = utc(goal.nextDueAtUtc).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
-    val amount = if (goal.exerciseType.measure == Measure.Seconds) "${goal.exerciseType.displayName}, ${goal.target} seconds" else "${goal.target} ${goal.exerciseType.displayName.lowercase()}"
+    val amount = if (goal.exerciseType.measure == Measure.Seconds) trn(goal.target, "{exercise}, {count} second", "{exercise}, {count} seconds", "exercise" to goal.exerciseType.displayName)
+        else goal.exerciseType.label(goal.target)
     StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 12.dp), shape = Shapes.Dare) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
                     Text(amount.replaceFirstChar { it.uppercase() }, style = Heartpact.type.titleSmall.copy(fontSize = 18.sp), color = colors.ink)
-                    Text("Daily $time · ${if (forMe) "$partnerName's dare" else "for $partnerName"} · ${goal.graceMinutes} min ring", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 3.dp))
+                    Text(if (forMe) tr("Daily {time} · {partner}'s dare · {minutes} min ring", "time" to time, "partner" to partnerName, "minutes" to goal.graceMinutes)
+                        else tr("Daily {time} · for {partner} · {minutes} min ring", "time" to time, "partner" to partnerName, "minutes" to goal.graceMinutes), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 3.dp))
                 }
                 StatusTag(card.status)
             }
@@ -167,10 +173,10 @@ private fun PactCardView(card: PactCard, partnerName: String, forMe: Boolean, on
                 card.days.forEach { (_, s) -> DayStickerView(s, forMe) }
             }
             Row(Modifier.padding(top = 6.dp).fillMaxWidth()) {
-                Text(card.days.first().first.format(DateTimeFormatter.ofPattern("d MMM")), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.weight(1f))
-                Text("today, ${card.days.last().first.format(DateTimeFormatter.ofPattern("d MMM"))}", style = Heartpact.type.small, color = colors.ink3)
+                Text(card.days.first().first.format(Dates.formatter("d MMM")), style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.weight(1f))
+                Text(tr("today, {date}", "date" to card.days.last().first.format(Dates.formatter("d MMM"))), style = Heartpact.type.small, color = colors.ink3)
             }
-            if (!forMe) HeartButton("Stop this dare", onStopRequest, Modifier.padding(top = 6.dp), kind = ButtonKind.Text, height = 40.dp, fillWidth = false)
+            if (!forMe) HeartButton(tr("Stop this dare"), onStopRequest, Modifier.padding(top = 6.dp), kind = ButtonKind.Text, height = 40.dp, fillWidth = false)
         }
     }
 }
@@ -202,11 +208,11 @@ private fun Legend() {
     val colors = Heartpact.colors
     Column(Modifier.padding(horizontal = 22.dp).padding(top = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            LegendItem("done together") { HeartSticker(HalfState.Stuck, HalfState.Stuck, 16.dp) }
-            LegendItem("one half on") { HeartSticker(HalfState.Slot, HalfState.Stuck, 16.dp) }
-            LegendItem("called off together") { PeeledHeart(16.dp) }
+            LegendItem(tr("done together")) { HeartSticker(HalfState.Stuck, HalfState.Stuck, 16.dp) }
+            LegendItem(tr("one half on")) { HeartSticker(HalfState.Slot, HalfState.Stuck, 16.dp) }
+            LegendItem(tr("called off together")) { PeeledHeart(16.dp) }
         }
-        LegendItem("missed") { Box(Modifier.size(15.dp, 16.dp).clip(Shapes.Tile).background(colors.sticker2).border(2.dp, colors.rule2, Shapes.Tile)) }
+        LegendItem(tr("missed")) { Box(Modifier.size(15.dp, 16.dp).clip(Shapes.Tile).background(colors.sticker2).border(2.dp, colors.rule2, Shapes.Tile)) }
     }
 }
 

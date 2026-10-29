@@ -6,6 +6,7 @@ using Twogether.Api.Admin;
 using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Presence;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Admin;
@@ -47,7 +48,8 @@ public sealed class AdminUsersController(
     IAccountEraser eraser,
     IHubContext<CoupleHub> hub,
     IEmailSender email,
-    IEntitlementService entitlements) : ApiControllerBase
+    IEntitlementService entitlements,
+    LocationSharingStopper locationStopper) : ApiControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<AdminPage<AdminUserRow>>> List([FromQuery] string? query, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
@@ -67,6 +69,7 @@ public sealed class AdminUsersController(
             "disabled" => users.Where(user => user.DisabledAtUtc != null),
             "active" => users.Where(user => user.DisabledAtUtc == null),
             "unlinked" => users.Where(user => user.CoupleId == null || !db.Couples.Any(couple => couple.Id == user.CoupleId && couple.Status == CoupleStatus.Active)),
+            "internal" => users.Where(user => user.IsInternal),
             _ => users,
         };
         var total = await users.CountAsync(ct);
@@ -77,7 +80,8 @@ public sealed class AdminUsersController(
                 user.GoogleId != null, user.PasswordHash != null,
                 db.Couples.Where(couple => couple.Id == user.CoupleId).Select(couple => (CoupleStatus?)couple.Status).FirstOrDefault(),
                 db.StoreSubscriptions.Any(item => item.UserId == user.Id && item.ExpiresAtUtc > now
-                    && (item.Status == StoreSubscriptionStatus.Active || item.Status == StoreSubscriptionStatus.Canceled || item.Status == StoreSubscriptionStatus.InGracePeriod))))
+                    && (item.Status == StoreSubscriptionStatus.Active || item.Status == StoreSubscriptionStatus.Canceled || item.Status == StoreSubscriptionStatus.InGracePeriod)),
+                user.IsInternal))
             .ToListAsync(ct);
         return Ok(new AdminPage<AdminUserRow>(rows, total, page, pageSize));
     }
@@ -114,10 +118,11 @@ public sealed class AdminUsersController(
             user.Id, user.Email, user.DisplayName, user.CreatedAtUtc, user.LastActiveAtUtc, user.DisabledAtUtc, user.DisabledReason,
             user.EmailVerified, user.GoogleId != null, user.PasswordHash != null, user.TimeZoneId,
             couple is null ? null : new AdminCouple(couple.Id, couple.Status, couple.LinkedAtUtc, couple.DissolvedAtUtc, partner),
-            entitlement.Plan, entitlement.Complimentary, devices, subscriptions, grants, counts, history));
+            entitlement.Plan, entitlement.Complimentary, devices, subscriptions, grants, counts, history, user.IsInternal));
     }
 
     [HttpPost("{userId:guid}/disable")]
+    [RequireStepUp]
     public async Task<IActionResult> Disable(Guid userId, AdminReasonRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));
@@ -128,6 +133,8 @@ public sealed class AdminUsersController(
         audit.Record(User, "user.disabled", "user", userId.ToString(), request.Reason.Trim());
         await db.SaveChangesAsync(ct);
         connections.AbortAll(userId);
+        // Every session ends, so the location share ends with them, on all of the person's phones.
+        await locationStopper.StopAsync(userId, ct);
         return NoContent();
     }
 
@@ -142,7 +149,7 @@ public sealed class AdminUsersController(
         return NoContent();
     }
 
-    /// <summary>Ends every session on every device; the person signs in again.</summary>
+    /// <summary>Ends every session on every device and stops their location sharing; the person signs in again.</summary>
     [HttpPost("{userId:guid}/sign-out")]
     public async Task<IActionResult> SignOut(Guid userId, CancellationToken ct)
     {
@@ -152,6 +159,7 @@ public sealed class AdminUsersController(
         audit.Record(User, "user.signed_out", "user", userId.ToString());
         await db.SaveChangesAsync(ct);
         connections.AbortAll(userId);
+        await locationStopper.StopAsync(userId, ct);
         return NoContent();
     }
 
@@ -174,6 +182,7 @@ public sealed class AdminUsersController(
 
     /// <summary>Deletes the account and everything of theirs, as if they had done it. The admin types the email to confirm.</summary>
     [HttpPost("{userId:guid}/delete")]
+    [RequireStepUp]
     public async Task<IActionResult> Delete(Guid userId, AdminDeleteRequest request, CancellationToken ct)
     {
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(item => item.Id == userId, ct);
@@ -184,7 +193,15 @@ public sealed class AdminUsersController(
         if (string.IsNullOrWhiteSpace(request.Reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));
         audit.Record(User, "user.deleted", "user", userId.ToString(), $"{user.Email}: {request.Reason.Trim()}");
         await db.SaveChangesAsync(ct);
-        var erased = await eraser.EraseAsync(userId, ct);
+        AccountErasure? erased;
+        try
+        {
+            erased = await eraser.EraseAsync(userId, ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict(new ApiError("admin.delete_conflict", "The account changed while it was being deleted. Nothing was deleted; try again."));
+        }
         if (erased is null) return NotFound();
         connections.AbortAll(userId);
         await AccountController.AnnounceErasureAsync(hub, erased, ct);
@@ -227,14 +244,17 @@ public sealed class AdminSubscriptionsController(
 
     /// <summary>Stops renewal. Access lasts until the paid period ends.</summary>
     [HttpPost("subscriptions/{id:guid}/cancel")]
+    [RequireStepUp]
     public Task<IActionResult> Cancel(Guid id, AdminReasonRequest request, CancellationToken ct) => Manage(id, "subscription.canceled", request.Reason, ct, billing.CancelAsync);
 
     /// <summary>Refunds the latest payment and keeps the subscription.</summary>
     [HttpPost("subscriptions/{id:guid}/refund")]
+    [RequireStepUp]
     public Task<IActionResult> Refund(Guid id, AdminReasonRequest request, CancellationToken ct) => Manage(id, "subscription.refunded", request.Reason, ct, billing.RefundAsync);
 
     /// <summary>Refunds and ends access now.</summary>
     [HttpPost("subscriptions/{id:guid}/revoke")]
+    [RequireStepUp]
     public Task<IActionResult> Revoke(Guid id, AdminReasonRequest request, CancellationToken ct) => Manage(id, "subscription.revoked", request.Reason, ct, billing.RevokeAsync);
 
     private async Task<IActionResult> Manage(Guid id, string action, string? reason, CancellationToken ct, Func<string, string, CancellationToken, Task<Result>>? call = null)
@@ -273,6 +293,7 @@ public sealed class AdminSubscriptionsController(
 
     /// <summary>Complimentary Plus for a couple, for 1 to 366 days.</summary>
     [HttpPost("couples/{coupleId:guid}/grants")]
+    [RequireStepUp]
     public async Task<ActionResult<AdminGrant>> Grant(Guid coupleId, AdminGrantRequest request, CancellationToken ct)
     {
         if (request.Days is < 1 or > 366) return UnprocessableEntity(new ApiError("admin.invalid_days", "Grant between 1 and 366 days."));
@@ -331,7 +352,8 @@ public sealed class AdminSystemController(
     IEmailSender email,
     IGoogleTokenVerifier google,
     IGooglePlayBilling billing,
-    AdminSecretProtector secrets) : ApiControllerBase
+    AdminSecretProtector secrets,
+    LocationSharingStopper locationStopper) : ApiControllerBase
 {
     [HttpGet("system")]
     public async Task<ActionResult<AdminSystem>> System(CancellationToken ct)
@@ -373,6 +395,7 @@ public sealed class AdminSystemController(
 
     /// <summary>Lost phone: the admin enrolls a new authenticator at the next sign-in. Not for yourself.</summary>
     [HttpPost("admins/{userId:guid}/reset-authenticator")]
+    [RequireStepUp]
     public async Task<IActionResult> ResetAuthenticator(Guid userId, CancellationToken ct)
     {
         if (User.FindFirst(global::System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == userId.ToString())
@@ -384,12 +407,14 @@ public sealed class AdminSystemController(
         user.EndSessions(clock.UtcNow);
         audit.Record(User, "admin.authenticator_reset", "user", userId.ToString());
         await db.SaveChangesAsync(ct);
+        // Signed out everywhere, so sharing stops too, as with any sign-out.
+        await locationStopper.StopAsync(userId, ct);
         return NoContent();
     }
 }
 
 public sealed record AdminPage<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
-public sealed record AdminUserRow(Guid Id, string Email, string DisplayName, DateTime CreatedAtUtc, DateTime? LastActiveAtUtc, DateTime? DisabledAtUtc, bool Google, bool Password, CoupleStatus? CoupleStatus, bool Paying);
+public sealed record AdminUserRow(Guid Id, string Email, string DisplayName, DateTime CreatedAtUtc, DateTime? LastActiveAtUtc, DateTime? DisabledAtUtc, bool Google, bool Password, CoupleStatus? CoupleStatus, bool Paying, bool Internal = false);
 public sealed record AdminPersonRef(Guid Id, string Email, string DisplayName);
 public sealed record AdminCouple(Guid Id, CoupleStatus Status, DateTime? LinkedAtUtc, DateTime? DissolvedAtUtc, AdminPersonRef? Partner);
 public sealed record AdminDevice(string Platform, string? AppVersion, DateTime LastSeenAtUtc, bool Active);
@@ -399,7 +424,7 @@ public sealed record AdminUserDetail(
     bool EmailVerified, bool Google, bool Password, string TimeZoneId,
     AdminCouple? Couple, Plan Plan, bool Complimentary,
     IReadOnlyList<AdminDevice> Devices, IReadOnlyList<AdminSubscriptionRow> Subscriptions, IReadOnlyList<AdminGrant> Grants,
-    AdminActivityCounts Activity, IReadOnlyList<AdminAuditRow> History);
+    AdminActivityCounts Activity, IReadOnlyList<AdminAuditRow> History, bool Internal = false);
 public sealed record AdminSubscriptionRow(Guid Id, string Store, string ProductId, Guid UserId, string? BuyerEmail, StoreSubscriptionStatus Status, DateTime ExpiresAtUtc, bool AutoRenewing, bool Acknowledged, DateTime CreatedAtUtc, DateTime? LastVerifiedAtUtc, string TokenSuffix);
 public sealed record AdminGrant(Guid Id, Guid CoupleId, DateTime ExpiresAtUtc, string Reason, DateTime? RevokedAtUtc, DateTime CreatedAtUtc);
 public sealed record AdminAuditRow(Guid Id, string AdminEmail, string Action, string? TargetType, string? TargetId, string? Details, string? IpAddress, bool Succeeded, DateTime CreatedAtUtc);

@@ -10,8 +10,10 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.heartpact.album.AlbumNotices
+import app.heartpact.i18n.Tr
 import app.heartpact.ui.AppViewModel
 import app.heartpact.ui.HeartpactApp
+import app.heartpact.ui.graphics.ProvideRive
 
 class MainActivity : ComponentActivity() {
     private val container get() = (application as HeartpactApplication).container
@@ -21,9 +23,11 @@ class MainActivity : ComponentActivity() {
         // The system splash is a plain indigo frame; the walk-together scene starts as soon as Compose draws.
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        Tr.load(this)
         enableEdgeToEdge()
         if (savedInstanceState == null) handleIntent(intent)
-        setContent { HeartpactApp(container, appModel) }
+        // One Rive file (the 3D icons and the splash) for the whole app.
+        setContent { ProvideRive { HeartpactApp(container, appModel) } }
     }
 
     override fun onNewIntent(intent: Intent) {

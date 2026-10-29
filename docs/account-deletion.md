@@ -8,7 +8,7 @@ Google Play requires any app that creates accounts to let people delete them, bo
 
 - profile
 - cycle settings and day logs
-- pregnancy, appointments and kick counts
+- pregnancy, appointments and kick counts (appointments they added to a partner's pregnancy only while they can still see it)
 - food entries, targets and scan records
 - exercise goals and attempts
 - last shared location
@@ -45,6 +45,9 @@ The request is checked in this order:
    - The app should then send them to the Play Store subscription screen, or let them confirm with `acknowledgeActiveSubscription: true`.
    - Cancelled and expired subscriptions need no acknowledgement.
 3. **Erasure.** Everything happens in one database transaction and returns `204`.
+   - If another write clashes with it (the alarm worker opening a dare, or the partner deleting their own account
+     at the same moment), it rolls back and starts once more from what is there now. A second clash returns
+     `409 account.delete_conflict` with nothing deleted; trying again is safe.
 
 ### What happens
 
@@ -58,18 +61,23 @@ The request is checked in this order:
 - **Games.** All games from any couple they were in are deleted, because game state embeds both players' answers.
 - **Memories they uploaded.**
   - The rows are marked `Deleting`, with caption and date wiped inside the same transaction.
-  - `MemoryCleanupWorker` deletes the stored objects within a few minutes.
+  - `MemoryCleanupWorker` deletes the stored objects within a few minutes, once no upload link handed out for them
+    still works (a phone still syncing could otherwise put a photo back after the account is gone).
   - Storage calls cannot be part of a database transaction, which is why this runs as a separate step.
 - **Shared couple rows** (the couple itself, the daily question list, the partner's memories, messages and answers):
   - If a partner still exists, these rows stay with that partner. The deleted person shows up only as an id that no longer matches anyone.
   - If no partner is left, for example the solo couple every sign-up starts with, the rows are deleted too.
-- **Pregnancy appointments the person added to their partner's pregnancy** stay, because they are part of the partner's health record.
+- **Pregnancy appointments the person added to their partner's pregnancy** stay, because they are part of the partner's health record, but what the person wrote is erased: the title becomes "Appointment" in the owner's language, and the place and notes go.
+- **The partner's cycle sharing** goes back to nothing, as after a breakup, and the partner's "shared pregnancy mode with you" notification goes with the person's pregnancies.
 - **Afterwards:**
   - Other signed-in devices get an `AccountDeleted` hub event.
   - Every API call fails with `401` immediately, because the JWT bearer handler checks on each request that the user still exists. Without that check, a token could keep writing rows for hours after deletion.
   - The email can be registered again.
 
-## Still to do outside the API
+## Outside the API
 
-- **Web deletion page.** Play Console asks for a URL where people can request deletion without the app. That page belongs to the frontend, which is on hold. It can sign in with `/api/auth/login` and then call this endpoint.
-- **Data safety form.** Declare in Play Console's Data safety form that deletion is offered and is immediate.
+- **Web deletion page.** Play Console asks for a URL where people can delete their account without the app:
+  https://heartpact.app/delete-account/ (`website/delete-account/`, docs/website.md). It signs in with
+  `/api/auth/login` and calls this endpoint, as the app does.
+- **Data safety form (still to do).** Declare in Play Console's Data safety form that deletion is offered and is
+  immediate.

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heartpact : des défis à deux, comptés par la caméra</title>
+<meta name="description" content="L'appli de couple où ton partenaire choisit le défi, où ton téléphone sonne jusqu'à ce que la caméra compte tes répétitions, et où le cœur ne se remplit que si vous tenez parole tous les deux. Gratuite sur Google Play.">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.app/fr/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Heartpact : ta moitié, sa moitié">
+<meta property="og:description" content="Ton partenaire choisit le défi. Ton téléphone sonne jusqu'à ce que la caméra compte tes répétitions. Gratuit sur Google Play.">
+<meta property="og:url" content="https://heartpact.app/fr/">
+<meta property="og:image" content="https://heartpact.app/assets/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/site.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.app/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.app/fr/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.app/pt/">
+<link rel="alternate" hreflang="es" href="https://heartpact.app/es/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.app/ar/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.app/hi/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.app/">
+<script type="application/json" id="strings">{"Checking your account…": "Vérification de ton compte…", "Email or password is incorrect. If you signed up with Google, email support@heartpact.app from that address and we’ll delete it.": "E-mail ou mot de passe incorrect. Si ton compte a été créé avec Google, écris à support@heartpact.app depuis cette adresse et nous le supprimerons.", "Something went wrong. Try again, or email support@heartpact.app.": "Un problème est survenu. Réessaie, ou écris à support@heartpact.app.", "The workout screen counting jumping jacks, 12 of 20, with the pose drawn over the camera": "L'écran d'entraînement qui compte les jumping jacks, 12 sur 20, avec la posture dessinée sur l'image de la caméra", "The workout screen counting squats, 9 of 15, with the pose drawn over the camera": "L'écran d'entraînement qui compte les squats, 9 sur 15, avec la posture dessinée sur l'image de la caméra", "Tick the box to confirm you understand this can't be undone.": "Coche la case pour confirmer que tu as compris que c'est irréversible.", "Too many attempts. Wait a few minutes and try again.": "Trop de tentatives. Attends quelques minutes et réessaie.", "We couldn't reach Heartpact. Check your connection and try again.": "Impossible de joindre Heartpact. Vérifie ta connexion et réessaie.", "You have a Heartpact Plus subscription that will keep renewing. Cancel it in Google Play first, or tick the box below and delete anyway.": "Tu as un abonnement Heartpact Plus qui va continuer de se renouveler. Résilie-le d'abord dans Google Play, ou coche la case ci-dessous pour supprimer quand même.", "Your account and everything in it has been deleted. If you were linked, your partner has been unlinked.": "Ton compte et tout son contenu ont été supprimés. Si tu avais un pacte, le lien avec ton partenaire a été rompu."}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- The fold heart: one shape, each half in the other side's colour. Across for side by side, down when stacked. -->
+    <linearGradient id="foldAcross" x1="0" y1="0" x2="100" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
+    <linearGradient id="foldDown" x1="0" y1="15" x2="0" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="topbar" aria-hidden="true" inert>
+  <a class="brand" href="#top"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+  <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">Télécharger l'appli</a>
+</div>
+
+<header class="hero" id="top">
+  <div class="half you">
+    <div class="bar">
+      <a class="brand" href="/fr/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+      <a class="pill phone-only" href="https://play.google.com/store/apps/details?id=app.heartpact">Télécharger l'appli</a>
+    </div>
+    <div class="copy">
+      <p class="eyebrow">Toi</p>
+      <h1 class="display"><span class="line"><span>Ta</span></span><span class="line"><span>moitié.</span></span><span class="visually-hidden"> Sa moitié.</span></h1>
+      <p class="lede">Lance un défi à ton partenaire ce soir : un exercice, un nombre, une heure. Ta moitié du cœur se colle en premier.</p>
+    </div>
+  </div>
+  <div class="half them">
+    <nav aria-label="Principal">
+      <a href="#how">Comment ça marche</a>
+      <a href="#plans">Formules</a>
+      <a href="#faq">FAQ</a>
+      <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">Télécharger l'appli</a>
+    </nav>
+    <div class="copy">
+      <p class="eyebrow">L'autre</p>
+      <p class="h1 display" aria-hidden="true"><span class="line"><span>Sa</span></span><span class="line"><span>moitié.</span></span></p>
+      <p class="lede">À 7:00, son téléphone sonne jusqu'à ce que la caméra compte chaque répétition. Sa moitié se colle alors, et le cœur est complet.</p>
+    </div>
+    <div class="fold-heart" aria-hidden="true">
+      <svg viewBox="-8 -2 116 112">
+        <!-- Two halves stick together, then hand over to the seamless whole, which beats. -->
+        <path class="whole" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z"/>
+        <path class="half l" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z"/>
+        <path class="half r" d="M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z"/>
+      </svg>
+    </div>
+  </div>
+  <div class="float f1" aria-hidden="true" data-parallax="0.12">
+    <i><svg viewBox="0 0 24 24"><path d="M12 3 L13.8 9 H20 L15 12.8 L16.8 19 L12 15.3 L7.2 19 L9 12.8 L4 9 H10.2 Z" fill="none" stroke="#1F2557" stroke-width="1.8" stroke-linejoin="round"/></svg></i>
+    <span><b>Défi lancé · 22:14</b><small>20 squats pour Theo à 7:00</small></span>
+  </div>
+  <div class="float f2" aria-hidden="true" data-parallax="0.2">
+    <i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7" fill="none" stroke="#1F2557" stroke-width="1.8"/><path d="M12 10 V13 L14 14.5 M4.5 5.5 L7 3.5 M19.5 5.5 L17 3.5" fill="none" stroke="#1F2557" stroke-width="1.8" stroke-linecap="round"/></svg></i>
+    <span><b>Ça sonne sur le téléphone de Theo</b><small>S'arrête à 20 répétitions comptées</small></span>
+  </div>
+  <div class="float f3" aria-hidden="true" data-parallax="0.08">
+    <i><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#1F2557" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+    <span><b>20 sur 20 · 7:04</b><small>Les deux moitiés collées</small></span>
+  </div>
+</header>
+
+<main id="main">
+  <section class="statement" aria-labelledby="what">
+    <h2 id="what" class="visually-hidden">Ce qu'est Heartpact</h2>
+    <p data-words>Heartpact, c'est l'appli de couple où les promesses sonnent. La caméra compte les répétitions, et un cœur ne se remplit que si vous tenez parole tous les deux.</p>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact" data-reveal><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="Disponible sur Google Play"></a>
+    <p class="note" data-reveal>Gratuit pour vous deux, sur Android.</p>
+  </section>
+
+  <section class="story" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 id="how-title" class="display" data-reveal>Un défi, deux téléphones</h2>
+      <div class="sides">
+        <article class="side mine" data-reveal>
+          <p class="eyebrow">Sur ton téléphone</p>
+          <ol data-stagger>
+            <li><b>Choisis le défi.</b> <span>20 squats à 7:00, ou 60 secondes de gainage.</span></li>
+            <li><b>Suis-le en direct.</b> <span>Le compteur grimpe sur ton téléphone, pendant l'effort.</span></li>
+            <li><b>Annule, si tu veux.</b> <span>C'est toi qui dis oui quand l'autre le demande.</span></li>
+          </ol>
+          <img class="phone" src="/assets/img/today.webp" width="600" height="1298" loading="lazy" alt="Aujourd'hui dans Heartpact : le défi de demain et une semaine de cœurs" data-parallax="0.06">
+        </article>
+        <article class="side theirs d1" data-reveal>
+          <p class="eyebrow">Sur le sien</p>
+          <ol data-stagger>
+            <li><b>Ça sonne.</b> <span>Une vraie alarme, par-dessus l'écran verrouillé.</span></li>
+            <li><b>La caméra compte.</b> <span>Seulement les vraies répétitions, avec un conseil quand l'une ne compte pas.</span></li>
+            <li><b>Le cœur se colle.</b> <span>Sa moitié rejoint la tienne.</span></li>
+          </ol>
+          <img class="phone" width="620" height="1342" loading="lazy" alt="L'écran d'entraînement qui compte les levers de bras, 9 sur 15, avec la posture dessinée sur l'image de la caméra" data-parallax="0.1" data-regional="workout">
+          <noscript><img class="phone" src="/assets/img/workout.webp" width="620" height="1342" alt="L'écran d'entraînement qui compte les levers de bras, 9 sur 15, avec la posture dessinée sur l'image de la caméra"></noscript>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="fair" aria-labelledby="fair-title">
+    <div class="wrap">
+      <div class="text">
+        <h2 id="fair-title" class="display" data-reveal>Le fair-play, de série.</h2>
+        <p class="lede" data-reveal>Les répétitions sont comptées sur le téléphone, jamais enregistrées. Les demi-répétitions ne comptent pas. Et si quelque chose cloche, l'autre moitié du cœur est prévenue.</p>
+        <ul data-stagger>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#A9B1F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Bien fait, sinon pas compté</b><span>« Plus bas. » « Garde le corps bien aligné. » Une répétition mal faite ne compte pas, et le conseil dit pourquoi.</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#A9B1F2" stroke-width="2.2"/><path d="M12 7.5 V12 L15 14" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linecap="round"/></svg><div><b>Contrôles surprises</b><span>En pleine série, l'écran affiche « On ne bouge plus ! ». Une vidéo passée sur un autre écran ne peut pas obéir sur commande.</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L20 6.5 V12 C20 16.5 16.5 19.8 12 21 C7.5 19.8 4 16.5 4 12 V6.5 Z" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linejoin="round"/></svg><div><b>Rien ne quitte le téléphone</b><span>La caméra lit ta posture et oublie chaque image aussitôt. Pas de vidéo, pas de photo, pas d'envoi.</span></div></li>
+        </ul>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <div class="counter" data-parallax="-0.05">
+          <div class="head"><span>Theo · levers de bras</span><span>7:03</span></div>
+          <p class="big" data-count="15">15</p>
+          <p class="of">sur 15 comptées</p>
+          <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="foot"><svg viewBox="-8 -2 116 112"><path d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z" fill="url(#foldAcross)"/></svg><span>Les deux moitiés collées. Compté sur le téléphone de Theo.</span></div>
+        </div>
+        <div class="chip c1" data-parallax="0.12"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#A9B1F2" stroke-width="2.2"/><path d="M12 7.5 V12 L15 14" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linecap="round"/></svg><span><b>Contrôle : on ne bouge plus !</b><small>Réussi en 2 secondes</small></span></div>
+        <div class="chip c2" data-parallax="0.2"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#161A3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Défi relevé</b><small>Maya voit chaque contrôle réussi</small></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="corner-shell">
+    <section class="corner" data-progress aria-labelledby="corner-title">
+      <div class="wrap">
+        <div class="shot"><img src="/assets/img/album.webp" width="600" height="1298" loading="lazy" alt="L'album partagé, avec les photos des deux téléphones" data-parallax="0.08"></div>
+        <div class="text">
+          <h2 id="corner-title" class="display" data-reveal>Un coin privé, à deux</h2>
+          <p class="lede" data-reveal>Les défis en sont le cœur battant. Le reste, c'est un coin tranquille, rien qu'à vous deux.</p>
+          <ul class="features" data-stagger>
+            <li><em>01</em><b>Album partagé</b><span>Les photos et vidéos de vos deux téléphones.</span></li>
+            <li><em>02</em><b>Suivi des repas</b><span>Une photo du repas, une estimation. Ton partenaire voit les totaux, jamais ton assiette.</span></li>
+            <li><em>03</em><b>Une question par jour</b><span>Réponds d'abord, puis découvre sa réponse.</span></li>
+            <li><em>04</em><b>Jeux à deux</b><span>Chacun son tour, sur vos deux téléphones.</span></li>
+            <li><em>05</em><b>Cycle et grossesse</b><span>Ne partage que ce que tu choisis.</span></li>
+            <li><em>06</em><b>Position</b><span>En direct seulement si vous l'activez tous les deux.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section id="plans" aria-labelledby="plans-title">
+    <h2 id="plans-title" class="visually-hidden">Formules</h2>
+    <div class="plans" data-progress>
+      <div class="plan free">
+        <h3>Gratuit</h3>
+        <p class="price">0 $</p>
+        <p class="per">pour vous deux, pour toujours</p>
+        <ul>
+          <li>Défis, alarmes et comptage caméra illimités</li>
+          <li>3 scans de repas par jour</li>
+          <li>Album partagé de 500 Mo</li>
+          <li>Questions, jeux, cycle et position</li>
+        </ul>
+      </div>
+      <div class="plan plus">
+        <h3>Plus, pour vous deux</h3>
+        <!-- Prices: keep in step with the base plans in Play Console. -->
+        <p class="price">5,99 $<small>/mois</small></p>
+        <p class="per">ou 39,99 $ par an · l'un ou l'autre peut payer</p>
+        <ul>
+          <li>20 scans de repas par jour</li>
+          <li>Album partagé de 2 Go</li>
+          <li>90 jours d'historique des questions</li>
+          <li>Un seul abonnement l'active sur vos deux téléphones</li>
+        </ul>
+      </div>
+    </div>
+    <p class="plans-note">Prix en dollars américains ; Google Play affiche le prix local. Résiliable à tout moment dans Google Play.</p>
+  </section>
+
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <h2 id="faq-title" class="display" data-reveal>Questions</h2>
+      <details><summary>La caméra m'enregistre-t-elle ?</summary><p>Non. Le téléphone lit ta posture image par image pour compter les répétitions, puis oublie chaque image. Aucune vidéo ni photo d'une séance ne quitte ton téléphone.</p></details>
+      <details><summary>Et en cas de maladie ou de blessure ?</summary><p>Demande à ton partenaire d'annuler depuis l'alarme, avec un mot. En cas d'accord, ça s'arrête pour vous deux. Tu peux aussi couper le son de l'alarme sur ton propre téléphone.</p></details>
+      <details><summary>Mon partenaire voit-il tout ce que je fais dans l'appli ?</summary><p>Ton partenaire voit ce que vous partagez en couple : les défis, l'album, les réponses une fois que vous avez répondu tous les deux. Les repas n'apparaissent qu'en totaux, et le cycle et la position seulement si tu actives le partage.</p></details>
+      <details><summary>Faut-il être tous les deux sur Android ?</summary><p>Oui, pour l'instant : Heartpact est sur Google Play.</p></details>
+      <details><summary>Qui paie Plus ?</summary><p>L'un ou l'autre. Un seul abonnement couvre le couple : l'autre téléphone passe à Plus aussitôt.</p></details>
+      <details><summary>Comment supprimer mon compte ?</summary><p>Dans l'appli, sous Nous, ou sur notre <a href="/fr/delete-account/">page de suppression de compte</a>. C'est immédiat et définitif.</p></details>
+    </div>
+  </section>
+
+  <section class="cta" data-progress aria-labelledby="cta-title">
+    <h2 id="cta-title" class="display"><span class="you">Tu fais la moitié.</span><span class="them">L'autre fait le reste.</span></h2>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact"><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="Disponible sur Google Play"></a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="Informations légales">
+      <a href="/fr/privacy/">Politique de confidentialité</a>
+      <a href="/fr/terms/">Conditions d'utilisation</a>
+      <a href="/fr/delete-account/">Supprimer ton compte</a>
+      <a href="mailto:support@heartpact.app">Contact</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="Langue">
+      <a href="/" lang="en" hreflang="en" data-lang="en">English</a>
+      <a href="/fr/" lang="fr" hreflang="fr" data-lang="fr" aria-current="true">Français</a>
+      <a href="/pt/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/" lang="ar" hreflang="ar" data-lang="ar">العربية</a>
+      <a href="/hi/" lang="hi" hreflang="hi" data-lang="hi">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

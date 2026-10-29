@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Application.Common.Interfaces;
@@ -10,6 +11,8 @@ using Twogether.Application.Features.Memories;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Memories;
+using Twogether.Infrastructure.Persistence;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -30,9 +33,9 @@ public sealed partial class MemoriesController(
     ILogger<MemoriesController> logger) : ApiControllerBase
 {
     public const string ChangedEvent = "MemoriesChanged";
-    private static readonly ApiError NoCouple = new("memories.no_couple", "Link your partner to start your shared album.");
-    private static readonly ApiError Unavailable = new("memories.storage_unavailable", "Photo storage is not set up on this server.");
-    private static readonly ApiError NotUploader = new("memories.not_uploader", "Only the person who added this memory can change it.");
+    private static ApiError NoCouple => new("memories.no_couple", Loc.T("Link your partner to start your shared album."));
+    private static ApiError Unavailable => new("memories.storage_unavailable", Loc.T("Photo storage is not set up on this server."));
+    private static ApiError NotUploader => new("memories.not_uploader", Loc.T("Only the person who added this memory can change it."));
 
     [HttpGet("usage")]
     public async Task<ActionResult<MemoryUsageDto>> Usage(CancellationToken cancellationToken)
@@ -56,9 +59,11 @@ public sealed partial class MemoriesController(
             .Where(item => item.CoupleId == couple.Id && item.Status != MemoryStatus.Deleting)
             .SumAsync(item => item.SizeBytes + item.ThumbnailBytes, cancellationToken);
 
+    private DatabaseFacade Database => ((DbContext)db).Database;
+
     private static ApiError QuotaExceeded(Plan plan) => new("memories.quota_exceeded", plan == Plan.Free
-        ? "Your shared album is full. Heartpact Plus gives you more room, or remove some memories."
-        : "Your shared album is full. Remove some memories to add more.");
+        ? Loc.T("Your shared album is full. Heartpact Plus gives you more room, or remove some memories.")
+        : Loc.T("Your shared album is full. Remove some memories to add more."));
 
     /// <summary>Reserves a slot and returns a signed PUT URL. The client must send the Content-Type it declared.</summary>
     [HttpPost("uploads")]
@@ -72,14 +77,18 @@ public sealed partial class MemoriesController(
         var kind = MemoryRequestRules.ValidateReserve(request, now);
         if (kind.IsFailure) return UnprocessableEntity(new ApiError(kind.Error.Code, kind.Error.Message));
 
-        var used = await UsedBytesAsync(couple, cancellationToken);
         var entitlement = await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken);
+        // Both partners fill the same album: one check-and-reserve at a time per couple.
+        await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+        await Database.LockAsync(LockScope.AlbumQuota, couple.Id, cancellationToken);
+        var used = await UsedBytesAsync(couple, cancellationToken);
         if (used + request.SizeBytes > entitlement.Limits.MemoriesBytes) return Conflict(QuotaExceeded(entitlement.Plan));
 
         var memory = Memory.Reserve(couple.Id, currentUser.UserId.Value, kind.Value, request.SizeBytes, request.Caption, request.TakenAtUtc, request.Source, now);
         memory.OpenUploadWindow(now.Add(settings.UploadUrlLifetime));
         db.Memories.Add(memory);
         await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return Ok(UploadSlot(memory, request.ThumbnailContentType, now));
     }
 
@@ -92,8 +101,8 @@ public sealed partial class MemoriesController(
     }
 
     /// <summary>
-    /// Confirms an upload. The stored object must exist, match the declared type, and fit the
-    /// type's size cap; anything else is deleted from storage and rejected. Repeating it is safe.
+    /// Confirms an upload. The stored object must exist, match the declared type and size, and
+    /// still fit the album; anything else is deleted from storage and rejected. Repeating it is safe.
     /// </summary>
     [HttpPost("{memoryId:guid}/complete")]
     public async Task<ActionResult<MemoryDto>> Complete(Guid memoryId, CancellationToken cancellationToken)
@@ -106,7 +115,9 @@ public sealed partial class MemoriesController(
         if (memory is null) return NotFound();
         if (memory.UploadedByUserId != currentUser.UserId.Value) return StatusCode(StatusCodes.Status403Forbidden, NotUploader);
         var names = await NamesAsync(couple, cancellationToken);
-        switch (await VerifyUploadAsync(memory, cancellationToken))
+        var entitlement = await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken);
+        var room = new AlbumRoom(await UsedBytesAsync(couple, cancellationToken), entitlement.Limits.MemoriesBytes);
+        switch (await VerifyUploadAsync(memory, room, cancellationToken))
         {
             case UploadOutcome.AlreadyReady:
                 return Ok(ToDto(memory, names));
@@ -116,6 +127,10 @@ public sealed partial class MemoriesController(
                 await db.SaveChangesAsync(cancellationToken);
                 await TryDeleteAsync(memory, cancellationToken);
                 return UnprocessableEntity(UploadRejected);
+            case UploadOutcome.OverQuota:
+                await db.SaveChangesAsync(cancellationToken);
+                await TryDeleteAsync(memory, cancellationToken);
+                return Conflict(QuotaExceeded(entitlement.Plan));
             default:
                 await db.SaveChangesAsync(cancellationToken);
                 await ChangedAsync(couple, memory.Id, "added", cancellationToken);
@@ -123,31 +138,55 @@ public sealed partial class MemoriesController(
         }
     }
 
-    private static readonly ApiError NotUploaded = new("memories.not_uploaded", "The file has not finished uploading yet.");
-    private static readonly ApiError UploadRejected = new("memories.upload_rejected", "The uploaded file did not match what was declared. Try again.");
+    private static ApiError NotUploaded => new("memories.not_uploaded", Loc.T("The file has not finished uploading yet."));
+    private static ApiError UploadRejected => new("memories.upload_rejected", Loc.T("The uploaded file did not match what was declared. Try again."));
 
-    private enum UploadOutcome { AlreadyReady, BecameReady, NotUploaded, Rejected }
+    private enum UploadOutcome { AlreadyReady, BecameReady, NotUploaded, Rejected, OverQuota }
+
+    /// <summary>
+    /// The album's use against its limit while uploads are confirmed, pending slots at their
+    /// declared size. Confirming never adds to it (a stored file is never larger than declared),
+    /// so it needs no lock; it only catches a limit that dropped since the slot was reserved.
+    /// </summary>
+    private sealed class AlbumRoom(long usedBytes, long limitBytes)
+    {
+        private long used = usedBytes;
+        public bool Fits(long declaredBytes, long storedBytes) => used - declaredBytes + storedBytes <= limitBytes;
+        public void Settle(long declaredBytes, long storedBytes) => used += storedBytes - declaredBytes;
+    }
 
     /// <summary>
     /// The one check behind every completion. The stored object must exist, match the declared
-    /// type, and fit the type's size cap: then the memory becomes ready (and picks up a thumbnail
-    /// uploaded alongside). Anything else is marked for deletion; the caller saves, then removes
-    /// the object with <see cref="TryDeleteAsync"/>.
+    /// type and be no larger than declared (the quota was checked against that), and the album
+    /// must still have room: then the memory becomes ready (and picks up a thumbnail uploaded
+    /// alongside). Anything else is marked for deletion; the caller saves, then removes the
+    /// object with <see cref="TryDeleteAsync"/>.
     /// </summary>
-    private async Task<UploadOutcome> VerifyUploadAsync(Memory memory, CancellationToken cancellationToken)
+    private async Task<UploadOutcome> VerifyUploadAsync(Memory memory, AlbumRoom room, CancellationToken cancellationToken)
     {
         if (memory.Status == MemoryStatus.Ready) return UploadOutcome.AlreadyReady;
         var stored = await storage.HeadAsync(memory.ObjectKey, cancellationToken);
         if (stored is null) return UploadOutcome.NotUploaded;
         var kind = MemoryRules.Kind(memory.ContentType)!;
         var typeMatches = string.Equals(stored.ContentType?.Split(';')[0].Trim(), memory.ContentType, StringComparison.OrdinalIgnoreCase);
-        if (!typeMatches || stored.SizeBytes <= 0 || stored.SizeBytes > kind.MaxBytes)
+        var declared = memory.SizeBytes;
+        if (!typeMatches || stored.SizeBytes <= 0 || stored.SizeBytes > kind.MaxBytes || stored.SizeBytes > declared)
         {
-            logger.LogWarning("Rejected memory {MemoryId}: stored {StoredType} {StoredBytes} bytes, declared {DeclaredType}.", memory.Id, stored.ContentType, stored.SizeBytes, memory.ContentType);
-            memory.MarkDeleting(clock.UtcNow);
+            logger.LogWarning("Rejected memory {MemoryId}: stored {StoredType} {StoredBytes} bytes, declared {DeclaredType} {DeclaredBytes} bytes.",
+                memory.Id, stored.ContentType, stored.SizeBytes, memory.ContentType, declared);
+            room.Settle(declared, 0);
+            memory.Reject(clock.UtcNow);
             return UploadOutcome.Rejected;
         }
+        if (!room.Fits(declared, stored.SizeBytes))
+        {
+            logger.LogInformation("Memory {MemoryId} ({StoredBytes} bytes) no longer fits its album; removing it.", memory.Id, stored.SizeBytes);
+            room.Settle(declared, 0);
+            memory.Reject(clock.UtcNow);
+            return UploadOutcome.OverQuota;
+        }
 
+        room.Settle(declared, stored.SizeBytes);
         memory.MarkReady(stored.SizeBytes, clock.UtcNow);
         // A thumbnail uploaded alongside is picked up here; a missing or bad one never fails the photo.
         try
@@ -170,7 +209,7 @@ public sealed partial class MemoriesController(
         if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
         limit = Math.Clamp(limit, 1, 100);
         var after = MemoryCursor.Decode(cursor);
-        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", "That page cursor is not valid."));
+        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", Loc.T("That page cursor is not valid.")));
         var query = db.Memories.AsNoTracking().Where(item => item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready);
         if (after is not null)
             query = query.Where(item => item.SortAtUtc < after.SortAtUtc || (item.SortAtUtc == after.SortAtUtc && item.Id.CompareTo(after.Id) < 0));
@@ -190,7 +229,7 @@ public sealed partial class MemoriesController(
         if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
         var today = DateOnly.FromDateTime(clock.UtcNow);
         if (!string.IsNullOrWhiteSpace(date) && !DateOnly.TryParseExact(date.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out today))
-            return UnprocessableEntity(new ApiError("memories.invalid_date", "Date must look like yyyy-MM-dd."));
+            return UnprocessableEntity(new ApiError("memories.invalid_date", Loc.T("Date must look like yyyy-MM-dd.")));
         var month = today.Month;
         var candidates = await db.Memories.AsNoTracking()
             .Where(item => item.CoupleId == couple.Id && item.Status == MemoryStatus.Ready && item.SortAtUtc.Month == month && item.SortAtUtc.Year < today.Year)
@@ -216,7 +255,7 @@ public sealed partial class MemoriesController(
         if (!storage.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, Unavailable);
         limit = Math.Clamp(limit, 1, 100);
         var after = MemoryCursor.Decode(cursor);
-        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", "That page cursor is not valid."));
+        if (!string.IsNullOrWhiteSpace(cursor) && after is null) return UnprocessableEntity(new ApiError("memories.invalid_cursor", Loc.T("That page cursor is not valid.")));
 
         var cutoff = clock.UtcNow - settings.BreakupRetention;
         var query = db.Memories.AsNoTracking()
@@ -293,11 +332,11 @@ public sealed partial class MemoriesController(
         var (memory, error) = await OwnReadyMemoryAsync(memoryId, cancellationToken);
         if (memory is null) return error!;
         var outcome = await VerifyThumbnailAsync(memory, cancellationToken);
-        if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError("memories.thumbnail_not_uploaded", "The thumbnail has not finished uploading yet."));
+        if (outcome == ThumbnailOutcome.Missing) return Conflict(new ApiError("memories.thumbnail_not_uploaded", Loc.T("The thumbnail has not finished uploading yet.")));
         // Saved either way: a rejected upload overwrote and removed any earlier thumbnail.
         await db.SaveChangesAsync(cancellationToken);
         if (outcome == ThumbnailOutcome.Rejected)
-            return UnprocessableEntity(new ApiError("memories.thumbnail_rejected", $"Thumbnails must be JPEG or WebP and at most {MemoryRules.MaxThumbnailBytes / 1024} KB."));
+            return UnprocessableEntity(new ApiError("memories.thumbnail_rejected", Loc.T("Thumbnails must be JPEG or WebP and at most {kilobytes} KB.", ("kilobytes", MemoryRules.MaxThumbnailBytes / 1024))));
         var couple = await db.Couples.AsNoTracking().SingleAsync(item => item.Id == memory.CoupleId, cancellationToken);
         await ChangedAsync(couple, memory.Id, "updated", cancellationToken);
         return Ok(ToDto(memory, await NamesAsync(couple, cancellationToken)));
@@ -362,12 +401,18 @@ public sealed partial class MemoriesController(
         return NoContent();
     }
 
+    /// <summary>
+    /// Removes the objects of a memory already marked for deletion. While one of its upload links
+    /// still works the row stays as a tombstone: a late PUT could put the bytes back, so the cleanup
+    /// worker deletes the objects once more after the window, and only then the row.
+    /// </summary>
     private async Task TryDeleteAsync(Memory memory, CancellationToken cancellationToken)
     {
         try
         {
             await storage.DeleteAsync(memory.ObjectKey, cancellationToken);
             await storage.DeleteAsync(memory.ThumbnailKey, cancellationToken);
+            if (memory.UploadWindowOpen(clock.UtcNow)) return;
             db.Memories.Remove(memory);
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -383,7 +428,7 @@ public sealed partial class MemoriesController(
         return new MemoryDto(
             memory.Id,
             memory.UploadedByUserId,
-            names.GetValueOrDefault(memory.UploadedByUserId, "Your partner"),
+            (names.GetValueOrDefault(memory.UploadedByUserId) ?? Loc.T("Your partner")),
             memory.ContentType,
             memory.IsVideo,
             memory.SizeBytes,

@@ -6,6 +6,7 @@ using Twogether.Api.Common;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Push;
 using Twogether.Core.Entities;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Api.Controllers;
 
@@ -30,9 +31,9 @@ public sealed class DevicesController(IApplicationDbContext db, ICurrentUser cur
     {
         if (!currentUser.UserId.HasValue) return Unauthorized();
         if (string.IsNullOrWhiteSpace(request.Token) || request.Token.Trim().Length > DeviceRegistration.MaxTokenLength)
-            return UnprocessableEntity(new ApiError("devices.invalid_token", "The push token is missing or too long."));
+            return UnprocessableEntity(new ApiError("devices.invalid_token", Loc.T("The push token is missing or too long.")));
         if (!Enum.IsDefined(request.Platform) || !Enum.IsDefined(request.TokenKind) || request.AppVersion?.Trim().Length > DeviceRegistration.MaxAppVersionLength)
-            return UnprocessableEntity(new ApiError("devices.invalid_device", "Unknown platform, token kind or app version."));
+            return UnprocessableEntity(new ApiError("devices.invalid_device", Loc.T("Unknown platform, token kind or app version.")));
 
         for (var attempt = 0; ; attempt++)
         {

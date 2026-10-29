@@ -123,11 +123,13 @@ public sealed class BackendBehaviorTests
         var coupleId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var message = Message.Create(coupleId, userId, "just us", true, now);
-        var location = CoupleLocation.Create(coupleId, userId, 6.5244, 3.3792, 12, now);
+        var location = CoupleLocation.Start(coupleId, userId, now);
+        location.TryRecordFix(6.5244, 3.3792, 12, now, now);
 
         location.StopSharing(now.AddMinutes(1));
 
         Assert.True(message.IsPrivate);
         Assert.False(location.SharingEnabled);
+        Assert.False(location.HasFix);
     }
 }

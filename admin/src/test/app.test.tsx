@@ -3,7 +3,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
-import type { AdminSession, Page, UserDetail, UserRow } from "../api/types";
+import type { AdminSession, GameInsights, Page, UserDetail, UserRow } from "../api/types";
 import { getSession, setSession } from "../auth/session";
 
 type Handler = (method: string, path: string, body: unknown) => { status: number; body?: unknown } | undefined;
@@ -159,6 +159,38 @@ describe("the dashboard", () => {
     expect(screen.getByText("Account disabled.")).toBeTruthy();
   });
 
+  it("asks for a fresh code when the API wants one, then retries with it", async () => {
+    const user = userEvent.setup();
+    const sent: (string | undefined)[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://admin.test");
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      if ((init?.method ?? "GET") === "GET" && url.pathname === `/api/admin/users/${maya.id}`)
+        return new Response(JSON.stringify(detail()), { status: 200, headers: { "content-type": "application/json" } });
+      if (init?.method === "POST" && url.pathname === `/api/admin/users/${maya.id}/internal`) {
+        sent.push(headers["x-admin-code"]);
+        if (!headers["x-admin-code"]) return new Response(JSON.stringify({ code: "admin.step_up_required", message: "Fresh code, please." }), { status: 403 });
+        return new Response(null, { status: 204 });
+      }
+      // The live feed, alerts and the rest aren't part of this test.
+      return new Response(null, { status: 404 });
+    });
+    act(() => setSession(admin));
+    start(`/users/${maya.id}`);
+
+    await user.click(await screen.findByRole("button", { name: "Mark internal" }));
+    await user.type(screen.getByLabelText(/Reason/), "QA account");
+    await user.click(screen.getAllByRole("button", { name: "Mark internal" }).at(-1)!);
+
+    const code = await screen.findByLabelText("Authenticator code");
+    await waitFor(() => expect((code as HTMLInputElement).disabled).toBe(false));
+    await user.type(code, "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => expect(sent).toEqual([undefined, "123456"]));
+    expect(await screen.findByText("Marked internal.")).toBeTruthy();
+  });
+
   it("only deletes after the admin types the account's email", async () => {
     const user = userEvent.setup();
     const calls = mockApi((method, path) => {
@@ -182,6 +214,22 @@ describe("the dashboard", () => {
 
     await waitFor(() => expect(app.router.state.location.pathname).toBe("/users"));
     expect(calls.find((call) => call.method === "POST")?.body).toEqual({ confirmEmail: "MAYA@example.com", reason: "Asked by email, ticket 41" });
+  });
+
+  it("shows the duels' usual winning margin in hearts", async () => {
+    const games: GameInsights = {
+      days: 30,
+      types: [{ type: "skillDuel", started: 3, finished: 2, abandoned: 0, medianMinutes: 40 }],
+      skills: [],
+      duels: { finished: 2, ties: 1, medianMargin: 0.5 },
+    };
+    mockApi((method, path) => (method === "GET" && path.startsWith("/api/admin/analytics/games") ? { status: 200, body: games } : undefined));
+    act(() => setSession(admin));
+    start("/games");
+
+    expect(await screen.findByText("Usual winning margin")).toBeTruthy();
+    expect(await screen.findByLabelText("0.5 hearts")).toBeTruthy();
+    expect(screen.queryByText(/pts/)).toBeNull();
   });
 
   it("signs out when the server stops accepting the token", async () => {

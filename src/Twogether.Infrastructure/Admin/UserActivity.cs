@@ -25,4 +25,16 @@ public static class UserActivity
             // Analytics must never fail a request.
         }
     }
+
+    public static async Task SetLanguageAsync(IApplicationDbContext db, Guid userId, string language, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await db.Users.Where(user => user.Id == userId).ExecuteUpdateAsync(set => set.SetProperty(user => user.Language, language), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Remembering the language must never fail a request; the next one tries again.
+        }
+    }
 }

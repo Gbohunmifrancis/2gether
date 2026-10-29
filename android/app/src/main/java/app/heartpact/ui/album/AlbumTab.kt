@@ -7,6 +7,8 @@ import androidx.core.net.toUri
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Delete
+import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 import app.heartpact.ui.components.HeartField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -70,6 +73,8 @@ import app.heartpact.data.utc
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
+import app.heartpact.ui.components.TwoPaneWidth
+import app.heartpact.ui.components.readable
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.HalfState
@@ -126,15 +131,16 @@ fun AlbumTab(
     var openShared by remember { mutableStateOf<Memory?>(null) }
 
     Box(Modifier.fillMaxSize()) {
+        // Three photos across on a phone; as many as fit on a tablet.
         LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Adaptive(112.dp),
+            modifier = Modifier.fillMaxSize().readable(TwoPaneWidth),
             contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 104.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             full("header") { Header(ui) }
-            if (ui.storageMissing) full("storage") { NoteCard("Photo storage isn't set up on this server yet. Photos you add stay safe on this phone until it is.", Modifier.padding(bottom = 10.dp)) }
+            if (ui.storageMissing) full("storage") { NoteCard(tr("Photo storage isn't set up on this server yet. Photos you add stay safe on this phone until it is."), Modifier.padding(bottom = 10.dp)) }
             ui.note?.let { note -> full("note") { NoteCard(note, Modifier.padding(bottom = 10.dp)) } }
             ui.result?.let { result -> full("result") { ResultCard(result, onDismissResult) } }
             val usage = ui.usage
@@ -145,13 +151,13 @@ fun AlbumTab(
             if (ui.onThisDay.isNotEmpty()) full("onthisday") { OnThisDay(ui.onThisDay, image) { openShared = it } }
 
             if (ui.local.isNotEmpty()) {
-                full("local-title") { Section("Only on this phone", if (ui.refused.isEmpty()) AlbumText.photos(ui.local.size) else "${ui.waiting.size} waiting · ${ui.refused.size} not added") }
+                full("local-title") { Section(tr("Only on this phone"), if (ui.refused.isEmpty()) AlbumText.photos(ui.local.size) else tr("{waiting} waiting · {refused} not added", "waiting" to ui.waiting.size, "refused" to ui.refused.size)) }
                 items(ui.local, key = { "local-" + it.clientId }) { photo ->
                     LocalTile(photo, localModel(photo), image) { openLocal = photo }
                 }
             }
             if (ui.shared.isNotEmpty()) {
-                full("shared-title") { Section("Shared", ui.usage?.let { AlbumText.photos(it.count) } ?: "") }
+                full("shared-title") { Section(tr("Shared"), ui.usage?.let { AlbumText.photos(it.count) } ?: "") }
                 items(ui.shared, key = { "shared-" + it.id }) { memory ->
                     SharedTile(memory, sides[memory.uploadedByUserId], image) { openShared = memory }
                 }
@@ -163,7 +169,7 @@ fun AlbumTab(
             if (ui.loaded && ui.local.isEmpty() && ui.shared.isEmpty() && !ui.storageMissing) full("empty") { Empty() }
         }
         HeartButton(
-            "Add photos", onAdd,
+            tr("Add photos"), onAdd,
             Modifier.align(Alignment.BottomEnd).padding(16.dp),
             icon = Icons.Rounded.AddPhotoAlternate, fillWidth = false,
         )
@@ -180,13 +186,13 @@ fun AlbumTab(
         val refused = photo.errorCode != null
         AlertDialog(
             onDismissRequest = { openLocal = null },
-            title = { Text(if (refused) "Not added" else "Only on this phone") },
-            text = { Text(if (refused) AlbumText.reason(photo) else "It joins your shared album the next time you sync. Removing it here never touches the original in your gallery.") },
+            title = { Text(if (refused) tr("Not added") else tr("Only on this phone")) },
+            text = { Text(if (refused) AlbumText.reason(photo) else tr("It joins your shared album the next time you sync. Removing it here never touches the original in your gallery.")) },
             confirmButton = {
-                if (refused) TextButton(onClick = { onRetry(photo.clientId); openLocal = null }) { Text("Try again") }
-                else TextButton(onClick = { openLocal = null }) { Text("Keep it") }
+                if (refused) TextButton(onClick = { onRetry(photo.clientId); openLocal = null }) { Text(tr("Try again")) }
+                else TextButton(onClick = { openLocal = null }) { Text(tr("Keep it")) }
             },
-            dismissButton = { TextButton(onClick = { onRemove(photo.clientId); openLocal = null }) { Text("Remove from Heartpact") } },
+            dismissButton = { TextButton(onClick = { onRemove(photo.clientId); openLocal = null }) { Text(tr("Remove from Heartpact")) } },
         )
     }
     openShared?.let { open ->
@@ -203,9 +209,9 @@ private fun LazyGridScope.full(key: String, content: @Composable () -> Unit) =
 @Composable
 private fun Header(ui: AlbumUi) {
     Column(Modifier.padding(start = 8.dp, end = 4.dp, top = 10.dp, bottom = 14.dp)) {
-        Text("Album", style = Heartpact.type.headline, color = Heartpact.colors.ink)
+        Text(tr("Album"), style = Heartpact.type.headline, color = Heartpact.colors.ink)
         Text(
-            ui.usage?.let { "Shared: " + AlbumText.usage(it) } ?: "Photos stay on your phone until you sync",
+            ui.usage?.let { tr("Shared: {usage}", "usage" to AlbumText.usage(it)) } ?: tr("Photos stay on your phone until you sync"),
             style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 6.dp),
         )
     }
@@ -216,9 +222,9 @@ private fun Header(ui: AlbumUi) {
 private fun PlusPrompt(full: Boolean, onGetPlus: () -> Unit) {
     val colors = Heartpact.colors
     Column(Modifier.padding(bottom = 10.dp).fillMaxWidth().clip(Shapes.Well).background(colors.left.tint).padding(14.dp)) {
-        Text(if (full) "Your shared album is full" else "Your shared album is nearly full", style = Heartpact.type.label, color = colors.ink)
-        Text("Plus gives you both more space. Or delete a few shared photos to make room.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
-        HeartButton("See Plus", onGetPlus, Modifier.padding(top = 10.dp), kind = ButtonKind.Tonal, height = 44.dp, fillWidth = false)
+        Text(if (full) tr("Your shared album is full") else tr("Your shared album is nearly full"), style = Heartpact.type.label, color = colors.ink)
+        Text(tr("Plus gives you both more space. Or delete a few shared photos to make room."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+        HeartButton(tr("See Plus"), onGetPlus, Modifier.padding(top = 10.dp), kind = ButtonKind.Tonal, height = 44.dp, fillWidth = false)
     }
 }
 
@@ -231,7 +237,7 @@ private fun ResultCard(text: String, onDismiss: () -> Unit) {
     ) {
         HeartSticker(HalfState.Stuck, HalfState.Stuck, 20.dp)
         Text(text, style = Heartpact.type.body, color = colors.ink, modifier = Modifier.weight(1f).padding(horizontal = 10.dp, vertical = 8.dp))
-        IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, "Dismiss", tint = colors.ink2) }
+        IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, tr("Dismiss"), tint = colors.ink2) }
     }
 }
 
@@ -244,21 +250,21 @@ private fun SyncBanner(ui: AlbumUi, onSync: () -> Unit) {
                 is SyncState.Running -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.CloudUpload, null, Modifier.size(24.dp), tint = Heartpact.actor.action)
-                        Text(if (sync.total > 0) "Syncing ${sync.done} of ${sync.total}" else "Getting ready to sync", style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(start = 10.dp))
+                        Text(if (sync.total > 0) tr("Syncing {done} of {total}", "done" to sync.done, "total" to sync.total) else tr("Getting ready to sync"), style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(start = 10.dp))
                     }
                     LinearProgressIndicator(
                         progress = { if (sync.total > 0) sync.done / sync.total.toFloat() else 0f },
                         modifier = Modifier.padding(top = 12.dp).fillMaxWidth().height(8.dp).clip(Shapes.Pill),
                         color = Heartpact.actor.action, trackColor = colors.sticker2, drawStopIndicator = {},
                     )
-                    Text("Keeps going if you leave Heartpact.", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))
+                    Text(tr("Keeps going if you leave Heartpact."), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))
                 }
                 SyncState.WaitingForNetwork -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.CloudUpload, null, Modifier.size(24.dp), tint = colors.ink2)
                         Column(Modifier.padding(start = 10.dp)) {
-                            Text("Waiting for a connection", style = Heartpact.type.titleSmall, color = colors.ink)
-                            Text("Your sync starts as soon as you're online.", style = Heartpact.type.small, color = colors.ink2)
+                            Text(tr("Waiting for a connection"), style = Heartpact.type.titleSmall, color = colors.ink)
+                            Text(tr("Your sync starts as soon as you're online."), style = Heartpact.type.small, color = colors.ink2)
                         }
                     }
                 }
@@ -267,10 +273,10 @@ private fun SyncBanner(ui: AlbumUi, onSync: () -> Unit) {
                         Icon(Icons.Rounded.PhoneAndroid, null, Modifier.size(22.dp), tint = colors.ink)
                     }
                     Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                        Text("${AlbumText.photos(ui.waiting.size)} waiting", style = Heartpact.type.titleSmall, color = colors.ink)
-                        Text("Only on this phone · ${AlbumText.size(ui.waitingBytes)}", style = Heartpact.type.small, color = colors.ink2)
+                        Text(trn(ui.waiting.size, "{count} photo waiting", "{count} photos waiting"), style = Heartpact.type.titleSmall, color = colors.ink)
+                        Text(tr("Only on this phone · {size}", "size" to AlbumText.size(ui.waitingBytes)), style = Heartpact.type.small, color = colors.ink2)
                     }
-                    HeartButton("Sync", onSync, kind = ButtonKind.Filled, height = 44.dp, fillWidth = false, enabled = !ui.storageMissing)
+                    HeartButton(tr("Sync"), onSync, kind = ButtonKind.Filled, height = 44.dp, fillWidth = false, enabled = !ui.storageMissing)
                 }
             }
         }
@@ -283,21 +289,21 @@ fun SyncSheetContent(ui: AlbumUi, onWifi: Boolean, onSync: () -> Unit, onNotNow:
     val colors = Heartpact.colors
     val after = AlbumText.after(ui.usage, ui.waiting)
     Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp).padding(bottom = 22.dp).navigationBarsPadding()) {
-        Text("Sync ${AlbumText.photos(ui.waiting.size)}?", style = Heartpact.type.title, color = colors.ink)
-        Text("They join your shared album, and your partner sees them once they're in.", style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
+        Text(trn(ui.waiting.size, "Sync {count} photo?", "Sync {count} photos?"), style = Heartpact.type.title, color = colors.ink)
+        Text(tr("They join your shared album, and your partner sees them once they're in."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         Column(Modifier.padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             SheetRow(if (onWifi) Icons.Rounded.Wifi else Icons.Rounded.SignalCellularAlt,
-                if (onWifi) "You're on Wi-Fi" else "You're on mobile data",
-                if (onWifi) "${AlbumText.size(ui.waitingBytes)} to send" else "${AlbumText.size(ui.waitingBytes)} to send, which may count against your data")
-            SheetRow(Icons.Rounded.CloudUpload, "Keeps going in the background",
-                "Leave Heartpact whenever you like. If the connection drops, it carries on when you're back.")
+                if (onWifi) tr("You're on Wi-Fi") else tr("You're on mobile data"),
+                if (onWifi) tr("{size} to send", "size" to AlbumText.size(ui.waitingBytes)) else tr("{size} to send, which may count against your data", "size" to AlbumText.size(ui.waitingBytes)))
+            SheetRow(Icons.Rounded.CloudUpload, tr("Keeps going in the background"),
+                tr("Leave Heartpact whenever you like. If the connection drops, it carries on when you're back."))
             if (after.limitBytes > 0) {
-                val tail = if (after.fits < ui.waiting.size) "Only ${after.fits} of ${ui.waiting.size} fit; the rest stay on this phone." else "Everything fits."
-                SheetRow(Icons.Rounded.PhoneAndroid, "After: ${AlbumText.size(after.usedBytes)} of ${AlbumText.size(after.limitBytes)}", tail)
+                val tail = if (after.fits < ui.waiting.size) tr("Only {fits} of {total} fit; the rest stay on this phone.", "fits" to after.fits, "total" to ui.waiting.size) else tr("Everything fits.")
+                SheetRow(Icons.Rounded.PhoneAndroid, tr("After: {used} of {limit}", "used" to AlbumText.size(after.usedBytes), "limit" to AlbumText.size(after.limitBytes)), tail)
             }
         }
-        HeartButton("Sync now", onSync, Modifier.padding(top = 22.dp), icon = Icons.Rounded.CloudUpload)
-        HeartButton("Not now", onNotNow, Modifier.padding(top = 4.dp), kind = ButtonKind.Text)
+        HeartButton(tr("Sync now"), onSync, Modifier.padding(top = 22.dp), icon = Icons.Rounded.CloudUpload)
+        HeartButton(tr("Not now"), onNotNow, Modifier.padding(top = 4.dp), kind = ButtonKind.Text)
     }
 }
 
@@ -321,13 +327,14 @@ private fun OnThisDay(memories: List<Memory>, image: PhotoSlot, onOpen: (Memory)
     val today = LocalDate.now()
     StickerCard(Modifier.padding(bottom = 14.dp).fillMaxWidth(), shape = Shapes.Dare, lift = 6.dp) {
         Column(Modifier.padding(16.dp)) {
-            Text("On this day", style = Heartpact.type.titleSmall, color = colors.ink)
-            Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(tr("On this day"), style = Heartpact.type.titleSmall, color = colors.ink)
+            // Three across, and no bigger than on a large phone, however wide the album gets.
+            Row(Modifier.padding(top = 10.dp).widthIn(max = 480.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 memories.take(3).forEach { memory ->
                     val years = today.year - utc(memory.sortAtUtc).atZone(ZoneId.systemDefault()).year
                     Column(Modifier.weight(1f).clickable { onOpen(memory) }) {
                         image(memory.thumbnailUrl ?: memory.url, memory.caption, Modifier.fillMaxWidth().aspectRatio(1f).clip(Shapes.Tile), true)
-                        Text(if (years == 1) "A year ago" else "$years years ago", style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                        Text(trn(years, "A year ago", "{count} years ago"), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
                 repeat(3 - memories.take(3).size) { Spacer(Modifier.weight(1f)) }
@@ -350,7 +357,14 @@ private fun LocalTile(photo: LocalPhoto, model: Any?, image: PhotoSlot, onClick:
     val refused = photo.errorCode != null
     Box(
         Modifier.aspectRatio(1f).clip(Shapes.Tile).background(colors.sticker2).clickable(onClick = onClick)
-            .semantics { contentDescription = (if (photo.isVideo) "Video" else "Photo") + if (refused) " not added: ${AlbumText.reason(photo)}" else " only on this phone" },
+            .semantics {
+                contentDescription = when {
+                    photo.isVideo && refused -> tr("Video not added: {reason}", "reason" to AlbumText.reason(photo))
+                    photo.isVideo -> tr("Video only on this phone")
+                    refused -> tr("Photo not added: {reason}", "reason" to AlbumText.reason(photo))
+                    else -> tr("Photo only on this phone")
+                }
+            },
     ) {
         image(model, null, Modifier.fillMaxSize(), true)
         if (photo.isVideo) PlayMark(Modifier.align(Alignment.Center))
@@ -366,7 +380,7 @@ private fun SharedTile(memory: Memory, side: Side?, image: PhotoSlot, onClick: (
     val colors = Heartpact.colors
     Box(
         Modifier.aspectRatio(1f).clip(Shapes.Tile).background(colors.sticker2).clickable(onClick = onClick)
-            .semantics { contentDescription = memory.caption ?: "${if (memory.isVideo) "Video" else "Photo"} added by ${memory.uploadedByName}" },
+            .semantics { contentDescription = memory.caption ?: if (memory.isVideo) tr("Video added by {name}", "name" to memory.uploadedByName) else tr("Photo added by {name}", "name" to memory.uploadedByName) },
     ) {
         // A video without a poster frame yet has nothing an image loader can draw: show the play mark alone.
         if (!memory.isVideo || memory.thumbnailUrl != null) image(memory.thumbnailUrl ?: memory.url, null, Modifier.fillMaxSize(), true)
@@ -387,9 +401,9 @@ private fun Empty() {
     StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Dare) {
         Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Character(Who.Left, Pose.Rest, 110.dp, mood = Mood.Sleep)
-            Text("No photos yet", style = Heartpact.type.title, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 12.dp))
+            Text(tr("No photos yet"), style = Heartpact.type.title, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 12.dp))
             Text(
-                "Add photos and they stay on this phone. When you tap Sync, they join your shared album.",
+                tr("Add photos and they stay on this phone. When you tap Sync, they join your shared album."),
                 style = Heartpact.type.body, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 6.dp),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
@@ -418,7 +432,7 @@ val PlatformVideo: VideoSlot = { url, modifier ->
 @Composable
 private fun PlayMark(modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 30.dp) {
     Box(modifier.size(size).clip(Shapes.Pill).background(Color.Black.copy(alpha = 0.5f)), contentAlignment = Alignment.Center) {
-        Icon(Icons.Rounded.PlayArrow, "Video", Modifier.size(size * 0.66f), tint = Color.White)
+        Icon(Icons.Rounded.PlayArrow, tr("Video"), Modifier.size(size * 0.66f), tint = Color.White)
     }
 }
 
@@ -442,7 +456,6 @@ private fun PhotoViewer(
     var deleting by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    val kind = if (memory.isVideo) "video" else "photo"
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             when {
@@ -451,17 +464,17 @@ private fun PhotoViewer(
                     memory.thumbnailUrl?.let { image(it, null, Modifier.fillMaxSize(), false) }
                     Box(Modifier.align(Alignment.Center).clickable(role = androidx.compose.ui.semantics.Role.Button) { playing = true }) { PlayMark(size = 72.dp) }
                 }
-                else -> image(memory.url, memory.caption ?: "Photo added by ${memory.uploadedByName}", Modifier.fillMaxSize(), false)
+                else -> image(memory.url, memory.caption ?: tr("Photo added by {name}", "name" to memory.uploadedByName), Modifier.fillMaxSize(), false)
             }
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, "Close", tint = Color.White) }
+                IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, tr("Close"), tint = Color.White) }
                 Column(Modifier.padding(start = 4.dp).weight(1f)) {
-                    Text(memory.uploadedByName.ifBlank { "Shared $kind" }, style = Heartpact.type.label, color = Color.White)
+                    Text(memory.uploadedByName.ifBlank { if (memory.isVideo) tr("Shared video") else tr("Shared photo") }, style = Heartpact.type.label, color = Color.White)
                     Text(date, style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f))
                 }
                 if (mine) {
-                    IconButton(onClick = { error = null; editing = true }) { Icon(Icons.Rounded.Edit, "Caption", tint = Color.White) }
-                    IconButton(onClick = { error = null; deleting = true }) { Icon(Icons.Rounded.Delete, "Delete", tint = Color.White) }
+                    IconButton(onClick = { error = null; editing = true }) { Icon(Icons.Rounded.Edit, tr("Caption"), tint = Color.White) }
+                    IconButton(onClick = { error = null; deleting = true }) { Icon(Icons.Rounded.Delete, tr("Delete"), tint = Color.White) }
                 }
             }
             Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color.Black.copy(alpha = 0.35f)).navigationBarsPadding().padding(20.dp)) {
@@ -474,28 +487,28 @@ private fun PhotoViewer(
         var text by remember { mutableStateOf(memory.caption.orEmpty()) }
         AlertDialog(
             onDismissRequest = { if (!busy) editing = false },
-            title = { Text(if (memory.caption == null) "Add a caption" else "Change the caption") },
-            text = { HeartField("Caption", text, { if (it.length <= MAX_CAPTION) text = it }, minLines = 2, maxLength = MAX_CAPTION) },
+            title = { Text(if (memory.caption == null) tr("Add a caption") else tr("Change the caption")) },
+            text = { HeartField(tr("Caption"), text, { if (it.length <= MAX_CAPTION) text = it }, minLines = 2, maxLength = MAX_CAPTION) },
             confirmButton = {
                 TextButton(enabled = !busy, onClick = {
                     busy = true
                     onCaption(memory, text) { failure -> busy = false; error = failure; if (failure == null) editing = false }
-                }) { Text("Save") }
+                }) { Text(tr("Save")) }
             },
-            dismissButton = { TextButton(onClick = { editing = false }, enabled = !busy) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { editing = false }, enabled = !busy) { Text(tr("Cancel")) } },
         )
     }
     if (deleting) AlertDialog(
         onDismissRequest = { if (!busy) deleting = false },
-        title = { Text("Delete this $kind?") },
-        text = { Text("It's removed from your shared album for both of you. The original stays in your phone's gallery.") },
+        title = { Text(if (memory.isVideo) tr("Delete this video?") else tr("Delete this photo?")) },
+        text = { Text(tr("It's removed from your shared album for both of you. The original stays in your phone's gallery.")) },
         confirmButton = {
             TextButton(enabled = !busy, onClick = {
                 busy = true
                 onDelete { failure -> busy = false; deleting = false; error = failure }
-            }) { Text("Delete") }
+            }) { Text(tr("Delete")) }
         },
-        dismissButton = { TextButton(onClick = { deleting = false }, enabled = !busy) { Text("Keep it") } },
+        dismissButton = { TextButton(onClick = { deleting = false }, enabled = !busy) { Text(tr("Keep it")) } },
     )
 }
 

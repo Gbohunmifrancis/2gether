@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import app.heartpact.R
+import app.heartpact.i18n.tr
 import kotlinx.serialization.json.Json
 
 /**
@@ -30,9 +31,9 @@ object AlarmNotifier {
 
     fun ensureChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL) != null) return
-        val channel = NotificationChannel(CHANNEL, "Dare alarms", NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Rings when a dare is due. You can always silence it on this phone."
+        // Creating an existing channel only renames it (the person's own settings stay), so names follow the language.
+        val channel = NotificationChannel(CHANNEL, tr("Dare alarms"), NotificationManager.IMPORTANCE_HIGH).apply {
+            description = tr("Rings when a dare is due. You can always silence it on this phone.")
             setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
             enableVibration(true)
             vibrationPattern = longArrayOf(0, 600, 400, 600, 400, 600)
@@ -46,6 +47,10 @@ object AlarmNotifier {
 
     fun notificationId(slot: AlarmSlot) = slot.goalId.hashCode()
 
+    /** Already ringing: posting it again would restart the sound and pop the full-screen alarm back up. */
+    fun isShowing(context: Context, slot: AlarmSlot): Boolean =
+        context.getSystemService(NotificationManager::class.java).activeNotifications.any { it.id == notificationId(slot) }
+
     fun ring(context: Context, slot: AlarmSlot) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= 33) return
         ensureChannel(context)
@@ -58,11 +63,12 @@ object AlarmNotifier {
             Intent(context, AlarmReceiver::class.java).setAction(ACTION_SILENCE).putExtra(EXTRA_SLOT, encode(slot)),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val who = slot.setByName?.let { "$it's dare" } ?: "Your dare"
+        val title = slot.setByName?.let { tr("{title} · {partner}'s dare is ringing", "title" to slot.title, "partner" to it) }
+            ?: tr("{title} · Your dare is ringing", "title" to slot.title)
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_heart)
-            .setContentTitle("${slot.title} · $who is ringing")
-            .setContentText("Do it on camera to stop it, or silence it on this phone.")
+            .setContentTitle(title)
+            .setContentText(tr("Do it on camera to stop it, or silence it on this phone."))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -70,7 +76,7 @@ object AlarmNotifier {
             .setAutoCancel(false)
             .setFullScreenIntent(openPending, true)
             .setContentIntent(openPending)
-            .addAction(0, "Silence on this phone", silence)
+            .addAction(0, tr("Silence on this phone"), silence)
             .setTimeoutAfter(slot.deadlineEpochMs - now)
             .build()
             .apply { flags = flags or Notification.FLAG_INSISTENT }

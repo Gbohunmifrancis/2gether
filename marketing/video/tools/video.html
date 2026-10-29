@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Heartpact launch video</title>
+<!--
+  The launch video as one page: render.cjs calls init(timeline) once, then seek(t) for every frame and screenshots it.
+  Everything on screen is a pure function of t, so any frame can be rendered again exactly. Sizes come from ?w=&h=:
+  1080x1920 (9:16) or 1920x1080 (16:9). All pictures are the app's own: its screens, its splash and its live logo,
+  frame by frame from the screenshot tests (see frames.py).
+-->
+<style>
+  @font-face { font-family: Sora; src: url(../../play-store/tools/fonts/sora_bold.ttf); font-weight: 700; }
+  @font-face { font-family: Sora; src: url(../../play-store/tools/fonts/sora_semibold.ttf); font-weight: 600; }
+  @font-face { font-family: Figtree; src: url(../../play-store/tools/fonts/figtree_medium.ttf); font-weight: 500; }
+  @font-face { font-family: Figtree; src: url(../../play-store/tools/fonts/figtree_semibold.ttf); font-weight: 600; }
+  :root { --ink: #161A3D; --indigo: #1F2557; --peri: #6E7AD6; --pink: #FF5C8A; --page: #E3E5F6; }
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; overflow: hidden; perspective: 2400px; background: var(--page); }
+  .abs { position: absolute; left: 0; top: 0; }
+  .layer { position: absolute; inset: 0; }
+  #light { background: radial-gradient(120% 80% at 50% 0%, #F1F2FB 0%, #E3E5F6 55%, #D6D9F1 100%); }
+  .blob { position: absolute; border-radius: 50%; }
+  #dark { background: radial-gradient(110% 80% at 50% 40%, #2C3474 0%, #1F2557 50%, #12153A 100%); opacity: 0; }
+  #endbg { background: radial-gradient(90% 70% at 50% 42%, #2C3474 0%, #1F2557 52%, #1A1F4D 100%); }
+  #splashbg { background: radial-gradient(90% 60% at 50% 47%, #2C3474 0%, #1F2557 55%, #1A1F4D 100%); }
+  .sticker { position: absolute; transform-origin: center; }
+  .phone { position: absolute; transform-style: preserve-3d; transform-origin: 50% 50%; }
+  .bezel { position: absolute; inset: 0; background: linear-gradient(150deg, #353B6E 0%, #141737 45%, #0B0D24 100%);
+           box-shadow: 0 70px 120px -30px rgba(22, 26, 61, .45), 0 25px 50px -20px rgba(22, 26, 61, .35), inset 0 0 0 2px rgba(255,255,255,.07); }
+  .screen { position: absolute; overflow: hidden; background: #000; }
+  .screen img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .dim { position: absolute; inset: 0; background: #0B0D24; opacity: 0; }
+  .callout { position: absolute; background-repeat: no-repeat; transform-origin: 50% 50%;
+             box-shadow: 0 30px 60px -12px rgba(22, 26, 61, .45), 0 0 0 3px rgba(255,255,255,.9); }
+  .ring { position: absolute; border-radius: 50%; border: 4px solid rgba(169, 177, 242, .55); }
+  .titlebox { position: absolute; display: flex; align-items: center; }
+  .title { font-family: Sora; font-weight: 700; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
+  .title .line { display: block; white-space: nowrap; overflow: hidden; padding: 0.04em 0 0.1em; margin-bottom: -0.1em; }
+  .title .word { display: inline-block; will-change: transform; }
+  .title em { font-style: normal; color: #5563C9; }
+  .title.white { color: #fff; }
+  .title.white em { color: #A9B1F2; }
+  .burst { position: absolute; }
+  #splashbox { position: absolute; overflow: hidden; }
+  #splashbox img { position: absolute; }
+  #endcard { position: absolute; inset: 0; }
+  #endcard .wordmark { position: absolute; left: 0; right: 0; text-align: center; font-family: Sora; font-weight: 700; color: #fff; letter-spacing: -0.03em; }
+  #endcard .tagline { position: absolute; left: 0; right: 0; text-align: center; font-family: Figtree; font-weight: 600; color: rgba(255,255,255,.82); }
+  #endcard img { position: absolute; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const W = +params.get('w') || 1080, H = +params.get('h') || 1920;
+const V = H > W;
+const BUILD = '../out/build/';
+const stage = document.getElementById('stage');
+stage.style.width = W + 'px';
+stage.style.height = H + 'px';
+
+// ---- Easing and helpers --------------------------------------------------------------------------------------------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOutExpo = p => p >= 1 ? 1 : 1 - Math.pow(2, -10 * p);
+const easeInCubic = p => p * p * p;
+const easeOutCubic = p => 1 - Math.pow(1 - p, 3);
+const easeInOutCubic = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const easeOutBack = (p, s = 1.6) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2);
+const smooth = p => p * p * (3 - 2 * p);
+const TAU = Math.PI * 2;
+function rand(seed) { const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function el(tag, cls, parent = stage) { const e = document.createElement(tag); if (cls) e.className = cls; parent.appendChild(e); return e; }
+function setSrc(img, src) { if (img.dataset.src !== src) { img.src = src; img.dataset.src = src; } }
+
+// ---- Geometry ------------------------------------------------------------------------------------------------------
+const SCREEN_ASPECT = 1170 / 2532;
+const P = (() => {
+  const outerH = V ? 1170 : 900;
+  const bezel = V ? 15 : 13;
+  const screenH = outerH - 2 * bezel, screenW = screenH * SCREEN_ASPECT;
+  const outerW = screenW + 2 * bezel;
+  const screenR = screenW * 0.105;
+  return { outerH, outerW, bezel, screenH, screenW, screenR, outerR: screenR + bezel, cx: V ? 540 : 1400, cy: V ? 1222 : 545 };
+})();
+
+let T, scenes, byId, frames = {};
+
+// ---- Building the page ---------------------------------------------------------------------------------------------
+function makePhone() {
+  const phone = el('div', 'phone');
+  phone.style.width = P.outerW + 'px';
+  phone.style.height = P.outerH + 'px';
+  phone.style.left = (P.cx - P.outerW / 2) + 'px';
+  phone.style.top = (P.cy - P.outerH / 2) + 'px';
+  const bezel = el('div', 'bezel', phone);
+  bezel.style.borderRadius = P.outerR + 'px';
+  const screen = el('div', 'screen', phone);
+  Object.assign(screen.style, { left: P.bezel + 'px', top: P.bezel + 'px', width: P.screenW + 'px', height: P.screenH + 'px', borderRadius: P.screenR + 'px' });
+  const a = el('img', '', screen), b = el('img', '', screen), dim = el('div', 'dim', screen);
+  return { phone, screen, a, b, dim };
+}
+
+function makeTitle(text, white) {
+  const box = el('div', 'titlebox');
+  if (V) Object.assign(box.style, { left: '60px', width: (W - 120) + 'px', top: '150px', height: '360px', justifyContent: 'center', textAlign: 'center' });
+  else Object.assign(box.style, { left: '140px', width: '980px', top: '0px', height: H + 'px' });
+  const h = el('h1', 'title' + (white ? ' white' : ''), box);
+  h.style.fontSize = (V ? 88 : 84) + 'px';
+  h.style.lineHeight = '1.04';
+  // *Accent* words (one or more, between asterisks) take the accent colour.
+  const words = [];
+  let accent = false;
+  text.split('\n').forEach(line => {
+    const l = el('span', 'line', h);
+    line.split(' ').forEach((w, i, all) => {
+      if (w.startsWith('*')) accent = true;
+      const clean = w.replace(/\*/g, '');
+      const span = el('span', 'word', l);
+      span.innerHTML = accent ? `<em>${clean}</em>` : clean;
+      if (w.endsWith('*')) accent = false;
+      if (i < all.length - 1) l.appendChild(document.createTextNode(' '));
+      words.push(span);
+    });
+  });
+  return { box, words };
+}
+
+const STICKERS = V ? [
+  ['heart-full', .11, .36, 120, -14], ['heart-left', .90, .42, 104, 14], ['heart-right', .08, .74, 96, 10],
+  ['heart-empty', .92, .80, 110, -8], ['heart-full', .86, .955, 84, 18], ['heart-left', .15, .965, 78, -12],
+] : [
+  ['heart-full', .50, .14, 120, -14], ['heart-left', .93, .22, 104, 14], ['heart-right', .52, .86, 100, 10],
+  ['heart-empty', .94, .78, 116, -8], ['heart-full', .07, .12, 78, 18], ['heart-left', .05, .88, 84, -12],
+];
+
+let ui = {};
+
+window.init = async (timeline) => {
+  T = timeline;
+  scenes = T.scenes;
+  byId = Object.fromEntries(scenes.map(s => [s.id, s]));
+
+  el('div', 'layer', stage).id = 'light';
+  ui.blobs = [['#C9CEF4', .2, .25, .55], ['#F7C9DA', .85, .55, .45], ['#BFC6F2', .3, .85, .5]].map(([c, x, y, r]) => {
+    const b = el('div', 'blob');
+    const size = r * Math.max(W, H);
+    Object.assign(b.style, { width: size + 'px', height: size + 'px', background: `radial-gradient(circle, ${c} 0%, ${c}00 70%)` });
+    return { b, x, y, size };
+  });
+  ui.dark = el('div', 'layer'); ui.dark.id = 'dark';
+  ui.rings = [0, 1, 2].map(() => el('div', 'ring'));
+  ui.stickers = STICKERS.map(([name, x, y, size, rot], i) => {
+    const s = el('img', 'sticker');
+    s.src = BUILD + `art/${name}.png`;
+    s.style.width = size + 'px';
+    return { s, x: x * W - size / 2, y: y * H - size / 2, rot, i };
+  });
+
+  // Titles: one per scene that has one.
+  ui.titles = {};
+  scenes.forEach(s => { if (s.title) ui.titles[s.id] = makeTitle(s.title, s.id === 'intro' || s.dark); });
+
+  ui.main = makePhone();
+  ui.carousel = ['question', 'games', 'album'].map(id => { const p = makePhone(); setSrc(p.a, BUILD + `screens/${byId[id].screen}`); p.b.style.display = 'none'; return p; });
+
+  ui.callouts = {};
+  scenes.filter(s => s.zoom).forEach(s => {
+    const c = el('div', 'callout', ui.main.phone);
+    const [x0, y0, x1, y1] = s.zoom;
+    const w = (x1 - x0) * P.screenW, h = (y1 - y0) * P.screenH;
+    Object.assign(c.style, {
+      left: (P.bezel + x0 * P.screenW) + 'px', top: (P.bezel + y0 * P.screenH) + 'px', width: w + 'px', height: h + 'px',
+      backgroundImage: `url(${BUILD}screens/${s.screen})`, backgroundSize: `${P.screenW}px ${P.screenH}px`,
+      backgroundPosition: `${-x0 * P.screenW}px ${-y0 * P.screenH}px`, borderRadius: (V ? 26 : 22) + 'px', opacity: 0,
+    });
+    ui.callouts[s.id] = c;
+  });
+
+  ui.bursts = Array.from({ length: 16 }, (_, i) => {
+    const b = el('img', 'burst');
+    b.src = BUILD + `art/${['heart-full', 'heart-left', 'heart-right', 'heart-full'][i % 4]}.png`;
+    return b;
+  });
+
+  // The intro: the app's splash, frame by frame, full bleed (9:16) or as a tall column on its own ground (16:9).
+  ui.splashbg = el('div', 'layer'); ui.splashbg.id = 'splashbg';
+  ui.splashbox = el('div', '');
+  ui.splashbox.id = 'splashbox';
+  ui.splashimg = el('img', '', ui.splashbox);
+  frames.splash = Array.from({ length: 100 }, (_, i) => BUILD + `splash/${String(i).padStart(4, '0')}.jpg`);
+
+  ui.endbg = el('div', 'layer'); ui.endbg.id = 'endbg';
+  ui.end = el('div', ''); ui.end.id = 'endcard';
+  ui.logo = el('img', '', ui.end);
+  ui.wordmark = el('div', 'wordmark', ui.end); ui.wordmark.textContent = 'heartpact';
+  ui.tagline = el('div', 'tagline', ui.end); ui.tagline.textContent = 'Keep your promises to each other.';
+  ui.badge = el('img', '', ui.end); ui.badge.src = '../../play-store/tools/badges/en.png';
+  frames.drop = Array.from({ length: 40 }, (_, i) => BUILD + `logo-drop/${String(i).padStart(4, '0')}.png`);
+  frames.clap = Array.from({ length: 47 }, (_, i) => BUILD + `logo-clap/${String(i).padStart(4, '0')}.png`);
+  ui.intro = ui.titles.intro;
+  stage.appendChild(ui.intro.box);
+
+  // Order matters: the splash and the end card sit over everything else.
+  stage.appendChild(ui.splashbg); stage.appendChild(ui.splashbox); stage.appendChild(ui.intro.box);
+  stage.appendChild(ui.endbg); stage.appendChild(ui.end);
+
+  // Load every picture before the first frame.
+  const all = [...frames.splash, ...frames.drop, ...frames.clap, BUILD + 'screens/' + byId.today.screen];
+  await Promise.all(all.map(src => new Promise(ok => { const i = new Image(); i.onload = i.onerror = ok; i.src = src; })));
+  await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+  await document.fonts.ready;
+  layoutEnd();
+};
+
+function layoutEnd() {
+  const logoW = V ? 560 : 430;
+  const logoH = logoW * 1028 / 850;
+  Object.assign(ui.logo.style, { width: logoW + 'px', left: (W - logoW) / 2 + 'px', top: (V ? 400 : 10) + 'px' });
+  const below = (V ? 400 : 10) + logoH;
+  Object.assign(ui.wordmark.style, { top: (below + (V ? 10 : -20)) + 'px', fontSize: (V ? 120 : 104) + 'px' });
+  Object.assign(ui.tagline.style, { top: (below + (V ? 170 : 115)) + 'px', fontSize: (V ? 48 : 42) + 'px' });
+  const badgeH = V ? 130 : 104;
+  Object.assign(ui.badge.style, { height: badgeH + 'px', left: '50%', top: (below + (V ? 270 : 190)) + 'px' });
+}
+
+// ---- Per frame -------------------------------------------------------------------------------------------------------
+function phonePose(t, extra = {}) {
+  // A gentle float, so the phone is never quite still.
+  const amp = extra.float ?? 1;
+  const dy = 9 * Math.sin(TAU * t / 3.4) * amp;
+  const ry = 4 * Math.sin(TAU * t / 4.3) * amp + (extra.ry || 0);
+  const rx = 2.5 * Math.sin(TAU * t / 5.1 + 1) * amp + (extra.rx || 0);
+  const rz = (extra.rz || 0);
+  const s = extra.s ?? 1;
+  return `translate3d(${extra.x || 0}px, ${dy + (extra.y || 0)}px, ${extra.z || 0}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg) scale(${s})`;
+}
+
+function heartMask(p) {
+  const size = Math.pow(p, 1.5) * 520;
+  return `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 90 L13 53 A21.5 21.5 0 0 1 50 23 A21.5 21.5 0 0 1 87 53 Z' fill='black'/></svg>") center 46% / ${size}% no-repeat`;
+}
+
+function screenSwap(p, from, to, mode) {
+  const { a, b, dim } = p;
+  setSrc(a, from);
+  if (mode === 'none' || to == null) { b.style.display = 'none'; a.style.transform = ''; dim.style.opacity = 0; return; }
+  b.style.display = '';
+  setSrc(b, to);
+  if (mode.kind === 'wipe') {
+    const m = heartMask(mode.p);
+    b.style.webkitMask = m; b.style.mask = m; b.style.transform = ''; a.style.transform = '';
+    dim.style.opacity = 0;
+  } else if (mode.kind === 'slide') {
+    b.style.webkitMask = 'none'; b.style.mask = 'none';
+    b.style.transform = `translateY(${(1 - mode.p) * 100}%)`;
+    a.style.transform = `translateY(${-25 * mode.p}%)`;
+    dim.style.opacity = 0;
+  }
+}
+
+function draw(t) {
+  const s = byId;
+  const splashEnd = s.intro.end;
+
+  // Backgrounds: light by day, indigo for the alarm, the splash's indigo for the intro and the end card.
+  ui.blobs.forEach((o, i) => {
+    const x = o.x * W + 60 * Math.sin(t / 3 + i * 2) - o.size / 2, y = o.y * H + 50 * Math.cos(t / 3.7 + i) - o.size / 2;
+    o.b.style.transform = `translate(${x}px, ${y}px)`;
+  });
+  const dark = Math.min(prog(t, s.alarm.start - .35, s.alarm.start + .25), 1 - prog(t, s.alarm.end - .3, s.alarm.end + .3));
+  ui.dark.style.opacity = smooth(dark);
+
+  // Stickers: they pop in after the splash and drift; quieter on the dark alarm.
+  ui.stickers.forEach(o => {
+    const inP = easeOutBack(prog(t, splashEnd + .1 + o.i * .07, splashEnd + .6 + o.i * .07));
+    const y = o.y + 16 * Math.sin(t / 2.6 + o.i * 1.3);
+    const r = o.rot + 7 * Math.sin(t / 3.3 + o.i);
+    o.s.style.transform = `translate(${o.x}px, ${y}px) rotate(${r}deg) scale(${clamp(inP, 0, 1.2)})`;
+    o.s.style.opacity = (t < splashEnd ? 0 : 1) * (1 - .55 * dark);
+  });
+
+  // ---- Intro: the splash, then it shrinks into the phone ------------------------------------------------------------
+  const morph = easeInOutCubic(prog(t, splashEnd - .25, splashEnd + .5));
+  const splashFrame = Math.min(99, Math.floor(t * 30));
+  setSrc(ui.splashimg, frames.splash[splashFrame]);
+  const scr = { x: P.cx - P.screenW / 2, y: P.cy - P.screenH / 2, w: P.screenW, h: P.screenH };
+  let full;
+  if (V) { const w = W, h = W / SCREEN_ASPECT; full = { x: 0, y: (H - h) / 2, w, h }; }
+  else { const h = H, w = H * SCREEN_ASPECT; full = { x: (W - w) / 2, y: 0, w, h }; }
+  // The box clips the frame: full stage at first (9:16), the frame's own column (16:9), the phone's screen at the end.
+  const startBox = V ? { x: 0, y: 0, w: W, h: H } : full;
+  const box = { x: lerp(startBox.x, scr.x, morph), y: lerp(startBox.y, scr.y, morph), w: lerp(startBox.w, scr.w, morph), h: lerp(startBox.h, scr.h, morph) };
+  const img = { x: lerp(full.x, scr.x, morph), y: lerp(full.y, scr.y, morph), w: lerp(full.w, scr.w, morph), h: lerp(full.h, scr.h, morph) };
+  Object.assign(ui.splashbox.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px', borderRadius: (P.screenR * morph) + 'px',
+    display: t < splashEnd + .5 ? '' : 'none',
+    boxShadow: morph > 0 ? `0 ${60 * morph}px ${120 * morph}px -30px rgba(22,26,61,${.45 * morph})` : 'none' });
+  Object.assign(ui.splashimg.style, { left: (img.x - box.x) + 'px', top: (img.y - box.y) + 'px', width: img.w + 'px', height: img.h + 'px' });
+  ui.splashbox.style.webkitMaskImage = !V && morph < 1 ? `linear-gradient(90deg, transparent 0, #000 ${8 * (1 - morph)}%, #000 ${100 - 8 * (1 - morph)}%, transparent 100%)` : 'none';
+  ui.splashbg.style.opacity = 1 - morph;
+  ui.splashbg.style.display = t < splashEnd + .5 ? '' : 'none';
+
+  // ---- The main phone: today, dare, alarm, camera, heart ---------------------------------------------------------
+  const m = ui.main;
+  const mainOn = t >= splashEnd + .45 && t < s.question.start + .32;
+  m.phone.style.display = mainOn ? '' : 'none';
+  if (mainOn) {
+    const float = smooth(prog(t, splashEnd + .5, splashEnd + 1.4));
+    const sc = id => BUILD + 'screens/' + s[id].screen;
+    let from = sc('today'), to = null, mode = 'none', extra = { float };
+    // The splash's last frame, wiping to Today with a heart.
+    if (t < s.today.start + .9) { const p = easeInOutCubic(prog(t, s.today.start + .3, s.today.start + .9)); from = frames.splash[99]; to = sc('today'); mode = { kind: 'wipe', p }; }
+    // Today to the new dare: the phone turns over.
+    const flip = (b, a, z) => {
+      const p = prog(t, b - .32, b + .32);
+      if (p <= 0 || p >= 1) return null;
+      const ry = p < .5 ? 90 * easeInCubic(p * 2) : -90 * (1 - easeOutCubic((p - .5) * 2));
+      return { ry, front: p < .5 ? a : z, s: 1 - .08 * Math.sin(Math.PI * p) };
+    };
+    const f1 = flip(s.dare.start, sc('today'), sc('dare'));
+    if (t >= s.today.start + .9) from = t < s.dare.start ? sc('today') : sc('dare');
+    if (f1) { from = f1.front; mode = 'none'; extra.ry = f1.ry; extra.s = f1.s; }
+    // The dare to the alarm: a heart wipe as the room goes dark.
+    if (t >= s.dare.start + .32 && t < s.alarm.start + .45) {
+      const p = easeInOutCubic(prog(t, s.alarm.start - .25, s.alarm.start + .45));
+      from = sc('dare'); to = sc('alarm'); mode = p > 0 ? { kind: 'wipe', p } : 'none';
+    }
+    if (t >= s.alarm.start + .45) from = sc('alarm');
+    // Ringing: the phone buzzes on every beat.
+    if (t >= s.alarm.start && t < s.alarm.end - .2) {
+      const local = (t - T.musicStart) % T.beat;
+      const buzz = local < .26 ? Math.sin(TAU * 17 * local) * (1 - local / .26) : 0;
+      extra.rz = 1.8 * buzz;
+      extra.x = 5 * buzz;
+    }
+    // The alarm to the camera: the camera screen slides up, as the app opens it.
+    if (t >= s.camera.start - .3) {
+      const p = easeOutExpo(prog(t, s.camera.start - .3, s.camera.start + .45));
+      from = sc('alarm'); to = sc('camera'); mode = { kind: 'slide', p };
+      if (p >= 1) { from = sc('camera'); mode = 'none'; }
+      extra.s = (extra.s ?? 1) * lerp(1, 1.05, smooth(prog(t, s.camera.start, s.camera.end)));
+    }
+    // The camera to the heart: a heart wipe, and stickers burst out.
+    if (t >= s.heart.start - .25) {
+      const p = easeInOutCubic(prog(t, s.heart.start - .25, s.heart.start + .45));
+      from = sc('camera'); to = sc('heart'); mode = { kind: 'wipe', p };
+      if (p >= 1) { from = sc('heart'); mode = 'none'; }
+      extra.s = lerp(1.05, 1, smooth(prog(t, s.heart.start - .25, s.heart.start + .4)));
+    }
+    // The heart to the first question: the phone turns over into the carousel.
+    const f2 = flip(s.question.start, sc('heart'), sc('question'));
+    if (f2) { from = f2.front; mode = 'none'; extra.ry = f2.ry; extra.s = f2.s; }
+    screenSwap(m, from, to, mode);
+    m.phone.style.transform = phonePose(t, extra);
+    m.phone.querySelector('.bezel').style.boxShadow = dark > .5
+      ? '0 70px 140px -30px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.1)'
+      : '';
+
+    // Zoom-ins: a piece of the real screen lifts off it, with the rest dimmed.
+    let dimmed = 0;
+    for (const [id, c] of Object.entries(ui.callouts)) {
+      const sc0 = s[id];
+      const up = prog(t, sc0.zoomAt[0], sc0.zoomAt[0] + .55);
+      const down = prog(t, sc0.end - .6, sc0.end - .25);
+      const on = up > 0 && down < 1;
+      c.style.display = on ? '' : 'none';
+      if (!on) continue;
+      const k = clamp(easeOutBack(up, 1.4), 0, 1.2) * (1 - easeInCubic(down));
+      const scale = 1 + .2 * k;
+      c.style.opacity = Math.min(1, up * 3) * (1 - down);
+      c.style.transform = `translateZ(${90 * k}px) translateY(${-14 * k}px) scale(${scale})`;
+      dimmed = Math.max(dimmed, .35 * Math.min(1, up * 2) * (1 - down));
+    }
+    m.dim.style.opacity = dimmed;
+  }
+
+  // Alarm ripples behind the phone, on the beat.
+  ui.rings.forEach((r, i) => {
+    const on = t >= s.alarm.start && t < s.alarm.end;
+    r.style.display = on ? '' : 'none';
+    if (!on) return;
+    const p = ((t - s.alarm.start) / 1.2 + i / 3) % 1;
+    const size = P.outerW * lerp(.9, 2.4, easeOutCubic(p));
+    Object.assign(r.style, { width: size + 'px', height: size + 'px', left: (P.cx - size / 2) + 'px', top: (P.cy - size / 2) + 'px',
+      opacity: (1 - p) * dark * .9, borderRadius: '50%' });
+  });
+
+  // Hearts burst out of the phone when the heart completes.
+  ui.bursts.forEach((b, i) => {
+    const t0 = s.heart.start + .12 + i * .015;
+    const on = t >= t0 && t < s.heart.end;
+    b.style.display = on ? '' : 'none';
+    if (!on) return;
+    const a = TAU * (i / ui.bursts.length) + rand(i) * .5;
+    const dist = (V ? 330 : 300) + rand(i + 9) * (V ? 260 : 220);
+    const p = easeOutExpo(prog(t, t0, t0 + 1.1));
+    const drift = Math.max(0, t - t0 - .8) * 30;
+    const size = 70 + rand(i + 3) * 80;
+    const x = P.cx + Math.cos(a) * dist * p - size / 2, y = P.cy - 60 + Math.sin(a) * dist * .8 * p - size / 2 - drift;
+    const fade = 1 - prog(t, s.heart.end - .6, s.heart.end - .1);
+    b.style.width = size + 'px';
+    b.style.transform = `translate(${x}px, ${y}px) rotate(${(rand(i + 5) - .5) * 60 * p}deg) scale(${clamp(p * 1.4, 0, 1)})`;
+    b.style.opacity = fade;
+  });
+
+  // ---- The carousel: question, games, album -----------------------------------------------------------------------
+  const carOn = t >= s.question.start + .32 && t < s.end.start + .4;
+  const focus = easeInOutCubic(prog(t, s.games.start - .35, s.games.start + .35)) + easeInOutCubic(prog(t, s.album.start - .35, s.album.start + .35));
+  const enter = easeOutExpo(prog(t, s.question.start, s.question.start + .8));
+  const exit = easeInCubic(prog(t, s.end.start - .45, s.end.start + .1));
+  const spacing = P.outerW * (V ? 1.04 : 1.06);
+  ui.carousel.forEach((p, k) => {
+    p.phone.style.display = carOn ? '' : 'none';
+    if (!carOn) return;
+    const o = k - focus;
+    const slide = k === 0 ? 0 : (1 - enter) * W * .5;
+    const x = o * spacing + slide;
+    const sc = (1 - .2 * Math.min(Math.abs(o), 1.5)) * (1 - .1 * exit);
+    const ry = clamp(-o * 24, -40, 40);
+    let op = 1 - Math.max(0, Math.abs(o) - 1);
+    if (!V && o < 0) op = clamp(1 + o * 1.5);
+    if (k > 0) op *= enter;
+    p.phone.style.opacity = op * (1 - exit);
+    p.phone.style.zIndex = String(10 - Math.round(Math.abs(o) * 2));
+    p.phone.style.transform = phonePose(t, { x, ry, s: sc, z: -Math.abs(o) * 120 });
+    p.dim.style.opacity = .18 * Math.min(1, Math.abs(o));
+  });
+
+  // ---- Titles: words rise into place, then lift away ----------------------------------------------------------------
+  for (const [id, title] of Object.entries(ui.titles)) {
+    const sc0 = s[id];
+    const inAt = id === 'intro' ? .45 : sc0.start + .12;
+    const outAt = id === 'intro' ? splashEnd - .45 : sc0.end - .34;
+    const on = t >= inAt && t < outAt + .5;
+    title.box.style.display = on ? '' : 'none';
+    if (!on) continue;
+    title.words.forEach((w, j) => {
+      const pin = easeOutExpo(prog(t, inAt + j * .055, inAt + j * .055 + .75));
+      const pout = easeInCubic(prog(t, outAt + j * .03, outAt + j * .03 + .32));
+      w.style.transform = `translateY(${(1 - pin) * 110 - pout * 110}%) rotate(${(1 - pin) * 4}deg)`;
+    });
+  }
+
+  // ---- End card: the splash's indigo opens from the middle; the real logo drops in and claps -------------------
+  const reveal = easeInOutCubic(prog(t, s.end.start - .4, s.end.start + .5));
+  const endOn = reveal > 0;
+  ui.endbg.style.display = ui.end.style.display = endOn ? '' : 'none';
+  if (endOn) {
+    const r = reveal * Math.hypot(W, H) * .6;
+    ui.endbg.style.clipPath = `circle(${r}px at 50% ${V ? 45 : 42}%)`;
+    const local = t - s.end.start;
+    let src;
+    if (local < .1) src = frames.drop[0];
+    else if (local < 1.4) src = frames.drop[Math.min(39, Math.floor((local - .1) * 30))];
+    else if (local < 1.55) src = frames.drop[39];
+    else src = frames.clap[Math.min(46, Math.floor((local - 1.55) * 30))];
+    setSrc(ui.logo, src);
+    ui.logo.style.opacity = local < .1 ? 0 : 1;
+    const wm = easeOutExpo(prog(local, 1.0, 1.8));
+    ui.wordmark.style.transform = `translateY(${(1 - wm) * 40}px)`;
+    ui.wordmark.style.opacity = wm;
+    const tg = easeOutExpo(prog(local, 1.5, 2.3));
+    ui.tagline.style.transform = `translateY(${(1 - tg) * 30}px)`;
+    ui.tagline.style.opacity = tg;
+    const bd = easeOutBack(prog(local, 2.3, 2.9), 1.3);
+    ui.badge.style.transform = `translateX(-50%) scale(${clamp(bd, 0, 1.2)})`;
+    ui.badge.style.opacity = Math.min(1, prog(local, 2.3, 2.6));
+  }
+}
+
+window.seek = async (t) => {
+  draw(t);
+  await Promise.all([...document.images].filter(i => i.style.display !== 'none' && i.src).map(i => i.decode().catch(() => {})));
+};
+</script>
+</body>
+</html>

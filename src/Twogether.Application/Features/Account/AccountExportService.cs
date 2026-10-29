@@ -35,6 +35,10 @@ public sealed class AccountExportService(IApplicationDbContext db, IMediaStorage
             .OrderBy(item => item.LocalDate)
             .ToListAsync(cancellationToken);
 
+        Guid? sharedCoupleId = user.CoupleId is { } coupleId
+            && await db.Couples.AsNoTracking().AnyAsync(item => item.Id == coupleId && item.Status == CoupleStatus.Active, cancellationToken)
+            ? coupleId : null;
+
         var memories = await db.Memories.AsNoTracking()
             .Where(item => item.UploadedByUserId == userId && item.Status == MemoryStatus.Ready)
             .OrderBy(item => item.SortAtUtc)
@@ -47,7 +51,12 @@ public sealed class AccountExportService(IApplicationDbContext db, IMediaStorage
             await db.CycleProfiles.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken),
             await db.CycleDayLogs.AsNoTracking().Where(item => item.UserId == userId).OrderBy(item => item.LogDate).ToListAsync(cancellationToken),
             await db.Pregnancies.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken),
-            await db.PregnancyAppointments.AsNoTracking().Where(item => db.Pregnancies.Any(pregnancy => pregnancy.Id == item.PregnancyId && pregnancy.UserId == userId) || item.CreatedByUserId == userId).ToListAsync(cancellationToken),
+            // Appointments of my own pregnancies; ones I added to my partner's only while I may still see it, because
+            // the owner can move them and add notes, and after a breakup or a hidden pregnancy that's no longer mine to read.
+            await db.PregnancyAppointments.AsNoTracking().Where(item => db.Pregnancies.Any(pregnancy => pregnancy.Id == item.PregnancyId
+                && (pregnancy.UserId == userId
+                    || (item.CreatedByUserId == userId && sharedCoupleId != null && pregnancy.CoupleId == sharedCoupleId
+                        && pregnancy.Status == PregnancyStatus.Active && pregnancy.ShareWithPartner)))).ToListAsync(cancellationToken),
             await db.KickSessions.AsNoTracking().Where(item => db.Pregnancies.Any(pregnancy => pregnancy.Id == item.PregnancyId && pregnancy.UserId == userId)).ToListAsync(cancellationToken),
             await db.FoodEntries.AsNoTracking().Where(item => item.UserId == userId).OrderBy(item => item.LoggedAtUtc).ToListAsync(cancellationToken),
             await db.NutritionTargets.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken),

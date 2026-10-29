@@ -1,8 +1,10 @@
 using System.Globalization;
+using System.Text.Json;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Pregnancy;
 using Twogether.Shared.Results;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Pregnancy;
 
@@ -65,16 +67,23 @@ public static class PregnancyRules
         return due;
     }
 
+    /// <summary>
+    /// An edited due date. Only a changed date is checked against today, so a pregnancy past its due date can still
+    /// be edited, or hidden from the partner.
+    /// </summary>
+    public static Result<DateOnly> ResolveUpdatedDueDate(string? dueDate, DateOnly current, DateOnly today)
+        => !string.IsNullOrWhiteSpace(dueDate) && TryParse(dueDate, out var due) && due == current ? due : ResolveDueDate(dueDate, null, today);
+
     public static Result ValidateAppointment(string? title, DateTime atUtc, string? location, string? notes, DateTime utcNow)
     {
         if (string.IsNullOrWhiteSpace(title) || title.Trim().Length > PregnancyAppointment.MaxTitleLength)
-            return Error.Validation("pregnancy.invalid_appointment", $"Title is required, at most {PregnancyAppointment.MaxTitleLength} characters.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Title is required, at most {max} characters.", ("max", PregnancyAppointment.MaxTitleLength)));
         if (location?.Trim().Length > PregnancyAppointment.MaxLocationLength)
-            return Error.Validation("pregnancy.invalid_appointment", $"Location must be at most {PregnancyAppointment.MaxLocationLength} characters.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Location must be at most {max} characters.", ("max", PregnancyAppointment.MaxLocationLength)));
         if (notes?.Trim().Length > PregnancyAppointment.MaxNotesLength)
-            return Error.Validation("pregnancy.invalid_appointment", $"Notes must be at most {PregnancyAppointment.MaxNotesLength} characters.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Notes must be at most {max} characters.", ("max", PregnancyAppointment.MaxNotesLength)));
         if (atUtc < utcNow.AddYears(-1) || atUtc > utcNow.AddYears(2))
-            return Error.Validation("pregnancy.invalid_appointment", "Appointment time is out of range.");
+            return Error.Validation("pregnancy.invalid_appointment", Loc.T("Appointment time is out of range."));
         return Result.Success();
     }
 
@@ -82,6 +91,12 @@ public static class PregnancyRules
         => DateOnly.TryParseExact(value.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
 
     private static Error Invalid(string message) => Error.Validation("pregnancy.invalid_due_date", message);
+}
+
+/// <summary>The partner's "shared pregnancy mode with you" notification, found again by its data when sharing stops.</summary>
+public static class PregnancyNotices
+{
+    public static string SharedData(Guid pregnancyId) => JsonSerializer.Serialize(new { pregnancyId });
 }
 
 public static class PregnancyMapper

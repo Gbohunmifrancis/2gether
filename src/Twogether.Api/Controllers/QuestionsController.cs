@@ -13,6 +13,8 @@ using Twogether.Application.Features.Questions;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Core.Questions;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -31,7 +33,7 @@ public sealed class QuestionsController(
     ILogger<QuestionsController> logger) : ApiControllerBase
 {
     public const string AnsweredEvent = "DailyQuestionAnswered";
-    private static readonly ApiError NoCouple = new("questions.no_couple", "Link your partner to get daily questions.");
+    private static ApiError NoCouple => new("questions.no_couple", Loc.T("Link your partner to get daily questions."));
 
     [HttpGet("today")]
     public async Task<ActionResult<DailyQuestionDto>> Today([FromQuery] string? date, CancellationToken cancellationToken)
@@ -40,7 +42,7 @@ public sealed class QuestionsController(
         var couple = await ActiveCoupleAsync(cancellationToken);
         if (couple is null) return BadRequest(NoCouple);
         var localDate = ResolveDate(date);
-        if (localDate is null) return UnprocessableEntity(new ApiError("questions.invalid_date", "Date must be yesterday, today or tomorrow in yyyy-MM-dd."));
+        if (localDate is null) return UnprocessableEntity(new ApiError("questions.invalid_date", Loc.T("Date must be yesterday, today or tomorrow in yyyy-MM-dd.")));
 
         var question = await EnsureQuestionAsync(couple.Id, localDate.Value, cancellationToken);
         var answers = await db.DailyAnswers.AsNoTracking().Where(item => item.DailyQuestionId == question.Id).ToListAsync(cancellationToken);
@@ -58,9 +60,9 @@ public sealed class QuestionsController(
         var question = await db.DailyQuestions.AsNoTracking().SingleOrDefaultAsync(item => item.Id == questionId && item.CoupleId == couple.Id, cancellationToken);
         if (question is null) return NotFound();
         if (question.LocalDate < DateOnly.FromDateTime(clock.UtcNow).AddDays(-1))
-            return Conflict(new ApiError("questions.closed", "This question has closed. Answer today's instead."));
+            return Conflict(new ApiError("questions.closed", Loc.T("This question has closed. Answer today's instead.")));
         if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Trim().Length > DailyAnswer.MaxBodyLength)
-            return UnprocessableEntity(new ApiError("questions.invalid_answer", $"An answer is 1 to {DailyAnswer.MaxBodyLength} characters."));
+            return UnprocessableEntity(new ApiError("questions.invalid_answer", Loc.T("An answer is 1 to {max} characters.", ("max", DailyAnswer.MaxBodyLength))));
 
         var now = clock.UtcNow;
         var existing = await db.DailyAnswers.SingleOrDefaultAsync(item => item.DailyQuestionId == question.Id && item.UserId == userId, cancellationToken);
@@ -74,10 +76,11 @@ public sealed class QuestionsController(
         Notification? notification = null;
         if (firstAnswer && partnerId is { } recipient)
         {
-            var me = names.GetValueOrDefault(userId, "Your partner");
+            using var _ = Loc.Use(await db.LanguageOfAsync(recipient, cancellationToken));
+            var me = names.GetValueOrDefault(userId) ?? Loc.T("Your partner");
             notification = Notification.Create(recipient, couple.Id, NotificationType.DailyQuestionAnswered,
-                partnerAnswered ? "You can both see your answers" : "Your turn",
-                partnerAnswered ? $"{me} answered today's question too." : $"{me} answered today's question. Answer yours to see theirs.",
+                partnerAnswered ? Loc.T("You can both see your answers") : Loc.T("Your turn"),
+                partnerAnswered ? Loc.T("{name} answered today's question too.", ("name", me)) : Loc.T("{name} answered today's question. Answer yours to see theirs.", ("name", me)),
                 JsonSerializer.Serialize(new { dailyQuestionId = question.Id }), now);
             db.Notifications.Add(notification);
         }

@@ -170,3 +170,26 @@ public sealed class FoodScanRequestSizeTests
     public void The_largest_photo_still_fits_in_the_scan_request_once_encoded(int imageBytes, bool fits)
         => Assert.Equal(fits, Twogether.Application.Features.Food.FoodSettings.FitsInRequest(imageBytes));
 }
+
+public sealed class FoodScanStateTests
+{
+    private static readonly DateTime Now = new(2026, 10, 25, 12, 0, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public void A_scan_is_pending_until_it_ends_once()
+    {
+        var scan = FoodScan.Start(Guid.NewGuid(), Guid.NewGuid(), "model", "image/jpeg", 1000, Now);
+        Assert.True(scan.IsPending);
+        Assert.False(scan.Succeeded);
+
+        scan.Succeed(100, 20, 900, "{}", Now.AddSeconds(1));
+        Assert.Equal((true, (string?)null, 900), (scan.Succeeded, scan.ErrorCode, scan.LatencyMs));
+        Assert.Throws<InvalidOperationException>(() => scan.Fail("food.estimation_failed", 1, Now));
+
+        var failed = FoodScan.Start(Guid.NewGuid(), Guid.NewGuid(), "model", "image/jpeg", 1000, Now);
+        Assert.Throws<ArgumentException>(() => failed.Fail(FoodScan.PendingCode, 1, Now));
+        failed.Fail("food.scan_cancelled", 1, Now);
+        Assert.Equal((false, "food.scan_cancelled"), (failed.IsPending, failed.ErrorCode));
+        Assert.Throws<InvalidOperationException>(() => failed.Succeed(1, 1, 1, "{}", Now));
+    }
+}

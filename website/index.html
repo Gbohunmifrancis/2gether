@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heartpact: dares for two, counted by the camera</title>
+<meta name="description" content="The couples app where your partner sets the dare, your phone rings until the camera counts your reps, and the heart only fills when you both keep your word. Free on Google Play.">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.app/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Heartpact: half yours, half theirs">
+<meta property="og:description" content="Your partner sets the dare. Your phone rings until the camera counts your reps. Free on Google Play.">
+<meta property="og:url" content="https://heartpact.app/">
+<meta property="og:image" content="https://heartpact.app/assets/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/site.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.app/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.app/fr/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.app/pt/">
+<link rel="alternate" hreflang="es" href="https://heartpact.app/es/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.app/ar/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.app/hi/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.app/">
+<script type="application/json" id="strings">{}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- The fold heart: one shape, each half in the other side's colour. Across for side by side, down when stacked. -->
+    <linearGradient id="foldAcross" x1="0" y1="0" x2="100" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
+    <linearGradient id="foldDown" x1="0" y1="15" x2="0" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0.5" stop-color="#7480D4"/><stop offset="0.5" stop-color="#1F2557"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="topbar" aria-hidden="true" inert>
+  <a class="brand" href="#top"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+  <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">Get the app</a>
+</div>
+
+<header class="hero" id="top">
+  <div class="half you">
+    <div class="bar">
+      <a class="brand" href="/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+      <a class="pill phone-only" href="https://play.google.com/store/apps/details?id=app.heartpact">Get the app</a>
+    </div>
+    <div class="copy">
+      <p class="eyebrow">You</p>
+      <h1 class="display"><span class="line"><span>Half</span></span><span class="line"><span>yours.</span></span><span class="visually-hidden"> Half theirs.</span></h1>
+      <p class="lede">Set your partner a dare tonight: an exercise, a count, a time. Your half of the heart goes on first.</p>
+    </div>
+  </div>
+  <div class="half them">
+    <nav aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#plans">Plans</a>
+      <a href="#faq">FAQ</a>
+      <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">Get the app</a>
+    </nav>
+    <div class="copy">
+      <p class="eyebrow">Them</p>
+      <p class="h1 display" aria-hidden="true"><span class="line"><span>Half</span></span><span class="line"><span>theirs.</span></span></p>
+      <p class="lede">At 7:00 their phone rings until the camera counts every rep. Then their half sticks, and the heart is whole.</p>
+    </div>
+    <div class="fold-heart" aria-hidden="true">
+      <svg viewBox="-8 -2 116 112">
+        <!-- Two halves stick together, then hand over to the seamless whole, which beats. -->
+        <path class="whole" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z"/>
+        <path class="half l" d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 Z"/>
+        <path class="half r" d="M50 100 L92.43 57.57 A30 30 0 0 0 50 15.15 Z"/>
+      </svg>
+    </div>
+  </div>
+  <div class="float f1" aria-hidden="true" data-parallax="0.12">
+    <i><svg viewBox="0 0 24 24"><path d="M12 3 L13.8 9 H20 L15 12.8 L16.8 19 L12 15.3 L7.2 19 L9 12.8 L4 9 H10.2 Z" fill="none" stroke="#1F2557" stroke-width="1.8" stroke-linejoin="round"/></svg></i>
+    <span><b>Dare set · 22:14</b><small>20 squats for Theo at 7:00</small></span>
+  </div>
+  <div class="float f2" aria-hidden="true" data-parallax="0.2">
+    <i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7" fill="none" stroke="#1F2557" stroke-width="1.8"/><path d="M12 10 V13 L14 14.5 M4.5 5.5 L7 3.5 M19.5 5.5 L17 3.5" fill="none" stroke="#1F2557" stroke-width="1.8" stroke-linecap="round"/></svg></i>
+    <span><b>Ringing on Theo's phone</b><small>Stops at 20 counted reps</small></span>
+  </div>
+  <div class="float f3" aria-hidden="true" data-parallax="0.08">
+    <i><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#1F2557" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+    <span><b>20 of 20 · 7:04</b><small>Both halves on</small></span>
+  </div>
+</header>
+
+<main id="main">
+  <section class="statement" aria-labelledby="what">
+    <h2 id="what" class="visually-hidden">What Heartpact is</h2>
+    <p data-words>Heartpact is the couples app where promises ring. The camera counts the reps, and a heart only fills when you both keep your word.</p>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact" data-reveal><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="Get it on Google Play"></a>
+    <p class="note" data-reveal>Free for both of you, on Android.</p>
+  </section>
+
+  <section class="story" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 id="how-title" class="display" data-reveal>One dare, two phones</h2>
+      <div class="sides">
+        <article class="side mine" data-reveal>
+          <p class="eyebrow">On your phone</p>
+          <ol data-stagger>
+            <li><b>Pick the dare.</b> <span>20 squats at 7:00, or a 60-second plank.</span></li>
+            <li><b>Watch it live.</b> <span>The count climbs on your phone as they go.</span></li>
+            <li><b>Let them off, if you want.</b> <span>Only you can say yes when they ask.</span></li>
+          </ol>
+          <img class="phone" src="/assets/img/today.webp" width="600" height="1298" loading="lazy" alt="Today in Heartpact: tomorrow's dare and a week of hearts" data-parallax="0.06">
+        </article>
+        <article class="side theirs d1" data-reveal>
+          <p class="eyebrow">On theirs</p>
+          <ol data-stagger>
+            <li><b>It rings.</b> <span>A real alarm, over the lock screen.</span></li>
+            <li><b>The camera counts.</b> <span>Only proper reps, with a tip when one doesn't count.</span></li>
+            <li><b>The heart sticks.</b> <span>Their half lands next to yours.</span></li>
+          </ol>
+          <img class="phone" width="620" height="1342" loading="lazy" alt="The workout screen counting arm raises, 9 of 15, with the pose drawn over the camera" data-parallax="0.1" data-regional="workout">
+          <noscript><img class="phone" src="/assets/img/workout.webp" width="620" height="1342" alt="The workout screen counting arm raises, 9 of 15, with the pose drawn over the camera"></noscript>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="fair" aria-labelledby="fair-title">
+    <div class="wrap">
+      <div class="text">
+        <h2 id="fair-title" class="display" data-reveal>Fair play, built in.</h2>
+        <p class="lede" data-reveal>Reps are counted on the phone, never recorded. Half reps don't count. And if anything looks off, the other half of the heart hears about it.</p>
+        <ul data-stagger>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#A9B1F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Form, not flailing</b><span>"Go lower." "Keep your body in one straight line." A rep done badly doesn't count, and the tip says why.</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#A9B1F2" stroke-width="2.2"/><path d="M12 7.5 V12 L15 14" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linecap="round"/></svg><div><b>Surprise check-ins</b><span>Mid-set the screen says "Freeze!". A video on another screen can't do that on cue.</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L20 6.5 V12 C20 16.5 16.5 19.8 12 21 C7.5 19.8 4 16.5 4 12 V6.5 Z" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linejoin="round"/></svg><div><b>Nothing leaves the phone</b><span>The camera reads your pose and lets each frame go. No video, no photos, no upload.</span></div></li>
+        </ul>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <div class="counter" data-parallax="-0.05">
+          <div class="head"><span>Theo · arm raises</span><span>7:03</span></div>
+          <p class="big" data-count="15">15</p>
+          <p class="of">of 15 counted</p>
+          <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="foot"><svg viewBox="-8 -2 116 112"><path d="M50 100 L7.57 57.57 A30 30 0 0 1 50 15.15 A30 30 0 0 1 92.43 57.57 Z" fill="url(#foldAcross)"/></svg><span>Both halves on. Counted on Theo's phone.</span></div>
+        </div>
+        <div class="chip c1" data-parallax="0.12"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#A9B1F2" stroke-width="2.2"/><path d="M12 7.5 V12 L15 14" fill="none" stroke="#A9B1F2" stroke-width="2.2" stroke-linecap="round"/></svg><span><b>Check-in: freeze!</b><small>Passed in 2 seconds</small></span></div>
+        <div class="chip c2" data-parallax="0.2"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7" fill="none" stroke="#161A3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Goal done</b><small>Maya can see every check passed</small></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="corner-shell">
+    <section class="corner" data-progress aria-labelledby="corner-title">
+      <div class="wrap">
+        <div class="shot"><img src="/assets/img/album.webp" width="600" height="1298" loading="lazy" alt="The shared album, with photos from both phones" data-parallax="0.08"></div>
+        <div class="text">
+          <h2 id="corner-title" class="display" data-reveal>A private corner for two</h2>
+          <p class="lede" data-reveal>Dares are the heartbeat. The rest is a quiet place only the two of you can open.</p>
+          <ul class="features" data-stagger>
+            <li><em>01</em><b>Shared album</b><span>Both phones' photos and videos.</span></li>
+            <li><em>02</em><b>Food log</b><span>Snap a meal for an estimate. Your partner sees totals, never your plate.</span></li>
+            <li><em>03</em><b>A question a day</b><span>Answer first, then see theirs.</span></li>
+            <li><em>04</em><b>Games for two</b><span>Turn by turn, on both phones.</span></li>
+            <li><em>05</em><b>Cycle and pregnancy</b><span>Share only what you choose.</span></li>
+            <li><em>06</em><b>Location</b><span>Live only while you both have it on.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section id="plans" aria-labelledby="plans-title">
+    <h2 id="plans-title" class="visually-hidden">Plans</h2>
+    <div class="plans" data-progress>
+      <div class="plan free">
+        <h3>Free</h3>
+        <p class="price">$0</p>
+        <p class="per">for both of you, always</p>
+        <ul>
+          <li>Unlimited dares, alarms and camera counting</li>
+          <li>3 food scans a day</li>
+          <li>500 MB shared album</li>
+          <li>Questions, games, cycle and location</li>
+        </ul>
+      </div>
+      <div class="plan plus">
+        <h3>Plus, for both of you</h3>
+        <!-- Prices: keep in step with the base plans in Play Console. -->
+        <p class="price">$5.99<small>/mo</small></p>
+        <p class="per">or $39.99 a year · either of you can pay</p>
+        <ul>
+          <li>20 food scans a day</li>
+          <li>2 GB shared album</li>
+          <li>90 days of question history</li>
+          <li>One subscription switches it on for both phones</li>
+        </ul>
+      </div>
+    </div>
+    <p class="plans-note">Prices in US dollars; Google Play shows your local price. Cancel any time in Google Play.</p>
+  </section>
+
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <h2 id="faq-title" class="display" data-reveal>Questions</h2>
+      <details><summary>Is the camera recording me?</summary><p>No. The phone reads your pose frame by frame to count reps, then lets each frame go. No video or photo from a workout leaves your phone.</p></details>
+      <details><summary>What if I'm ill or injured?</summary><p>Ask your partner to call it off from the alarm, with a note. If they agree, it stops for both of you. You can also silence the alarm on your own phone.</p></details>
+      <details><summary>Can my partner see everything I do in the app?</summary><p>They see what you share as a couple: dares, the album, answers once you've both answered. Food shows as totals, and cycle and location only when you turn sharing on.</p></details>
+      <details><summary>Do we both need Android?</summary><p>Yes, for now: Heartpact is on Google Play.</p></details>
+      <details><summary>Who pays for Plus?</summary><p>Either of you. One subscription covers the couple, so the other phone gets Plus straight away.</p></details>
+      <details><summary>How do I delete my account?</summary><p>In the app under Us, or on our <a href="/delete-account/">account deletion page</a>. It's immediate and permanent.</p></details>
+    </div>
+  </section>
+
+  <section class="cta" data-progress aria-labelledby="cta-title">
+    <h2 id="cta-title" class="display"><span class="you">You bring half.</span><span class="them">They bring half.</span></h2>
+    <a class="play" href="https://play.google.com/store/apps/details?id=app.heartpact"><img src="/assets/img/google-play-badge.png" width="646" height="250" alt="Get it on Google Play"></a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="Legal">
+      <a href="/privacy/">Privacy policy</a>
+      <a href="/terms/">Terms of use</a>
+      <a href="/delete-account/">Delete your account</a>
+      <a href="mailto:support@heartpact.app">Contact</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="Language">
+      <a href="/" lang="en" hreflang="en" data-lang="en" aria-current="true">English</a>
+      <a href="/fr/" lang="fr" hreflang="fr" data-lang="fr">Français</a>
+      <a href="/pt/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/" lang="ar" hreflang="ar" data-lang="ar">العربية</a>
+      <a href="/hi/" lang="hi" hreflang="hi" data-lang="hi">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

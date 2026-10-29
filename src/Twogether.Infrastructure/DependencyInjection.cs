@@ -13,9 +13,11 @@ using Twogether.Infrastructure.Push;
 using Twogether.Infrastructure.Auth;
 using Twogether.Application.Features.Auth;
 using Twogether.Infrastructure.Billing;
+using Twogether.Infrastructure.Exercise;
 using Twogether.Infrastructure.Account;
 using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Billing;
+using Twogether.Application.Features.Exercise;
 using Twogether.Application.Features.Push;
 using Twogether.Application.Features.Memories;
 using Twogether.Application.Features.Games;
@@ -78,6 +80,20 @@ public static class DependencyInjection
             case "googleplay": services.AddSingleton<IGooglePlayBilling, GooglePlayBilling>(); break;
             case "fake": services.AddSingleton<IGooglePlayBilling, FakeGooglePlayBilling>(); break;
             default: services.AddSingleton<IGooglePlayBilling, DisabledGooglePlayBilling>(); break;
+        }
+        // Play Integrity reuses the billing service account and package unless given its own.
+        var integrity = new PlayIntegritySettings
+        {
+            Provider = configuration["Integrity:Provider"],
+            PackageName = string.IsNullOrWhiteSpace(configuration["Integrity:PackageName"]) ? billing.GooglePlayPackageName : configuration["Integrity:PackageName"],
+            CredentialsJson = string.IsNullOrWhiteSpace(configuration["Integrity:CredentialsJson"]) ? billing.GooglePlayCredentialsJson : configuration["Integrity:CredentialsJson"],
+        };
+        services.AddSingleton(integrity);
+        switch (integrity.Provider?.Trim().ToLowerInvariant())
+        {
+            case "playintegrity": services.AddSingleton<IPlayIntegrityVerifier, PlayIntegrityVerifier>(); break;
+            case "fake": services.AddSingleton<IPlayIntegrityVerifier, FakePlayIntegrityVerifier>(); break;
+            default: services.AddSingleton<IPlayIntegrityVerifier, DisabledPlayIntegrityVerifier>(); break;
         }
         return services;
     }

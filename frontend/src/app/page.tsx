@@ -63,7 +63,9 @@ import {
   register,
   saveCycleLog,
   saveCycleProfile,
+  sendLocationHeartbeat,
   sendMessage,
+  startLocationSharing,
   updateProfile,
   type AppNotification,
   type AuthUser,
@@ -150,6 +152,7 @@ export default function HomePage() {
     typeof createCoupleHubConnection
   > | null>(null);
   const locationWatchRef = useRef<number | null>(null);
+  const locationHeartbeatRef = useRef<number | null>(null);
   const togetherLocationRef = useRef(false);
 
   const loadData = useCallback(async (currentUserId?: string) => {
@@ -447,6 +450,8 @@ export default function HomePage() {
     () => () => {
       if (locationWatchRef.current !== null && navigator.geolocation)
         navigator.geolocation.clearWatch(locationWatchRef.current);
+      if (locationHeartbeatRef.current !== null)
+        window.clearInterval(locationHeartbeatRef.current);
     },
     [],
   );
@@ -522,8 +527,20 @@ export default function HomePage() {
       return;
     }
     unlockSounds();
+    try {
+      await startLocationSharing();
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+      return;
+    }
     if (locationWatchRef.current !== null)
       navigator.geolocation.clearWatch(locationWatchRef.current);
+    if (locationHeartbeatRef.current !== null)
+      window.clearInterval(locationHeartbeatRef.current);
+    locationHeartbeatRef.current = window.setInterval(
+      () => void sendLocationHeartbeat().catch(() => undefined),
+      4 * 60 * 1000,
+    );
     locationWatchRef.current = navigator.geolocation.watchPosition(
       (position) => {
         void publishLocation(position);
@@ -537,6 +554,10 @@ export default function HomePage() {
       if (locationWatchRef.current !== null && navigator.geolocation) {
         navigator.geolocation.clearWatch(locationWatchRef.current);
         locationWatchRef.current = null;
+      }
+      if (locationHeartbeatRef.current !== null) {
+        window.clearInterval(locationHeartbeatRef.current);
+        locationHeartbeatRef.current = null;
       }
       await coupleConnectionRef.current?.invoke("StopLocationSharing");
       setLocations((current) =>

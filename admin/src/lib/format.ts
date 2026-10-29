@@ -68,6 +68,9 @@ export function plural(value: number, one: string, many = `${one}s`): string {
   return `${count(value)} ${value === 1 ? one : many}`;
 }
 
+/** A Heart to heart margin: hearts, to one decimal (a median can fall between two duels). */
+export const hearts = (value: number) => plural(Math.round(value * 10) / 10, "heart");
+
 export const coupleStatusLabel: Record<CoupleStatus, string> = {
   pendingInvite: "Invite pending",
   active: "Linked",

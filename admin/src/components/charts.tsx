@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import type { DayValue, NamedCount } from "../api/types";
 import { compact, count, shortDay } from "../lib/format";
 
@@ -33,7 +33,7 @@ export function bucket(values: DayValue[], size: number): DayValue[] {
   return out;
 }
 
-function useWidth<T extends HTMLElement>() {
+export function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(640);
   useLayoutEffect(() => {
@@ -119,7 +119,12 @@ export function TimeChart({ series, kind = "line", height = 220, label }: { seri
               let base = 0;
               const barWidth = Math.max(1, Math.min(28, band * 0.72));
               return (
-                <g key={index} opacity={hover === null || hover === index ? 1 : 0.55}>
+                <g
+                  key={index}
+                  className="bar-grow"
+                  style={{ "--i": Math.min(index, 60) } as CSSProperties}
+                  opacity={hover === null || hover === index ? 1 : 0.55}
+                >
                   {data.map((item) => {
                     const value = item.values[index]?.value ?? 0;
                     if (value <= 0) return null;
@@ -146,8 +151,20 @@ export function TimeChart({ series, kind = "line", height = 220, label }: { seri
               const path = item.values.map((point, index) => `${index === 0 ? "M" : "L"}${x(index).toFixed(1)},${y(point.value).toFixed(1)}`).join("");
               return (
                 <g key={item.name}>
-                  {seriesIndex === 0 && points > 1 ? <path d={`${path}L${x(points - 1)},${y(0)}L${x(0)},${y(0)}Z`} fill={item.color} opacity={0.1} /> : null}
-                  <path d={path} fill="none" stroke={item.color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                  {seriesIndex === 0 && points > 1 ? (
+                    <path className="area-fade" d={`${path}L${x(points - 1)},${y(0)}L${x(0)},${y(0)}Z`} fill={item.color} opacity={0.1} />
+                  ) : null}
+                  <path
+                    className="draw"
+                    pathLength={1}
+                    d={path}
+                    fill="none"
+                    stroke={item.color}
+                    strokeWidth={2.5}
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    style={{ animationDelay: `${seriesIndex * 120}ms` }}
+                  />
                   {hover !== null && item.values[hover] ? (
                     <circle cx={x(hover)} cy={y(item.values[hover]!.value)} r={4.5} fill={item.color} stroke="var(--sticker)" strokeWidth={2} />
                   ) : null}
@@ -266,6 +283,142 @@ export function SplitBar({ parts }: { parts: { label: string; value: number; col
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Little bars in a row, for a trend or a distribution inside a table cell. */
+export function Sparkbars({
+  values,
+  max,
+  label,
+  color = "var(--chart-2)",
+  highlight,
+}: {
+  values: number[];
+  max?: number;
+  label: string;
+  color?: string;
+  highlight?: number;
+}) {
+  const top = max ?? Math.max(1, ...values);
+  const width = values.length * 7 - 2;
+  return (
+    <svg className="sparkbars" viewBox={`0 0 ${width} 24`} width={width} height={24} role="img" aria-label={label}>
+      {values.map((value, index) => {
+        const height = Math.max(value > 0 ? 2 : 1, (value / top) * 22);
+        return (
+          <rect
+            key={index}
+            className="bar-grow"
+            style={{ "--i": index } as CSSProperties}
+            x={index * 7}
+            y={24 - height}
+            width={5}
+            height={height}
+            rx={1.5}
+            fill={highlight === index ? "var(--pen)" : value > 0 ? color : "var(--rule-2)"}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/** Three outcomes as one slim bar: done, called off, missed. */
+export function OutcomeBar({ parts, label }: { parts: { value: number; color: string; name: string }[]; label: string }) {
+  const total = parts.reduce((sum, part) => sum + part.value, 0);
+  return (
+    <div className="outcome" role="img" aria-label={label}>
+      {total > 0
+        ? parts.map((part) =>
+            part.value > 0 ? (
+              <span key={part.name} className="grow-x" style={{ flex: part.value, background: part.color }} title={`${part.name}: ${count(part.value)}`} />
+            ) : null,
+          )
+        : null}
+    </div>
+  );
+}
+
+/**
+ * A histogram of ten score buckets (0-9 … 90-100), bars rising in turn; hover shows the bucket. The average sits on top
+ * as a pin.
+ */
+export function Histogram({ buckets, average, label }: { buckets: number[]; average: number | null; label: string }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const max = Math.max(1, ...buckets);
+  const W = 220;
+  const H = 96;
+  const band = W / buckets.length;
+  return (
+    <figure className="chart histogram">
+      <svg viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={label} onPointerLeave={() => setHover(null)}>
+        {buckets.map((value, index) => {
+          const height = Math.max(value > 0 ? 3 : 1, (value / max) * (H - 8));
+          return (
+            <g key={index} onPointerEnter={() => setHover(index)}>
+              <rect x={index * band} y={0} width={band} height={H} fill="transparent" />
+              <rect
+                className="bar-grow"
+                style={{ "--i": index } as CSSProperties}
+                x={index * band + 2}
+                y={H - height}
+                width={band - 4}
+                height={height}
+                rx={4}
+                fill={hover === index ? "var(--chart-1)" : "var(--chart-2)"}
+              />
+            </g>
+          );
+        })}
+        {average !== null ? (
+          <g transform={`translate(${(average / 100) * W} 0)`} className="pin">
+            <line y1={4} y2={H} stroke="var(--pen)" strokeWidth={2} strokeDasharray="3 3" />
+            <circle cy={4} r={4} fill="var(--pen)" stroke="var(--sticker)" strokeWidth={2} />
+          </g>
+        ) : null}
+        <line x1={0} x2={W} y1={H} y2={H} className="baseline" />
+        {[0, 50, 100].map((tick) => (
+          <text key={tick} className="axis" x={(tick / 100) * W} y={H + 14} textAnchor={tick === 0 ? "start" : tick === 100 ? "end" : "middle"}>
+            {tick}
+          </text>
+        ))}
+      </svg>
+      {hover !== null ? (
+        <div className="tip" style={{ left: `${((hover + 0.5) / buckets.length) * 100}%` }}>
+          Scores {hover * 10}–{hover === 9 ? 100 : hover * 10 + 9}: <b>{count(buckets[hover] ?? 0)}</b>
+        </div>
+      ) : null}
+    </figure>
+  );
+}
+
+/** A ring that fills to a share: renewal rate, completion. "—" and an empty ring when unknown. */
+export function Ring({ value, size = 96, label, children }: { value: number | null; size?: number; label: string; children?: ReactNode }) {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <div className="ring" style={{ width: size, height: size }} role="img" aria-label={label}>
+      <svg viewBox="0 0 100 100" width={size} height={size}>
+        <circle cx={50} cy={50} r={radius} fill="none" stroke="var(--sticker-2)" strokeWidth={12} />
+        {value !== null ? (
+          <circle
+            className="ring-fill"
+            cx={50}
+            cy={50}
+            r={radius}
+            fill="none"
+            stroke="var(--chart-1)"
+            strokeWidth={12}
+            strokeLinecap="round"
+            strokeDasharray={`${circumference * Math.max(0, Math.min(1, value))} ${circumference}`}
+            transform="rotate(-90 50 50)"
+            style={{ "--c": circumference } as CSSProperties}
+          />
+        ) : null}
+      </svg>
+      <div className="ring-label">{children}</div>
     </div>
   );
 }

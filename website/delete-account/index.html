@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete your Heartpact account</title>
+<meta name="description" content="Delete your Heartpact account and its data, with or without the app.">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.app/delete-account/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/delete.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.app/delete-account/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.app/fr/delete-account/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.app/pt/delete-account/">
+<link rel="alternate" hreflang="es" href="https://heartpact.app/es/delete-account/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.app/ar/delete-account/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.app/hi/delete-account/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.app/delete-account/">
+<script type="application/json" id="strings">{}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="page-head">
+  <div class="wrap">
+    <a class="brand" href="/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+    <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">Get the app</a>
+  </div>
+</header>
+
+<main id="main" class="doc">
+  <h1>Delete your account</h1>
+  <p class="updated">Deleting is immediate and permanent. It can't be undone.</p>
+
+  <h2>In the app</h2>
+  <p>Open Heartpact, go to <b>Us</b>, tap <b>Delete my account</b>, and enter your password.</p>
+
+  <h2>Here, without the app</h2>
+  <p>For accounts made with an email and password. Signed up with Google? Email us from that address (below) and we'll delete it.</p>
+  <form id="delete-form" class="form" novalidate>
+    <label>Email
+      <input name="email" type="email" autocomplete="email" required>
+    </label>
+    <label>Password
+      <input name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <label class="check"><input name="sure" type="checkbox"> I understand my account and everything in it will be deleted for good.</label>
+    <div id="renew-box" hidden>
+      <label class="check"><input id="renew-ack" type="checkbox"> Delete anyway. I know my Plus subscription keeps renewing until I <a href="https://play.google.com/store/account/subscriptions">cancel it in Google Play</a>.</label>
+    </div>
+    <button type="submit">Delete my account</button>
+  </form>
+  <p id="delete-status" class="status" role="status" tabindex="-1" hidden></p>
+
+  <h2>What gets deleted</h2>
+  <ul>
+    <li>Your profile and sign-in details.</li>
+    <li>Your cycle and pregnancy records, food log, dares and their results, daily answers, messages you sent, devices and notifications.</li>
+    <li>Photos and videos you added to the shared album. They're removed from storage within minutes.</li>
+    <li>Games you played as a couple.</li>
+  </ul>
+  <p>If you're linked, your partner is unlinked and told you've left. What they added themselves (their photos, answers and messages) stays theirs.</p>
+  <p><b>Deleting doesn't cancel Heartpact Plus.</b> Google Play keeps charging until you <a href="https://play.google.com/store/account/subscriptions">cancel the subscription</a>.</p>
+
+  <h2>Can't sign in?</h2>
+  <p>Email <a href="mailto:support@heartpact.app?subject=Delete%20my%20account">support@heartpact.app</a> from the address on your account, and we'll delete it for you.</p>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="Legal">
+      <a href="/privacy/">Privacy policy</a>
+      <a href="/terms/">Terms of use</a>
+      <a href="/delete-account/">Delete your account</a>
+      <a href="mailto:support@heartpact.app">Contact</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="Language">
+      <a href="/delete-account/" lang="en" hreflang="en" data-lang="en" aria-current="true">English</a>
+      <a href="/fr/delete-account/" lang="fr" hreflang="fr" data-lang="fr">Français</a>
+      <a href="/pt/delete-account/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/delete-account/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/delete-account/" lang="ar" hreflang="ar" data-lang="ar">العربية</a>
+      <a href="/hi/delete-account/" lang="hi" hreflang="hi" data-lang="hi">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

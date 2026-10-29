@@ -6,6 +6,7 @@
 |---|---|---|
 | API (`src/`, `tests/`, `Dockerfile`, `railway.json`) | Railway | first, after `dotnet build` and `dotnet test` pass |
 | Admin dashboard (`admin/`) | Cloudflare Pages | after the API, once format, lint, types, tests and build pass |
+| Marketing site (`website/`) | Cloudflare Pages (its own project) | straight away; static pages (see `docs/website.md`) |
 | Android app (`android/`) | Google Play, internal testing track, plus a signed production APK on the run | after the API, once unit tests pass and a signed bundle is built |
 
 The dashboard and app wait for the API because they may use its newest endpoints. If the API deploy fails, they don't
@@ -42,12 +43,14 @@ Secrets go under Settings → Secrets and variables → Actions → Secrets; pla
 | `CLOUDFLARE_API_TOKEN` | secret | a Cloudflare API token with **Cloudflare Pages: Edit** |
 | `CLOUDFLARE_ACCOUNT_ID` | secret | Cloudflare dashboard → the account's ID |
 | `CLOUDFLARE_PAGES_PROJECT` | variable | the Pages project name; default `heartpact-admin` |
+| `CLOUDFLARE_SITE_PROJECT` | variable | the marketing site's Pages project; default `heartpact-site` |
+| `SITE_URL` | variable | the marketing site's public URL, e.g. `https://heartpact.app`; also add it to the API's `Frontend__Origin` |
 | `PLAY_SERVICE_ACCOUNT_JSON` | secret | the JSON key of a Google Cloud service account invited in Play Console (below) |
 | `PLAY_TRACK` | variable | default track: `internal` (default), `alpha`, `beta` or `production` |
 | `PLAY_RELEASE_STATUS` | variable | `completed` (default) or `draft` while the Play app has never been published |
-| `ANDROID_KEYSTORE_*`, `FIREBASE_*`, `MAPS_API_KEY`, `GOOGLE_WEB_CLIENT_ID` | secrets | as in `docs/secrets.md` |
+| `ANDROID_KEYSTORE_*`, `FIREBASE_*`, `MAPS_API_KEY`, `GOOGLE_WEB_CLIENT_ID`, `PLAY_INTEGRITY_PROJECT_NUMBER` | secrets | as in `docs/secrets.md` |
 
-Each job runs in a GitHub **environment** (`production-api`, `production-admin`, `production-android`), created on
+Each job runs in a GitHub **environment** (`production-api`, `production-admin`, `production-website`, `production-android`), created on
 the first run. To require someone's approval before a deploy, add required reviewers to that environment
 (Settings → Environments).
 

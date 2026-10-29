@@ -6,10 +6,12 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import app.heartpact.ui.graphics.Icon3D
 import app.heartpact.alarm.AlarmActivity
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmSlot
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -24,15 +26,12 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChildCare
-import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.material.icons.outlined.SportsEsports
-import androidx.compose.material.icons.outlined.WorkspacePremium
 import app.heartpact.billing.PlusOffers
 import app.heartpact.ui.plus.PlusScreen
 import app.heartpact.ui.plus.PlusSummaryViewModel
 import app.heartpact.ui.plus.PlusText
 import app.heartpact.ui.plus.PlusViewModel
+import app.heartpact.ui.components.ReadableScreen
 import app.heartpact.ui.games.GameActions
 import app.heartpact.ui.games.GamesScreen
 import app.heartpact.ui.games.GamesViewModel
@@ -172,60 +171,78 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
         Box(Modifier.fillMaxSize().background(Heartpact.colors.page)) {
             NavHost(nav, startDestination = Routes.SPLASH) {
                 composable(Routes.SPLASH) { AnimatedSplash(onFinished = { splashDone = true }) }
-                composable(Routes.ONBOARDING) { OnboardingScreen(onDone = { appModel.finishOnboarding() }) }
+                composable(Routes.ONBOARDING) { ReadableScreen { OnboardingScreen(onDone = { appModel.finishOnboarding() }) } }
                 composable(Routes.WELCOME) {
-                    val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
-                    val googleState by google.state.collectAsStateWithLifecycle()
-                    val context = LocalContext.current
-                    if (googleState.finishing) {
-                        BackHandler { google.cancel() }
-                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, { google.finish { appModel.refresh() } }, onBack = google::cancel)
-                    } else WelcomeScreen(
-                        onCreateAccount = { nav.navigate(Routes.SIGN_UP) }, onSignIn = { nav.navigate(Routes.SIGN_IN) },
-                        onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
-                        googleBusy = googleState.busy, note = googleState.note,
-                    )
+                    ReadableScreen {
+                        val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
+                        val googleState by google.state.collectAsStateWithLifecycle()
+                        val context = LocalContext.current
+                        if (googleState.finishing) {
+                            BackHandler { google.cancel() }
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                        } else WelcomeScreen(
+                            onCreateAccount = { nav.navigate(Routes.SIGN_UP) }, onSignIn = { nav.navigate(Routes.SIGN_IN) },
+                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
+                            googleBusy = googleState.busy, note = googleState.note,
+                        )
+                    }
                 }
                 composable(Routes.FORGOT, arguments = listOf(navArgument("email") { type = NavType.StringType; defaultValue = "" })) { entry ->
-                    val email = entry.arguments?.getString("email").orEmpty()
-                    val model: ForgotViewModel = viewModel(factory = viewModelFactory { initializer { ForgotViewModel(container.auth, email) } })
-                    val state by model.state.collectAsStateWithLifecycle()
-                    ForgotPasswordScreen(state, model::email, model::code, model::password, model::send, { model.reset { appModel.refresh() } },
-                        onBack = { if (state.sent) model.back() else nav.popBackStack() })
+                    ReadableScreen {
+                        val email = entry.arguments?.getString("email").orEmpty()
+                        val model: ForgotViewModel = viewModel(factory = viewModelFactory { initializer { ForgotViewModel(container.auth, email) } })
+                        val state by model.state.collectAsStateWithLifecycle()
+                        ForgotPasswordScreen(state, model::email, model::code, model::password, model::send, { model.reset { appModel.refresh() } },
+                            onBack = { if (state.sent) model.back() else nav.popBackStack() })
+                    }
                 }
                 composable(Routes.SIGN_UP) {
-                    val model: SignUpViewModel = viewModel(factory = viewModelFactory { initializer { SignUpViewModel(container.auth) } })
-                    val state by model.state.collectAsStateWithLifecycle()
-                    SignUpScreen(state, model::edit, { model.submit { appModel.refresh() } }, onBack = { nav.popBackStack() })
+                    ReadableScreen {
+                        val model: SignUpViewModel = viewModel(factory = viewModelFactory { initializer { SignUpViewModel(container.auth) } })
+                        val state by model.state.collectAsStateWithLifecycle()
+                        val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
+                        val googleState by google.state.collectAsStateWithLifecycle()
+                        val context = LocalContext.current
+                        if (googleState.finishing) {
+                            BackHandler { google.cancel() }
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                        } else SignUpScreen(state, model::edit, { model.submit { appModel.refresh() } }, onBack = { nav.popBackStack() },
+                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
+                            googleBusy = googleState.busy, googleNote = googleState.note)
+                    }
                 }
                 composable(Routes.SIGN_IN) {
-                    val model: SignInViewModel = viewModel(factory = viewModelFactory { initializer { SignInViewModel(container.auth) } })
-                    val state by model.state.collectAsStateWithLifecycle()
-                    val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
-                    val googleState by google.state.collectAsStateWithLifecycle()
-                    val context = LocalContext.current
-                    if (googleState.finishing) {
-                        BackHandler { google.cancel() }
-                        GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, { google.finish { appModel.refresh() } }, onBack = google::cancel)
-                    } else SignInScreen(state.copy(note = state.note ?: googleState.note), model::email, model::password, { model.submit { appModel.refresh() } },
-                        onForgot = { nav.navigate(Routes.forgot(state.email)) },
-                        onCreateAccount = { nav.navigate(Routes.SIGN_UP) { popUpTo(Routes.WELCOME) } }, onBack = { nav.popBackStack() },
-                        onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null, googleBusy = googleState.busy)
+                    ReadableScreen {
+                        val model: SignInViewModel = viewModel(factory = viewModelFactory { initializer { SignInViewModel(container.auth) } })
+                        val state by model.state.collectAsStateWithLifecycle()
+                        val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
+                        val googleState by google.state.collectAsStateWithLifecycle()
+                        val context = LocalContext.current
+                        if (googleState.finishing) {
+                            BackHandler { google.cancel() }
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                        } else SignInScreen(state.copy(note = state.note ?: googleState.note), model::email, model::password, { model.submit { appModel.refresh() } },
+                            onForgot = { nav.navigate(Routes.forgot(state.email)) },
+                            onCreateAccount = { nav.navigate(Routes.SIGN_UP) { popUpTo(Routes.WELCOME) } }, onBack = { nav.popBackStack() },
+                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null, googleBusy = googleState.busy)
+                    }
                 }
                 composable(Routes.PAIR) {
-                    val session by appModel.session.collectAsStateWithLifecycle()
-                    val userId = session?.user?.id ?: return@composable
-                    val token = appModel.pendingInviteToken.also { appModel.pendingInviteToken = null }
-                    val model: PairViewModel = viewModel(factory = viewModelFactory { initializer { PairViewModel(container.couple, userId, token) } })
-                    val state by model.state.collectAsStateWithLifecycle()
-                    LaunchedEffect(state.linked) { if (state.linked) appModel.refresh() }
-                    PairScreen(state, model::code, model::startEntering, model::stopEntering, model::submitCode, model::newInvite, onSignOut = { appModel.signOut() })
+                    ReadableScreen {
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val userId = session?.user?.id ?: return@composable
+                        val token = appModel.pendingInviteToken.also { appModel.pendingInviteToken = null }
+                        val model: PairViewModel = viewModel(factory = viewModelFactory { initializer { PairViewModel(container.couple, userId, token) } })
+                        val state by model.state.collectAsStateWithLifecycle()
+                        LaunchedEffect(state.linked) { if (state.linked) appModel.refresh() }
+                        PairScreen(state, model::code, model::startEntering, model::stopEntering, model::submitCode, model::newInvite, onSignOut = { appModel.signOut() })
+                    }
                 }
                 composable(Routes.HOME) {
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val me = session?.user ?: return@composable
-                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val context = LocalContext.current
                     val todayModel: TodayViewModel = viewModel(factory = viewModelFactory { initializer { TodayViewModel(application, me.id, partner) } })
@@ -244,7 +261,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
                     val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food, container.pushEvents) } })
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
-                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents) } })
+                    val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents, container.auth) } })
                     val usUi by usModel.ui.collectAsStateWithLifecycle()
                     val locationModel: LocationViewModel = viewModel(key = "location", factory = viewModelFactory { initializer { LocationViewModel(application) } })
                     val locationUi by locationModel.ui.collectAsStateWithLifecycle()
@@ -298,6 +315,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 onEndPact = { usModel.endPact { appModel.refresh() } },
                                 onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
                                 onClearDeleteError = usModel::clearDeleteError,
+                                country = me.countryCode, onCountry = { usModel.setCountry(me, it) },
+                                gender = me.gender, onGender = { usModel.setGender(me, it) { cycleSummary.load() } },
                                 location = {
                                     LocationCard(locationUi, partner, onOpen = { nav.navigate(Routes.MAP) }, onShare = shareLocation,
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)
@@ -305,17 +324,18 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 extraRows = {
                                     val cycleMode = cycleSummaryUi.mode
                                     if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
-                                        val partnerDay = cycleSummaryUi.shared?.prediction?.cycleDay
-                                        CardRow(if (cycleMode == CycleMode.Partner) "$partner's cycle" else "Your cycle",
-                                            subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner, partnerDay),
-                                            icon = Icons.Outlined.WaterDrop, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
+                                        val partnerPrediction = cycleSummaryUi.shared?.prediction
+                                        CardRow(if (cycleMode == CycleMode.Partner) tr("{partner}'s cycle", "partner" to partner) else tr("Your cycle"),
+                                            subtitle = CyclePlan.usRow(cycleMode == CycleMode.Owner || cycleMode == CycleMode.Setup, cycleSummaryUi.prediction.cycleDay, cycleSummaryUi.profile.shareLevel, partner,
+                                                partnerPrediction?.cycleDay, partnerPrediction?.daysLate),
+                                            icon3d = Icon3D.Cycle, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
                                     CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),
-                                        icon = Icons.Outlined.WorkspacePremium, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
-                                    CardRow("Play together", subtitle = "Same answer, memory match, I call on",
-                                        icon = Icons.Outlined.SportsEsports, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
-                                    CardRow("Pregnancy mode", subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
-                                        icon = Icons.Outlined.ChildCare, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
+                                        icon3d = Icon3D.Plus, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
+                                    CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"),
+                                        icon3d = Icon3D.Games, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
+                                    CardRow(tr("Pregnancy mode"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
+                                        icon3d = Icon3D.Pregnancy, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
                                 },
                             )
                         },
@@ -352,33 +372,38 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onCallOff = todayModel::callOffTogether,
                             onKeep = todayModel::keepIt,
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
+                            onExactAlarmsAsked = todayModel::exactAlarmsAsked,
                         )
                     })
                 }
                 composable(Routes.PLUS) {
-                    val session by appModel.session.collectAsStateWithLifecycle()
-                    val couple by appModel.couple.collectAsStateWithLifecycle()
-                    val me = session?.user ?: return@composable
-                    val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: "your partner"
-                    val activity = LocalActivity.current ?: return@composable
-                    val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id) } })
-                    val ui by model.ui.collectAsStateWithLifecycle()
-                    PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
-                        onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) })
+                    ReadableScreen {
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val me = session?.user ?: return@composable
+                        val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
+                        val activity = LocalActivity.current ?: return@composable
+                        val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id) } })
+                        val ui by model.ui.collectAsStateWithLifecycle()
+                        PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
+                            onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) })
+                    }
                 }
                 composable(Routes.QUESTION) {
-                    val couple by appModel.couple.collectAsStateWithLifecycle()
-                    val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
-                    val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us, container.pushEvents) } })
-                    val state by model.ui.collectAsStateWithLifecycle()
-                    QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
+                    ReadableScreen {
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
+                        val model: QuestionViewModel = viewModel(factory = viewModelFactory { initializer { QuestionViewModel(container.us, container.pushEvents) } })
+                        val state by model.ui.collectAsStateWithLifecycle()
+                        QuestionScreen(state, partner, model::draft, model::send, model::edit, onBack = { nav.popBackStack() })
+                    }
                 }
                 composable(Routes.GAMES) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val me = session?.user?.id ?: return@composable
-                    val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: GamesViewModel = viewModel(factory = viewModelFactory { initializer { GamesViewModel(application) } })
                     LaunchedEffect(Unit) { model.refresh() }
@@ -386,50 +411,58 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     GamesScreen(state, me, partner, GameActions(
                         onInvite = { type, letter -> model.invite(type, letter) }, onAccept = { model.accept(it) }, onAbandon = { model.abandon(it) },
                         onAct = { s, action, value, index -> model.act(s, action, value, index) }, onBack = { nav.popBackStack() },
+                        onClose = { model.close(it) },
                     ))
                 }
                 composable(Routes.MAP) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: LocationViewModel = viewModel(factory = viewModelFactory { initializer { LocationViewModel(application) } })
                     LaunchedEffect(Unit) { model.refresh() }
                     val state by model.ui.collectAsStateWithLifecycle()
                     val share = rememberShareLocation { model.share(partner) }
                     MapScreen(state, partner, MapActions(onShare = share, onPause = model::pause, onResume = model::resume, onStop = model::stop, onBack = { nav.popBackStack() }),
-                        myName = session?.user?.displayName ?: "You")
+                        myName = session?.user?.displayName ?: tr("You"))
                 }
                 composable(Routes.CYCLE) {
-                    val couple by appModel.couple.collectAsStateWithLifecycle()
-                    val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
-                    val model: CycleViewModel = viewModel(factory = viewModelFactory { initializer { CycleViewModel(container.cycle) } })
-                    LaunchedEffect(Unit) { model.load() }
-                    val state by model.ui.collectAsStateWithLifecycle()
-                    CycleScreen(state, partner, CycleActions(
-                        onClaim = model::claim, onSetup = { start, cycle, period -> model.saveSetup(start, cycle, period) }, onShare = model::share,
-                        onFlow = model::flow, onSymptom = model::symptom, onMood = model::mood, onNotes = model::notes, onBack = { nav.popBackStack() },
-                    ))
+                    ReadableScreen {
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
+                        val model: CycleViewModel = viewModel(factory = viewModelFactory { initializer { CycleViewModel(container.cycle) } })
+                        LaunchedEffect(Unit) { model.load() }
+                        val state by model.ui.collectAsStateWithLifecycle()
+                        CycleScreen(state, partner, CycleActions(
+                            onSetup = { start, cycle, period, share -> model.saveSetup(start, cycle, period, share) }, onEdit = model::edit, onCancelEdit = model::cancelEdit,
+                            onPickDay = model::pickDay, onShare = model::share,
+                            onFlow = model::flow, onSymptom = model::symptom, onMood = model::mood, onNotes = model::notes, onBack = { nav.popBackStack() },
+                        ))
+                    }
                 }
                 composable(Routes.PREGNANCY) {
-                    val couple by appModel.couple.collectAsStateWithLifecycle()
-                    val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: "your partner"
-                    val model: PregnancyViewModel = viewModel(factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
-                    LaunchedEffect(Unit) { model.load() }
-                    val state by model.ui.collectAsStateWithLifecycle()
-                    PregnancyScreen(state, session?.user?.id.orEmpty(), partner, PregnancyActions(
-                        onStart = { due, lmp, share -> model.start(due, lmp, share) }, onShare = model::share, onEnd = model::end,
-                        onAddAppointment = { t, at, loc -> model.addAppointment(t, at, loc) }, onDeleteAppointment = { model.deleteAppointment(it) },
-                        onStartKicks = model::startKicks, onKick = model::kick, onFinishKicks = model::finishKicks, onBack = { nav.popBackStack() },
-                    ))
+                    ReadableScreen {
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
+                        val model: PregnancyViewModel = viewModel(factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
+                        LaunchedEffect(Unit) { model.load() }
+                        val state by model.ui.collectAsStateWithLifecycle()
+                        PregnancyScreen(state, session?.user?.id.orEmpty(), partner, PregnancyActions(
+                            onStart = { due, lmp, share -> model.start(due, lmp, share) }, onShare = model::share, onEnd = model::end, onDelete = { model.delete(it) },
+                            onAddAppointment = { t, at, loc -> model.addAppointment(t, at, loc) }, onDeleteAppointment = { model.deleteAppointment(it) },
+                            onStartKicks = model::startKicks, onKick = model::kick, onFinishKicks = model::finishKicks, onBack = { nav.popBackStack() },
+                        ))
+                    }
                 }
                 composable(Routes.NOTIFICATIONS) {
-                    val model: NotificationsViewModel = viewModel(factory = viewModelFactory { initializer { NotificationsViewModel(container.us) } })
-                    val prefs by model.prefs.collectAsStateWithLifecycle()
-                    val note by model.note.collectAsStateWithLifecycle()
-                    NotificationsScreen(prefs, note, model::change, onBack = { nav.popBackStack() })
+                    ReadableScreen {
+                        val model: NotificationsViewModel = viewModel(factory = viewModelFactory { initializer { NotificationsViewModel(container.us) } })
+                        val prefs by model.prefs.collectAsStateWithLifecycle()
+                        val note by model.note.collectAsStateWithLifecycle()
+                        NotificationsScreen(prefs, note, model::change, onBack = { nav.popBackStack() })
+                    }
                 }
                 composable(Routes.FOOD_SCAN, arguments = listOf(navArgument("uri") { type = NavType.StringType })) { entry ->
                     val uri = Uri.parse(entry.arguments?.getString("uri") ?: return@composable)
@@ -445,19 +478,23 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         onGetPlus = if (plusUi.offersPlus) ({ nav.navigate(Routes.PLUS) }) else null)
                 }
                 composable(Routes.FOOD_ENTRY, arguments = listOf(navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null })) { entry ->
-                    val id = entry.arguments?.getString("id")
-                    val model: FoodEntryViewModel = viewModel(factory = viewModelFactory { initializer { FoodEntryViewModel(container.food, id) } })
-                    val state by model.ui.collectAsStateWithLifecycle()
-                    FoodEntryScreen(state, model::description, model::meal, model::calories,
-                        onSave = { model.save { nav.popBackStack() } }, onDelete = { model.delete { nav.popBackStack() } }, onBack = { nav.popBackStack() })
+                    ReadableScreen {
+                        val id = entry.arguments?.getString("id")
+                        val model: FoodEntryViewModel = viewModel(factory = viewModelFactory { initializer { FoodEntryViewModel(container.food, id) } })
+                        val state by model.ui.collectAsStateWithLifecycle()
+                        FoodEntryScreen(state, model::description, model::meal, model::calories,
+                            onSave = { model.save { nav.popBackStack() } }, onDelete = { model.delete { nav.popBackStack() } }, onBack = { nav.popBackStack() })
+                    }
                 }
                 composable(Routes.NEW_DARE) {
-                    val couple by appModel.couple.collectAsStateWithLifecycle()
-                    val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id } ?: return@composable
-                    val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId) } })
-                    val state by model.state.collectAsStateWithLifecycle()
-                    NewDareScreen(state, partner.displayName, model::type, model::step, model::time, model::window, { model.send { nav.popBackStack() } }, onBack = { nav.popBackStack() })
+                    ReadableScreen {
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id } ?: return@composable
+                        val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId) } })
+                        val state by model.state.collectAsStateWithLifecycle()
+                        NewDareScreen(state, partner.displayName, model::type, model::step, model::time, model::window, { model.send { nav.popBackStack() } }, onBack = { nav.popBackStack() })
+                    }
                 }
             }
         }

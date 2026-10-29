@@ -1,5 +1,6 @@
 package app.heartpact.data
 
+import app.heartpact.exercise.ExerciseChecks
 import kotlinx.serialization.json.Json
 
 /** Account: sign up, sign in, sign out. A successful call stores the session before returning. */
@@ -17,6 +18,10 @@ class AuthRepository(private val api: HeartpactApi, private val session: Session
 
     suspend fun google(request: GoogleSignInRequest): ApiResult<AuthResponse> =
         apiCall(json) { api.googleSignIn(request) }.alsoOk { session.save(it.accessToken, it.user) }
+
+    /** Changes the country and/or gender; the rest of the profile goes back as it is. */
+    suspend fun updateProfile(user: AuthUser, countryCode: String? = null, gender: Gender? = null): ApiResult<AuthResponse> =
+        apiCall(json) { api.updateProfile(UpdateProfileRequest(user.displayName, user.avatarUrl, user.mapColor, countryCode, gender)) }.alsoOk { session.save(it.accessToken, it.user) }
 
     suspend fun signOut() = session.clear()
 }
@@ -48,7 +53,8 @@ class ExerciseRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun start(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startOccurrence(id) }
     /** Today's dare before it rings: opens the day's occurrence now. Completing it cancels today's alarm. */
     suspend fun startEarly(goalId: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.startEarly(goalId) }
-    suspend fun complete(id: String, count: Int, confidence: Double): ApiResult<ExerciseOccurrence> = apiCall(json) { api.completeOccurrence(id, CompleteRequest(count, confidence)) }
+    suspend fun complete(id: String, count: Int, confidence: Double, checks: ExerciseChecks? = null, integrityToken: String? = null): ApiResult<ExerciseOccurrence> =
+        apiCall(json) { api.completeOccurrence(id, CompleteRequest(count, confidence, checks, integrityToken)) }
     /** Only the partner may cancel: this is "call it off together", granting the other's request. */
     suspend fun cancel(id: String): ApiResult<ExerciseOccurrence> = apiCall(json) { api.cancelOccurrence(id) }
     suspend fun askOff(id: String, note: String?): ApiResult<ExerciseOccurrence> = apiCall(json) { api.askOff(id, AskOffRequest(note?.trim()?.takeIf { it.isNotEmpty() })) }
@@ -85,7 +91,8 @@ class CycleRepository(private val api: HeartpactApi, private val json: Json) {
 }
 
 class PregnancyRepository(private val api: HeartpactApi, private val json: Json) {
-    suspend fun list(date: String): ApiResult<List<Pregnancy>> = apiCall(json) { api.pregnancies(date) }
+    suspend fun list(date: String, includeEnded: Boolean = false): ApiResult<List<Pregnancy>> = apiCall(json) { api.pregnancies(date, includeEnded) }
+    suspend fun delete(id: String): ApiResult<Unit> = apiCall(json) { api.deletePregnancy(id) }
     suspend fun start(request: StartPregnancyRequest): ApiResult<Pregnancy> = apiCall(json) { api.startPregnancy(request) }
     suspend fun update(id: String, request: UpdatePregnancyRequest): ApiResult<Pregnancy> = apiCall(json) { api.updatePregnancy(id, request) }
     suspend fun end(id: String): ApiResult<Unit> = apiCall(json) { api.endPregnancy(id) }
@@ -102,10 +109,16 @@ class LocationRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun status(): ApiResult<SharingStatusView> = apiCall(json) { api.locationStatus() }
     suspend fun pause(minutes: Int): ApiResult<SharingStatusView> = apiCall(json) { api.pauseLocation(PauseRequest(minutes)) }
     suspend fun resume(): ApiResult<SharingStatusView> = apiCall(json) { api.resumeLocation() }
+    /** Starting is explicit: the server drops fixes until this has gone through. */
+    suspend fun start(): ApiResult<SharingStatusView> = apiCall(json) { api.startLocation() }
+    suspend fun heartbeat(): ApiResult<SharingStatusView> = apiCall(json) { api.locationHeartbeat() }
+    /** [token] only for a retry after sign-out; otherwise the signed-in session's is used. */
+    suspend fun stop(token: String? = null): ApiResult<Unit> = apiCall(json) { api.stopLocation(token?.let { "Bearer $it" }) }
 }
 
 class GameRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun sessions(): ApiResult<List<GameSession>> = apiCall(json) { api.gameSessions() }
+    suspend fun region(): ApiResult<GameRegionView> = apiCall(json) { api.gameRegion() }
     suspend fun session(id: String): ApiResult<GameSession> = apiCall(json) { api.gameSession(id) }
     suspend fun create(type: GameType, letter: String? = null): ApiResult<GameSession> = apiCall(json) { api.createGame(CreateGameRequest(type, letter)) }
     suspend fun accept(id: String): ApiResult<GameSession> = apiCall(json) { api.acceptGame(id) }

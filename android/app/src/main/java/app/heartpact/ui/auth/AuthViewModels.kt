@@ -6,6 +6,7 @@ import app.heartpact.data.ApiResult
 import app.heartpact.data.AuthRepository
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.RegisterRequest
+import app.heartpact.i18n.tr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,11 +40,12 @@ class SignUpViewModel(private val auth: AuthRepository) : ViewModel() {
         val form = current.form
         _state.update { it.copy(busy = true, showErrors = true, note = null) }
         viewModelScope.launch {
-            val result = auth.register(RegisterRequest(form.email.trim(), form.password, form.name.trim(), form.dateOfBirth.toString(), form.gender!!))
+            val result = auth.register(RegisterRequest(form.email.trim(), form.password, form.name.trim(), form.dateOfBirth.toString(), form.gender!!, form.country))
             when (result) {
                 is ApiResult.Ok -> onDone()
                 is ApiResult.Failure -> _state.update {
-                    if (result.code == "auth.email_exists") it.copy(busy = false, serverFieldErrors = mapOf(SignUpForm.Field.Email to "An account with this email already exists. Sign in instead?"))
+                    if (result.code == "auth.invalid_country") it.copy(busy = false, serverFieldErrors = mapOf(SignUpForm.Field.Country to result.message))
+                    else if (result.code == "auth.email_exists") it.copy(busy = false, serverFieldErrors = mapOf(SignUpForm.Field.Email to tr("An account with this email already exists. Sign in instead?")))
                     else it.copy(busy = false, note = result.message)
                 }
                 ApiResult.Offline -> _state.update { it.copy(busy = false, note = OFFLINE_MESSAGE) }
@@ -65,7 +67,7 @@ class SignInViewModel(private val auth: AuthRepository) : ViewModel() {
         val s = _state.value
         if (s.busy) return
         if (!looksLikeEmail(s.email) || s.password.isEmpty()) {
-            _state.update { it.copy(error = "Enter your email and password.") }
+            _state.update { it.copy(error = tr("Enter your email and password.")) }
             return
         }
         _state.update { it.copy(busy = true, error = null, note = null) }

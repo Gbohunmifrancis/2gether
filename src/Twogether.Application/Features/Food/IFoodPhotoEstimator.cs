@@ -8,7 +8,8 @@ public interface IFoodPhotoEstimator
     /// <summary>False when no credentials are configured; the controller then answers 503 instead of calling out.</summary>
     bool IsConfigured { get; }
     string ModelName { get; }
-    Task<Result<FoodEstimate>> EstimateAsync(FoodPhoto photo, string? hint, CancellationToken cancellationToken);
+    /// <param name="countryCode">Where the person lives (ISO 3166-1 alpha-2), so local dishes are recognised; null when unknown.</param>
+    Task<Result<FoodEstimate>> EstimateAsync(FoodPhoto photo, string? hint, string? countryCode, CancellationToken cancellationToken);
 }
 
 public sealed record FoodPhoto(string MediaType, byte[] Bytes);

@@ -30,7 +30,7 @@ Error codes: `billing.unknown_product`, `billing.account_missing`, `billing.not_
 The Plus screen (Us → Heartpact Plus, or "Get more with Plus" when the food scan limit or a nearly full album is
 reached) follows mockup 18:
 
-- It asks the server for the entitlement and Google Play for the prices of `productIds` (Play Billing 8, behind
+- It asks the server for the entitlement and Google Play for the prices of `productIds` (Play Billing 9, behind
   `billing/PlayStore.kt`). Each plan uses the cheapest offer Play says this person may take, such as a free trial,
   and shows it as "1 week free, then £23.99 a year". Yearly comes first, with its saving over monthly.
 - Checkout sets the obfuscated account id to the user id without dashes, then sends the purchase to `google/verify`.

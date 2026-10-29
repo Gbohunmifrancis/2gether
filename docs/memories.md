@@ -65,6 +65,9 @@ album's current use and adds each new item's size in order. The first new item t
 photos go up in the order the app sent them. Items already reserved (`upload` again) and `done` items are not
 counted twice.
 
+Reserving checks and adds in one step per couple (a PostgreSQL advisory lock, `DatabaseLocks`), for `POST uploads`
+and `POST sync` alike, so both partners adding photos at the same moment cannot overfill the album.
+
 ### The partner hears about it once
 
 The first `POST sync` starts a sync session (a session older than a day is treated as abandoned and starts again, so a slow sync of videos over mobile data still counts every batch).
@@ -123,9 +126,13 @@ cleanup worker stays off. Railway's disk is wiped on deploy, so local disk is no
    `{ memoryId, uploadUrl, method: "PUT", headers, expiresAtUtc }`. The URL lives 15 minutes and is signed for that
    content type: send exactly the returned `Content-Type` header. Pending slots count against the quota.
 2. The app `PUT`s the bytes straight to `uploadUrl`.
-3. `POST {id}/complete` checks the stored object: it must exist, match the declared type and fit the size cap. A
-   mismatch is deleted from storage and answers `422 memories.upload_rejected`; not uploaded yet answers
-   `409 memories.not_uploaded`. Completing again is harmless.
+3. `POST {id}/complete` checks the stored object: it must exist, match the declared type, fit the size cap and be
+   no larger than `sizeBytes` (the quota was checked against that; a signed PUT does not fix the length). A mismatch
+   is deleted from storage and answers `422 memories.upload_rejected`. The album must also still have room for the
+   real size (the plan may have shrunk meanwhile), else the file is deleted and the answer is
+   `409 memories.quota_exceeded`. Not uploaded yet answers `409 memories.not_uploaded`. Completing again is harmless.
+   `sync/complete` makes the same checks per item and answers `rejected` with the same codes. A rejected memory lets
+   go of its `clientId`, so the app can try that photo again later.
 
 Allowed types: JPEG, PNG, WebP, HEIC/HEIF photos up to 15 MB; MP4 and MOV videos up to 100 MB. Object keys are
 `couples/{coupleId}/{memoryId}.{ext}`, built by the server only. Google Photos and gallery imports use the Android
@@ -141,7 +148,7 @@ photo picker on the device and then this same flow (`source` is a display label 
 | POST | `uploads`, `{id}/complete` | see above |
 | PUT, GET, POST | `sync/pending`, `sync`, `sync/complete` | offline-first sync, see above |
 | PATCH | `{id}` | `{ caption, takenAtUtc }`, uploader only |
-| DELETE | `{id}` | uploader only; hidden at once, file removed, retried by the worker if storage fails |
+| DELETE | `{id}` | uploader only; hidden at once, file removed, retried by the worker if storage fails; the hidden row stays until its upload links expire (see the cleanup worker) |
 
 Either partner sees every memory of their couple; only the uploader edits or deletes. Another couple's ids answer 404.
 `MemoriesChanged` (`{ memoryId, change }`) goes to the couple group on add, update and delete.
@@ -168,7 +175,11 @@ Runs every 5 minutes, and once at startup. In each run it:
 1. Queues every photo from albums whose post-breakup window has closed. Captions and dates are wiped in that same step.
 2. Removes upload slots that were not completed within an hour, once no upload link handed out for them still works
    (a sync retry can renew the links of an old slot).
-3. Finishes deletes whose storage call failed.
+3. Finishes deletes. A deleted memory (one photo, the archive, a rejected upload, account deletion, the post-breakup
+   expiry) keeps its hidden `Deleting` row as a tombstone while an upload link handed out for it still works
+   (`UploadWindowEndsAtUtc`): a late PUT on that link would put the bytes back with no row left to find them. Once
+   the window has passed, the worker deletes the objects again and then the row. Deletes whose storage call failed
+   are finished the same way.
 
 It works in batches of 100 and keeps going while batches come back full. It always deletes the object before the row.
 

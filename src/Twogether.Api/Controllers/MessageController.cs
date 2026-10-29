@@ -7,6 +7,8 @@ using Twogether.Core.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Twogether.Api.Hubs;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
+using Twogether.Application.Features.Notifications;
 
 namespace Twogether.Api.Controllers;
 
@@ -25,10 +27,10 @@ public sealed class MessageController(IApplicationDbContext db, ICurrentUser cur
     [HttpPost]
     public async Task<ActionResult<MessageDto>> Send(SendMessageRequest request, CancellationToken cancellationToken)
     {
-        if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return BadRequest(new ApiError("message.no_couple", "Link a partner before sending messages."));
+        if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return BadRequest(new ApiError("message.no_couple", Loc.T("Link a partner before sending messages.")));
         var linkedCouple = await db.Couples.AsNoTracking().AnyAsync(couple => couple.Id == currentUser.CoupleId.Value && couple.Status == Twogether.Core.Enums.CoupleStatus.Active, cancellationToken);
-        if (!linkedCouple) return BadRequest(new ApiError("message.no_partner", "Link a partner before sending messages."));
-        if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Length > 4000) return UnprocessableEntity(new ApiError("message.invalid_body", "Message must be between 1 and 4000 characters."));
+        if (!linkedCouple) return BadRequest(new ApiError("message.no_partner", Loc.T("Link a partner before sending messages.")));
+        if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Length > 4000) return UnprocessableEntity(new ApiError("message.invalid_body", Loc.T("Message must be between 1 and 4000 characters.")));
         var message = Message.Create(currentUser.CoupleId.Value, currentUser.UserId.Value, request.Body.Trim(), request.IsPrivate, clock.UtcNow);
         db.Messages.Add(message);
         var senderName = await db.Users.AsNoTracking().Where(item => item.Id == currentUser.UserId.Value).Select(item => item.DisplayName).SingleAsync(cancellationToken);
@@ -36,7 +38,10 @@ public sealed class MessageController(IApplicationDbContext db, ICurrentUser cur
         Notification? notification = null;
         if (partnerId.HasValue)
         {
-            notification = Notification.Create(partnerId.Value, message.CoupleId, NotificationType.Message, request.IsPrivate ? "A private message" : $"New message from {senderName}", request.IsPrivate ? $"{senderName} sent something just for you." : message.Body[..Math.Min(message.Body.Length, 140)], null, clock.UtcNow);
+            using var _ = Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken));
+            notification = Notification.Create(partnerId.Value, message.CoupleId, NotificationType.Message,
+                request.IsPrivate ? Loc.T("A private message") : Loc.T("New message from {name}", ("name", senderName)),
+                request.IsPrivate ? Loc.T("{name} sent something just for you.", ("name", senderName)) : message.Body[..Math.Min(message.Body.Length, 140)], null, clock.UtcNow);
             db.Notifications.Add(notification);
         }
         await db.SaveChangesAsync(cancellationToken);
@@ -52,7 +57,7 @@ public sealed class MessageController(IApplicationDbContext db, ICurrentUser cur
         var message = await OwnedMessage(messageId, cancellationToken);
         if (message is null) return NotFound();
         if (message.SenderUserId != currentUser.UserId) return Forbid();
-        if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Length > 4000) return UnprocessableEntity(new ApiError("message.invalid_body", "Message must be between 1 and 4000 characters."));
+        if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Length > 4000) return UnprocessableEntity(new ApiError("message.invalid_body", Loc.T("Message must be between 1 and 4000 characters.")));
         message.Edit(request.Body.Trim(), clock.UtcNow);
         await db.SaveChangesAsync(cancellationToken);
         var result = ToDto(message);

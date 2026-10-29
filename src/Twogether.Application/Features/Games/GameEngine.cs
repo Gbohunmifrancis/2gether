@@ -30,11 +30,49 @@ public sealed class GameEngine : IGameEngine
         "What is your favorite way for us to reconnect?"
     ];
 
+    /// <summary>
+    /// Games with their own rules class. Same answer, memory match and I call on are still built in below; a type with
+    /// no rules yet plays as Same answer.
+    /// </summary>
+    private static readonly Dictionary<GameType, IGameRules> Registered = new IGameRules[]
+    {
+        new TruthOrDareRules(),
+        new WordDashRules(),
+        new SameAnswerRules(),
+        new GuessMyAnswerRules(),
+        new WouldYouRatherRules(),
+        new TicTacToeRules(),
+        new ConnectFourRules(),
+        new DrawAndGuessRules(),
+        new TriviaRules(),
+        new SkillDuelRules(),
+    }.ToDictionary(rules => rules.Type);
+
+    public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);
+
+    public bool AnyoneMayAct(GameType gameType) => RulesFor(gameType)?.AnyoneMayAct ?? gameType == GameType.ICallOn;
+
+    public bool IsTimed(GameType gameType) => RulesFor(gameType)?.Timed ?? gameType == GameType.ICallOn;
+
+    public string ToPublicState(GameType gameType, string stateJson, Guid? viewer)
+    {
+        // An invite that hasn't started has no state yet; the rules all assume a game in play.
+        if (NotStarted(stateJson)) return "{}";
+        return RulesFor(gameType) is { } rules ? rules.ToPublicState(stateJson, viewer) : ToPublicState(gameType, stateJson);
+    }
+
+    private static bool NotStarted(string? stateJson) => string.IsNullOrWhiteSpace(stateJson) || stateJson.Trim() == "{}";
+
     public GameEngineResult Start(GameType gameType, IReadOnlyList<Guid> playerIds, DateTime utcNow, string? setupJson = null)
     {
+        if (RulesFor(gameType) is { } rules)
+        {
+            if (playerIds.Count == 0) throw new InvalidOperationException("At least one player is required.");
+            return rules.Start(playerIds, utcNow, setupJson);
+        }
         if (playerIds.Count == 0) throw new InvalidOperationException("At least one player is required.");
         var stateJson = gameType == GameType.MemoryMatch
-            ? JsonSerializer.Serialize(CreateMemoryState(playerIds))
+            ? JsonSerializer.Serialize(CreateMemoryState(playerIds, setupJson))
             : gameType == GameType.ICallOn
                 ? JsonSerializer.Serialize(CreateICallOnState(playerIds, setupJson))
                 : JsonSerializer.Serialize(CreateQuizState(playerIds, setupJson));
@@ -44,7 +82,9 @@ public sealed class GameEngine : IGameEngine
     }
 
     public GameEngineResult Apply(GameType gameType, string stateJson, Guid actorUserId, string action, string? value, int? index, DateTime utcNow, IReadOnlyDictionary<string, bool?>? validations = null, IReadOnlyDictionary<Guid, CoSubmission>? coSubmissions = null)
-        => gameType == GameType.MemoryMatch
+        => RulesFor(gameType) is { } rules
+            ? rules.Apply(new GameMove(stateJson, actorUserId, action, value, index, utcNow, validations, coSubmissions))
+            : gameType == GameType.MemoryMatch
             ? ApplyMemory(stateJson, actorUserId, action, index, utcNow)
             : gameType == GameType.ICallOn
                 ? ApplyICallOn(stateJson, actorUserId, action, value, utcNow, validations, coSubmissions)
@@ -52,6 +92,8 @@ public sealed class GameEngine : IGameEngine
 
     public string ToPublicState(GameType gameType, string stateJson)
     {
+        if (NotStarted(stateJson)) return "{}";
+        if (RulesFor(gameType) is { } rules) return rules.ToPublicState(stateJson, null);
         if (gameType != GameType.MemoryMatch && gameType != GameType.ICallOn)
         {
             var quiz = Deserialize<QuizState>(stateJson);
@@ -98,15 +140,18 @@ public sealed class GameEngine : IGameEngine
             cards = state.Cards.Select((card, index) => new { index, value = card.Matched || state.Revealed.Contains(index) ? (int?)card.Value : null, card.Matched }),
             state.Revealed,
             state.LastResult,
-            state.LastPair
+            state.LastPair,
+            state.Theme
         };
         return JsonSerializer.Serialize(publicState, PublicJsonOptions);
     }
 
     public GameScoreSummary Summarise(GameType gameType, string stateJson)
     {
+        if (NotStarted(stateJson)) return new GameScoreSummary(new Dictionary<Guid, int>(), 0, null);
         try
         {
+            if (RulesFor(gameType) is { } rules) return rules.Summarise(stateJson);
             if (gameType == GameType.MemoryMatch)
             {
                 var memory = Deserialize<MemoryState>(stateJson);
@@ -292,7 +337,7 @@ public sealed class GameEngine : IGameEngine
             foreach (var category in state.Categories)
             {
                 var answer = state.Submissions[player][category];
-                if (Rule(category, answer, state.Letter, state.Validations.GetValueOrDefault(player)) != AnswerRuling.NeedsVetting) continue;
+                if (Rule(category, answer, state.Letter, state.Validations.GetValueOrDefault(player), state.Region) != AnswerRuling.NeedsVetting) continue;
                 state.PendingVetting.Add(new VettingItem { Player = player, Judge = judge, Category = category, Answer = answer });
             }
         }
@@ -356,14 +401,14 @@ public sealed class GameEngine : IGameEngine
         {
             state.Submissions.Clear();
             state.Validations.Clear();
-            state.Letter = RandomLetter();
+            state.Letter = RandomLetter(state.Region);
             state.Phase = AnsweringPhase;
         }
         return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[0], completed ? null : utcNow.AddSeconds(AnsweringSeconds), completed);
     }
 
     private static bool Counts(ICallOnState state, Guid player, string category, string answer, IReadOnlyDictionary<(Guid, string), bool> verdicts)
-        => Rule(category, answer, state.Letter, state.Validations.GetValueOrDefault(player)) switch
+        => Rule(category, answer, state.Letter, state.Validations.GetValueOrDefault(player), state.Region) switch
         {
             AnswerRuling.Valid => true,
             AnswerRuling.NeedsVetting => verdicts.GetValueOrDefault((player, category), true),
@@ -389,7 +434,8 @@ public sealed class GameEngine : IGameEngine
         return new QuizState { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Prompt = questions[0], Questions = questions };
     }
 
-    private static MemoryState CreateMemoryState(IReadOnlyList<Guid> players)
+    /// <summary>Nigerian couples get Naija pictures on the cards (the app draws the theme); the pairs work the same.</summary>
+    private static MemoryState CreateMemoryState(IReadOnlyList<Guid> players, string? setupJson)
     {
         var cards = Enumerable.Range(1, 6).SelectMany(value => new[] { new MemoryCard { Value = value }, new MemoryCard { Value = value } }).ToList();
         for (var i = cards.Count - 1; i > 0; i--)
@@ -397,12 +443,25 @@ public sealed class GameEngine : IGameEngine
             var swap = RandomNumberGenerator.GetInt32(i + 1);
             (cards[i], cards[swap]) = (cards[swap], cards[i]);
         }
-        return new MemoryState { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Cards = cards };
+        return new MemoryState { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Cards = cards, Theme = GameRegion.Of(setupJson) == GameRegion.Nigeria ? NaijaTheme : null };
     }
 
-    /// <summary>The first round uses the letter the inviter chose, if any; later rounds draw at random.</summary>
+    /// <summary>
+    /// The first round uses the letter the inviter chose, if any; later rounds draw at random. Nigerian couples play
+    /// Name, Place, Animal and Food with Nigerian words in the lists.
+    /// </summary>
     private static ICallOnState CreateICallOnState(IReadOnlyList<Guid> players, string? setupJson)
-        => new() { Players = players.ToList(), Scores = players.ToDictionary(player => player, _ => 0), Letter = ChosenLetter(setupJson) ?? RandomLetter(), Categories = ["Name", "Place", "Thing", "Food"] };
+    {
+        var region = GameRegion.Of(setupJson);
+        return new()
+        {
+            Players = players.ToList(),
+            Scores = players.ToDictionary(player => player, _ => 0),
+            Region = region,
+            Letter = ChosenLetter(setupJson) ?? RandomLetter(region),
+            Categories = region == GameRegion.Nigeria ? ["Name", "Place", "Animal", "Food"] : ["Name", "Place", "Thing", "Food"],
+        };
+    }
 
     private static string? ChosenLetter(string? setupJson)
     {
@@ -420,21 +479,27 @@ public sealed class GameEngine : IGameEngine
         }
     }
 
-    private static string RandomLetter()
+    private static string RandomLetter(string? region)
     {
-        var playable = Enumerable.Range('A', 26)
-            .Select(value => ((char)value).ToString())
-            .Where(letter => WordLists.Values.All(words => words.Any(word => word.StartsWith(letter, StringComparison.OrdinalIgnoreCase))))
-            .ToList();
+        var playable = PlayableLetters(region);
         return playable[RandomNumberGenerator.GetInt32(playable.Count)];
     }
 
-    private static AnswerRuling Rule(string category, string answer, string letter, IReadOnlyDictionary<string, bool?>? validations)
+    /// <summary>The letters a round may draw: those with a word in every category of the region's lists.</summary>
+    public static IReadOnlyList<string> PlayableLetters(string? region) => Enumerable.Range('A', 26)
+        .Select(value => ((char)value).ToString())
+        .Where(letter => WordListsFor(region).Values.All(words => words.Any(word => word.StartsWith(letter, StringComparison.OrdinalIgnoreCase))))
+        .ToList();
+
+    /// <summary>Games set up before regions existed have no region and keep the global lists.</summary>
+    private static IReadOnlyDictionary<string, HashSet<string>> WordListsFor(string? region) => region == GameRegion.Nigeria ? NaijaWordLists : WordLists;
+
+    private static AnswerRuling Rule(string category, string answer, string letter, IReadOnlyDictionary<string, bool?>? validations, string? region)
     {
         if (string.IsNullOrWhiteSpace(answer) || !answer.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) return AnswerRuling.Invalid;
         if (validations?.TryGetValue(category, out var external) == true && external == true) return AnswerRuling.Valid;
         var normalized = answer.Trim().ToLowerInvariant();
-        if (WordLists.TryGetValue(category, out var words) && words.Contains(normalized)) return AnswerRuling.Valid;
+        if (WordListsFor(region).TryGetValue(category, out var words) && words.Contains(normalized)) return AnswerRuling.Valid;
         // The dictionary either said no or could not say. Nigerian names, local places
         // and everyday slang legitimately miss an English word list, so the partner
         // rules on it instead of the engine silently dropping the answer.
@@ -450,6 +515,18 @@ public sealed class GameEngine : IGameEngine
         ["Thing"] = ["anchor", "bag", "book", "chair", "drum", "envelope", "fork", "guitar", "hat", "iron", "jacket", "key", "lamp", "mirror", "notebook", "orange", "pencil", "quilt", "ring", "shoe", "table", "umbrella", "vase", "wallet", "xylophone", "yarn", "zipper"],
         ["Food"] = ["apple", "avocado", "banana", "bread", "cake", "dates", "eggs", "fish", "grape", "hamburger", "icecream", "jollof", "kebab", "lasagna", "mango", "noodles", "okra", "pasta", "quiche", "rice", "salad", "taco", "ugali", "vanilla", "waffle", "yam", "zucchini"]
     };
+
+    /// <summary>Nigerian couples' lists (NaijaICallOnWords): the global words plus Nigerian names, places, animals and foods.</summary>
+    private static readonly IReadOnlyDictionary<string, HashSet<string>> NaijaWordLists = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Name"] = [.. WordLists["Name"], .. NaijaICallOnWords.Names],
+        ["Place"] = [.. WordLists["Place"], .. NaijaICallOnWords.Places],
+        ["Animal"] = [.. NaijaICallOnWords.Animals],
+        ["Food"] = [.. WordLists["Food"], .. NaijaICallOnWords.Foods],
+    };
+
+    /// <summary>The memory theme with Naija pictures; the app draws them.</summary>
+    public const string NaijaTheme = "naija";
 
     private static T Deserialize<T>(string json) where T : class
         => JsonSerializer.Deserialize<T>(json) ?? throw new InvalidOperationException("Game state is invalid.");
@@ -478,6 +555,8 @@ public sealed class GameEngine : IGameEngine
         public string? LastResult { get; set; }
         /// <summary>The two cards of the last miss, face up for both players until the next flip.</summary>
         public List<MemoryFlip>? LastPair { get; set; }
+        /// <summary>The pictures on the cards: null for the classic six, "naija" for Nigerian couples.</summary>
+        public string? Theme { get; set; }
     }
 
     private sealed record MemoryFlip(int Index, int Value);
@@ -492,6 +571,8 @@ public sealed class GameEngine : IGameEngine
         public int Round { get; set; }
         public string Letter { get; set; } = "A";
         public List<string> Categories { get; set; } = [];
+        /// <summary>Whose word lists score the game; null for games set up before regions, which play the global lists.</summary>
+        public string? Region { get; set; }
         public string Phase { get; set; } = AnsweringPhase;
         public Guid? RoundWinnerUserId { get; set; }
         public Guid? WinnerUserId { get; set; }

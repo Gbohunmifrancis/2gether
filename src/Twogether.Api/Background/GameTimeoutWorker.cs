@@ -4,6 +4,7 @@ using Twogether.Api.Controllers;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Admin.Ops;
 using Twogether.Application.Features.Games;
 using Twogether.Core.Enums;
 
@@ -14,16 +15,21 @@ public sealed class GameTimeoutWorker(
     IHubContext<CoupleHub> hub,
     IGameEngine engine,
     IDateTimeProvider clock,
-    ILogger<GameTimeoutWorker> logger) : BackgroundService
+    ILogger<GameTimeoutWorker> logger,
+    WorkerHeartbeats? heartbeats = null) : BackgroundService
 {
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
+    public const string HeartbeatName = "gameTimeouts";
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // The default local profile may have no database. Wait for one instead of
         // crashing the loop every second; appsettings always supplies a connection
         // string, so a configuration check alone would never notice.
+        heartbeats?.Register(HeartbeatName, Interval);
         await DatabaseReadiness.WaitUntilAvailableAsync(scopeFactory, logger, nameof(GameTimeoutWorker), stoppingToken);
 
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        using var timer = new PeriodicTimer(Interval);
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             try
@@ -34,6 +40,7 @@ public sealed class GameTimeoutWorker(
                     nextStaleSweep = clock.UtcNow.AddMinutes(10);
                     await EndStaleGames(stoppingToken);
                 }
+                heartbeats?.Ok(HeartbeatName, Interval);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -42,6 +49,7 @@ public sealed class GameTimeoutWorker(
             catch (Exception exception)
             {
                 logger.LogError(exception, "Failed to advance expired game rounds.");
+                heartbeats?.Failed(HeartbeatName, Interval, exception);
             }
         }
     }
@@ -80,12 +88,14 @@ public sealed class GameTimeoutWorker(
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
         var now = clock.UtcNow;
-        var sessions = await db.GameSessions
+        // Only timed games set a deadline, so an expired deadline is always a timed game's.
+        var sessions = (await db.GameSessions
             .Where(session => session.Status == GameSessionStatus.InProgress
-                && session.GameType == GameType.ICallOn
                 && session.DeadlineUtc != null
                 && session.DeadlineUtc <= now)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken))
+            .Where(session => engine.IsTimed(session.GameType))
+            .ToList();
         if (sessions.Count == 0) return;
 
         foreach (var session in sessions)
@@ -99,8 +109,8 @@ public sealed class GameTimeoutWorker(
         foreach (var session in sessions)
         {
             var eventName = session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged";
-            await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId))
-                .SendAsync(eventName, GameController.ToDto(session, engine), cancellationToken);
+            var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
+            await GameEvents.SendAsync(hub, engine, session, players, eventName, cancellationToken);
         }
     }
 }

@@ -10,6 +10,7 @@ import app.heartpact.data.CoupleSide
 import app.heartpact.data.CoupleStatus
 import app.heartpact.alarm.AlarmScheduler
 import app.heartpact.location.LocationShareService
+import app.heartpact.location.LocationStop
 import app.heartpact.push.Push
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,7 +69,13 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     }
 
     fun signOut() = viewModelScope.launch {
+        // Sharing ends with the session, on this phone at once, online or not, before anything waits on the network.
+        if (LocationShareService.running) LocationShareService.stop(app.appContext, tellServer = false)
         withTimeoutOrNull(5_000) { Push.unregister(app) }
+        // Then the server hears it, before the hub and the token go, and stops it on the person's other phones too.
+        // If it can't be reached, a retry carrying this session's token keeps trying, and the server's lease ends
+        // the share meanwhile. Sent even when this phone isn't sharing: another may have been.
+        LocationStop.send(app)
         app.live.stopAll()
         app.auth.signOut()
         stopAlarms()
@@ -81,7 +88,8 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     /** Signed out or no longer linked: nothing may ring for a pact that no longer applies here. */
     private fun stopAlarms() {
         AlarmScheduler.apply(app.appContext, emptyList())
-        if (LocationShareService.running) LocationShareService.stop(app.appContext)
+        // Signed out or unlinked: the server already ended the share (or will, by its lease), so this stops it here only.
+        if (LocationShareService.running) LocationShareService.stop(app.appContext, tellServer = false)
     }
 
     private suspend fun decide(): Destination {
