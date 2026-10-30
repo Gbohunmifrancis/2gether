@@ -1,6 +1,5 @@
 package app.heartpact
 
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.heartpact.data.ApiResult
 import app.heartpact.data.AuthRepository
 import app.heartpact.data.CoupleRepository
@@ -37,7 +36,7 @@ class ApiTest {
 
     @Before fun setUp() {
         server.start()
-        session = SessionStore(PreferenceDataStoreFactory.create { folder.newFile("session.preferences_pb") }, json)
+        session = SessionStore(MemoryPreferences(), json)
         val api = Retrofit.Builder().baseUrl(server.url("/"))
             .client(OkHttpClient.Builder().addInterceptor(bearer(session)).build())
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))

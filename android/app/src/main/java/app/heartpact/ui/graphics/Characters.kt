@@ -130,8 +130,8 @@ private class HalfParts(val mirror: Boolean, pose: Pose, val stride: Stride?) {
         mirrored {
             val cone = Path().apply {
                 moveTo(5f, 17f)
-                cubicTo(4f, 4f, 2f, -8f, -6f, -14f)
-                cubicTo(14f, -16f, 34f, -6f, 47f, 9f)
+                cubicTo(5f, 4f, 2f, -10f, -5f, -19f)
+                cubicTo(8f, -11f, 30f, -5f, 47f, 9f)
                 close()
             }
             drawPath(cone, Color(0xFFD42B35), alpha = alpha)
@@ -139,7 +139,9 @@ private class HalfParts(val mirror: Boolean, pose: Pose, val stride: Stride?) {
             rotate(-14f, Offset(26f, 13f)) {
                 drawRoundRect(Color.White, Offset(1f, 8f), Size(50f, 10f), androidx.compose.ui.geometry.CornerRadius(5f, 5f), alpha = alpha)
             }
-            drawCircle(Color.White, 6.5f, Offset(-6f, -14f), alpha = alpha)
+            // The pompom gets a soft grey edge so it still reads on white cards.
+            drawCircle(Color(0xFFD9D4CF), 7.3f, Offset(-5f, -19f), alpha = alpha)
+            drawCircle(Color.White, 6.3f, Offset(-5f, -19f), alpha = alpha)
         }
     }
 

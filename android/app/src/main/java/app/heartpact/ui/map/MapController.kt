@@ -60,6 +60,8 @@ class MapPerson(
     val pos: Pos,
     /** Which half of the heart they are; their marker is that half standing on the map. */
     val rightHalf: Boolean = false,
+    /** Their own initial for the badge. */
+    val initial: String? = null,
 )
 
 /**
@@ -260,7 +262,7 @@ class MapController {
             val key = "${System.identityHashCode(p.photo)}|${p.age}|${p.name}|${p.ring}|${p.rightHalf}|$night|${app.heartpact.ui.theme.Season.christmas}"
             if (!force && imageKeys[p.userId] == key) continue
             val bitmap = MapMarkerBitmap.render(
-                MarkerLook(p.name, p.age, p.ring, p.photo, palette.pillBackground, palette.pillText, palette.pillMuted, rightHalf = p.rightHalf), density,
+                MarkerLook(p.name, p.age, p.ring, p.photo, palette.pillBackground, palette.pillText, palette.pillMuted, rightHalf = p.rightHalf, initial = p.initial), density,
             )
             val id = "hc-face-${p.userId}-${imageCounter++}"
             s.addImage(id, bitmap)
@@ -300,9 +302,11 @@ class MapController {
             1 -> CameraPosition.Builder().target(targets[0]).zoom(16.5).tilt(MapMotion.PITCH).bearing(current).build()
             else -> {
                 val bounds = LatLngBounds.Builder().includes(targets).build()
-                val padding = intArrayOf(dp(60f), dp(150f), dp(60f), dp(78f))
-                val camera = m.getCameraForLatLngBounds(bounds, padding, current, MapMotion.PITCH) ?: return null
-                CameraPosition.Builder(camera).zoom(MapMotion.frameZoom(camera.zoom)).build()
+                // Room for the characters (they stand above their spot) and their name pills, on every side.
+                val padding = intArrayOf(dp(96f), dp(180f), dp(96f), dp(130f))
+                // Framed flat, then eased out a little: with the camera tilted, the far one would otherwise sit past the top.
+                val camera = m.getCameraForLatLngBounds(bounds, padding, current, 0.0) ?: return null
+                CameraPosition.Builder(camera).zoom(MapMotion.frameZoom(camera.zoom - PITCH_ZOOM_OUT)).tilt(MapMotion.PITCH).build()
             }
         }
     }
@@ -408,5 +412,7 @@ class MapController {
         const val FRAME_MS = 1_300
         const val HALO_MAX_RADIUS = 58f
         const val MAX_PITCH = 60.0
+        /** How much further out a tilted frame sits than the flat one it was computed from. */
+        const val PITCH_ZOOM_OUT = 0.7
     }
 }

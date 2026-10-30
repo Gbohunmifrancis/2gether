@@ -42,6 +42,8 @@ data class MarkerLook(
     val initialText: Int = 0xFFFFFFFF.toInt(),
     /** Which half of the heart this person is: they stand on the map as that half, like a Snap Map Bitmoji. */
     val rightHalf: Boolean = false,
+    /** The letter on the badge with no picture: their own name's, even when the pill says "You". */
+    val initial: String? = null,
 )
 
 /**
@@ -145,7 +147,7 @@ object MapMarkerBitmap {
                 textSize = photoR * 1.0f
                 textAlign = Paint.Align.CENTER
             }
-            val letter = look.name.trim().take(1).uppercase().ifEmpty { "?" }
+            val letter = (look.initial ?: look.name).trim().take(1).uppercase().ifEmpty { "?" }
             canvas.drawText(letter, badgeCx, badgeCy - (initial.ascent() + initial.descent()) / 2, initial)
         }
 

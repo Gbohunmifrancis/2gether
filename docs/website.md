@@ -11,7 +11,8 @@ and nothing loaded from other sites (fonts and images are served from `website/a
 | `delete-account/` | Signs in with email and password and calls `POST /api/account/delete`, the same call the app makes. A renewing Plus subscription is shown first, as in the app. Google sign-in accounts are asked to email support |
 | `404.html` | Not found |
 | `_headers` | Security headers, including a strict Content-Security-Policy (scripts, styles and fonts only from the site; API calls only to the API) |
-| `assets/config.js` | The API's address for the deletion page; the deploy job writes the real one |
+| `assets/config.js` | The API's address (for the deletion page and the Christmas switch); the deploy job writes the real one |
+| `assets/festive.js` | Turns on the Christmas look when the admin flag is on (below) |
 
 The prices on the home page ($5.99 a month, $39.99 a year) must match the Plus base plans in Play Console; change
 both together. The contact address throughout is `support@heartpact.app`.
@@ -26,6 +27,19 @@ meet from both sides.
 All of it is optional. `assets/boot.js` turns it on only when JavaScript runs and the visitor hasn't asked for
 reduced motion (`prefers-reduced-motion`); otherwise every element is simply there. `assets/site.js` uses one
 `IntersectionObserver` for reveals and one `requestAnimationFrame` loop for the scroll effects.
+
+## Christmas
+
+While the admin dashboard's Christmas flag is on (`docs/feature-flags.md`), the site dresses up like the app: ivory
+ground, cranberry and pine halves, fairy lights along the top of the header, a Santa hat on the logo, and light
+snowfall. Every page loads `assets/config.js` and `assets/festive.js` in its head (the translated pages get them
+from `i18n/build.py build`). `festive.js` calls `GET {API}/api/config` with a 2.5 second timeout, keeps the answer in
+`sessionStorage` (`hp-christmas`) for the visit, and adds `class="christmas"` to `<html>` when it's `true`; the
+`html.christmas` rules at the end of `assets/site.css` do the rest, without moving anything. A failed or slow call,
+or no JavaScript, leaves the site as it always is. The snow only falls without `prefers-reduced-motion`. The call
+needs nothing new in the CSP (`connect-src` already allows the API) but does need the site's origin in
+`Frontend__Origin`, as the deletion page does. There is no public override: to preview, run
+`sessionStorage.setItem("hp-christmas", "1")` in the browser console and reload (`"0"` or closing the tab undoes it).
 
 ## Running it locally
 

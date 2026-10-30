@@ -187,6 +187,8 @@ private fun TabIconPill(tab: Tab, on: Boolean, width: Dp) {
     Box(Modifier.width(width).height(40.dp), contentAlignment = Alignment.Center) {
         Box(Modifier.matchParentSize().clip(Shapes.Pill).background(if (on) Heartpact.colors.sticker else Heartpact.colors.page2))
         TabIcon3D(tab.icon, selected = on, size = 58.dp, modifier = Modifier.requiredSize(58.dp))
+        // At Christmas every tab icon wears a little hat.
+        if (app.heartpact.ui.theme.Season.christmas) app.heartpact.ui.theme.SantaHat(Modifier.align(Alignment.TopCenter).offset(x = 9.dp, y = (-14).dp).requiredSize(26.dp, 20.dp))
     }
 }
 

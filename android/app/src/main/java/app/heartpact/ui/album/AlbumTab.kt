@@ -167,7 +167,7 @@ fun AlbumTab(
                     Spacer(Modifier.height(48.dp))
                 }
             }
-            if (ui.loaded && ui.local.isEmpty() && ui.shared.isEmpty() && !ui.storageMissing) full("empty") { Empty() }
+            if (ui.loaded && ui.local.isEmpty() && ui.shared.isEmpty()) full("empty") { Empty() }
         }
         HeartButton(
             tr("Add photos"), onAdd,

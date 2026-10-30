@@ -86,4 +86,23 @@ fun FairyLights(modifier: Modifier = Modifier, bulbs: Int = 11) {
     }
 }
 
+/** A small Santa hat, tilted, for perching on icons: red cone, white band, pompom. */
+@Composable
+fun SantaHat(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val cone = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.10f, h * 0.78f)
+            cubicTo(w * 0.22f, h * 0.30f, w * 0.55f, h * 0.05f, w * 0.88f, h * 0.18f)
+            cubicTo(w * 0.70f, h * 0.30f, w * 0.80f, h * 0.55f, w * 0.92f, h * 0.70f)
+            close()
+        }
+        drawPath(cone, Color(0xFFD42B35))
+        drawPath(cone, Color(0xFF8E1A22), style = androidx.compose.ui.graphics.drawscope.Stroke(w * 0.03f))
+        drawRoundRect(Color.White, Offset(0f, h * 0.66f), androidx.compose.ui.geometry.Size(w, h * 0.24f), androidx.compose.ui.geometry.CornerRadius(h * 0.12f))
+        drawCircle(Color.White, w * 0.12f, Offset(w * 0.88f, h * 0.18f))
+    }
+}
+
 private data class Flake(val x: Float, val y: Float, val radius: Float, val speed: Float, val phase: Float, val alpha: Float)

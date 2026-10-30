@@ -182,6 +182,7 @@ fun MapScreen(ui: LocationUi, me: Face, partner: Face, actions: MapActions, now:
                             photo = if (mine) myPhoto else partnerPhoto,
                             pos = Pos(point.latitude, point.longitude),
                             rightHalf = face.side == Side.Right,
+                            initial = face.name.ifBlank { point.displayName },
                         )
                     }
                 }
