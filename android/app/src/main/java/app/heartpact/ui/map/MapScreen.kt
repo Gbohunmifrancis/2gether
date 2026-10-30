@@ -181,6 +181,7 @@ fun MapScreen(ui: LocationUi, me: Face, partner: Face, actions: MapActions, now:
                             ring = colors.partner(face.side).art.toArgb(),
                             photo = if (mine) myPhoto else partnerPhoto,
                             pos = Pos(point.latitude, point.longitude),
+                            rightHalf = face.side == Side.Right,
                         )
                     }
                 }

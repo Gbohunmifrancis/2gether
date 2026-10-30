@@ -58,6 +58,8 @@ class MapPerson(
     val ring: Int,
     val photo: Bitmap?,
     val pos: Pos,
+    /** Which half of the heart they are; their marker is that half standing on the map. */
+    val rightHalf: Boolean = false,
 )
 
 /**
@@ -169,11 +171,11 @@ class MapController {
         val m = map ?: return@OnMapClickListener false
         val nowMs = SystemClock.uptimeMillis()
         val tap = m.projection.toScreenLocation(point)
-        // A tap on the picture or on the tip of the tail flies to that person.
+        // A tap on the character or at their feet flies to that person.
         val hit = people.filter { p ->
             val pos = tweens[p.userId]?.at(nowMs) ?: p.pos
             val s = m.projection.toScreenLocation(LatLng(pos.lat, pos.lng))
-            hypot(tap.x - s.x, tap.y - (s.y - MapMarkerBitmap.HEAD_CENTRE_ABOVE_TIP_DP * density)) < dp(40f) || hypot(tap.x - s.x, tap.y - s.y) < dp(28f)
+            hypot(tap.x - s.x, tap.y - (s.y - MapMarkerBitmap.TIP_FROM_TOP_DP / 2 * density)) < dp(40f) || hypot(tap.x - s.x, tap.y - s.y) < dp(28f)
         }.firstOrNull()
         if (hit != null) { flyTo(hit.pos); true } else false
     }
@@ -255,10 +257,10 @@ class MapController {
         val palette = MapPalette.of(night)
         val nowMs = SystemClock.uptimeMillis()
         for (p in people) {
-            val key = "${System.identityHashCode(p.photo)}|${p.age}|${p.name}|${p.ring}|$night"
+            val key = "${System.identityHashCode(p.photo)}|${p.age}|${p.name}|${p.ring}|${p.rightHalf}|$night|${app.heartpact.ui.theme.Season.christmas}"
             if (!force && imageKeys[p.userId] == key) continue
             val bitmap = MapMarkerBitmap.render(
-                MarkerLook(p.name, p.age, p.ring, p.photo, palette.pillBackground, palette.pillText, palette.pillMuted), density,
+                MarkerLook(p.name, p.age, p.ring, p.photo, palette.pillBackground, palette.pillText, palette.pillMuted, rightHalf = p.rightHalf), density,
             )
             val id = "hc-face-${p.userId}-${imageCounter++}"
             s.addImage(id, bitmap)

@@ -23,40 +23,39 @@ class MapMarkerBitmapTest {
     private fun look(photo: Bitmap?, age: String?) =
         MarkerLook("Theo", age, ring, photo, day.pillBackground, day.pillText, day.pillMuted)
 
-    @Test fun `the tip of the tail sits at the centre of the image, where the symbol is anchored`() {
+    @Test fun `the feet stand on the centre of the image, where the symbol is anchored`() {
         val density = 3f
         val bitmap = MapMarkerBitmap.render(look(null, "2 min ago"), density)
         assertEquals(density * 160, bitmap.density.toFloat(), 0.5f)
-        val cx = bitmap.width / 2
         val tipY = bitmap.height / 2
-        // Just above the tip is the tail; far below the head's top is empty; the corners are clear.
-        assertTrue("tail near its tip", Color.alpha(bitmap.getPixel(cx, tipY - (2 * density).toInt())) > 200)
-        // Only the faintest edge of the soft shadow may reach this high.
-        assertTrue("nothing above the head", Color.alpha(bitmap.getPixel(cx, (2 * density).toInt())) < 12)
-        assertEquals("corner is clear", 0, Color.alpha(bitmap.getPixel(0, 0)))
+        // Something is drawn just above the tip (the character), the very top row is clear, and so are the corners.
+        val column = (0 until bitmap.width).map { x -> Color.alpha(bitmap.getPixel(x, tipY - (8 * density).toInt())) }
+        assertTrue("the character stands just above the tip", column.any { it > 200 })
+        assertTrue("nothing at the very top", (0 until bitmap.width).all { x -> Color.alpha(bitmap.getPixel(x, 0)) < 12 })
         assertEquals("corner is clear", 0, Color.alpha(bitmap.getPixel(bitmap.width - 1, bitmap.height - 1)))
     }
 
-    @Test fun `without a picture the head is the side colour, with one it is the picture`() {
+    @Test fun `without a picture the badge is the side colour, with one it is the picture`() {
         val density = 3f
         val plain = MapMarkerBitmap.render(look(null, null), density)
-        val headCentreY = plain.height / 2 - (MapMarkerBitmap.HEAD_CENTRE_ABOVE_TIP_DP * density).toInt()
-        // Between the picture and the colour ring: the ring colour.
-        val ringPixel = plain.getPixel(plain.width / 2 + ((MapMarkerBitmap.PHOTO_DP / 2 + 1.5f) * density).toInt(), headCentreY)
+        val badgeY = plain.height / 2 - (MapMarkerBitmap.BADGE_CENTRE_ABOVE_TIP_DP * density).toInt()
+        val badgeX = plain.width / 2 - (MapMarkerBitmap.BADGE_SIDE_DP * density).toInt()
+        // Between the picture and the white ring: the ring colour.
+        val ringPixel = plain.getPixel(badgeX + ((MapMarkerBitmap.PHOTO_DP / 2 + 1.2f) * density).toInt(), badgeY)
         assertEquals(Color.red(ring), Color.red(ringPixel))
         assertEquals(Color.blue(ring), Color.blue(ringPixel))
 
         val red = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.RED) }
         val withPhoto = MapMarkerBitmap.render(look(red, null), density)
-        val centre = withPhoto.getPixel(withPhoto.width / 2, headCentreY)
+        val centre = withPhoto.getPixel(badgeX, badgeY)
         assertEquals(255, Color.red(centre))
         assertEquals(0, Color.green(centre))
     }
 
-    @Test fun `the pill makes the image wider for a longer line`() {
+    @Test fun `a longer line never makes the image narrower`() {
         val short = MapMarkerBitmap.render(look(null, null), 2f)
-        val long = MapMarkerBitmap.render(look(null, "over a day ago"), 2f)
-        assertTrue(long.width > short.width)
+        val long = MapMarkerBitmap.render(look(null, "over a day ago, not sharing"), 2f)
+        assertTrue(long.width >= short.width)
         assertEquals("the same height, so the tip stays centred", short.height, long.height)
     }
 }

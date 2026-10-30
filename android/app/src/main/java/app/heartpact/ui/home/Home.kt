@@ -1,5 +1,6 @@
 package app.heartpact.ui.home
 
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -121,7 +122,10 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
         if (widthClass() == WidthClass.Compact) {
             Column(Modifier.fillMaxSize()) {
                 Box(Modifier.weight(1f).statusBarsPadding()) { content() }
-                NavBar(tab, select, measured)
+                Box {
+                    NavBar(tab, select, measured)
+                    if (app.heartpact.ui.theme.Season.christmas) app.heartpact.ui.theme.FairyLights(Modifier.fillMaxWidth().height(26.dp).offset(y = (-8).dp))
+                }
             }
         } else {
             Row(Modifier.fillMaxSize()) {

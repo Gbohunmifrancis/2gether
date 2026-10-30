@@ -40,10 +40,16 @@ data class PartnerColors(
     val onSoft: Color,
 )
 
+/** Christmas accents: the gold of the lights' caps and ornaments, and the bulbs' colours. */
+object Festive {
+    val Gold = Color(0xFFD4A537)
+    val Bulbs = listOf(Color(0xFFE5484D), Color(0xFFF5C451), Color(0xFF3DBE7A), Color(0xFF5AA9F0), Color(0xFFF08BC0))
+}
+
 object Art {
     /** Sticker colours stay fixed at night, framed by their white keyline. At Christmas: holly red and pine green. */
-    val Left get() = if (Season.christmas) Color(0xFFB3202A) else Color(0xFF1F2557)
-    val Right get() = if (Season.christmas) Color(0xFF2E7D4F) else Color(0xFF7480D4)
+    val Left get() = if (Season.christmas) Color(0xFFA61B29) else Color(0xFF1F2557)
+    val Right get() = if (Season.christmas) Color(0xFF1E6B45) else Color(0xFF7480D4)
     val Keyline = Color(0xFFFFFFFF)
     val Shadow get() = if (Season.christmas) Color(0xFF3A1216) else Color(0xFF1F2557)
     val SplashIndigo get() = if (Season.christmas) Color(0xFF0F3D2E) else Color(0xFF1F2557)
@@ -90,16 +96,16 @@ val NightColors = HeartpactColors(
     isNight = true,
 )
 
-private val Holly = Color(0xFFB3202A)
-private val Pine = Color(0xFF2E7D4F)
+private val Holly = Color(0xFFA61B29)
+private val Pine = Color(0xFF1E6B45)
 
-/** Christmas by day: warm snow pages, ink with a hint of cranberry, holly red and pine green for the two of you. */
+/** Christmas by day: ivory pages like fresh paper, warm ink, cranberry and pine for the two of you. */
 val DayChristmas = DayColors.copy(
-    page = Color(0xFFFBF1EE), page2 = Color(0xFFF3E4E0), page3 = Color(0xFFEBD7D2), sticker2 = Color(0xFFFFF7F5),
-    ink = Color(0xFF2A1416), ink2 = Color(0xFF5C3B3D), ink3 = Color(0xFF7E5E60), ink4 = Color(0xFFBFA3A3),
-    rule = Color(0xFFF1DEDB), rule2 = Color(0xFFE2C8C4),
-    left = PartnerColors(art = Holly, action = Color(0xFFB3202A), soft = Color(0xFFF8D9D6), tint = Color(0xFFFDEDEB), onSoft = Color(0xFF8E1A22)),
-    right = PartnerColors(art = Pine, action = Color(0xFF2E7D4F), soft = Color(0xFFD6EEDF), tint = Color(0xFFEAF6EE), onSoft = Color(0xFF1F5E3A)),
+    page = Color(0xFFF8F3EA), page2 = Color(0xFFEFE6D6), page3 = Color(0xFFE6DAC6), sticker2 = Color(0xFFFFFBF4),
+    ink = Color(0xFF1F1A17), ink2 = Color(0xFF52463E), ink3 = Color(0xFF7A6C61), ink4 = Color(0xFFB9AC9E),
+    rule = Color(0xFFF0E7D9), rule2 = Color(0xFFDCCDB8),
+    left = PartnerColors(art = Holly, action = Color(0xFFA61B29), soft = Color(0xFFF6DADA), tint = Color(0xFFFCEFEE), onSoft = Color(0xFF861522)),
+    right = PartnerColors(art = Pine, action = Color(0xFF1E6B45), soft = Color(0xFFD9EBDF), tint = Color(0xFFEEF6F0), onSoft = Color(0xFF17573A)),
 )
 
 /** Christmas by night: deep pine pages, the same two colours lit up. */
