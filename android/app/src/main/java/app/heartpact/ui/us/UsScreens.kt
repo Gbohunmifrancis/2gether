@@ -1,5 +1,9 @@
 package app.heartpact.ui.us
 
+import androidx.compose.ui.text.style.TextAlign
+import app.heartpact.ui.components.Face
+import app.heartpact.ui.components.AvatarPair
+import app.heartpact.ui.components.Avatar
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
@@ -90,115 +94,58 @@ private fun Heading(text: String, modifier: Modifier = Modifier) =
 @Composable
 fun Chevron() = Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = Heartpact.colors.ink2)
 
-/** Us (mockup 12): the two of you, the daily question, notifications, and the account. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Us: the two of you, side by side, and everything you do together (the question, games, location, cycle, pregnancy, Plus).
+ * What is only yours (picture, name, country, appearance, notifications, sign out) lives one tap away in [ProfileScreen],
+ * under your own card at the top.
+ */
 @Composable
 fun UsTab(
     ui: UsUi,
-    myName: String,
-    partnerName: String,
+    me: Face,
+    partner: Face,
     togetherSince: String?,
     onQuestion: () -> Unit,
-    onNotifications: () -> Unit,
-    onSignOut: () -> Unit,
-    onEndPact: () -> Unit,
-    onDeleteAccount: (String) -> Unit,
-    onClearDeleteError: () -> Unit,
+    onProfile: () -> Unit,
+    onGames: () -> Unit,
     extraRows: @Composable () -> Unit = {},
     location: @Composable () -> Unit = {},
-    /** ISO code, or null for accounts made before the app asked. The row shows only with [onCountry]. */
-    country: String? = null,
-    onCountry: ((String) -> Unit)? = null,
-    /** The row shows only with [onGender]. */
-    gender: Gender? = null,
-    onGender: ((Gender) -> Unit)? = null,
 ) {
     val colors = Heartpact.colors
-    var confirmEnd by remember { mutableStateOf(false) }
-    var confirmDelete by remember { mutableStateOf(false) }
-    var pickingCountry by remember { mutableStateOf(false) }
-    var pickingGender by remember { mutableStateOf(false) }
-    // With room, the two of you and the question sit beside the account settings.
     AdaptivePage(header = {
-        Row(Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(tr("Us"), style = Heartpact.type.headline, color = colors.ink)
-                Text(listOfNotNull(tr("{me} and {partner}", "me" to myName, "partner" to partnerName), togetherSince).joinToString(" · "), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
-            }
-            Character(Who.Both, Pose.Hug, 96.dp)
+        Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(tr("Us"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.align(Alignment.Start))
+            AvatarPair(me, partner, 92.dp, Modifier.padding(top = 10.dp))
+            Text(tr("{me} and {partner}", "me" to me.name, "partner" to partner.name), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 12.dp), textAlign = TextAlign.Center)
+            togetherSince?.let { Text(it, style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 2.dp)) }
         }
-    }, second = {
-        SectionHeader(tr("Account"))
+    }, second = null) {
+        // Your own corner first: it is the one thing on this page that is only about you.
         StickerCard(Modifier.padding(horizontal = 12.dp)) {
-            if (onCountry != null) {
-                CardRow(tr("Country"), subtitle = country?.let { "${Countries.flag(it)}  ${Countries.name(it)}" } ?: tr("Not set yet. Tell us, for photos and food tips from home"),
-                    icon = Icons.Outlined.Public, onClick = { pickingCountry = true }) { Chevron() }
+            Row(Modifier.fillMaxWidth().clickable(onClick = onProfile).padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Avatar(me, 52.dp)
+                Column(Modifier.weight(1f)) {
+                    Text(me.name, style = Heartpact.type.title, color = colors.ink)
+                    Text(tr("Your profile, picture and settings"), style = Heartpact.type.small, color = colors.ink2)
+                }
+                Chevron()
             }
-            if (onGender != null) {
-                CardRow(tr("Gender"), subtitle = GENDERS.firstOrNull { it.first == gender }?.second ?: tr("Not set"),
-                    icon = Icons.Outlined.Person, divider = onCountry != null, onClick = { pickingGender = true }) { Chevron() }
-            }
-            CardRow(tr("Sign out"), divider = onCountry != null || onGender != null, subtitle = tr("Your pact and photos stay; sign back in any time"), icon = Icons.AutoMirrored.Rounded.Logout, onClick = onSignOut)
-            CardRow(tr("End our pact"), subtitle = tr("Unlinks you both and stops every dare"), icon = Icons.Outlined.HeartBroken, divider = true, onClick = { confirmEnd = true })
-            CardRow(tr("Delete my account"), subtitle = tr("Everything of yours, for good"), icon = Icons.Outlined.PersonRemove, divider = true, onClick = { confirmDelete = true })
-        }
-        LegalCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp))
-    }) {
-        ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp)) }
-        location()
-        StickerCard(Modifier.padding(horizontal = 12.dp)) {
-            CardRow(tr("Today's question"), subtitle = UsText.questionStatus(ui.question, partnerName), icon3d = Icon3D.Question, onClick = onQuestion) { Chevron() }
-            extraRows()
         }
         StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
-            CardRow(tr("Notifications"), subtitle = UsText.notifications(ui.preferences), icon3d = Icon3D.Bell, onClick = onNotifications) { Chevron() }
+            CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
         }
-    }
-    if (pickingCountry && onCountry != null) {
-        val context = LocalContext.current
-        CountrySheet(country, remember { Countries.guess(context) }, onPick = { onCountry(it); pickingCountry = false }, onDismiss = { pickingCountry = false })
-    }
-    if (pickingGender && onGender != null) AlertDialog(
-        onDismissRequest = { pickingGender = false },
-        title = { Text(tr("Which describes you?")) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GENDERS.forEach { (option, label) -> HeartChip(label, gender == option, { onGender(option); pickingGender = false }) }
-                }
-                Text(tr("Choosing Woman turns on cycle tracking. It stays private until you share it."), style = Heartpact.type.small, color = colors.ink2)
-            }
-        },
-        confirmButton = { TextButton(onClick = { pickingGender = false }) { Text(tr("Close")) } },
-    )
-    if (confirmEnd) AlertDialog(
-        onDismissRequest = { confirmEnd = false },
-        title = { Text(tr("End your pact with {partner}?", "partner" to partnerName)) },
-        text = { Text(tr("You'll both be unlinked at once. Dares stop ringing, and {partner} is told. Shared photos stay downloadable for 30 days, then the album is deleted.", "partner" to partnerName)) },
-        confirmButton = { TextButton(onClick = { confirmEnd = false; onEndPact() }) { Text(tr("End it")) } },
-        dismissButton = { TextButton(onClick = { confirmEnd = false }) { Text(tr("Keep it")) } },
-    )
-    if (confirmDelete) {
-        var password by remember { mutableStateOf("") }
-        LaunchedEffect(Unit) { onClearDeleteError() }
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(tr("Delete your account?")) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(tr("Your account, your half of every pact, your food log and your photos are deleted. {partner} is unlinked and told. This can't be undone.", "partner" to partnerName))
-                    HeartField(tr("Your password"), password, { password = it }, password = true, error = ui.deleteError)
-                }
-            },
-            confirmButton = { TextButton(onClick = { onDeleteAccount(password) }, enabled = password.isNotEmpty() && !ui.busy) { Text(tr("Delete for good")) } },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(tr("Cancel")) } },
-        )
+        ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
+        Box(Modifier.padding(top = 14.dp)) { location() }
+        StickerCard(Modifier.padding(horizontal = 12.dp)) {
+            CardRow(tr("Today's question"), subtitle = UsText.questionStatus(ui.question, partner.name), icon3d = Icon3D.Question, onClick = onQuestion) { Chevron() }
+            extraRows()
+        }
     }
 }
 
 /** The Privacy Policy and Terms of Use, opened on heartpact.app in the app's language. */
 @Composable
-private fun LegalCard(modifier: Modifier = Modifier) {
+fun LegalCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val opens = tr("Opens in your browser")
     StickerCard(modifier) {

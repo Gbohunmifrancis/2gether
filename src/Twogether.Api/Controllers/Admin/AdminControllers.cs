@@ -12,6 +12,7 @@ using Twogether.Application.Features.Account;
 using Twogether.Application.Features.Admin;
 using Twogether.Application.Features.Auth;
 using Twogether.Application.Features.Billing;
+using Twogether.Application.Features.Config;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Results;
@@ -413,6 +414,31 @@ public sealed class AdminSystemController(
     }
 }
 
+/// <summary>Feature flags for every app. The public side is <c>GET api/config</c>; apps read it at start.</summary>
+[Authorize(Policy = AdminAuth.Policy)]
+[Route("api/admin/features")]
+public sealed class AdminFeaturesController(FeatureFlagService flags, AdminAudit audit, IApplicationDbContext db) : ApiControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<FeatureFlagsDto>> Get(CancellationToken ct) => Ok(await flags.GetAsync(ct));
+
+    /// <summary>Changes what every app shows within about a minute (the public answer is cached for 60 s). Needs a fresh code, like other changes that reach every user.</summary>
+    [HttpPut]
+    [RequireStepUp]
+    public async Task<ActionResult<FeatureFlagsDto>> Put(AdminFeaturesRequest request, CancellationToken ct)
+    {
+        if (request.Christmas is not { } christmas) return UnprocessableEntity(new ApiError("admin.features_invalid", "Say whether the Christmas theme is on or off."));
+        var before = await flags.GetAsync(ct);
+        var after = new FeatureFlagsDto(christmas);
+        await flags.SetAsync(after, ct);
+        audit.Record(User, "features.updated", "feature", "christmas", $"christmas: {(before.Christmas ? "on" : "off")} -> {(after.Christmas ? "on" : "off")}");
+        await db.SaveChangesAsync(ct);
+        return Ok(after);
+    }
+}
+
+/// <summary>Nullable so a body that leaves it out is refused instead of switching the theme off.</summary>
+public sealed record AdminFeaturesRequest(bool? Christmas);
 public sealed record AdminPage<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
 public sealed record AdminUserRow(Guid Id, string Email, string DisplayName, DateTime CreatedAtUtc, DateTime? LastActiveAtUtc, DateTime? DisabledAtUtc, bool Google, bool Password, CoupleStatus? CoupleStatus, bool Paying, bool Internal = false);
 public sealed record AdminPersonRef(Guid Id, string Email, string DisplayName);

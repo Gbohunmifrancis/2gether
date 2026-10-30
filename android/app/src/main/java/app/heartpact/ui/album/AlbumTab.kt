@@ -1,5 +1,6 @@
 package app.heartpact.ui.album
 
+import app.heartpact.ui.components.heroHeight
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.compose.ui.viewinterop.AndroidView
@@ -399,8 +400,8 @@ private fun Badge(modifier: Modifier, background: Color, content: @Composable ()
 @Composable
 private fun Empty() {
     StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Dare) {
-        Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Character(Who.Left, Pose.Rest, 110.dp, mood = Mood.Sleep)
+        Column(Modifier.fillMaxWidth().heroHeight().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Character(Who.Left, Pose.Rest, 130.dp, mood = Mood.Sleep)
             Text(tr("No photos yet"), style = Heartpact.type.title, color = Heartpact.colors.ink, modifier = Modifier.padding(top = 12.dp))
             Text(
                 tr("Add photos and they stay on this phone. When you tap Sync, they join your shared album."),

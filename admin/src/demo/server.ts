@@ -1,4 +1,4 @@
-import type { Alert, AuditRow, Grant, LiveEvent, LiveKind, Page, SubscriptionRow, UserDetail, UserRow } from "../api/types";
+import type { Alert, AuditRow, Features, Grant, LiveEvent, LiveKind, Page, SubscriptionRow, UserDetail, UserRow } from "../api/types";
 import * as build from "./analytics";
 import { rng, uuid, weighted } from "./random";
 import { buildWorld, DAY, iso, LIVE_MIX, liveEvent, NOW, type DemoUser, type DemoWorld } from "./world";
@@ -31,6 +31,7 @@ class DemoServer {
   private lastAlertAt = 0;
   private wrongCodes = 0;
   private paused = false;
+  private features: Features = { christmas: false };
 
   /** Starts the pretend world ticking: an event every few seconds. */
   pause() {
@@ -209,7 +210,7 @@ class DemoServer {
     const parts = path.split("/").filter(Boolean);
 
     // Step-up: destructive actions want a code, like the real API.
-    if (method === "POST" && STEP_UP.has(parts[parts.length - 1]!)) {
+    if ((method === "POST" && STEP_UP.has(parts[parts.length - 1]!)) || (method === "PUT" && path === "features")) {
       const code = headers.get("x-admin-code");
       if (!code) return error(403, "admin.step_up_required", "Enter a fresh code from your authenticator to do this.");
       if (this.wrongCodes >= 5) return error(429, "admin.step_up_locked", "Too many tries. Wait a few minutes and try again.");
@@ -264,6 +265,13 @@ class DemoServer {
         return json(200, build.system(w));
       case "admins":
         return json(200, w.admins);
+      case "features":
+        if (method === "PUT") {
+          if (typeof body.christmas !== "boolean") return error(422, "admin.features_invalid", "Say whether the Christmas theme is on or off.");
+          this.audit("features.updated", "feature", "christmas", `christmas: ${this.features.christmas ? "on" : "off"} -> ${body.christmas ? "on" : "off"}`);
+          this.features = { christmas: body.christmas };
+        }
+        return json(200, this.features);
     }
 
     if (path === "users" && method === "GET") {

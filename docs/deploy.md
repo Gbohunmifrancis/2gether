@@ -48,7 +48,7 @@ Secrets go under Settings → Secrets and variables → Actions → Secrets; pla
 | `PLAY_SERVICE_ACCOUNT_JSON` | secret | the JSON key of a Google Cloud service account invited in Play Console (below) |
 | `PLAY_TRACK` | variable | default track: `internal` (default), `alpha`, `beta` or `production` |
 | `PLAY_RELEASE_STATUS` | variable | `completed` (default) or `draft` while the Play app has never been published |
-| `ANDROID_KEYSTORE_*`, `FIREBASE_*`, `MAPS_API_KEY`, `GOOGLE_WEB_CLIENT_ID`, `PLAY_INTEGRITY_PROJECT_NUMBER` | secrets | as in `docs/secrets.md` |
+| `ANDROID_KEYSTORE_*`, `FIREBASE_*`, `GOOGLE_WEB_CLIENT_ID`, `PLAY_INTEGRITY_PROJECT_NUMBER` | secrets | as in `docs/secrets.md` |
 
 Each job runs in a GitHub **environment** (`production-api`, `production-admin`, `production-website`, `production-android`), created on
 the first run. To require someone's approval before a deploy, add required reviewers to that environment

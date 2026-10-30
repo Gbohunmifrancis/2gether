@@ -19,6 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -58,8 +65,8 @@ import java.time.format.DateTimeFormatter
 enum class Tab(val icon: Icon3D) {
     Today(Icon3D.Today),
     Pacts(Icon3D.Pacts),
-    Food(Icon3D.Food),
     Us(Icon3D.Us),
+    Food(Icon3D.Food),
     Album(Icon3D.Album);
 
     val label: String get() = when (this) {
@@ -73,14 +80,25 @@ enum class Tab(val icon: Icon3D) {
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
 @Composable
-fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, food: (@Composable () -> Unit)? = null, us: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}) {
+fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, food: (@Composable () -> Unit)? = null, us: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, onRefresh: (Tab) -> kotlinx.coroutines.Job? = { null }, showTour: Boolean = false, onTourDone: () -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     // A notification can ask for a tab (the album nudge opens Album).
     LaunchedEffect(requestedTab) {
         if (requestedTab != null) { tab = requestedTab; onTab(requestedTab); onRequestedTab() }
     }
     val select = { next: Tab -> tab = next; onTab(next) }
+    var refreshing by remember { mutableStateOf(false) }
+    val tabBounds = remember { androidx.compose.runtime.mutableStateMapOf<Tab, androidx.compose.ui.geometry.Rect>() }
+    var touring by remember { mutableStateOf(showTour) }
+    val scope = rememberCoroutineScope()
     val content: @Composable () -> Unit = {
+        PullToRefreshBox(isRefreshing = refreshing, onRefresh = {
+            refreshing = true
+            scope.launch {
+                // The tab's own refresh may finish at once offline; hold the spinner long enough to be seen.
+                try { onRefresh(tab)?.join(); delay(400) } finally { refreshing = false }
+            }
+        }) {
             when (tab) {
                 Tab.Today -> today()
                 Tab.Pacts -> pacts?.invoke() ?: TabPage(tr("Pacts"), tr("Your sticker page")) { EmptyPage(Who.Right, Pose.Stand, tr("No dares yet"), tr("Dares you set each other live here, with every heart you've kept.")) }
@@ -95,18 +113,24 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
                 }
                 Tab.Album -> album?.invoke() ?: TabPage(tr("Album"), tr("Photos stay on your phone until you sync")) { EmptyPage(Who.Left, Pose.Rest, tr("No photos yet"), tr("Add photos and they stay on this phone. When you tap Sync, they join your shared album."), Mood.Sleep) }
             }
+        }
     }
     // Phones get the bottom bar; tablets, and phones on their side, the rail down the side (android/README.md, Tablets).
-    if (widthClass() == WidthClass.Compact) {
-        Column(Modifier.fillMaxSize()) {
-            Box(Modifier.weight(1f).statusBarsPadding()) { content() }
-            NavBar(tab, select)
+    val measured: (Tab, androidx.compose.ui.geometry.Rect) -> Unit = { t, r -> tabBounds[t] = r }
+    Box(Modifier.fillMaxSize()) {
+        if (widthClass() == WidthClass.Compact) {
+            Column(Modifier.fillMaxSize()) {
+                Box(Modifier.weight(1f).statusBarsPadding()) { content() }
+                NavBar(tab, select, measured)
+            }
+        } else {
+            Row(Modifier.fillMaxSize()) {
+                NavRail(tab, select, measured)
+                Box(Modifier.weight(1f).statusBarsPadding().navigationBarsPadding()) { content() }
+            }
         }
-    } else {
-        Row(Modifier.fillMaxSize()) {
-            NavRail(tab, select)
-            Box(Modifier.weight(1f).statusBarsPadding().navigationBarsPadding()) { content() }
-        }
+        // First run: a tour of the tabs, once per install.
+        if (touring && tabBounds.size == Tab.entries.size) app.heartpact.ui.tour.Tour(tabBounds, onDone = { touring = false; onTourDone() })
     }
 }
 
@@ -136,13 +160,13 @@ private fun EmptyPage(who: Who, pose: Pose, title: String, body: String, mood: M
 /** Material 3 navigation bar in the sticker world: deep page fill, the active tab in a white pill, its 3D icon popping
  *  out of it (TabIcon3D). */
 @Composable
-private fun NavBar(current: Tab, onSelect: (Tab) -> Unit) {
+private fun NavBar(current: Tab, onSelect: (Tab) -> Unit, onMeasured: (Tab, androidx.compose.ui.geometry.Rect) -> Unit) {
     val colors = Heartpact.colors
     Row(Modifier.fillMaxWidth().background(colors.page2).navigationBarsPadding().height(88.dp).padding(top = 10.dp, start = 8.dp, end = 8.dp)) {
         Tab.entries.forEach { tab ->
             val on = tab == current
             Column(
-                Modifier.weight(1f).clickable(role = Role.Tab) { onSelect(tab) }.semantics { selected = on },
+                Modifier.weight(1f).onGloballyPositioned { onMeasured(tab, it.boundsInRoot()) }.clickable(role = Role.Tab) { onSelect(tab) }.semantics { selected = on },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -167,7 +191,7 @@ private fun lateAtNight(now: LocalTime = LocalTime.now()) = now.hour >= 23 || no
 
 /** The navigation bar's tablet form: the same tabs down the start side, under the mark. */
 @Composable
-private fun NavRail(current: Tab, onSelect: (Tab) -> Unit) {
+private fun NavRail(current: Tab, onSelect: (Tab) -> Unit, onMeasured: (Tab, androidx.compose.ui.geometry.Rect) -> Unit) {
     val colors = Heartpact.colors
     Column(
         Modifier.fillMaxHeight().width(96.dp).background(colors.page2).statusBarsPadding().navigationBarsPadding().padding(top = 20.dp),
@@ -178,7 +202,7 @@ private fun NavRail(current: Tab, onSelect: (Tab) -> Unit) {
         Tab.entries.forEach { tab ->
             val on = tab == current
             Column(
-                Modifier.width(80.dp).clickable(role = Role.Tab) { onSelect(tab) }.semantics { selected = on }.padding(vertical = 4.dp),
+                Modifier.width(80.dp).onGloballyPositioned { onMeasured(tab, it.boundsInRoot()) }.clickable(role = Role.Tab) { onSelect(tab) }.semantics { selected = on }.padding(vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {

@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -38,6 +41,13 @@ fun widthClass(): WidthClass {
         else -> WidthClass.Expanded
     }
 }
+
+/** The height of the page a tab scrolls in, so an empty state can fill its share of it. */
+val LocalViewportHeight = compositionLocalOf { 640.dp }
+
+/** An empty-state card's inner height: [fraction] of the screen, content centred, so the page fills out instead of ending halfway. */
+@Composable
+fun Modifier.heroHeight(fraction: Float = 0.46f): Modifier = heightIn(min = LocalViewportHeight.current * fraction)
 
 /** The widest one column of cards gets: past this, lines run long and cards look empty. */
 val ReadableWidth = 640.dp
@@ -74,21 +84,33 @@ fun AdaptivePage(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(bottom = 24.dp),
     wide: Boolean = false,
+    /** Pinned to the bottom of the screen when the page is short (the main action), after the sections otherwise. */
+    bottom: (@Composable ColumnScope.() -> Unit)? = null,
     first: @Composable ColumnScope.() -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxSize()) {
         val room = maxWidth >= TwoPaneFrom
         val twoPanes = second != null && room
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(contentPadding).readable(if (twoPanes || wide && room) TwoPaneWidth else ReadableWidth)) {
-            header()
-            if (twoPanes) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Column(Modifier.weight(1f)) { first() }
-                    Column(Modifier.weight(1f)) { second?.invoke(this) }
+        val viewport = maxHeight
+        val inner = viewport - contentPadding.calculateTopPadding() - contentPadding.calculateBottomPadding()
+        CompositionLocalProvider(LocalViewportHeight provides inner) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(contentPadding).readable(if (twoPanes || wide && room) TwoPaneWidth else ReadableWidth)) {
+                // At least the screen tall: a short page keeps its main action at the bottom instead of leaving the screen empty.
+                Column(Modifier.fillMaxWidth().heightIn(min = inner), verticalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.fillMaxWidth()) {
+                        header()
+                        if (twoPanes) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Column(Modifier.weight(1f)) { first() }
+                                Column(Modifier.weight(1f)) { second?.invoke(this) }
+                            }
+                        } else {
+                            first()
+                            second?.invoke(this)
+                        }
+                    }
+                    bottom?.let { Column(Modifier.fillMaxWidth()) { it() } }
                 }
-            } else {
-                first()
-                second?.invoke(this)
             }
         }
     }

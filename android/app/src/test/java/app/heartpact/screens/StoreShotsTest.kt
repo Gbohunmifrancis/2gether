@@ -1,5 +1,6 @@
 package app.heartpact.screens
 
+import app.heartpact.ui.components.Face
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -252,8 +253,7 @@ class StoreShotsTest {
 
         at("us") {
             HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
-                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "2 March", {}, {}, {}, {}, {}, {},
-                    country = "NG", onCountry = {}, gender = Gender.Female, onGender = {})
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), Face("maya", "Maya", 0, Side.Left), Face("theo", "Theo", 0, Side.Right), "2 March", {}, {}, {})
             })
         }
 
@@ -263,7 +263,10 @@ class StoreShotsTest {
             LocationPoint("theo", "Theo", latitude = 6.4400, longitude = 3.4350, updatedAtUtc = "2026-10-11T07:46:00Z"),
         )
         val sharing = SharingStatusView(SharingState("maya", "Maya", SharingStatus.Sharing), SharingState("theo", "Theo", SharingStatus.Sharing), mutual = true)
-        at("map") { MapScreen(LocationUi(sharing, points, sendingHere = true), "Theo", MapActions(), now, drawn = true, myName = "Maya") }
+        at("map") {
+            MapScreen(LocationUi(sharing, points, sendingHere = true), app.heartpact.ui.components.Face("maya", "Maya", 0, Side.Left),
+                app.heartpact.ui.components.Face("theo", "Theo", 0, Side.Right), MapActions(), now, drawn = true)
+        }
     }
 
     /** Pose points found on a photo, moved to where they land once the photo is centre-cropped to fill [area]. */

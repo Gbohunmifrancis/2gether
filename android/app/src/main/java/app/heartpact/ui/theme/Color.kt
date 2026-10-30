@@ -41,15 +41,15 @@ data class PartnerColors(
 )
 
 object Art {
-    /** Sticker colours stay fixed at night, framed by their white keyline. */
-    val Left = Color(0xFF1F2557)
-    val Right = Color(0xFF7480D4)
+    /** Sticker colours stay fixed at night, framed by their white keyline. At Christmas: holly red and pine green. */
+    val Left get() = if (Season.christmas) Color(0xFFB3202A) else Color(0xFF1F2557)
+    val Right get() = if (Season.christmas) Color(0xFF2E7D4F) else Color(0xFF7480D4)
     val Keyline = Color(0xFFFFFFFF)
-    val Shadow = Color(0xFF1F2557)
-    val SplashIndigo = Color(0xFF1F2557)
+    val Shadow get() = if (Season.christmas) Color(0xFF3A1216) else Color(0xFF1F2557)
+    val SplashIndigo get() = if (Season.christmas) Color(0xFF0F3D2E) else Color(0xFF1F2557)
     /** The mark on night grounds: the left half turns white. */
     val MarkNightLeft = Color(0xFFFFFFFF)
-    val MarkNightRight = Color(0xFFA9B1F2)
+    val MarkNightRight get() = if (Season.christmas) Color(0xFF9ADBB1) else Color(0xFFA9B1F2)
 }
 
 val DayColors = HeartpactColors(
@@ -88,6 +88,28 @@ val NightColors = HeartpactColors(
     onAction = Color(0xFF10142A),
     error = Color(0xFFFFB4AB),
     isNight = true,
+)
+
+private val Holly = Color(0xFFB3202A)
+private val Pine = Color(0xFF2E7D4F)
+
+/** Christmas by day: warm snow pages, ink with a hint of cranberry, holly red and pine green for the two of you. */
+val DayChristmas = DayColors.copy(
+    page = Color(0xFFFBF1EE), page2 = Color(0xFFF3E4E0), page3 = Color(0xFFEBD7D2), sticker2 = Color(0xFFFFF7F5),
+    ink = Color(0xFF2A1416), ink2 = Color(0xFF5C3B3D), ink3 = Color(0xFF7E5E60), ink4 = Color(0xFFBFA3A3),
+    rule = Color(0xFFF1DEDB), rule2 = Color(0xFFE2C8C4),
+    left = PartnerColors(art = Holly, action = Color(0xFFB3202A), soft = Color(0xFFF8D9D6), tint = Color(0xFFFDEDEB), onSoft = Color(0xFF8E1A22)),
+    right = PartnerColors(art = Pine, action = Color(0xFF2E7D4F), soft = Color(0xFFD6EEDF), tint = Color(0xFFEAF6EE), onSoft = Color(0xFF1F5E3A)),
+)
+
+/** Christmas by night: deep pine pages, the same two colours lit up. */
+val NightChristmas = NightColors.copy(
+    page = Color(0xFF0E1A15), page2 = Color(0xFF13241C), page3 = Color(0xFF1A3025), sticker = Color(0xFF1B2D24), sticker2 = Color(0xFF22392D),
+    ink = Color(0xFFF4EFE6), ink2 = Color(0xFFC9CFC4), ink3 = Color(0xFF9AA79B), ink4 = Color(0xFF607464),
+    rule = Color(0xFF2B4538), rule2 = Color(0xFF365646),
+    left = PartnerColors(art = Holly, action = Color(0xFFFF9A9A), soft = Color(0xFF4A2326), tint = Color(0xFF3A1D20), onSoft = Color(0xFFFFB4B4)),
+    right = PartnerColors(art = Pine, action = Color(0xFF8FD5A6), soft = Color(0xFF1F4A33), tint = Color(0xFF183D2A), onSoft = Color(0xFF8FD5A6)),
+    onAction = Color(0xFF10201A),
 )
 
 val LocalHeartpactColors = staticCompositionLocalOf { DayColors }

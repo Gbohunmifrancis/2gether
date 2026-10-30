@@ -16,67 +16,67 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
-
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.heartpact.ui.graphics.Icon3D
-import app.heartpact.BuildConfig
 import app.heartpact.data.LocationPoint
 import app.heartpact.data.SharingStatus
 import app.heartpact.i18n.tr
-import app.heartpact.ui.components.ReadableWidth
-import app.heartpact.ui.components.WidthClass
-import app.heartpact.ui.components.widthClass
+import app.heartpact.ui.components.Avatar
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
+import app.heartpact.ui.components.Face
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.NoteCard
+import app.heartpact.ui.components.ReadableWidth
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
+import app.heartpact.ui.graphics.Icon3D
 import app.heartpact.ui.graphics.Pose
 import app.heartpact.ui.graphics.Who
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.LocalActor
 import app.heartpact.ui.theme.Shapes
 import app.heartpact.ui.theme.Side
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.MarkerComposable
-import com.google.maps.android.compose.Polyline
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberUpdatedMarkerState
-import androidx.compose.runtime.LaunchedEffect
+import app.heartpact.ui.theme.partner
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.ZonedDateTime
 
@@ -94,7 +94,7 @@ private fun LocationPoint.who(mine: Side) = if (isCurrentUser) (if (mine == Side
 
 /**
  * A drawn map of the two of you: streets and a park as decoration, both of you placed by your real
- * distance and direction from each other. Used when there is no Maps key, and for the Us card.
+ * distance and direction from each other. Used on the Us card, and on the map screen when the base map can't load.
  */
 @Composable
 fun SketchMap(points: List<LocationPoint>, modifier: Modifier, character: Dp = 56.dp) {
@@ -104,7 +104,7 @@ fun SketchMap(points: List<LocationPoint>, modifier: Modifier, character: Dp = 5
     val park = Color(0xFF9ED3A6).copy(alpha = 0.35f)
     val water = Color(0xFF8DB7E8).copy(alpha = 0.35f)
     val line = colors.ink2
-    BoxWithConstraints(modifier.background(colors.page2)) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier.background(colors.page2)) {
         val w = constraints.maxWidth.toFloat()
         val h = constraints.maxHeight.toFloat()
         val me = points.firstOrNull { it.isCurrentUser }
@@ -134,27 +134,6 @@ fun SketchMap(points: List<LocationPoint>, modifier: Modifier, character: Dp = 5
     }
 }
 
-@Composable
-private fun RealMap(points: List<LocationPoint>, modifier: Modifier) {
-    val mine = LocalActor.current
-    val camera = rememberCameraPositionState { position = CameraPosition.fromLatLngZoom(points.firstOrNull()?.let { LatLng(it.latitude, it.longitude) } ?: LatLng(0.0, 0.0), 14f) }
-    LaunchedEffect(points.map { it.userId to (it.latitude to it.longitude) }) {
-        when (points.size) {
-            0 -> Unit
-            1 -> camera.animate(CameraUpdateFactory.newLatLngZoom(LatLng(points[0].latitude, points[0].longitude), 15f))
-            else -> camera.animate(CameraUpdateFactory.newLatLngBounds(LatLngBounds.builder().apply { points.forEach { include(LatLng(it.latitude, it.longitude)) } }.build(), 220))
-        }
-    }
-    GoogleMap(modifier, cameraPositionState = camera, uiSettings = MapUiSettings(zoomControlsEnabled = false, mapToolbarEnabled = false)) {
-        if (points.size == 2) Polyline(points.map { LatLng(it.latitude, it.longitude) }, color = Heartpact.colors.ink2, width = 6f)
-        points.forEach { point ->
-            MarkerComposable(keys = arrayOf(point.userId, point.isCurrentUser), state = rememberUpdatedMarkerState(LatLng(point.latitude, point.longitude)), title = point.displayName) {
-                Character(point.who(mine), if (point.isCurrentUser) Pose.Wave else Pose.Stand, 56.dp)
-            }
-        }
-    }
-}
-
 data class MapActions(
     val onShare: () -> Unit = {},
     val onPause: (Int) -> Unit = {},
@@ -163,21 +142,65 @@ data class MapActions(
     val onBack: () -> Unit = {},
 )
 
-/** The map (mockup 13): where you both are, and the controls that are always one tap away. */
+/**
+ * The map (mockup 13): the two of you on a Snap-style map with your pictures, and the controls that are always one tap
+ * away. [me] and [partner] say who is who (picture, name, side of the heart). With [drawn], or when the base map cannot
+ * be loaded (no network and nothing cached), it shows the drawn map of the two of you instead.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Instant = Instant.now(), drawn: Boolean = !BuildConfig.HAS_MAPS_KEY, myName: String = tr("You")) {
+fun MapScreen(ui: LocationUi, me: Face, partner: Face, actions: MapActions, now: Instant = Instant.now(), drawn: Boolean = false) {
     val colors = Heartpact.colors
-    Box(Modifier.fillMaxSize().background(colors.page)) {
-        // A phone shows the map above the sheet; a tablet, the map edge to edge with the sheet over it, readable width.
-        val tablet = widthClass() != WidthClass.Compact
-        val area = if (tablet) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(if (drawn) 520.dp else 540.dp)
-        if (drawn) SketchMap(ui.points, area) else RealMap(ui.points, area)
-        IconButton(onClick = actions.onBack, modifier = Modifier.statusBarsPadding().padding(12.dp).size(52.dp).clip(CircleShape).background(colors.sticker)) {
+    val partnerName = partner.name
+    var failed by remember { mutableStateOf(false) }
+    val sketch = drawn || failed
+    val controller = remember { MapController() }
+    // The ages on the markers and in the sheet move on while the screen is open.
+    var clock by remember { mutableStateOf(now) }
+    if (!drawn) LaunchedEffect(Unit) { while (true) { delay(15_000); clock = Instant.now() } }
+
+    BoxWithConstraints(Modifier.fillMaxSize().background(colors.page)) {
+        var sheetPx by remember { mutableIntStateOf(0) }
+        val sheet = with(LocalDensity.current) { sheetPx.toDp() }
+        // The map ends just under the sheet's rounded top, so what the camera frames is what can be seen.
+        val mapBottom = (sheet - MAP_SHEET_OVERLAP_DP.dp).coerceAtLeast(0.dp)
+        Box(Modifier.fillMaxSize().padding(bottom = mapBottom)) {
+            if (sketch) SketchMap(ui.points, Modifier.fillMaxSize())
+            else {
+                val myPhoto = rememberFaceBitmap(me)
+                val partnerPhoto = rememberFaceBitmap(partner)
+                val people = remember(ui.points, myPhoto, partnerPhoto, clock, me, partner, colors) {
+                    ui.points.map { point ->
+                        val mine = point.isCurrentUser
+                        val face = if (mine) me else partner
+                        MapPerson(
+                            userId = point.userId, isMe = mine,
+                            name = if (mine) tr("You") else face.name.ifBlank { point.displayName },
+                            age = if (mine) null else LocationMath.markerAge(point.updatedAtUtc, clock),
+                            live = MapMotion.isLive(LocationMath.minutesSince(point.updatedAtUtc, clock)),
+                            ring = colors.partner(face.side).art.toArgb(),
+                            photo = if (mine) myPhoto else partnerPhoto,
+                            pos = Pos(point.latitude, point.longitude),
+                        )
+                    }
+                }
+                LiveMap(controller, people, colors.isNight, onFailed = { failed = true }, modifier = Modifier.fillMaxSize())
+            }
+        }
+        MapButton(Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp), actions.onBack) {
             Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr("Back"), tint = colors.ink)
         }
+        if (!sketch) Column(
+            Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = sheet + 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            MapButton(Modifier, controller::frameBoth) { Icon(Icons.Outlined.FavoriteBorder, tr("Show both of us"), tint = colors.ink) }
+            MapButton(Modifier, controller::recenterOnMe) { Icon(Icons.Outlined.MyLocation, tr("Center on me"), tint = colors.ink) }
+        }
         Column(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth().widthIn(max = ReadableWidth).clip(Shapes.Sheet).background(colors.sticker)
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().widthIn(max = ReadableWidth).heightIn(max = maxHeight * 0.62f)
+                .onSizeChanged { sheetPx = it.height }
+                .clip(Shapes.Sheet).background(colors.sticker)
                 .navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 20.dp),
         ) {
             Box(Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp, bottom = 14.dp).size(36.dp, 4.dp).clip(Shapes.Pill).background(colors.rule2))
@@ -188,18 +211,18 @@ fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Ins
             }
             ui.note?.let { NoteCard(it, Modifier.padding(top = 12.dp)) }
             val them = ui.partner
-            val me = ui.me
-            Person(partnerName.take(1), partnerName, when {
-                them != null && me != null -> LocationMath.distance(LocationMath.meters(me.latitude, me.longitude, them.latitude, them.longitude)) + " · " + LocationMath.age(them.updatedAtUtc, now)
+            val mine = ui.me
+            Person(partner, partnerName, when {
+                them != null && mine != null -> LocationMath.distance(LocationMath.meters(mine.latitude, mine.longitude, them.latitude, them.longitude)) + " · " + LocationMath.age(them.updatedAtUtc, clock)
                 status?.partner?.status == SharingStatus.Paused -> LocationMath.pausedUntil(status.partner.pausedUntilUtc)?.let { tr("Paused until {time}", "time" to it) } ?: tr("Paused")
                 status?.partner?.status == SharingStatus.Sharing -> tr("Sharing; you'll see each other once you share too")
                 else -> tr("Not sharing")
-            }, partner = true)
-            Person(myName.take(1), tr("You"), when (ui.myStatus) {
+            })
+            Person(me, tr("You"), when (ui.myStatus) {
                 SharingStatus.Sharing -> tr("{partner} sees you while you both share", "partner" to partnerName)
                 SharingStatus.Paused -> LocationMath.pausedUntil(status?.me?.pausedUntilUtc)?.let { tr("Paused until {time}", "time" to it) } ?: tr("Paused")
                 SharingStatus.Off -> tr("Not sharing")
-            }, partner = false)
+            })
             when (ui.myStatus) {
                 SharingStatus.Off -> {
                     HeartButton(if (ui.sendingHere) tr("Starting…") else tr("Share my location"), actions.onShare, Modifier.padding(top = 16.dp), icon = Icons.Outlined.LocationOn, enabled = !ui.sendingHere)
@@ -223,15 +246,17 @@ fun MapScreen(ui: LocationUi, partnerName: String, actions: MapActions, now: Ins
     }
 }
 
+/** A round sticker button floating on the map. */
 @Composable
-private fun Person(initial: String, name: String, line: String, partner: Boolean) {
+private fun MapButton(modifier: Modifier, onClick: () -> Unit, icon: @Composable () -> Unit) {
+    IconButton(onClick = onClick, modifier = modifier.size(52.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Heartpact.colors.sticker)) { icon() }
+}
+
+@Composable
+private fun Person(face: Face, name: String, line: String) {
     val colors = Heartpact.colors
-    val mine = LocalActor.current
-    val side = if (partner) (if (mine == Side.Left) colors.right else colors.left) else (if (mine == Side.Left) colors.left else colors.right)
     Row(Modifier.padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(46.dp).clip(CircleShape).background(side.action), contentAlignment = Alignment.Center) {
-            Text(initial.uppercase(), style = Heartpact.type.label, color = colors.onAction)
-        }
+        Avatar(face, 46.dp)
         Column(Modifier.padding(start = 14.dp)) {
             Text(name, style = Heartpact.type.titleSmall, color = colors.ink)
             Text(line, style = Heartpact.type.body, color = colors.ink2)

@@ -24,7 +24,8 @@ signalr = "10.0.12"
 gson = "2.11.0"
 credentials = "1.5.0"
 googleId = "1.1.1"
-mapsCompose = "7.0.0"
+# MapLibre Native: the location map (OpenFreeMap tiles, no API key).
+maplibre = "12.3.1"
 playLocation = "19.0.0"
 billing = "9.1.0"
 # Rive: the 3D icons and the splash (design/rive-icons).
@@ -82,7 +83,7 @@ credentials-play = { module = "androidx.credentials:credentials-play-services-au
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleId" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
-maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+maplibre = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibre" }
 play-location = { module = "com.google.android.gms:play-services-location", version.ref = "playLocation" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }

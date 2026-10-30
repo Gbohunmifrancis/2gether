@@ -1,6 +1,18 @@
 package app.heartpact.ui.onboarding
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlin.math.absoluteValue
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -66,10 +78,21 @@ fun OnboardingScreen(onDone: () -> Unit, initialPage: Int = 0) {
             if (pager.currentPage < pages - 1) HeartButton(tr("Skip"), onDone, kind = ButtonKind.Text, fillWidth = false)
         }
         HorizontalPager(pager, Modifier.weight(1f)) { page ->
-            when (page) {
-                0 -> Page(tr("Dare each other to move."), tr("Set a dare for your partner. At the time you pick, their phone rings and the camera counts the reps.")) { DareArt() }
-                1 -> Page(tr("Every promise you keep becomes a heart."), tr("Your partner sticks on their half when they set the dare. Do the reps and the camera sticks on yours.")) { HeartsArt() }
-                else -> Page(tr("Nothing is shared until you choose."), tr("Everything starts private. You can always see what your partner can see, and change it in one tap.")) { PrivateArt() }
+            // How far this page is from centre: 0 settled, 1 gone. Pages shrink and fade as they leave.
+            val away = { ((pager.currentPage - page) + pager.currentPageOffsetFraction).absoluteValue.coerceIn(0f, 1f) }
+            val active = pager.currentPage == page
+            Box(Modifier.graphicsLayer {
+                val a = away()
+                alpha = 1f - a * 0.7f
+                scaleX = 1f - a * 0.1f
+                scaleY = 1f - a * 0.1f
+                translationX = size.width * a * 0.12f * (if (pager.currentPage > page) -1 else 1)
+            }) {
+                when (page) {
+                    0 -> Page(tr("Dare each other to move."), tr("Set a dare for your partner. At the time you pick, their phone rings and the camera counts the reps."), active) { DareArt() }
+                    1 -> Page(tr("Every promise you keep becomes a heart."), tr("Your partner sticks on their half when they set the dare. Do the reps and the camera sticks on yours."), active) { HeartsArt() }
+                    else -> Page(tr("Nothing is shared until you choose."), tr("Everything starts private. You can always see what your partner can see, and change it in one tap."), active) { PrivateArt() }
+                }
             }
         }
         Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -84,11 +107,29 @@ fun OnboardingScreen(onDone: () -> Unit, initialPage: Int = 0) {
 }
 
 @Composable
-private fun Page(title: String, body: String, art: @Composable BoxScope.() -> Unit) {
+private fun Page(title: String, body: String, active: Boolean, art: @Composable BoxScope.() -> Unit) {
+    // Each time a page arrives its art springs in, then keeps bobbing; the words rise in after it, one after the other.
+    val artIn by animateFloatAsState(if (active) 1f else 0f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow), label = "art")
+    val titleIn by animateFloatAsState(if (active) 1f else 0f, tween(if (active) 520 else 150, delayMillis = if (active) 180 else 0, easing = FastOutSlowInEasing), label = "title")
+    val bodyIn by animateFloatAsState(if (active) 1f else 0f, tween(if (active) 520 else 150, delayMillis = if (active) 340 else 0, easing = FastOutSlowInEasing), label = "body")
+    val bob by rememberInfiniteTransition(label = "bob").animateFloat(
+        -1f, 1f, infiniteRepeatable(tween(2600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "bob",
+    )
     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
-        Box(Modifier.fillMaxWidth().weight(1f), content = art)
-        Text(title, style = Heartpact.type.headline.copy(fontSize = 31.sp, lineHeight = 33.sp), color = Heartpact.colors.ink)
-        Text(body, style = Heartpact.type.bodyLarge, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 12.dp, bottom = 28.dp))
+        Box(
+            Modifier.fillMaxWidth().weight(1f).graphicsLayer {
+                val scale = 0.6f + 0.4f * artIn
+                scaleX = scale; scaleY = scale
+                alpha = artIn.coerceIn(0f, 1f)
+                translationY = bob * 7.dp.toPx() + (1f - artIn) * 40.dp.toPx()
+                rotationZ = (1f - artIn) * -6f
+            },
+            content = art,
+        )
+        Text(title, style = Heartpact.type.headline.copy(fontSize = 31.sp, lineHeight = 33.sp), color = Heartpact.colors.ink,
+            modifier = Modifier.graphicsLayer { alpha = titleIn; translationY = (1f - titleIn) * 28.dp.toPx() })
+        Text(body, style = Heartpact.type.bodyLarge, color = Heartpact.colors.ink2,
+            modifier = Modifier.padding(top = 12.dp, bottom = 28.dp).graphicsLayer { alpha = bodyIn; translationY = (1f - bodyIn) * 28.dp.toPx() })
     }
 }
 

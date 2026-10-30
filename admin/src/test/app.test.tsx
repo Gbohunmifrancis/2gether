@@ -191,6 +191,56 @@ describe("the dashboard", () => {
     expect(await screen.findByText("Marked internal.")).toBeTruthy();
   });
 
+  it("switches the Christmas theme on after a confirmation and a fresh code, and shows the saved state", async () => {
+    const user = userEvent.setup();
+    const puts: { code: string | undefined; body: unknown }[] = [];
+    let christmas = false;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://admin.test");
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      const reply = (status: number, body?: unknown) => new Response(body === undefined ? null : JSON.stringify(body), { status });
+      if (url.pathname !== "/api/admin/features") return reply(404);
+      if ((init?.method ?? "GET") === "GET") return reply(200, { christmas });
+      if (init?.method === "PUT") {
+        puts.push({ code: headers["x-admin-code"], body: JSON.parse(String(init.body)) });
+        if (!headers["x-admin-code"]) return reply(403, { code: "admin.step_up_required", message: "Fresh code, please." });
+        christmas = (JSON.parse(String(init.body)) as { christmas: boolean }).christmas;
+        return reply(200, { christmas });
+      }
+      return reply(405);
+    });
+    act(() => setSession(admin));
+    start("/features");
+
+    expect(await screen.findByRole("heading", { name: "Features" })).toBeTruthy();
+    const toggle = await screen.findByRole("switch", { name: "Christmas theme" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByText("Turns the festive look on for every app.")).toBeTruthy();
+
+    await user.click(toggle);
+    await user.click(screen.getByRole("button", { name: "Turn on" }));
+    const code = await screen.findByLabelText("Authenticator code");
+    await waitFor(() => expect((code as HTMLInputElement).disabled).toBe(false));
+    await user.type(code, "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => expect(screen.getByRole("switch", { name: "Christmas theme" }).getAttribute("aria-checked")).toBe("true"));
+    expect(puts).toEqual([
+      { code: undefined, body: { christmas: true } },
+      { code: "123456", body: { christmas: true } },
+    ]);
+    expect(await screen.findByText("Christmas theme is on.")).toBeTruthy();
+  });
+
+  it("lists Features in the navigation", async () => {
+    mockApi((method, path) => (method === "GET" && path === "/api/admin/features" ? { status: 200, body: { christmas: true } } : undefined));
+    act(() => setSession(admin));
+    start("/features");
+
+    expect((await screen.findAllByRole("link", { name: /Features/ })).length).toBeGreaterThan(0);
+    expect((await screen.findByRole("switch", { name: "Christmas theme" })).getAttribute("aria-checked")).toBe("true");
+  });
+
   it("only deletes after the admin types the account's email", async () => {
     const user = userEvent.setup();
     const calls = mockApi((method, path) => {

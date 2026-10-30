@@ -12,6 +12,18 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface HeartpactApi {
+    @GET("api/config")
+    suspend fun config(): Response<AppConfig>
+
+    @PUT("api/account/avatar")
+    suspend fun putAvatar(@Body body: okhttp3.RequestBody): Response<Unit>
+
+    @DELETE("api/account/avatar")
+    suspend fun deleteAvatar(): Response<Unit>
+
+    @GET("api/users/{id}/avatar")
+    suspend fun avatar(@Path("id") id: String): Response<okhttp3.ResponseBody>
+
     @POST("api/auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 

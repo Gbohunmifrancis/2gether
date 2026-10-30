@@ -14,6 +14,10 @@ public sealed class User : BaseEntity
     public string? GoogleId { get; private set; }
     public string DisplayName { get; private set; } = string.Empty;
     public string? AvatarUrl { get; private set; }
+    /// <summary>The profile picture as uploaded (JPEG, PNG or WebP, at most <see cref="Twogether.Core.Users.AvatarImage.MaxBytes"/>). Null when there is none.</summary>
+    public byte[]? AvatarBytes { get; private set; }
+    /// <summary>Goes up on every change of the picture, including removing it, so it can serve as a cache key and ETag. 0 until the first upload.</summary>
+    public long AvatarVersion { get; private set; }
     public string MapColor { get; private set; } = "#f45c91";
     public bool CycleOwner { get; private set; }
     public Gender Gender { get; private set; } = Gender.PreferNotToSay;
@@ -67,6 +71,13 @@ public sealed class User : BaseEntity
         MapColor = string.IsNullOrWhiteSpace(mapColor) ? "#f45c91" : mapColor.Trim();
         UpdatedAtUtc = utcNow;
     }
+
+    /// <summary>
+    /// What clients see: 0 when there is no picture, otherwise the version to put in the picture's address. Changed only
+    /// by the database in one statement (AvatarService), so two uploads at once never share a version. Queries that
+    /// shouldn't load the picture spell this out: <c>user.AvatarBytes == null ? 0L : user.AvatarVersion</c>.
+    /// </summary>
+    public long PublicAvatarVersion => AvatarBytes is null ? 0 : AvatarVersion;
 
     public void SetCouple(Guid? coupleId, DateTime utcNow)
     {

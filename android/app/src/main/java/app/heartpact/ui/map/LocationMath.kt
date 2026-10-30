@@ -56,6 +56,10 @@ object LocationMath {
         }
     }
 
+    /** On a map marker: "now", "2 min ago", "3 h ago". */
+    fun markerAge(updatedAtUtc: String, now: Instant): String =
+        if (minutesSince(updatedAtUtc, now) < 1) tr("now") else ago(updatedAtUtc, now)
+
     /**
      * Whole minutes since a point's time, never negative: with the phone's clock behind the server's,
      * a fresh point reads "just now" rather than a time in the future.

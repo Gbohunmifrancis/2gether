@@ -49,6 +49,7 @@ const PAGES = [
   ["payments", "/payments", "Payments"],
   ["audit", "/audit", "Audit log"],
   ["health", "/health", "Health"],
+  ["features", "/features", "Features"],
   ["system", "/system", "System"],
 ];
 const only = process.env.ONLY?.split(",");

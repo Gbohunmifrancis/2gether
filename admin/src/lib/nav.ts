@@ -20,6 +20,7 @@ export type NavPath =
   | "/payments"
   | "/audit"
   | "/health"
+  | "/features"
   | "/system";
 
 export interface NavItem {
@@ -67,7 +68,8 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Ops",
     items: [
       { to: "/health", label: "Health", icon: "health", keywords: ["probes", "workers", "queues", "status", "uptime"] },
-      { to: "/system", label: "System", icon: "system", keywords: ["settings", "admins", "features", "prices"] },
+      { to: "/features", label: "Features", icon: "toggle", keywords: ["christmas", "theme", "festive", "flags", "switches", "holiday"] },
+      { to: "/system", label: "System", icon: "system", keywords: ["settings", "admins", "prices"] },
     ],
   },
 ];

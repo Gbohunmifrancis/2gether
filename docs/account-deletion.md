@@ -6,7 +6,7 @@ Google Play requires any app that creates accounts to let people delete them, bo
 
 `GET /api/account/export` returns one JSON file (sent with `Content-Disposition: attachment`). It contains everything stored about the caller:
 
-- profile
+- profile, including the profile picture (`profile.profilePicture`, base64; see `docs/profile-pictures.md`)
 - cycle settings and day logs
 - pregnancy, appointments and kick counts (appointments they added to a partner's pregnancy only while they can still see it)
 - food entries, targets and scan records
