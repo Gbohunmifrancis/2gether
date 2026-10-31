@@ -37,5 +37,7 @@ public interface IApplicationDbContext
     DbSet<NotificationPreference> NotificationPreferences { get; }
     DbSet<AlbumSyncState> AlbumSyncStates { get; }
     DbSet<AppSetting> AppSettings { get; }
+    DbSet<BachsWebhookEvent> BachsWebhookEvents { get; }
+    DbSet<GoogleExternalTransaction> GoogleExternalTransactions { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

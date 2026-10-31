@@ -140,17 +140,10 @@
   "one": "Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.",
   "other": "Plus ends in {count} days. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room."
  },
- "Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Controllers/AccountController.cs:57"
-  ],
-  "code": "Loc.T(\"Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.\")));"
- },
  "Your account changed while it was being deleted. Nothing was deleted. Try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/AccountController.cs:75"
+   "Twogether.Api/Controllers/AccountController.cs:78"
   ],
   "code": "private static ApiError ErasureConflict => new(\"account.delete_conflict\", Loc.T(\"Your account changed while it was being deleted. Nothing was deleted. Try again.\"));"
  },
@@ -296,6 +289,20 @@
   ],
   "code": "return UnprocessableEntity(new ApiError(\"auth.too_young\", Loc.T(\"Heartpact is for adults. You need to be 18 or over to sign up.\")));"
  },
+ "Too many checkouts started. Wait a few minutes and try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/BachsBillingController.cs:41"
+  ],
+  "code": "return TooManyAttempts(wait, Loc.T(\"Too many checkouts started. Wait a few minutes and try again.\"));"
+ },
+ "Too many tries. Wait a few minutes and try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/BachsBillingController.cs:62"
+  ],
+  "code": "return TooManyAttempts(wait, Loc.T(\"Too many tries. Wait a few minutes and try again.\"));"
+ },
  "Purchases are not set up on this server.": {
   "plural": false,
   "uses": [
@@ -372,7 +379,7 @@
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/CoupleController.cs:203",
-   "Twogether.Infrastructure/Account/AccountEraser.cs:161"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:173"
   ],
   "code": "var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T(\"Your couple space was ended\"),"
  },
@@ -1219,16 +1226,30 @@
  "Your password is incorrect.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Account/AccountContracts.cs:42"
+   "Twogether.Application/Features/Account/AccountContracts.cs:49"
   ],
   "code": ": Error.Unauthorized(\"account.confirmation_failed\", Loc.T(\"Your password is incorrect.\"));"
  },
  "Type your account email to confirm.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Account/AccountContracts.cs:45"
+   "Twogether.Application/Features/Account/AccountContracts.cs:52"
   ],
   "code": ": Error.Validation(\"account.confirmation_failed\", Loc.T(\"Type your account email to confirm.\"));"
+ },
+ "Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Account/AccountContracts.cs:73"
+  ],
+  "code": "return Loc.T(\"Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.\");"
+ },
+ "Deleting your account cancels your Heartpact Plus card subscription now, and the time left isn't refunded. Confirm that you understand.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Account/AccountContracts.cs:75"
+  ],
+  "code": "return Loc.T(\"Deleting your account cancels your Heartpact Plus card subscription now, and the time left isn't refunded. Confirm that you understand.\");"
  },
  "Profile pictures must be under {kilobytes} KB.": {
   "plural": false,
@@ -1279,6 +1300,59 @@
   ],
   "code": "Loc.T(\"Your code to reset your Heartpact password is {code}.\\n\\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.\", (\"code\", code)));"
  },
+ "Choose the monthly or the yearly plan.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:43"
+  ],
+  "code": "if (productId is null) return Error.Validation(UnknownPlan, Loc.T(\"Choose the monthly or the yearly plan.\"));"
+ },
+ "This checkout can't be started from here.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:47",
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:49"
+  ],
+  "code": "return Error.Validation(InvalidFrom, Loc.T(\"This checkout can't be started from here.\"));"
+ },
+ "No Heartpact account matches this purchase.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:53",
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:43"
+  ],
+  "code": "if (user is null) return Error.NotFound(\"billing.unknown_user\", Loc.T(\"No Heartpact account matches this purchase.\"));"
+ },
+ "You already have Heartpact Plus.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:56"
+  ],
+  "code": "return Error.Conflict(\"billing.already_plus\", Loc.T(\"You already have Heartpact Plus.\"));"
+ },
+ "Card payment isn't available in the app here. Use Google Play instead.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:59"
+  ],
+  "code": "return Error.Forbidden(\"billing.card_in_app_unavailable\", Loc.T(\"Card payment isn't available in the app here. Use Google Play instead.\"));"
+ },
+ "You haven't paid by card yet, so there is nothing to manage here.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:90"
+  ],
+  "code": "if (customerId is null) return Error.NotFound(\"billing.no_bachs_customer\", Loc.T(\"You haven't paid by card yet, so there is nothing to manage here.\"));"
+ },
+ "Card payments are not set up on this server.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:113",
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:156",
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:169"
+  ],
+  "code": "private static Error NotSetUp() => Error.Failure(Unavailable, Loc.T(\"Card payments are not set up on this server.\"));"
+ },
  "The purchase token is missing or too long.": {
   "plural": false,
   "uses": [
@@ -1299,13 +1373,6 @@
    "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:38"
   ],
   "code": "return Error.Forbidden(\"billing.not_your_purchase\", Loc.T(\"This purchase belongs to another account.\"));"
- },
- "No Heartpact account matches this purchase.": {
-  "plural": false,
-  "uses": [
-   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:43"
-  ],
-  "code": "return Error.NotFound(\"billing.unknown_purchase\", Loc.T(\"No Heartpact account matches this purchase.\"));"
  },
  "Cycle lengths are outside the supported range.": {
   "plural": false,
@@ -8948,16 +9015,44 @@
  "Appointment": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Account/AccountEraser.cs:98"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:103"
   ],
   "code": "using (Loc.Use(await db.LanguageOfAsync(ownerId, cancellationToken))) title = Loc.T(\"Appointment\");"
  },
  "{name} deleted their account.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Account/AccountEraser.cs:162"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:174"
   ],
   "code": "Loc.T(\"{name} deleted their account.\", (\"name\", user.DisplayName)), null, now);"
+ },
+ "Card payments couldn't find this subscription.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:123"
+  ],
+  "code": "HttpStatusCode.NotFound => Error.NotFound(\"billing.bachs_not_found\", Loc.T(\"Card payments couldn't find this subscription.\")),"
+ },
+ "Card payments refused this request.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:125"
+  ],
+  "code": "=> Error.Conflict(\"billing.bachs_refused\", Loc.T(\"Card payments refused this request.\")),"
+ },
+ "Card payments couldn't be reached. Try again shortly.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:155"
+  ],
+  "code": "private static Error Failed() => new(\"billing.bachs_failed\", Loc.T(\"Card payments couldn't be reached. Try again shortly.\"), ErrorType.Network);"
+ },
+ "Your card subscription couldn't be cancelled just now, so nothing was deleted. Try again in a few minutes.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Billing/BachsSubscriptionSync.cs:265"
+  ],
+  "code": "return Error.Failure(\"account.subscription_cancel_failed\", Loc.T(\"Your card subscription couldn't be cancelled just now, so nothing was deleted. Try again in a few minutes.\"));"
  },
  "Google returned a subscription without a product or expiry.": {
   "plural": false,

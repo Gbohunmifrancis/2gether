@@ -197,6 +197,8 @@ export interface Feature {
 /** Switches that change every app without a release (GET and PUT /api/admin/features). */
 export interface Features {
   christmas: boolean;
+  /** Card payment (Bachs) next to Google Play in the app, where Google's billing choice allows it. */
+  bachsInApp: boolean;
 }
 
 export interface SystemStatus {

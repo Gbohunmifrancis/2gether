@@ -52,9 +52,12 @@ public sealed class AccountController(
         }
 
         var subscriptions = await db.StoreSubscriptions.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken);
-        if (!request.AcknowledgeActiveSubscription && subscriptions.Any(AccountDeletionRules.WillRenew))
-            return Conflict(new ApiError("account.subscription_renews",
-                Loc.T("Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.")));
+        if (!request.AcknowledgeActiveSubscription && AccountDeletionRules.RenewalWarning(subscriptions) is { } warning)
+            return Conflict(new ApiError("account.subscription_renews", warning));
+
+        // A card subscription ends with the account; if Bachs can't be reached, nothing is deleted yet.
+        var cancelled = await eraser.CancelCardSubscriptionsAsync(userId, cancellationToken);
+        if (cancelled.IsFailure) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(cancelled.Error.Code, cancelled.Error.Message));
 
         AccountErasure? erased;
         try

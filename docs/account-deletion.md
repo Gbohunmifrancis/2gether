@@ -44,6 +44,13 @@ The request is checked in this order:
    - If the person has a subscription that will renew (active, grace period, on hold or paused, with auto-renew on), the API returns `409 account.subscription_renews`.
    - The app should then send them to the Play Store subscription screen, or let them confirm with `acknowledgeActiveSubscription: true`.
    - Cancelled and expired subscriptions need no acknowledgement.
+   - A renewing card subscription (Bachs) gets the same `409`, with a message saying it is cancelled now and the
+     time left isn't refunded. Once acknowledged, the server cancels it in Bachs immediately, before erasing. If
+     Bachs can't be reached it answers `503 account.subscription_cancel_failed` and deletes nothing; trying again is
+     safe. (Without Bachs configured on the server the erasure goes ahead and the error log names the subscription
+     to cancel in the Bachs dashboard.)
+   - In-app card payments still owed to Google's billing choice reporting stay (amounts, times and the country
+     only, under an id that no longer resolves) until the worker has reported them; everything else of theirs goes.
 3. **Erasure.** Everything happens in one database transaction and returns `204`.
    - If another write clashes with it (the alarm worker opening a dare, or the partner deleting their own account
      at the same moment), it rolls back and starts once more from what is there now. A second clash returns

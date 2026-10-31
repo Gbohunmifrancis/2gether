@@ -82,4 +82,40 @@ public sealed class PipelineTests(PipelineTests.Host host) : IClassFixture<Pipel
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("/api/billing/bachs/checkout")]
+    [InlineData("/api/billing/bachs/portal")]
+    public async Task Card_checkout_and_the_portal_need_a_signed_in_user(string path)
+    {
+        var response = await host.CreateClient().PostAsync(path, JsonContent.Create(new { plan = "monthly" }));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_bachs_webhook_is_anonymous_and_503_until_bachs_is_set_up()
+    {
+        var response = await host.CreateClient().PostAsync("/api/billing/bachs/webhook", new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_webhook_with_a_bad_signature_is_400_before_anything_is_read()
+    {
+        using var configured = host.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Bachs:ApiKey", "sk_sandbox_test");
+            builder.UseSetting("Bachs:WebhookSecret", "whsec_test");
+            builder.UseSetting("Bachs:MonthlyProductId", "prod_month");
+            builder.UseSetting("Bachs:YearlyProductId", "prod_year");
+        });
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/billing/bachs/webhook") { Content = new StringContent("{\"id\":\"evt_1\"}", System.Text.Encoding.UTF8, "application/json") };
+        request.Headers.TryAddWithoutValidation("X-Bachs-Signature-V2", $"t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()},v1={new string('0', 64)}");
+
+        var response = await configured.CreateClient().SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

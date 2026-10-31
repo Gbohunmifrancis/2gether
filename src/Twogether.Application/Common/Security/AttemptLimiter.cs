@@ -34,6 +34,12 @@ public static class AttemptRules
     /// <summary>Admin sign-in failures (password or authenticator code): tight, since an admin account opens everything.</summary>
     public static readonly AttemptRule AdminLoginPerEmail = new("admin-email", 5, TimeSpan.FromMinutes(15));
     public static readonly AttemptRule AdminLoginPerIp = new("admin-ip", 20, TimeSpan.FromMinutes(15));
+    /// <summary>Every card checkout started, successful or not: each one calls Bachs.</summary>
+    public static readonly AttemptRule BachsCheckoutPerUser = new("bachs-checkout-user", 10, TimeSpan.FromHours(1));
+    /// <summary>Every billing portal opened.</summary>
+    public static readonly AttemptRule BachsPortalPerUser = new("bachs-portal-user", 20, TimeSpan.FromHours(1));
+    /// <summary>Webhook deliveries with a bad signature, per address: Bachs's own never fail it.</summary>
+    public static readonly AttemptRule BachsWebhookPerIp = new("bachs-webhook-ip", 30, TimeSpan.FromMinutes(15));
     /// <summary>Wrong step-up codes on destructive admin actions, per admin.</summary>
     public static readonly AttemptRule AdminStepUpPerAdmin = new("admin-step-up", 5, TimeSpan.FromMinutes(15));
 }

@@ -31,7 +31,7 @@ class DemoServer {
   private lastAlertAt = 0;
   private wrongCodes = 0;
   private paused = false;
-  private features: Features = { christmas: false };
+  private features: Features = { christmas: false, bachsInApp: false };
 
   /** Starts the pretend world ticking: an event every few seconds. */
   pause() {
@@ -267,9 +267,13 @@ class DemoServer {
         return json(200, w.admins);
       case "features":
         if (method === "PUT") {
-          if (typeof body.christmas !== "boolean") return error(422, "admin.features_invalid", "Say whether the Christmas theme is on or off.");
-          this.audit("features.updated", "feature", "christmas", `christmas: ${this.features.christmas ? "on" : "off"} -> ${body.christmas ? "on" : "off"}`);
-          this.features = { christmas: body.christmas };
+          const named = (["christmas", "bachsInApp"] as const).filter((key) => typeof body[key] === "boolean");
+          if (named.length === 0) return error(422, "admin.features_invalid", "Say which switch to turn on or off.");
+          for (const key of named) {
+            const next = body[key] as boolean;
+            this.audit("features.updated", "feature", key, `${key}: ${this.features[key] ? "on" : "off"} -> ${next ? "on" : "off"}`);
+            this.features = { ...this.features, [key]: next };
+          }
         }
         return json(200, this.features);
     }

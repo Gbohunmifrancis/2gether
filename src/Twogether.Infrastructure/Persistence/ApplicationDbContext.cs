@@ -39,6 +39,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
     public DbSet<AlbumSyncState> AlbumSyncStates => Set<AlbumSyncState>();
     public DbSet<AppSetting> AppSettings => Set<AppSetting>();
+    public DbSet<BachsWebhookEvent> BachsWebhookEvents => Set<BachsWebhookEvent>();
+    public DbSet<GoogleExternalTransaction> GoogleExternalTransactions => Set<GoogleExternalTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
