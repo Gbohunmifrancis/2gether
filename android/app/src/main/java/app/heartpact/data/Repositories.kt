@@ -123,8 +123,13 @@ class LocationRepository(private val api: HeartpactApi, private val json: Json) 
     suspend fun stop(token: String? = null): ApiResult<Unit> = apiCall(json) { api.stopLocation(token?.let { "Bearer $it" }) }
 }
 
+/** How many past games the games screen shows (the last one, then the rest under Recent). */
+const val HISTORY_SIZE = 8
+
 class GameRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun sessions(): ApiResult<List<GameSession>> = apiCall(json) { api.gameSessions() }
+    /** The couple's last [limit] games, kept past the last 30 sessions (docs/games.md). */
+    suspend fun history(limit: Int = HISTORY_SIZE): ApiResult<List<GameHistoryItem>> = apiCall(json) { api.gameHistory(limit) }
     suspend fun region(): ApiResult<GameRegionView> = apiCall(json) { api.gameRegion() }
     suspend fun session(id: String): ApiResult<GameSession> = apiCall(json) { api.gameSession(id) }
     suspend fun create(type: GameType, letter: String? = null): ApiResult<GameSession> = apiCall(json) { api.createGame(CreateGameRequest(type, letter)) }

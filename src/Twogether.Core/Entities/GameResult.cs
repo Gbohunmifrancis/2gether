@@ -23,6 +23,21 @@ public sealed class GameResult : BaseEntity
     public string ScoresJson { get; private set; } = "{}";
     public int RoundsPlayed { get; private set; }
 
+    /// <summary>
+    /// A finished game whose scores changed after its end (a move its rules allow then, such as Same answer's "That
+    /// counts!"): the same game, the same end, the new result. Says whether anything changed.
+    /// </summary>
+    public bool Rescore(Guid? winnerUserId, string scoresJson, int roundsPlayed, DateTime utcNow)
+    {
+        var scores = string.IsNullOrWhiteSpace(scoresJson) ? "{}" : scoresJson;
+        if (WinnerUserId == winnerUserId && ScoresJson == scores && RoundsPlayed == roundsPlayed) return false;
+        WinnerUserId = winnerUserId;
+        ScoresJson = scores;
+        RoundsPlayed = roundsPlayed;
+        UpdatedAtUtc = utcNow;
+        return true;
+    }
+
     public static GameResult Create(
         Guid coupleId,
         Guid gameSessionId,

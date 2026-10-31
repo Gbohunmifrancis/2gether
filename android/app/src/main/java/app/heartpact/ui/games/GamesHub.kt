@@ -127,7 +127,8 @@ internal val coupleGames: List<GameType> get() = coupleGroups.flatten()
 @Composable
 internal fun GamesHub(ui: GamesUi, me: String, partnerName: String, actions: GameActions, bests: SkillBests, onPractice: (SkillKind) -> Unit) {
     val region = ui.region ?: ui.sessions.firstOrNull()?.let(GamePlay::region)
-    HubHeader(ui.finished, me, partnerName)
+    // "Last time": the newest game played to the end, from the history, however many invites came after it.
+    HubHeader(ui.history.firstOrNull(), me, partnerName)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         // Side by side on a wide screen; one under the other on a phone.
         if (maxWidth >= TwoPaneFrom) {

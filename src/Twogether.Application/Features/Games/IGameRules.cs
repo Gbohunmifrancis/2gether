@@ -17,6 +17,12 @@ public interface IGameRules
     bool Timed => false;
 
     /// <summary>
+    /// Each turn runs against the clock, so both partners are in the app while it's played (no "your turn" push). A game
+    /// whose only deadline is a beat between games (Connect four) is <see cref="Timed"/> without a turn clock.
+    /// </summary>
+    bool TurnClock => Timed;
+
+    /// <summary>
     /// Both partners' moves may cross in flight: a move is judged against the state as it is when it arrives, instead
     /// of being refused for naming an older <c>expectedStateVersion</c>. The rules then check everything themselves.
     /// </summary>

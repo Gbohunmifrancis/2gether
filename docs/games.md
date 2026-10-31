@@ -5,7 +5,8 @@ game.active_session`, and the app reloads to show the first). One partner invite
 accepts (`POST .../{id}/accept`), a shared five-second countdown runs, then moves go to
 `POST .../{id}/actions {expectedStateVersion, action, value?, index?}`. Either partner can end a game, or decline or
 cancel an invite, with `POST .../{id}/abandon`. `GET api/game/sessions` returns the couple's last 30 games, newest
-first. `GET api/game/region` says whose versions the couple plays (`{"region":"ng"}` or `"global"`); Nigerian couples'
+first (invites included); `GET api/game/history` returns the games they played, past those 30 (**History**, below).
+`GET api/game/region` says whose versions the couple plays (`{"region":"ng"}` or `"global"`); Nigerian couples'
 game list also links to After Round 1 on Google Play. A game that finished in the last 15 minutes stays on screen with its final board until it's closed.
 
 Every response and the couple hub's `GameStarted`, `GameStateChanged` and `GameCompleted` events carry the whole
@@ -21,7 +22,11 @@ Pushes: an invite tells the partner; an invite taken back sends nothing (it just
 invite tells whoever sent it ("Not right now"); a game ended part way tells the partner. In a game played turn by turn
 with no clock (Guess my answer, Memory match, Connect four, Snakes and ladders), the turn
 passing to a partner who isn't in the app (no couple hub connection) sends one "Your turn" (`gameTurn`), and no
-other until they've read it or six hours have passed. Every game push opens the games screen. The game hub (`/hubs/game`) is not needed: REST plus the couple hub
+other until they've read it or six hours have passed (Connect four's beat between games is no turn clock: its turns
+still nudge). In Heart to heart, the score that finishes one partner's five rounds while the other still has some to
+play sends that other partner one "Your turn in Heart to heart" (`gameTurn`, "{name} has played all five rounds.
+Play yours to see who wins!"), only if they aren't in the app, and never twice for a duel (`GameReminders`).
+Every game push opens the games screen. The game hub (`/hubs/game`) is not needed: REST plus the couple hub
 covers everything, including the live ink of Tic-tac-toe and Draw and guess (`Ink`, below).
 
 The app's Today tab shows a card near the top while the couple's open game waits on you (`TodayGames.waiting`): the
@@ -47,8 +52,23 @@ same couple hub events as the games screen (no connection of its own), and reloa
 - **Tic-tac-toe** has no turns and no move clock. Two timers are the server's, both on its own clock (the time a
   move arrives, never the phone's): each pen's cooldown, and the 1.5-second beat between games, which is the
   session's `deadlineUtc` while a finished board is up (the timeout worker then starts the next game).
+- **Connect four** has no turn clock, but the same 1.5-second beat between the games of a match: the finished board's
+  `nextGameAtUtc`, which is the session's `deadlineUtc` (the timeout worker then deals the fresh board).
 - An invite nobody answers ends after a day, and a turn-by-turn game left alone for a week ends, so a forgotten game
   never blocks a new one. Both send `GameEnded`.
+
+## Who goes first
+
+In every game played turn by turn (Guess my answer's first subject, Memory match, Connect four's first game, Truth or
+dare's first chooser, Word dash, Draw and guess's first drawer, Snakes and ladders; `GameFirstPlayer.Alternating`),
+who goes first alternates across the couple's games of that kind: the setup, made at the invite, names the first
+player (`first`, a user id) as the other partner from whoever went first in the couple's last game of that kind that
+was accepted (an invite turned down doesn't count, nor a game of another kind); their first ever game of it is a coin
+toss. A game from before `first` existed counts by who started it then (its first player; Snakes and ladders' coin,
+`first` in its state). The engine puts that player first, so every game starts with them. Within a Connect four match
+the starter then alternates game by game (game 1: the first player, game 2: the other, game 3: the first). Games
+played at once (Same answer, Would you rather, Trivia, I call on, Tic-tac-toe, Spot the difference, Heart to heart)
+have no first player.
 
 ## The games
 
@@ -74,7 +94,7 @@ same couple hub events as the games screen (no connection of its own), and reloa
     round and on each unmatched row of the finished game's recap; the stamp ("Counted!") and the hearts land on both
     phones from the `GameStateChanged`/`GameCompleted` that follows. A `409` sends it again while the round is still
     there to count.
-- **Guess my answer**: 8 rounds; the subject alternates, the first player first. The subject answers a question about
+- **Guess my answer**: 8 rounds; the subject alternates, the first player (**Who goes first**) first. The subject answers a question about
   themselves (`answer`, `index` 0–3), then the other guesses (`guess`, `index`). The answer is the subject's secret
   until the guess is in; `last` then shows both to both. A right guess is a point for the guesser.
 - **Would you rather**: 10 rounds, both at once (`pick`, `index` 0 for `a`, 1 for `b`). `picked` says who has picked
@@ -161,16 +181,36 @@ same couple hub events as the games screen (no connection of its own), and reloa
     `stateJson`: the mark itself still goes in with `place`. The partner's phone shows the stroke in the drawer's
     colour and fades it 1.5 s after the last message, or swaps it for the mark when the square is taken. Without a
     hub connection everything still works; the stroke just isn't live.
+- **Connect four** (`connectFour`), in turn, no clock: 7 columns by 6 rows, `drop` (`index` the column 0–6), four in
+  a row in any line wins a game; a match of up to three, first to two. The starter alternates game by game (game 1:
+  the first player). A finished game stays up as `gameOver` with its `line` and `nextGameAtUtc` 1.5 s later (the
+  session's `deadlineUtc`, and `currentTurnUserId` already the next starter); then the timeout worker deals the fresh
+  board. Nobody presses anything: the app shows the result and who starts next, then the fresh board at
+  `nextGameAtUtc` (before the server's update arrives). The next starter's first disc may come up to 250 ms early; one
+  earlier is refused ("Get ready, the next game is about to start."), one after the deadline is played on the fresh
+  board, and the app sends a first disc again by itself when the worker's fresh board got there first
+  (`game.version_conflict`). A match saved before the beat (a `gameOver` board with no `nextGameAtUtc`) carries on
+  as then: the next starter's first disc clears it.
 - **Heart to heart** (`skillDuel`): five skill rounds (Heart skills, `ui/play`), the same for both: the setup draws a
   seed and from it five of the nine kinds (`FairShare`, `FillTheHeart`, `OtherHalf`, `Heartbeat`, `KissTheCenter`,
   `PromiseRing`, `CupidsAim`, `SlowKiss`, `DrawAHeart`, the app's `SkillKind` names, `SkillDuelRules.Kinds`), none
   twice, each with its own seed, so both get the same shape, flight or target. Duels always play each game at its
   first level, so two phones at different practice levels play the same round. An app older than a kind can't play
   that round (it shows it but can't open it), so a new kind goes out in the app before the server draws it. Both play at once, in any order, on their own time (no clock). The phone scores a round 0–100 and sends
-  `score` (`index` the round 0–4, `value` `{"score": n}`, a whole number; each round once). Scores may cross in flight
+  `score` (`index` the round 0–4, `value` `{"score": n, "seed": s}`, a whole number and the seed it was played on;
+  each round once). Scores may cross in flight
   (`MovesMayCross`): each is one partner's own round, so a stale `expectedStateVersion` is fine. The score counts the
-  moment it's made: leaving the round while its score counts up still sends it. Each round in `rounds`
-  shows `kind`, `seed`, `mine`, and `played` (the partner has played it); the partner's score (`partner`), the
+  moment it's made: leaving the round while its score counts up still sends it.
+  - **Backing out deals another round:** the phone sends `open` (`index` the round) as a round starts and plays it
+    only once that has landed, on the seed it then shows. Opening a round again without having scored it (backing
+    out to try again) deals that player a new seed for it (`SkillDuelRules.Reseed`, from the seed it replaces and the
+    count of opens, never the same one): the same kind, still at level 1, but another shape or target, so a round
+    can't be scouted and replayed. The partner's round keeps its own seed; scores compare as before. A score naming
+    a seed must name the player's current one (a round dealt again since is refused, "That round was dealt again.
+    Play it once more."); one naming none (an older app) counts for the round as it stands. A round once scored
+    can't be opened. Duels from before have no opens and play on.
+  - Each round in `rounds` shows `kind`, `seed` (yours: the round's, or the one you were dealt on reopening), `opens`
+  (how many times you've opened it), `mine`, and `played` (the partner has played it); the partner's score (`partner`), the
   round's `winner` and `tie` show only once you've played that round too. A round goes to the higher score, a tie is a
   heart each (`hearts`, counted over rounds both have played). The duel goes to whoever has more hearts. Once both
   have played all five, `totals` (points), `winner`, `decidedBy` (`hearts`; `points` when the hearts were level and
@@ -193,8 +233,8 @@ same couple hub events as the games screen (no connection of its own), and reloa
   `seed` and `found` (`{index, by}`) for the picture in play, `scenes` for every picture so far, and `scores`;
   each player's spots are their score in the history.
 - **Snakes and ladders** (`snakesAndLadders`), in turn, no clock: a 10×10 board, 1 to 100, rows running left to right
-  then right to left. Both tokens start off the board at 0. The server flips a coin at the start (`first`) for who
-  rolls first; then `turn` (and the session's `currentTurnUserId`) says whose roll it is. The only move is `roll` (no
+  then right to left. Both tokens start off the board at 0. The setup names who rolls first (`first`, alternating
+  across the couple's games, **Who goes first**; a game set up before that flips the server's coin); then `turn` (and the session's `currentTurnUserId`) says whose roll it is. The only move is `roll` (no
   `value` or `index`): the server rolls a die with its secure RNG and plays everything that follows, so the phone
   never decides an outcome.
   - **Moving:** the token hops one square per pip (from 0, a 1 lands on square 1). You must land on 100 exactly: an
@@ -247,9 +287,31 @@ same couple hub events as the games screen (no connection of its own), and reloa
   or fetched up front (I call on's letter, trivia questions). The app sees only the region and the letter
   (`GameRegion.PublicSetup`); the rest stays on the server.
 - **Scores:** `Summarise` gives each player's score and the rounds played; the result is kept for the couple's game
-  history. A heart is a point.
+  history (**History**, below). A heart is a point.
 - **Older apps:** a game type the app doesn't know reads as `GameType.Unknown` (the session's default, so the list
   still loads): it shows "update the app" with the usual "End this game", and is never offered.
+
+## History
+
+Every game that was played leaves one row in `game_results` (`GameResult`): its type, how it ended (`outcome`), the
+winner, each player's score, the rounds played and when it started and ended. A game played to the end is
+`completed`, with the winner the rules declare (else the higher score; none for a draw). A game accepted and then
+ended part way is kept too, with no winner: `abandoned` (ended by a partner, by the couple ending, or a state the
+server couldn't read) or `timedOut` (left alone for a week). An invite never accepted leaves nothing.
+
+Every path that ends a game writes it (`GameHistory.KeepAsync`): a move (REST or the game hub), the timeout worker,
+an end by a partner, the couple ending, and the stale sweep. It is written just after the save that ended the game:
+the session's version is a concurrency token, so of two endings that race only one save goes through, and only that
+one writes the row; a unique index on the session refuses a second. A finished game changed after its end by a move
+its rules allow then (Same answer's "That counts!") keeps its row, worked out again from the game as it now stands:
+new scores and winner, the same end and outcome. A row missing (the server stopped in between,
+or a game that ended before the history was written) is written the next time the history is read.
+
+`GET api/game/history?limit=20&before=<endedAtUtc>` returns the couple's history newest first (1 to 50 a page; for the
+next, `before` the last item's `endedAtUtc`): `{sessionId, gameType, outcome, winnerUserId, scores, roundsPlayed,
+startedAtUtc, endedAtUtc, session}`, `session` being the game as `GET api/game/sessions/{id}` shows it, so the app
+shows it as any other. The app's "Last time" line and Recent list read it (games played to the end), with a game
+just finished on top; `GET api/game/sessions` is unchanged.
 
 ## Nigerian couples
 
@@ -273,7 +335,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Word dash (`wordDash`) | in turn, timed | Word chain: each word starts with the last letter of the one before, no repeats, 20 seconds a turn. English words, A to Z: accents are dropped ("café" plays as "cafe") and hyphens closed up ("puff-puff"). A refused word may be retried while the time lasts. First to five. | the other partner, when time runs out |
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | both at once | 3×3, drawn by hand; first to a square gets it, a 650 ms pen cooldown, the next game 1.5 s after each one; best of five. | a point per game won |
-| Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
+| Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row; best of three, the next game 1.5 s after each one, the starter alternating. | a point per game won |
 | Spot the difference (`spotTheDifference`) | both at once, timed | The same two pictures on both phones; tap a difference first to claim it. Three pictures, seven differences each, 90 seconds a picture. | a point per spot; most spots wins |
 | Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring, shoot an arrow through a floating heart, hold a kiss for the time shown, draw a heart), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
 | Snakes and ladders (`snakesAndLadders`) | in turn, no clock | Roll the server's die, climb ladders, slide down snakes, land on heart squares (kiss & swap, love boost, hug shield, heartbreak); a 6 rolls again, three 6s go back; land on 100 exactly. Each game has its own fair board. | first to 100 wins; each player's final square is kept |

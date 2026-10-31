@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Common;
 using Twogether.Api.Controllers;
 using Twogether.Application.Features.Games;
@@ -150,6 +151,30 @@ public sealed class SameAnswerCountsTests : IDisposable
 
     private GameController Controller(Twogether.Infrastructure.Persistence.ApplicationDbContext db, TestCouple couple, Guid user, DateTime at)
         => new(db, new FakeCurrentUser(user, couple.CoupleId), new FakeClock(at), engine, new NoWords(), null!, hub);
+
+    [Fact]
+    public async Task A_count_after_the_end_updates_the_game_history()
+    {
+        var (couple, session) = await FinishedGameAsync(now);
+        await using (var db = database.CreateContext())
+        {
+            // The history row the game's ending wrote: no match, no points yet.
+            var tracked = await db.GameSessions.SingleAsync(item => item.Id == session.Id);
+            Assert.True(await GameHistory.KeepAsync(db, engine, tracked, GameOutcome.Completed, now, default));
+            var before = await db.GameResults.AsNoTracking().SingleAsync();
+            Assert.Equal(0, JsonSerializer.Deserialize<Dictionary<Guid, int>>(before.ScoresJson)![couple.MayaId]);
+        }
+
+        await using (var db = database.CreateContext())
+            Assert.IsType<OkObjectResult>((await Controller(db, couple, couple.TheoId, now.AddMinutes(5))
+                .ApplyAction(session.Id, new ApplyGameActionRequest(session.StateVersion, "counts", null, 0), default)).Result);
+
+        await using var check = database.CreateContext();
+        var row = await check.GameResults.AsNoTracking().SingleAsync();
+        var scores = JsonSerializer.Deserialize<Dictionary<Guid, int>>(row.ScoresJson)!;
+        Assert.Equal((1, 1), (scores[couple.MayaId], scores[couple.TheoId]));
+        Assert.Equal(now, row.EndedAtUtc);
+    }
 
     [Fact]
     public async Task A_finished_game_takes_a_count_while_it_is_on_screen_and_tells_both()

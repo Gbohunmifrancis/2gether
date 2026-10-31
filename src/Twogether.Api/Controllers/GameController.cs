@@ -76,7 +76,9 @@ public sealed class GameController(
         var recent = await db.GameSessions.AsNoTracking()
             .Where(session => session.CoupleId == currentUser.CoupleId.Value && session.GameType == request.GameType)
             .OrderByDescending(session => session.CreatedAtUtc).Take(RecentSetups).Select(session => session.SetupJson).ToListAsync(cancellationToken);
-        var context = new GameSetupContext([inviter.Language, await db.LanguageOfAsync(partnerId.Value, cancellationToken)], recent);
+        // A game played turn by turn starts with whoever didn't start the couple's last one of its kind (GameFirstPlayer).
+        var context = new GameSetupContext([inviter.Language, await db.LanguageOfAsync(partnerId.Value, cancellationToken)], recent,
+            [inviter.Id, partnerId.Value], await GameFirstPlayer.PreviousAsync(db, currentUser.CoupleId.Value, request.GameType, cancellationToken));
         var setupJson = await setupFactory.CreateAsync(request.GameType, region, request.Letter, cancellationToken, context);
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
         Notification notification;
@@ -153,6 +155,7 @@ public sealed class GameController(
             return Conflict(new ApiError("game.version_conflict", Loc.T("The game state changed. The latest board has been loaded.")));
         if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
         var turnBefore = session.CurrentTurnUserId;
+        var stateBefore = session.StateJson;
         try
         {
             // Timed games play the server's timeout once the clock runs out; the rest wait for the player whose turn it is.
@@ -185,9 +188,11 @@ public sealed class GameController(
         }
         // A new round of Draw and guess swaps the drawer: whoever drew may no longer send live ink (docs/games.md).
         if (turnBefore != session.CurrentTurnUserId) (HttpContext?.RequestServices?.GetService(typeof(GameInkGate)) as GameInkGate)?.Forget(session.Id);
+        await GameHistory.KeepAsync(db, engine, session, GameOutcome.Completed, clock.UtcNow, cancellationToken);
         var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
         await GameEvents.SendAsync(hub, engine, session, players, session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged", cancellationToken);
         if (turnBefore != session.CurrentTurnUserId) await NudgeTurnAsync(session, currentUser.UserId.Value, cancellationToken);
+        await GameReminders.DuelFinishedAsync(db, hub, presence, clock, session, stateBefore, currentUser.UserId.Value, cancellationToken);
         return Ok(ToDto(session));
     }
 
@@ -215,7 +220,7 @@ public sealed class GameController(
     private async Task NudgeTurnAsync(GameSession session, Guid moverId, CancellationToken cancellationToken)
     {
         if (session.Status != GameSessionStatus.InProgress || session.CurrentTurnUserId is not { } next || next == moverId) return;
-        if (engine.IsTimed(session.GameType) || engine.MovesMayCross(session.GameType) || engine.AnyoneMayAct(session.GameType)) return;
+        if (GameEngine.HasTurnClock(session.GameType) || engine.MovesMayCross(session.GameType) || engine.AnyoneMayAct(session.GameType)) return;
         if (presence?.IsOnline(session.CoupleId, next) == true) return;
         var since = clock.UtcNow - TurnNudgeQuietPeriod;
         var nudged = await db.Notifications.AnyAsync(item => item.UserId == next && item.Type == NotificationType.GameTurn && item.ReadAtUtc == null && item.CreatedAtUtc > since, cancellationToken);
@@ -264,6 +269,7 @@ public sealed class GameController(
             // A move (or the partner's accept) landed first: let the phone reload and decide again.
             return Conflict(new ApiError("game.version_conflict", Loc.T("The game state changed. The latest board has been loaded.")));
         }
+        await GameHistory.KeepAsync(db, engine, session, GameOutcome.Abandoned, clock.UtcNow, cancellationToken);
         var ended = new GameEndedDto(session.Id, endedBy.Id, endedBy.DisplayName, session.EndedAtUtc ?? clock.UtcNow);
         await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameEnded", ended, cancellationToken);
         if (notification is not null) await hub.Clients.Group(CoupleHub.UserGroupName(notification.UserId)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);

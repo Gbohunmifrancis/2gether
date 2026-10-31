@@ -25,7 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,9 +46,9 @@ import androidx.compose.ui.unit.dp
 import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GridMatchState
+import app.heartpact.data.utc
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
-import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.graphics.HalfState
 import app.heartpact.ui.graphics.HeartGeometry
 import app.heartpact.ui.graphics.HeartSticker
@@ -61,11 +61,12 @@ import app.heartpact.ui.theme.LocalActor
 import app.heartpact.ui.theme.Shapes
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.delay
+import java.time.Instant
 
 /*
  * Connect four's frame (tic-tac-toe borrows its pips, win line and pieces): a short match on a grid, each partner playing their own half of the heart
- * (the left partner indigo, the right periwinkle). After a game the finished board stays up with its winning line;
- * the next game's starter taps "Start game" to clear it on their phone, and their first move starts it for both.
+ * (the left partner indigo, the right periwinkle). After a game the finished board stays up with its winning line for
+ * the server's beat (`nextGameAtUtc`), then the next game's fresh board comes on its own, on both phones at once.
  */
 
 /** What the board shows right now. */
@@ -107,15 +108,26 @@ internal fun LeftToRight(content: @Composable () -> Unit) = CompositionLocalProv
 @Composable
 internal fun <T> gentle(spec: AnimationSpec<T>): AnimationSpec<T> = if (motionOff()) snap() else spec
 
-/** The match around a board: who's winning, which game this is, whose turn, then the board itself. */
+/**
+ * The match around a board: who's winning, which game this is, whose turn, then the board itself. [now] is the
+ * server's clock as the phone reckons it, for the beat between games.
+ */
 @Composable
-internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, busy: Boolean, yourMove: String, board: @Composable (GridMatchState, GridShown) -> Unit) {
+internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, busy: Boolean, yourMove: String, now: () -> Instant, board: @Composable (GridMatchState, GridShown) -> Unit) {
     val colors = Heartpact.colors
     val g = GamePlay.grid(s)
     val myTurn = s.currentTurnUserId == me && s.status == GameStatus.InProgress
     val gameOver = g.phase == "gameOver" && s.status == GameStatus.InProgress
-    var clearedGame by remember(s.id) { mutableIntStateOf(-1) }
-    val cleared = gameOver && myTurn && clearedGame == g.game
+    // The beat after a game: the finished board stays until the server's start time for the next game, then the fresh
+    // board shows here, even before the server's update arrives. A board from before the beat existed is over at once.
+    val nextAt = g.nextGameAtUtc?.let { runCatching { utc(it).toEpochMilli() }.getOrNull() }
+    var beatOver by remember(s.id, g.game, nextAt) { mutableStateOf(nextAt == null || now().toEpochMilli() >= nextAt) }
+    LaunchedEffect(s.id, g.game, nextAt) {
+        if (nextAt == null || beatOver) return@LaunchedEffect
+        delay((nextAt - now().toEpochMilli()).coerceAtLeast(0))
+        beatOver = true
+    }
+    val cleared = gameOver && beatOver
     val shown = GridShown(
         cells = if (cleared) List(g.cells.size) { null } else g.cells,
         line = if (cleared) emptySet() else g.line.orEmpty().toSet(),
@@ -137,8 +149,9 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
         Box(Modifier.fillMaxWidth().padding(bottom = 14.dp), contentAlignment = Alignment.Center) { games() }
     } else {
         val turn = when {
-            myTurn && !gameOver || cleared -> Turn.Mine
-            s.status == GameStatus.InProgress && !myTurn && !gameOver -> Turn.Theirs
+            gameOver && !cleared -> Turn.None
+            myTurn -> Turn.Mine
+            s.status == GameStatus.InProgress -> Turn.Theirs
             else -> Turn.None
         }
         Scoreboard(g.scores[me] ?: 0, partnerId?.let { g.scores[it] } ?: 0, partnerName, turn, { trn(it, "{count} win", "{count} wins") }, middle = games)
@@ -160,10 +173,14 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
 
     board(g, shown)
 
+    // The result moment: who starts the next game, which comes by itself in a moment.
     if (gameOver && !cleared) {
-        if (myTurn) HeartButton(tr("Start game {game}", "game" to g.game + 2), { clearedGame = g.game }, Modifier.padding(top = 16.dp))
-        else Text(tr("{partner} starts game {game}.", "partner" to partnerName, "game" to g.game + 2), style = Heartpact.type.bodyLarge, color = colors.ink2,
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp), textAlign = TextAlign.Center)
+        Text(
+            if (myTurn) tr("Game {game} starts in a moment. You go first.", "game" to g.game + 2)
+            else tr("Game {game} starts in a moment. {partner} goes first.", "game" to g.game + 2, "partner" to partnerName),
+            style = Heartpact.type.bodyLarge, color = colors.ink2,
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp), textAlign = TextAlign.Center,
+        )
     }
 }
 
