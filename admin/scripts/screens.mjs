@@ -68,10 +68,35 @@ async function signIn(page) {
   throw new Error("Couldn't sign in.");
 }
 
+// Every page keeps the live feed open (Server-Sent Events: a request that never ends), so Playwright's "networkidle"
+// never comes. A page is settled once no other request of the current document has been in flight for half a second.
+const STREAMING = /\/api\/admin\/analytics\/live\/events/;
+const pending = new WeakMap();
+function watch(page) {
+  const open = new Set();
+  pending.set(page, open);
+  page.on("request", (request) => STREAMING.test(request.url()) || open.add(request));
+  page.on("requestfinished", (request) => open.delete(request));
+  page.on("requestfailed", (request) => open.delete(request));
+  // Requests the previous document left in flight are cancelled by the navigation without either event firing.
+  page.on("framenavigated", (frame) => frame === page.mainFrame() && open.clear());
+}
+async function settled(page, timeout = 30_000) {
+  const open = pending.get(page) ?? new Set();
+  const end = Date.now() + timeout;
+  let quietSince = Date.now();
+  while (Date.now() < end) {
+    if (open.size > 0) quietSince = Date.now();
+    else if (Date.now() - quietSince >= 500) return;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`Still loading after ${timeout / 1000} s: ${[...open].map((request) => request.url()).join(", ")}`);
+}
+
 async function shoot(page, name, path, ready) {
   await page.goto(`${BASE}${path}`);
   await ready(page);
-  await page.waitForLoadState("networkidle");
+  await settled(page);
   await page.screenshot({ path: `screens/${name}.png`, fullPage: true });
   console.log(`screens/${name}.png`);
 }
@@ -80,6 +105,7 @@ const heading = (name) => (page) => page.getByRole("heading", { name, level: 1 }
 
 const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const page = await desktop.newPage();
+watch(page);
 await signIn(page);
 await shoot(page, "02-overview", "/?days=30", heading("Overview"));
 await shoot(page, "03-engagement", "/engagement?days=30", heading("Engagement"));
@@ -91,7 +117,7 @@ await page.locator("table.data tbody tr.link").first().waitFor();
 const firstUser = page.locator("table.data tbody tr.link").first();
 await firstUser.click();
 await page.getByRole("heading", { name: "Account", level: 2, exact: true }).waitFor();
-await page.waitForLoadState("networkidle");
+await settled(page);
 await page.screenshot({ path: "screens/06-user.png", fullPage: true });
 console.log("screens/06-user.png");
 await page.getByRole("button", { name: "Disable" }).click();
@@ -108,6 +134,7 @@ const storage = await page.evaluate(() => sessionStorage.getItem("heartpact.admi
 for (const [name, scheme] of [["12-overview-dark", "dark"]]) {
   const dark = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: scheme, storageState: sessionState });
   const darkPage = await dark.newPage();
+  watch(darkPage);
   await darkPage.addInitScript((value) => sessionStorage.setItem("heartpact.admin.session", value), storage);
   await shoot(darkPage, name, "/?days=90", heading("Overview"));
   await dark.close();
@@ -115,6 +142,7 @@ for (const [name, scheme] of [["12-overview-dark", "dark"]]) {
 
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const phonePage = await phone.newPage();
+watch(phonePage);
 await phonePage.addInitScript((value) => sessionStorage.setItem("heartpact.admin.session", value), storage);
 await shoot(phonePage, "13-phone-overview", "/?days=30", heading("Overview"));
 await shoot(phonePage, "14-phone-users", "/users", (p) => p.locator("table.data tbody tr.link").first().waitFor());
