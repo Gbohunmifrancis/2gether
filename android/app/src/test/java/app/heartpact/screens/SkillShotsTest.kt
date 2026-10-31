@@ -217,7 +217,7 @@ class SkillShotsTest {
         snap("heartbeat-3-quiet", both = false)
         // Tap 90 ms late.
         while (play.now < play.beatTime(8) + 90) later(16)
-        rule.onNodeWithText("Tap on beat eight").performTouchInput { down(center); up() }
+        rule.onNodeWithText("Tap on beat 8").performTouchInput { down(center); up() }
         later(5000)
         val r = play.result
         assertNotNull(r)
