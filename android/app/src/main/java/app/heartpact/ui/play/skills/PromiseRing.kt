@@ -44,7 +44,7 @@ import kotlinx.coroutines.delay
  * isn't scored); then the ideal circle is drawn under yours, a heart set on top, and the note names the main flaw.
  */
 
-internal class RingPlay(seed: Long) : SkillPlay(SkillKind.PromiseRing, seed) {
+internal class RingPlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.PromiseRing, seed, difficulty) {
     /** The stroke being drawn, in dp. */
     var stroke by mutableStateOf<List<Offset>>(emptyList())
         private set

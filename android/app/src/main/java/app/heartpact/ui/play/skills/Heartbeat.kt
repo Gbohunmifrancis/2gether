@@ -63,7 +63,7 @@ import kotlin.random.Random
  * and tap when beat eight would land. The reveal lays the beats out on a little timeline with your tap among them.
  */
 
-internal class HeartbeatPlay(seed: Long) : SkillPlay(SkillKind.Heartbeat, seed) {
+internal class HeartbeatPlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.Heartbeat, seed, difficulty) {
     private val rnd = Random(seed)
     val bpm = 64 + rnd.nextInt(9) * 5
     val period = 60_000L / bpm

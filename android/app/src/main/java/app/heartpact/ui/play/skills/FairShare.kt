@@ -44,7 +44,7 @@ import kotlin.math.roundToInt
  * the whole line and the two pieces spring apart, each showing its share. Scored on how close the split is to half.
  */
 
-internal class FairSharePlay(seed: Long) : SkillPlay(SkillKind.FairShare, seed) {
+internal class FairSharePlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.FairShare, seed, difficulty) {
     val treat = Treat.of(seed)
 
     /** The two pieces after the cut: [first] is the left (or top) one, which the score and note talk about. */

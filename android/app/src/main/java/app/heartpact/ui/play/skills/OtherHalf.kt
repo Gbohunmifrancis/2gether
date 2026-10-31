@@ -48,7 +48,7 @@ import app.heartpact.ui.theme.Heartpact
  * you can see where they part.
  */
 
-internal class OtherHalfPlay(seed: Long) : SkillPlay(SkillKind.OtherHalf, seed) {
+internal class OtherHalfPlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.OtherHalf, seed, difficulty) {
     val shape = HalfShape.of(seed)
     /** Finished strokes and the one being drawn, in shape units (1 tall, fold at x = 0). */
     val strokes = mutableStateListOf<List<Offset>>()

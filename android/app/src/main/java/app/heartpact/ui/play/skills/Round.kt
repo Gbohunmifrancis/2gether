@@ -76,8 +76,11 @@ import kotlinx.coroutines.delay
  * and board, and the score it hands over when the round ends.
  */
 
-/** One round of one game: its state, its board and (for some) its buttons. Created per round from the seed. */
-internal abstract class SkillPlay(val kind: SkillKind, val seed: Long) {
+/**
+ * One round of one game: its state, its board and (for some) its buttons. Created per round from the seed and the
+ * [difficulty] (Levels.kt), which the game reads for its shapes, speeds and how strictly it scores.
+ */
+internal abstract class SkillPlay(val kind: SkillKind, val seed: Long, val difficulty: Difficulty = Difficulty.Start) {
     /** The score, once the round is played; the frame reveals it [revealAfterMs] later, once the board has settled. */
     var scored by mutableStateOf<Scored?>(null)
         private set
@@ -105,13 +108,13 @@ internal abstract class SkillPlay(val kind: SkillKind, val seed: Long) {
     open val hasControls: Boolean get() = false
 }
 
-internal fun newPlay(kind: SkillKind, seed: Long): SkillPlay = when (kind) {
-    SkillKind.FairShare -> FairSharePlay(seed)
-    SkillKind.FillTheHeart -> FillPlay(seed)
-    SkillKind.OtherHalf -> OtherHalfPlay(seed)
-    SkillKind.Heartbeat -> HeartbeatPlay(seed)
-    SkillKind.KissTheCenter -> KissPlay(seed)
-    SkillKind.PromiseRing -> RingPlay(seed)
+internal fun newPlay(kind: SkillKind, seed: Long, difficulty: Difficulty = Difficulty.Start): SkillPlay = when (kind) {
+    SkillKind.FairShare -> FairSharePlay(seed, difficulty)
+    SkillKind.FillTheHeart -> FillPlay(seed, difficulty)
+    SkillKind.OtherHalf -> OtherHalfPlay(seed, difficulty)
+    SkillKind.Heartbeat -> HeartbeatPlay(seed, difficulty)
+    SkillKind.KissTheCenter -> KissPlay(seed, difficulty)
+    SkillKind.PromiseRing -> RingPlay(seed, difficulty)
 }
 
 /** How long the score reveal takes to count, circle and stamp (ScoreReveal's own timings). */

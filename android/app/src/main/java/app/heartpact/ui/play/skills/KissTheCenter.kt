@@ -47,7 +47,7 @@ import kotlin.math.sqrt
  * between the two.
  */
 
-internal class KissPlay(seed: Long) : SkillPlay(SkillKind.KissTheCenter, seed) {
+internal class KissPlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.KissTheCenter, seed, difficulty) {
     // Its own shapes, even from the same seed as a Fair share round: lopsided ones, with no obvious middle.
     val treat = Treat.of(seed * 31 + 7, odd = true)
     val centre = centroid(treat.outline)

@@ -116,7 +116,7 @@ internal class JarTable(outline: List<Offset>, rows: Int = 480) {
     }
 }
 
-internal class FillPlay(seed: Long) : SkillPlay(SkillKind.FillTheHeart, seed) {
+internal class FillPlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.FillTheHeart, seed, difficulty) {
     val jar = heartOutline(240)
     val table = JarTable(jar)
     private val rnd = Random(seed)
