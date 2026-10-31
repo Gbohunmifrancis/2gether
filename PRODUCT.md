@@ -36,7 +36,7 @@ One partner sets an exercise goal for the other. At the set time the phone rings
 - **Platform:** Android first, iOS later. Exact alarms need a user grant on Android 14+, and the alarm must stay locally dismissible.
 - **Privacy:** location is mutual-only and never framed as "checking on" a partner (Play stalkerware policy). Health data follows explicit per-feature share levels. Anything the caller may not see is hidden entirely, not greyed out.
 - **Data rules:** the server owns timers, turns, scores, consent and streaks; the app renders server state.
-- **Plans:** Free and Plus. One partner's Plus covers both. Plus gives 20 food scans a day instead of 3, 2 GB of album instead of 500 MB, and 90 days of question history instead of 7.
+- **Plans:** Free and Plus. One partner's Plus covers both. Free has one active daily dare per partner; Plus has unlimited dares, 20 food scans a day instead of 3, 2 GB of album instead of 500 MB, and 90 days of question history instead of 7. Both are warned before a limit bites (album at 80% and 95%, Plus three days before it ends).
 - **Food estimates:** about ±30–40% error. Always shown as a range and labelled as an estimate.
 
 ## Brand Commitments

@@ -41,7 +41,7 @@ Google Play happen in `.github/workflows/deploy.yml` (see `docs/deploy.md`).
 | `Email__Provider` = `smtp`, `Email__Host`, `Email__Port` (587), `Email__User`, `Email__Password`, `Email__From` (`Email__FromName`, `Email__StartTls` optional) | password reset codes | any SMTP service: Amazon SES, Postmark, Mailgun, Resend, SendGrid, Google Workspace. `Email__StartTls=false` for implicit TLS on 465. Without it "Forgot password?" says reset isn't set up |
 | `Auth__GoogleClientIds` | Google sign-in | the same web client id as `GOOGLE_WEB_CLIENT_ID` (comma-separate several). Without it the server answers 503 to Google sign-in |
 | `Food__AnthropicApiKey` (or `ANTHROPIC_API_KEY`) | food photo estimates | without it the app logs meals by hand |
-| `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
+| `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__ProductIds` (`heartpact_plus_monthly,heartpact_plus_yearly`; without it no purchase unlocks Plus), `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
 | `Integrity__Provider` = `playIntegrity` (`Integrity__PackageName`, `Integrity__CredentialsJson` optional) | flagging finished dares from a modified app or tampered phone | reuses the billing package and service account unless set. Turn on after a build with `PLAY_INTEGRITY_PROJECT_NUMBER` ships. See `docs/exercise-checks.md` |
 | `ForwardedHeaders__Enabled` = `true` | behind a proxy (Railway) | |
 | `Admin__Emails` | the admin dashboard | who may sign in, comma-separated; each signs up in the app first, then enrolls an authenticator. See `docs/admin.md` |

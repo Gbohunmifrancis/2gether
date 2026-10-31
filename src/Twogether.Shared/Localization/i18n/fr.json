@@ -218,6 +218,7 @@
  "Dare updated": "Défi modifié",
  "Date must be yesterday, today or tomorrow in yyyy-MM-dd.": "La date doit être hier, aujourd'hui ou demain, au format aaaa-MM-jj.",
  "Date must look like yyyy-MM-dd.": "La date doit être au format aaaa-MM-jj.",
+ "Delete a few shared photos to make room for new ones.": "Supprime quelques photos partagées pour faire de la place aux nouvelles.",
  "Depends on the day": "Ça dépend des jours",
  "Description must be at most {max} characters.": "La description fait {max} caractères maximum.",
  "Diamond": "Le diamant",
@@ -325,6 +326,8 @@
  "heart": "cœur",
  "Heart to heart expects a score.": "Le Cœur à cœur attend un score.",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact est réservé aux adultes. Tu dois avoir 18 ans ou plus pour t'inscrire.",
+ "Heartpact Plus ends soon": "Heartpact Plus se termine bientôt",
+ "Heartpact Plus gives you {plus} for both of you, or delete a few shared photos.": "Heartpact Plus vous donne {plus} à tous les deux, ou supprime quelques photos partagées.",
  "Helium": "L'hélium",
  "High knees": "Montées de genoux",
  "Hip-hop": "Hip-hop",
@@ -598,6 +601,10 @@
  "Play every instrument": "Jouer de tous les instruments",
  "Play one English word of two letters or more, A to Z only.": "Joue un seul mot anglais d'au moins deux lettres, de A à Z uniquement.",
  "Plums": "Les prunes",
+ "Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.|Plus ends in {count} days. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.": {
+  "one": "Plus se termine dans {count} jour. Ensuite, vous repassez tous les deux à l'offre gratuite : un défi quotidien chacun, moins d'estimations photo et moins de place dans l'album.",
+  "other": "Plus se termine dans {count} jours. Ensuite, vous repassez tous les deux à l'offre gratuite : un défi quotidien chacun, moins d'estimations photo et moins de place dans l'album."
+ },
  "Pop": "Pop",
  "Popcorn": "Du pop-corn",
  "Portion must be between {min}x and {max}x the photo.": "La portion doit être entre {min}x et {max}x celle de la photo.",
@@ -792,6 +799,8 @@
  "The file has not finished uploading yet.": "L'envoi du fichier n'est pas encore terminé.",
  "The file is empty.": "Le fichier est vide.",
  "The food": "La nourriture",
+ "The free plan has one daily dare each, and you already have yours. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "L'offre gratuite inclut un défi quotidien chacun, et tu as déjà le tien. Mets-le en pause ou arrête-le d'abord, ou prends Heartpact Plus pour des défis illimités.",
+ "The free plan has one daily dare each, and {name} already has theirs. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "L'offre gratuite inclut un défi quotidien chacun, et {name} a déjà le sien. Mets-le en pause ou arrête-le d'abord, ou prends Heartpact Plus pour des défis illimités.",
  "The game is not in progress.": "La partie n'est pas en cours.",
  "The game state changed. The latest board has been loaded.": "La partie a changé. Le plateau a été mis à jour.",
  "The Gobi": "Le désert de Gobi",
@@ -884,6 +893,7 @@
  "Title must be at most {max} characters.": "Le titre fait {max} caractères maximum.",
  "To cook": "À cuisiner",
  "To dance": "À danser",
+ "To keep it, turn renewal back on in Google Play.": "Pour le garder, réactive le renouvellement dans Google Play.",
  "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.": "Le défi du jour a déjà sonné ou est déjà fait. Lance-le depuis l'alarme, ou réessaie demain.",
  "Tokyo": "Tokyo",
  "Tomato": "La tomate",
@@ -1226,6 +1236,8 @@
  "Your perfect birthday?": "Ton anniversaire parfait ?",
  "Your perfect breakfast?": "Ton petit-déj parfait ?",
  "Your road trip music?": "Ta musique en road trip ?",
+ "Your shared album is almost full": "Votre album partagé est presque plein",
+ "Your shared album is filling up": "Votre album partagé se remplit",
  "Your shared album is full. Heartpact Plus gives you more room, or remove some memories.": "Votre album partagé est plein. Heartpact Plus te donne plus de place, ou supprime quelques souvenirs.",
  "Your shared album is full. Remove some memories to add more.": "Votre album partagé est plein. Supprime quelques souvenirs pour en ajouter d'autres.",
  "Your superpower of choice?": "Ton super-pouvoir rêvé ?",
@@ -1233,6 +1245,7 @@
  "Your turn in Heart to heart": "À toi au Cœur à cœur",
  "Your word has to start with {letter}.": "Ton mot doit commencer par {letter}.",
  "Your workout of choice?": "Ton sport préféré ?",
+ "Your {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": "Ton défi {dare} est en pause : l'offre gratuite inclut un défi quotidien chacun. Prends Heartpact Plus pour tous les garder, ou mets-en un autre en pause et reprends celui-ci.",
  "Yuri Gagarin": "Youri Gagarine",
  "{count} day until period|{count} days until period": {
   "one": "{count} jour avant les règles",
@@ -1292,5 +1305,7 @@
  "{name} shared pregnancy mode with you.": "{name} partage le mode grossesse avec toi.",
  "{name} updated {dare} for themselves: {target} at {time}.": "{name} a modifié son propre défi : {dare}, {target} à {time}.",
  "{name} updated {dare} for you: {target} at {time}.": "{name} a modifié ton défi : {dare}, {target} à {time}.",
- "{name} updated {dare}: {target} at {time}.": "{name} a modifié un défi : {dare}, {target} à {time}."
+ "{name} updated {dare}: {target} at {time}.": "{name} a modifié un défi : {dare}, {target} à {time}.",
+ "{name}'s {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": "Le défi {dare} de {name} est en pause : l'offre gratuite inclut un défi quotidien chacun. Prends Heartpact Plus pour tous les garder, ou mets-en un autre en pause et reprends celui-ci.",
+ "{used} of {limit} used.": "{used} utilisés sur {limit}."
 }

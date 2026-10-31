@@ -41,9 +41,11 @@ import app.heartpact.data.ApiResult
 import app.heartpact.data.CreateGoalRequest
 import app.heartpact.data.ExerciseRepository
 import app.heartpact.data.OFFLINE_MESSAGE
+import app.heartpact.data.PlusRepository
 import app.heartpact.exercise.ExerciseType
 import app.heartpact.exercise.Measure
 import app.heartpact.i18n.tr
+import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.NoteCard
@@ -77,6 +79,8 @@ data class NewDareState(
     val note: String? = null,
     /** The partner's own time zone, when the server knows it: the time is read there, since it rings on their phone. */
     val partnerZone: String? = null,
+    /** The partner already has as many active dares as the plan allows (Free: one each): pause one or get Plus. */
+    val atLimit: Boolean = false,
 )
 
 /** The partner's zone when it is known and keeps a different clock from this phone's right now; else null (nothing to say). */
@@ -85,13 +89,21 @@ fun otherZone(partnerZone: String?, mine: ZoneId = ZoneId.systemDefault(), now: 
     return zone.takeIf { it.rules.getOffset(now) != mine.rules.getOffset(now) }
 }
 
-class NewDareViewModel(private val exercise: ExerciseRepository, private val partnerId: String) : ViewModel() {
+class NewDareViewModel(private val exercise: ExerciseRepository, private val partnerId: String, private val plus: PlusRepository? = null) : ViewModel() {
     private val _state = MutableStateFlow(NewDareState())
     val state: StateFlow<NewDareState> = _state.asStateFlow()
 
     init {
         // Only to say which clock the time is on; the server picks the zone either way.
         viewModelScope.launch { (exercise.today() as? ApiResult.Ok)?.value?.partnerTimeZoneId?.let { zone -> _state.update { it.copy(partnerZone = zone) } } }
+        // Say so before the form is filled in: the partner's free daily dare is already taken.
+        plus?.let { repository ->
+            viewModelScope.launch {
+                val limit = (repository.entitlement() as? ApiResult.Ok)?.value?.limits?.activeDaresPerPerson ?: return@launch
+                val goals = (exercise.goals() as? ApiResult.Ok)?.value ?: return@launch
+                if (goals.count { it.assignedUserId == partnerId && it.isActive } >= limit) _state.update { it.copy(atLimit = true) }
+            }
+        }
     }
 
     fun type(type: ExerciseType) = _state.update { it.copy(type = type, target = type.defaultTarget) }
@@ -112,10 +124,14 @@ class NewDareViewModel(private val exercise: ExerciseRepository, private val par
             val request = CreateGoalRequest(partnerId, s.type, null, s.target, s.time.format(DateTimeFormatter.ofPattern("HH:mm")), zone, s.window)
             when (val result = exercise.createGoal(request)) {
                 is ApiResult.Ok -> onDone()
-                is ApiResult.Failure -> _state.update { it.copy(busy = false, note = result.message) }
+                is ApiResult.Failure -> _state.update { it.copy(busy = false, note = result.message, atLimit = it.atLimit || result.code == DARE_LIMIT) }
                 ApiResult.Offline -> _state.update { it.copy(busy = false, note = OFFLINE_MESSAGE) }
             }
         }
+    }
+
+    companion object {
+        const val DARE_LIMIT = "exercise.dare_limit"
     }
 }
 
@@ -124,7 +140,8 @@ private val STEP = mapOf(Measure.Reps to 5, Measure.Seconds to 10)
 /** New dare (mockup 04): what, how many, when it rings, how long it may ring. */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun NewDareScreen(state: NewDareState, partnerName: String, onType: (ExerciseType) -> Unit, onStep: (Int) -> Unit, onTime: (LocalTime) -> Unit, onWindow: (Int) -> Unit, onSend: () -> Unit, onBack: () -> Unit) {
+fun NewDareScreen(state: NewDareState, partnerName: String, onType: (ExerciseType) -> Unit, onStep: (Int) -> Unit, onTime: (LocalTime) -> Unit, onWindow: (Int) -> Unit, onSend: () -> Unit, onBack: () -> Unit,
+                  onGetPlus: (() -> Unit)? = null) {
     val colors = Heartpact.colors
     var picking by remember { mutableStateOf(false) }
     val step = STEP.getValue(state.type.measure)
@@ -163,9 +180,13 @@ fun NewDareScreen(state: NewDareState, partnerName: String, onType: (ExerciseTyp
                     Text(tr("Your half sticks when you send it. {partner}'s sticks when the camera counts {target}.", "partner" to partnerName, "target" to state.target), style = Heartpact.type.body.copy(fontSize = 13.sp), color = colors.ink)
                 }
             }
-            state.note?.let { NoteCard(it) }
+            when {
+                state.note != null -> NoteCard(state.note)
+                state.atLimit -> NoteCard(tr("{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.", "partner" to partnerName))
+            }
+            if (state.atLimit && onGetPlus != null) HeartButton(tr("See Heartpact Plus"), onGetPlus, kind = ButtonKind.Tonal)
         }
-        HeartButton(tr("Stick my half and send"), onSend, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy)
+        HeartButton(tr("Stick my half and send"), onSend, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy, enabled = !state.atLimit)
     }
     if (picking) {
         val picker = rememberTimePickerState(state.time.hour, state.time.minute)

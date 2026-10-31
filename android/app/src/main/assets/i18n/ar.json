@@ -257,6 +257,7 @@
  "Cycle settings": "إعدادات الدورة",
  "Daily aim, about {calories} kcal. Change it.": "الهدف اليومي نحو {calories} سعرة. تغييره.",
  "Daily aim, kcal": "الهدف اليومي، سعرة",
+ "Daily dares": "التحديات اليومية",
  "Daily totals: {partner} sees your day's range, not the meals": "المجاميع اليومية: يظهر لـ{partner} نطاق يومك، لا الوجبات",
  "Daily {time} · for {partner} · {minutes} min ring": "يوميًا {time} · لـ{partner} · رنين {minutes} د",
  "Daily {time} · {partner}'s dare · {minutes} min ring": "يوميًا {time} · تحدي {partner} · رنين {minutes} د",
@@ -1004,6 +1005,7 @@
  "Score {score}. {pass} cleared it.": "النتيجة {score}. كان المطلوب {pass}.",
  "Search": "بحث",
  "Seconds": "الثواني",
+ "See Heartpact Plus": "اطّلع على Heartpact Plus",
  "See Plus": "عرض Plus",
  "Send": "إرسال",
  "Send a new code": "إرسال رمز جديد",
@@ -1268,6 +1270,7 @@
  "Two halves, one heart.": "نصفان، قلب واحد.",
  "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "صورتان وسبعة فروق، وأنتما تبحثان معًا في الوقت نفسه. المس الفرق أولًا ليصبح لك، ومن يجد أكثر يفوز.",
  "Undo": "تراجع",
+ "Unlimited": "غير محدودة",
  "Unlinks you both and stops every dare": "يفصل حسابيكما ويوقف كل التحديات",
  "Until": "حتى",
  "Until tomorrow": "حتى الغد",
@@ -1518,6 +1521,14 @@
   "other": "خُمّنت {count} رسمة",
   "two": "خُمّنت رسمتان",
   "zero": "لم تُخمَّن أي رسمة"
+ },
+ "{count} each|{count} each": {
+  "zero": "{count} لكل منكما",
+  "one": "تحدٍّ واحد لكل منكما",
+  "two": "تحدّيان لكل منكما",
+  "few": "{count} تحديات لكل منكما",
+  "many": "{count} تحديًا لكل منكما",
+  "other": "{count} تحدٍّ لكل منكما"
  },
  "{count} guess left|{count} guesses left": {
   "few": "بقيت {count} محاولات",
@@ -1837,6 +1848,7 @@
  "{minutes} min ago": "قبل {minutes} د",
  "{partner} added": "من {partner}",
  "{partner} agreed. Today goes on your page as a peeled heart.": "جاءت موافقة {partner}. يُضاف اليوم إلى صفحتك كقلب مقشور.",
+ "{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "لدى {partner} تحديه اليومي المجاني بالفعل. أوقفه مؤقتًا أو أنهِه أولًا، أو اشترك في Heartpact Plus لتحديات غير محدودة.",
  "{partner} answered at {time}. Send yours and you'll both see each other's.": "وصلت إجابة {partner} عند {time}. أرسل إجابتك وسيرى كلٌّ منكما إجابة الآخر.",
  "{partner} answered · answer to see theirs": "وصلت إجابة {partner} · أجب لرؤيتها",
  "{partner} answered. Send yours and you'll both see each other's.": "وصلت إجابة {partner}. أرسل إجابتك وسيرى كلٌّ منكما إجابة الآخر.",

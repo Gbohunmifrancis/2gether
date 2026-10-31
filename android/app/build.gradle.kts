@@ -2,10 +2,11 @@ import java.net.URI
 
 /**
  * Build-time settings that must not live in git: from environment variables (CI fills them from
- * GitHub secrets) or, locally, from ~/.gradle/gradle.properties as heartpact.NAME. Empty when unset.
+ * GitHub secrets) or from a gradle.properties as heartpact.NAME (~/.gradle's, or this project's for values that aren't
+ * secret, such as the Google web client id). Empty when unset; a blank variable (a GitHub secret that isn't set) falls through.
  */
 fun setting(name: String): String =
-    providers.environmentVariable(name).orElse(providers.gradleProperty("heartpact.$name")).getOrElse("")
+    providers.environmentVariable(name).filter { it.isNotBlank() }.orElse(providers.gradleProperty("heartpact.$name")).getOrElse("")
 
 plugins {
     alias(libs.plugins.android.application)

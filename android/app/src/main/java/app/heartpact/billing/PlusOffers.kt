@@ -115,10 +115,14 @@ object PlusOffers {
 
     /** The comparison table: label, free value, Plus value. */
     fun comparison(free: PlanLimits, plus: PlanLimits): List<Triple<String, String, String>> = listOf(
+        Triple(tr("Daily dares"), dares(free.activeDaresPerPerson), dares(plus.activeDaresPerPerson)),
         Triple(tr("Food photo scans a day"), free.foodScansPerDay.toString(), plus.foodScansPerDay.toString()),
         Triple(tr("Album space"), storage(free.memoriesBytes), storage(plus.memoriesBytes)),
         Triple(tr("Question history"), trn(free.questionHistoryDays, "{count} day", "{count} days"), trn(plus.questionHistoryDays, "{count} day", "{count} days")),
     )
+
+    /** Active dares each: "1 each", or "Unlimited". */
+    fun dares(limit: Int?): String = limit?.let { trn(it, "{count} each", "{count} each") } ?: tr("Unlimited")
 
     /** Google Play's page for this subscription, where it is cancelled or the payment fixed. */
     fun manageUrl(productId: String, packageName: String) =

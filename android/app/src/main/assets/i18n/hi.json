@@ -237,6 +237,7 @@
  "Cycle settings": "चक्र की सेटिंग्स",
  "Daily aim, about {calories} kcal. Change it.": "रोज़ का लक्ष्य, लगभग {calories} kcal। बदलो।",
  "Daily aim, kcal": "रोज़ का लक्ष्य, kcal",
+ "Daily dares": "रोज़ की चुनौतियाँ",
  "Daily totals: {partner} sees your day's range, not the meals": "रोज़ का कुल: {partner} को तुम्हारे दिन की रेंज दिखेगी, खाने नहीं",
  "Daily {time} · for {partner} · {minutes} min ring": "रोज़ {time} · {partner} के लिए · {minutes} मिनट रिंग",
  "Daily {time} · {partner}'s dare · {minutes} min ring": "रोज़ {time} · {partner} की चुनौती · {minutes} मिनट रिंग",
@@ -920,6 +921,7 @@
  "Score {score}. {pass} cleared it.": "स्कोर {score}। {pass} चाहिए था।",
  "Search": "खोजो",
  "Seconds": "सेकंड",
+ "See Heartpact Plus": "Heartpact Plus देखो",
  "See Plus": "Plus देखो",
  "Send": "भेजो",
  "Send a new code": "नया कोड भेजो",
@@ -1168,6 +1170,7 @@
  "Two halves, one heart.": "दो हिस्से, एक दिल।",
  "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "दो तस्वीरें, सात अंतर, तुम दोनों एक साथ ढूँढो। जो अंतर पहले टैप करेगा, वो उसका; जिसके ज़्यादा, वो जीता।",
  "Undo": "अनडू",
+ "Unlimited": "असीमित",
  "Unlinks you both and stops every dare": "दोनों का लिंक हटेगा और हर चुनौती बंद होगी",
  "Until": "कब तक",
  "Until tomorrow": "कल तक",
@@ -1383,6 +1386,10 @@
   "one": "{count} ड्रॉइंग बूझी",
   "other": "{count} ड्रॉइंग बूझीं"
  },
+ "{count} each|{count} each": {
+  "one": "हर किसी की {count}",
+  "other": "हर किसी की {count}"
+ },
  "{count} guess left|{count} guesses left": {
   "one": "{count} अंदाज़ा बचा",
   "other": "{count} अंदाज़े बचे"
@@ -1553,6 +1560,7 @@
  "{minutes} min ago": "{minutes} मिनट पहले",
  "{partner} added": "{partner} ने जोड़ा",
  "{partner} agreed. Today goes on your page as a peeled heart.": "{partner} ने हाँ कह दी। आज का दिन तुम्हारे पेज पर उखड़े दिल की तरह लगेगा।",
+ "{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "{partner} की मुफ़्त रोज़ की चुनौती पहले से है। पहले उसे रोको या बंद करो, या असीमित चुनौतियों के लिए Heartpact Plus लो।",
  "{partner} answered at {time}. Send yours and you'll both see each other's.": "{partner} ने {time} पर जवाब दिया। तुम भी भेजो, फिर दोनों को एक-दूसरे का जवाब दिखेगा।",
  "{partner} answered · answer to see theirs": "{partner} ने जवाब दिया · उनका देखने के लिए तुम भी दो",
  "{partner} answered. Send yours and you'll both see each other's.": "{partner} ने जवाब दिया। तुम भी भेजो, फिर दोनों को एक-दूसरे का जवाब दिखेगा।",

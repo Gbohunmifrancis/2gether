@@ -104,6 +104,9 @@ public static class DependencyInjection
         var defaults = new BillingSettings();
         int Int(string key, int fallback) => int.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
         long Long(string key, long fallback) => long.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
+        // Active dares: a positive number caps them, "0" or "none" lifts the cap, unset keeps the default.
+        int? Dares(string key, int? fallback) => configuration[key] is not { } text ? fallback
+            : int.TryParse(text, out var value) && value > 0 ? value : text.Trim() is "0" or "none" ? null : fallback;
         return new BillingSettings
         {
             Provider = configuration["Billing:Provider"],
@@ -111,8 +114,8 @@ public static class DependencyInjection
             GooglePlayCredentialsJson = configuration["Billing:GooglePlayCredentialsJson"],
             ProductIds = (configuration["Billing:ProductIds"] ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             RtdnSecret = configuration["Billing:RtdnSecret"],
-            Free = new PlanLimits(Int("Billing:Free:FoodScansPerDay", defaults.Free.FoodScansPerDay), Long("Billing:Free:MemoriesBytes", defaults.Free.MemoriesBytes), Int("Billing:Free:QuestionHistoryDays", defaults.Free.QuestionHistoryDays)),
-            Plus = new PlanLimits(Int("Billing:Plus:FoodScansPerDay", defaults.Plus.FoodScansPerDay), Long("Billing:Plus:MemoriesBytes", defaults.Plus.MemoriesBytes), Int("Billing:Plus:QuestionHistoryDays", defaults.Plus.QuestionHistoryDays))
+            Free = new PlanLimits(Int("Billing:Free:FoodScansPerDay", defaults.Free.FoodScansPerDay), Long("Billing:Free:MemoriesBytes", defaults.Free.MemoriesBytes), Int("Billing:Free:QuestionHistoryDays", defaults.Free.QuestionHistoryDays), Dares("Billing:Free:ActiveDaresPerPerson", defaults.Free.ActiveDaresPerPerson)),
+            Plus = new PlanLimits(Int("Billing:Plus:FoodScansPerDay", defaults.Plus.FoodScansPerDay), Long("Billing:Plus:MemoriesBytes", defaults.Plus.MemoriesBytes), Int("Billing:Plus:QuestionHistoryDays", defaults.Plus.QuestionHistoryDays), Dares("Billing:Plus:ActiveDaresPerPerson", defaults.Plus.ActiveDaresPerPerson))
         };
     }
 

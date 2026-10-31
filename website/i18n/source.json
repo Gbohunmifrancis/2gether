@@ -355,7 +355,7 @@
    "index.html"
   ]
  },
- "Unlimited dares, alarms and camera counting": {
+ "One daily dare each, with the alarm and camera counting": {
   "kind": "text",
   "pages": [
    "index.html"
@@ -392,6 +392,12 @@
   ]
  },
  "or $39.99 a year (about $3.33 a month) · either of you can pay": {
+  "kind": "text",
+  "pages": [
+   "index.html"
+  ]
+ },
+ "Unlimited daily dares, several a day if you like": {
   "kind": "text",
   "pages": [
    "index.html"

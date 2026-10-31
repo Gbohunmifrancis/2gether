@@ -70,6 +70,7 @@ builder.Services.AddHostedService<ExerciseAlarmWorker>();
 builder.Services.AddHostedService<MemoryCleanupWorker>();
 builder.Services.AddHostedService<PushDispatchWorker>();
 builder.Services.AddHostedService<AlbumSyncReminderWorker>();
+builder.Services.AddHostedService<PlanAlertsWorker>();
 builder.Services.AddHostedService<LocationSweepWorker>();
 builder.Services.AddHostedService<AdminAuditSweepWorker>();
 

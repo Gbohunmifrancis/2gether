@@ -20,6 +20,9 @@ class PushInboxTest {
     @Test fun `taps open the tab the news is about`() {
         assertEquals("today", PushInbox.tabFor("exerciseCallOffAsked"))
         assertEquals("album", PushInbox.tabFor("memoriesSynced"))
+        assertEquals("album", PushInbox.tabFor("albumAlmostFull"))
+        assertEquals("today", PushInbox.tabFor("exercisePausedByPlan"))
+        assertEquals("us", PushInbox.tabFor("plusEnding"))
         assertEquals("us", PushInbox.tabFor("dailyQuestionAnswered"))
         // A game invite, a turn waiting, a game ended or declined: straight to the games, not the Us tab.
         listOf("gameInvite", "gameTurn", "gameEnded", "gameStarted").forEach { assertEquals(PushInbox.GAMES, PushInbox.tabFor(it)) }

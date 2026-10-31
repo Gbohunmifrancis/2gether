@@ -218,6 +218,7 @@
  "Dare updated": "Reto actualizado",
  "Date must be yesterday, today or tomorrow in yyyy-MM-dd.": "La fecha debe ser ayer, hoy o mañana, en formato aaaa-MM-dd.",
  "Date must look like yyyy-MM-dd.": "La fecha debe tener el formato aaaa-MM-dd.",
+ "Delete a few shared photos to make room for new ones.": "Borra algunas fotos compartidas para hacer sitio a las nuevas.",
  "Depends on the day": "Depende del día",
  "Description must be at most {max} characters.": "La descripción puede tener {max} caracteres como máximo.",
  "Diamond": "El diamante",
@@ -325,6 +326,8 @@
  "heart": "corazón",
  "Heart to heart expects a score.": "Corazón a corazón espera un puntaje.",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact es para adultos. Necesitas tener 18 años o más para registrarte.",
+ "Heartpact Plus ends soon": "Heartpact Plus termina pronto",
+ "Heartpact Plus gives you {plus} for both of you, or delete a few shared photos.": "Heartpact Plus os da {plus} a los dos, o borra algunas fotos compartidas.",
  "Helium": "Helio",
  "High knees": "Rodillas arriba",
  "Hip-hop": "Hip-hop",
@@ -598,6 +601,10 @@
  "Play every instrument": "Tocar todos los instrumentos",
  "Play one English word of two letters or more, A to Z only.": "Juega una sola palabra en inglés de dos letras o más, solo de la A a la Z.",
  "Plums": "Ciruelas",
+ "Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.|Plus ends in {count} days. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.": {
+  "one": "Plus termina en {count} día. Después volvéis los dos al plan gratuito: un reto diario para cada uno, menos estimaciones por foto y menos espacio en el álbum.",
+  "other": "Plus termina en {count} días. Después volvéis los dos al plan gratuito: un reto diario para cada uno, menos estimaciones por foto y menos espacio en el álbum."
+ },
  "Pop": "Pop",
  "Popcorn": "Palomitas",
  "Portion must be between {min}x and {max}x the photo.": "La porción debe estar entre {min}x y {max}x lo que se ve en la foto.",
@@ -792,6 +799,8 @@
  "The file has not finished uploading yet.": "El archivo todavía no termina de subirse.",
  "The file is empty.": "El archivo está vacío.",
  "The food": "La comida",
+ "The free plan has one daily dare each, and you already have yours. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "El plan gratuito incluye un reto diario para cada uno, y ya tienes el tuyo. Ponlo en pausa o termínalo primero, o hazte Heartpact Plus para retos ilimitados.",
+ "The free plan has one daily dare each, and {name} already has theirs. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "El plan gratuito incluye un reto diario para cada uno, y {name} ya tiene el suyo. Ponlo en pausa o termínalo primero, o hazte Heartpact Plus para retos ilimitados.",
  "The game is not in progress.": "El juego no está en curso.",
  "The game state changed. The latest board has been loaded.": "El juego cambió. Ya se cargó el tablero más reciente.",
  "The Gobi": "El Gobi",
@@ -884,6 +893,7 @@
  "Title must be at most {max} characters.": "El título puede tener {max} caracteres como máximo.",
  "To cook": "A cocinar",
  "To dance": "A bailar",
+ "To keep it, turn renewal back on in Google Play.": "Para mantenerlo, vuelve a activar la renovación en Google Play.",
  "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.": "El reto de hoy ya sonó o ya está hecho. Empiézalo desde la alarma o inténtalo mañana.",
  "Tokyo": "Tokio",
  "Tomato": "Tomate",
@@ -1226,6 +1236,8 @@
  "Your perfect birthday?": "¿Tu cumpleaños perfecto?",
  "Your perfect breakfast?": "¿Tu desayuno perfecto?",
  "Your road trip music?": "¿Tu música para viajar en carretera?",
+ "Your shared album is almost full": "Vuestro álbum compartido está casi lleno",
+ "Your shared album is filling up": "Vuestro álbum compartido se está llenando",
  "Your shared album is full. Heartpact Plus gives you more room, or remove some memories.": "Su álbum compartido está lleno. Heartpact Plus te da más espacio, o borra algunos recuerdos.",
  "Your shared album is full. Remove some memories to add more.": "Su álbum compartido está lleno. Borra algunos recuerdos para agregar más.",
  "Your superpower of choice?": "¿Qué superpoder elegirías?",
@@ -1233,6 +1245,7 @@
  "Your turn in Heart to heart": "Te toca en Corazón a corazón",
  "Your word has to start with {letter}.": "Tu palabra tiene que empezar con {letter}.",
  "Your workout of choice?": "¿Tu ejercicio favorito?",
+ "Your {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": "Tu reto {dare} está en pausa: el plan gratuito incluye un reto diario para cada uno. Hazte Heartpact Plus para mantenerlos todos, o pausa otro y reanuda este.",
  "Yuri Gagarin": "Yuri Gagarin",
  "{count} day until period|{count} days until period": {
   "one": "{count} día para el periodo",
@@ -1292,5 +1305,7 @@
  "{name} shared pregnancy mode with you.": "{name} compartió el modo embarazo contigo.",
  "{name} updated {dare} for themselves: {target} at {time}.": "{name} actualizó su propio reto: {dare}, {target} a las {time}.",
  "{name} updated {dare} for you: {target} at {time}.": "{name} actualizó tu reto: {dare}, {target} a las {time}.",
- "{name} updated {dare}: {target} at {time}.": "{name} actualizó un reto: {dare}, {target} a las {time}."
+ "{name} updated {dare}: {target} at {time}.": "{name} actualizó un reto: {dare}, {target} a las {time}.",
+ "{name}'s {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": "El reto {dare} de {name} está en pausa: el plan gratuito incluye un reto diario para cada uno. Hazte Heartpact Plus para mantenerlos todos, o pausa otro y reanuda este.",
+ "{used} of {limit} used.": "{used} de {limit} usados."
 }

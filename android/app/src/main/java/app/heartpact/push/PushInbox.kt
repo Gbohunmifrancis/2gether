@@ -17,7 +17,7 @@ object PushInbox {
     fun tabFor(type: String?): String = when {
         type == null -> "today"
         type.startsWith("exercise") -> "today"
-        type == "memoriesSynced" || type == "albumSyncReminder" -> "album"
+        type == "memoriesSynced" || type == "albumSyncReminder" || type == "albumAlmostFull" -> "album"
         type.startsWith("game") -> GAMES
         else -> "us"
     }

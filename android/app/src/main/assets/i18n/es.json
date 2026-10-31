@@ -237,6 +237,7 @@
  "Cycle settings": "Ajustes del ciclo",
  "Daily aim, about {calories} kcal. Change it.": "Meta diaria, unas {calories} kcal. Cambiarla.",
  "Daily aim, kcal": "Meta diaria, kcal",
+ "Daily dares": "Retos diarios",
  "Daily totals: {partner} sees your day's range, not the meals": "Totales diarios: {partner} ve el rango de tu día, no las comidas",
  "Daily {time} · for {partner} · {minutes} min ring": "Diario a las {time} · para {partner} · suena {minutes} min",
  "Daily {time} · {partner}'s dare · {minutes} min ring": "Diario a las {time} · reto de {partner} · suena {minutes} min",
@@ -920,6 +921,7 @@
  "Score {score}. {pass} cleared it.": "Puntuación {score}. Hacía falta {pass}.",
  "Search": "Buscar",
  "Seconds": "Segundos",
+ "See Heartpact Plus": "Ver Heartpact Plus",
  "See Plus": "Ver Plus",
  "Send": "Enviar",
  "Send a new code": "Enviar otro código",
@@ -1168,6 +1170,7 @@
  "Two halves, one heart.": "Dos mitades, un corazón.",
  "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "Dos imágenes, siete diferencias y los dos buscando a la vez. Toca una primero para ganarla; quien encuentre más gana.",
  "Undo": "Deshacer",
+ "Unlimited": "Ilimitados",
  "Unlinks you both and stops every dare": "Los desvincula y detiene todos los retos",
  "Until": "Hasta",
  "Until tomorrow": "Hasta mañana",
@@ -1383,6 +1386,10 @@
   "one": "{count} dibujo adivinado",
   "other": "{count} dibujos adivinados"
  },
+ "{count} each|{count} each": {
+  "one": "{count} cada uno",
+  "other": "{count} cada uno"
+ },
  "{count} guess left|{count} guesses left": {
   "one": "Te queda {count} intento",
   "other": "Te quedan {count} intentos"
@@ -1553,6 +1560,7 @@
  "{minutes} min ago": "hace {minutes} min",
  "{partner} added": "Lo agregó {partner}",
  "{partner} agreed. Today goes on your page as a peeled heart.": "{partner} aceptó. Hoy queda en tu página como un corazón despegado.",
+ "{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "{partner} ya tiene su reto diario gratuito. Ponlo en pausa o termínalo primero, o hazte Heartpact Plus para retos ilimitados.",
  "{partner} answered at {time}. Send yours and you'll both see each other's.": "{partner} respondió a las {time}. Envía la tuya y los dos verán la respuesta del otro.",
  "{partner} answered · answer to see theirs": "{partner} respondió · responde para verla",
  "{partner} answered. Send yours and you'll both see each other's.": "{partner} ya respondió. Envía la tuya y los dos verán la respuesta del otro.",

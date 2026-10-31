@@ -9,16 +9,17 @@ public static class NotificationRouting
 {
     public static NotificationCategory CategoryOf(NotificationType type) => type switch
     {
-        NotificationType.CoupleConnected or NotificationType.Breakup => NotificationCategory.Couple,
+        // Plus ending changes what the app can do for both of them, like linking: always delivered.
+        NotificationType.CoupleConnected or NotificationType.Breakup or NotificationType.PlusEnding => NotificationCategory.Couple,
         NotificationType.ExerciseDue => NotificationCategory.Alarm,
         NotificationType.Message => NotificationCategory.Messages,
         NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.GameEnded or NotificationType.GameTurn => NotificationCategory.Games,
         NotificationType.ExerciseCompleted or NotificationType.ExerciseMissed or NotificationType.ExerciseCancelled or NotificationType.ExerciseGoalChanged
-            or NotificationType.ExerciseCallOffAsked => NotificationCategory.Exercise,
+            or NotificationType.ExerciseCallOffAsked or NotificationType.ExercisePausedByPlan => NotificationCategory.Exercise,
         NotificationType.CycleUpdated => NotificationCategory.Cycle,
         NotificationType.PregnancyUpdated => NotificationCategory.Pregnancy,
         NotificationType.DailyQuestionAnswered => NotificationCategory.DailyQuestions,
-        NotificationType.MemoriesSynced or NotificationType.AlbumSyncReminder => NotificationCategory.Album,
+        NotificationType.MemoriesSynced or NotificationType.AlbumSyncReminder or NotificationType.AlbumAlmostFull => NotificationCategory.Album,
         // A new type must be placed deliberately; a test walks every value.
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Notification type has no category.")
     };

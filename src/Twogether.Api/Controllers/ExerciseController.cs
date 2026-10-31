@@ -7,6 +7,7 @@ using Twogether.Api.Common;
 using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Billing;
 using Twogether.Application.Features.Exercise;
 using Twogether.Application.Features.Notifications;
 using Twogether.Core.Entities;
@@ -24,6 +25,7 @@ public sealed class ExerciseController(
     IDateTimeProvider clock,
     IHubContext<CoupleHub> hub,
     IPlayIntegrityVerifier integrity,
+    Twogether.Application.Features.Billing.IEntitlementService entitlements,
     ILogger<ExerciseController> logger) : ApiControllerBase
 {
     private static ApiError NoCouple => new("exercise.no_couple", Loc.T("Link your partner before setting goals."));
@@ -33,6 +35,19 @@ public sealed class ExerciseController(
     private static ApiError NotDueToday => new("exercise.not_due_today", Loc.T("Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow."));
     private static ApiError AlreadyAsked => new("exercise.already_asked", Loc.T("You already asked to call off today."));
     private static ApiError VersionConflict => new("exercise.version_conflict", Loc.T("Someone else just changed this. Refresh and try again."));
+    private static ApiError DareLimit(bool forMe, string name) => new("exercise.dare_limit", forMe
+        ? Loc.T("The free plan has one daily dare each, and you already have yours. Pause or stop it first, or get Heartpact Plus for unlimited dares.")
+        : Loc.T("The free plan has one daily dare each, and {name} already has theirs. Pause or stop it first, or get Heartpact Plus for unlimited dares.", ("name", name)));
+
+    /// <summary>Whether one more active dare fits for <paramref name="assigneeId"/> under the couple's plan.</summary>
+    private async Task<bool> DareFitsAsync(Couple couple, Guid assigneeId, Guid? excludingGoalId, CancellationToken cancellationToken)
+    {
+        var limit = (await entitlements.ForUserAsync(currentUser.UserId!.Value, cancellationToken)).Limits.ActiveDaresPerPerson;
+        if (limit is null) return true;
+        var active = await db.ExerciseGoals.CountAsync(item => item.CoupleId == couple.Id && item.AssignedUserId == assigneeId && item.IsActive
+            && item.Id != excludingGoalId, cancellationToken);
+        return DareLimits.Fits(limit, active);
+    }
 
     [HttpGet("catalog")]
     public ActionResult<IReadOnlyList<ExerciseDefinitionDto>> Catalog()
@@ -62,6 +77,8 @@ public sealed class ExerciseController(
         var rules = ExerciseGoalRules.Validate(request.ExerciseType, request.Title, request.Target, request.TimeZoneId, request.GraceMinutes);
         if (rules.IsFailure) return Problem(rules.Error);
         if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", Loc.T("Goals can only be assigned to you or your partner.")));
+        if (!await DareFitsAsync(couple, request.AssignedUserId, null, cancellationToken))
+            return StatusCode(StatusCodes.Status403Forbidden, DareLimit(request.AssignedUserId == currentUser.UserId.Value, Name(await NamesAsync(couple, cancellationToken), request.AssignedUserId)));
 
         var now = clock.UtcNow;
         var zone = ExerciseGoalRules.ZoneFor(request.TimeZoneId, currentUser.UserId.Value, request.AssignedUserId, await AssigneeZoneAsync(request.AssignedUserId, cancellationToken));
@@ -90,6 +107,11 @@ public sealed class ExerciseController(
         var rules = ExerciseGoalRules.Validate(request.ExerciseType, request.Title, request.Target, request.TimeZoneId, request.GraceMinutes);
         if (rules.IsFailure) return Problem(rules.Error);
         if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError("exercise.invalid_assignee", Loc.T("Goals can only be assigned to you or your partner.")));
+
+        // Resuming a paused dare, or handing an active one to the other partner, takes one of their slots.
+        var takesSlot = request.IsActive && (!goal.IsActive || goal.AssignedUserId != request.AssignedUserId);
+        if (takesSlot && !await DareFitsAsync(couple, request.AssignedUserId, goal.Id, cancellationToken))
+            return StatusCode(StatusCodes.Status403Forbidden, DareLimit(request.AssignedUserId == currentUser.UserId.Value, Name(await NamesAsync(couple, cancellationToken), request.AssignedUserId)));
 
         var now = clock.UtcNow;
         var deactivating = goal.IsActive && !request.IsActive;

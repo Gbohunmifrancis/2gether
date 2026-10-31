@@ -603,9 +603,10 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val couple by appModel.couple.collectAsStateWithLifecycle()
                         val session by appModel.session.collectAsStateWithLifecycle()
                         val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id } ?: return@composable
-                        val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId) } })
+                        val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId, container.plus) } })
                         val state by model.state.collectAsStateWithLifecycle()
-                        NewDareScreen(state, partner.displayName, model::type, model::step, model::time, model::window, { model.send { nav.popBackStack() } }, onBack = { nav.popBackStack() })
+                        NewDareScreen(state, partner.displayName, model::type, model::step, model::time, model::window, { model.send { nav.popBackStack() } }, onBack = { nav.popBackStack() },
+                            onGetPlus = { nav.navigate(Routes.PLUS) })
                     }
                 }
             }

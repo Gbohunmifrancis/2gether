@@ -23,5 +23,11 @@ public enum NotificationType
     /// <summary>To the partner: the person whose alarm is ringing asks to be let off today.</summary>
     ExerciseCallOffAsked,
     /// <summary>To the partner whose turn it now is in a turn-by-turn game, when they are not in the app; not again until read.</summary>
-    GameTurn
+    GameTurn,
+    /// <summary>To both: a dare past the free plan's limit was paused as it came due (Plus had ended).</summary>
+    ExercisePausedByPlan,
+    /// <summary>To both: the shared album passed 80% or 95% of the plan's room.</summary>
+    AlbumAlmostFull,
+    /// <summary>To both: Plus ends in a few days and won't renew (cancelled, or a complimentary grant running out).</summary>
+    PlusEnding
 }

@@ -198,7 +198,7 @@
    "app/heartpact/ui/auth/SignUp.kt:132",
    "app/heartpact/ui/games/TruthOrDareBoard.kt:101",
    "app/heartpact/ui/plus/PlusScreen.kt:160",
-   "app/heartpact/ui/today/NewDare.kt:174"
+   "app/heartpact/ui/today/NewDare.kt:195"
   ],
   "code": "HeartButton(tr(\"Done\"), onDone, Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp, bottom = 12.dp))"
  },
@@ -489,33 +489,47 @@
   ],
   "code": "return tr(\"{size} MB\", \"size\" to (bytes / (1024.0 * 1024)).roundToInt())"
  },
- "Food photo scans a day": {
+ "Daily dares": {
   "plural": false,
   "uses": [
    "app/heartpact/billing/PlusOffers.kt:118"
+  ],
+  "code": "Triple(tr(\"Daily dares\"), dares(free.activeDaresPerPerson), dares(plus.activeDaresPerPerson)),"
+ },
+ "Food photo scans a day": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlusOffers.kt:119"
   ],
   "code": "Triple(tr(\"Food photo scans a day\"), free.foodScansPerDay.toString(), plus.foodScansPerDay.toString()),"
  },
  "Album space": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:119"
+   "app/heartpact/billing/PlusOffers.kt:120"
   ],
   "code": "Triple(tr(\"Album space\"), storage(free.memoriesBytes), storage(plus.memoriesBytes)),"
  },
  "Question history": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:120"
+   "app/heartpact/billing/PlusOffers.kt:121"
   ],
   "code": "Triple(tr(\"Question history\"), trn(free.questionHistoryDays, \"{count} day\", \"{count} days\"), trn(plus.questionHistoryDays, \"{count} day\", \"{count} days\")),"
+ },
+ "Unlimited": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlusOffers.kt:125"
+  ],
+  "code": "fun dares(limit: Int?): String = limit?.let { trn(it, \"{count} each\", \"{count} each\") } ?: tr(\"Unlimited\")"
  },
  "{count} day|{count} days": {
   "plural": true,
   "uses": [
    "app/heartpact/billing/PlusOffers.kt:51",
-   "app/heartpact/billing/PlusOffers.kt:120",
-   "app/heartpact/billing/PlusOffers.kt:120",
+   "app/heartpact/billing/PlusOffers.kt:121",
+   "app/heartpact/billing/PlusOffers.kt:121",
    "app/heartpact/ui/cycle/CycleScreen.kt:283",
    "app/heartpact/ui/cycle/CycleScreen.kt:284"
   ],
@@ -585,6 +599,15 @@
   "code": "else -> trn(amount, \"{price} a year\", \"{price} every {count} years\", \"price\" to price)",
   "one": "{price} a year",
   "other": "{price} every {count} years"
+ },
+ "{count} each|{count} each": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/billing/PlusOffers.kt:125"
+  ],
+  "code": "fun dares(limit: Int?): String = limit?.let { trn(it, \"{count} each\", \"{count} each\") } ?: tr(\"Unlimited\")",
+  "one": "{count} each",
+  "other": "{count} each"
  },
  "You're offline. Check your connection and try again.": {
   "plural": false,
@@ -1823,7 +1846,7 @@
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:293",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:300",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:309",
-   "app/heartpact/ui/today/NewDare.kt:175",
+   "app/heartpact/ui/today/NewDare.kt:196",
    "app/heartpact/ui/us/ProfileScreen.kt:151",
    "app/heartpact/ui/us/ProfileScreen.kt:188",
    "app/heartpact/ui/us/UsScreens.kt:305"
@@ -2823,7 +2846,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/cycle/CycleScreen.kt:139",
-   "app/heartpact/ui/today/NewDare.kt:144"
+   "app/heartpact/ui/today/NewDare.kt:161"
   ],
   "code": "Text(if (more) tr(\"Less\") else tr(\"More\"), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clickable { more = !more })"
  },
@@ -7202,7 +7225,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/pacts/Pacts.kt:112",
-   "app/heartpact/ui/today/NewDare.kt:134",
+   "app/heartpact/ui/today/NewDare.kt:151",
    "app/heartpact/ui/today/TodayTab.kt:117"
   ],
   "code": "HeartButton(tr(\"New dare for {partner}\", \"partner\" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)"
@@ -9653,79 +9676,93 @@
  "Exercise": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:136"
+   "app/heartpact/ui/today/NewDare.kt:153"
   ],
   "code": "Text(tr(\"Exercise\"), style = Heartpact.type.label, color = colors.ink)"
  },
  "Seconds": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:140"
+   "app/heartpact/ui/today/NewDare.kt:157"
   ],
   "code": "Text(if (state.type.measure == Measure.Seconds) tr(\"Seconds\") else tr(\"Reps\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "Reps": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:140"
+   "app/heartpact/ui/today/NewDare.kt:157"
   ],
   "code": "Text(if (state.type.measure == Measure.Seconds) tr(\"Seconds\") else tr(\"Reps\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "Fewer": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:142"
+   "app/heartpact/ui/today/NewDare.kt:159"
   ],
   "code": "IconButton(onClick = { onStep(-step) }, modifier = Modifier.clip(Shapes.Pill).background(colors.sticker)) { Icon(Icons.Rounded.Remove, tr(\"Fewer\"), tint = colors.ink) }"
  },
  "Rings every day at": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:146"
+   "app/heartpact/ui/today/NewDare.kt:163"
   ],
   "code": "Text(tr(\"Rings every day at\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "That's {partner}'s time ({zone}), where it's {time} now.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:149"
+   "app/heartpact/ui/today/NewDare.kt:166"
   ],
   "code": "Text(tr(\"That's {partner}'s time ({zone}), where it's {time} now.\", \"partner\" to partnerName,"
  },
  "Rings for up to": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:153"
+   "app/heartpact/ui/today/NewDare.kt:170"
   ],
   "code": "Text(tr(\"Rings for up to\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "{minutes} min": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:155"
+   "app/heartpact/ui/today/NewDare.kt:172"
   ],
   "code": "listOf(10, 20, 30).forEach { HeartChip(tr(\"{minutes} min\", \"minutes\" to it), state.window == it, { onWindow(it) }) }"
  },
  "If it isn't done by {start}, {partner}'s phone rings until the camera counts {target}, you both call it off, or {end} passes. {partner} can always silence it on their phone.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:157"
+   "app/heartpact/ui/today/NewDare.kt:174"
   ],
   "code": "Text(tr(\"If it isn't done by {start}, {partner}'s phone rings until the camera counts {target}, you both call it off, or {end} passes. {partner} can always silence it on their phone.\","
  },
  "Your half sticks when you send it. {partner}'s sticks when the camera counts {target}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:163"
+   "app/heartpact/ui/today/NewDare.kt:180"
   ],
   "code": "Text(tr(\"Your half sticks when you send it. {partner}'s sticks when the camera counts {target}.\", \"partner\" to partnerName, \"target\" to state.target), style = Heartpact.type.body.copy(fontSize = 13.sp"
+ },
+ "{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/today/NewDare.kt:185"
+  ],
+  "code": "state.atLimit -> NoteCard(tr(\"{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.\", \"partner\" to partnerName))"
+ },
+ "See Heartpact Plus": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/today/NewDare.kt:187"
+  ],
+  "code": "if (state.atLimit && onGetPlus != null) HeartButton(tr(\"See Heartpact Plus\"), onGetPlus, kind = ButtonKind.Tonal)"
  },
  "Stick my half and send": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:168"
+   "app/heartpact/ui/today/NewDare.kt:189"
   ],
-  "code": "HeartButton(tr(\"Stick my half and send\"), onSend, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy)"
+  "code": "HeartButton(tr(\"Stick my half and send\"), onSend, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy, enabled = !state.atLimit)"
  },
  "Your turn": {
   "plural": false,

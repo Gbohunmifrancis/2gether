@@ -9,10 +9,11 @@
  "Your partner": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:154",
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:156",
    "Twogether.Api/Background/ExerciseAlarmWorker.cs:191",
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:197",
-   "Twogether.Api/Controllers/ExerciseController.cs:537",
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:233",
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:239",
+   "Twogether.Api/Controllers/ExerciseController.cs:559",
    "Twogether.Api/Controllers/FoodController.cs:85",
    "Twogether.Api/Controllers/MemoriesController.Sync.cs:201",
    "Twogether.Api/Controllers/MemoriesController.cs:431",
@@ -24,40 +25,120 @@
   ],
   "code": "await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.AlarmStarted, ExerciseMapper.ToDto(occurrence, names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\")), cancellationToken);"
  },
+ "Your {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:189"
+  ],
+  "code": "? Loc.T(\"Your {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.\", (\"dare\", dare))"
+ },
+ "{name}'s {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:190"
+  ],
+  "code": ": Loc.T(\"{name}'s {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.\","
+ },
+ "Dare paused": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:192",
+   "Twogether.Api/Controllers/ExerciseController.cs:523"
+  ],
+  "code": "notifications.Add(Notification.Create(userId, goal.CoupleId, NotificationType.ExercisePausedByPlan, Loc.T(\"Dare paused\"), body,"
+ },
  "Time to move": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:163"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:205"
   ],
   "code": "return Notification.Create(goal.AssignedUserId, goal.CoupleId, NotificationType.ExerciseDue, Loc.T(\"Time to move\"),"
  },
  "{dare}: {target}. The alarm stops when the camera counts you in.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:164"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:206"
   ],
   "code": "Loc.T(\"{dare}: {target}. The alarm stops when the camera counts you in.\", (\"dare\", ExerciseText.Title(goal.Title, goal.ExerciseType)),"
  },
  "You missed {dare} today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:190"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:232"
   ],
   "code": "? Loc.T(\"You missed {dare} today.\", (\"dare\", dare))"
  },
  "{name} missed {dare} today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:191"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:233"
   ],
   "code": ": Loc.T(\"{name} missed {dare} today.\", (\"name\", names.GetValueOrDefault(occurrence.UserId) ?? Loc.T(\"Your partner\")), (\"dare\", dare));"
  },
  "Dare missed": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Background/ExerciseAlarmWorker.cs:192"
+   "Twogether.Api/Background/ExerciseAlarmWorker.cs:234"
   ],
   "code": "notifications.Add(Notification.Create(userId, occurrence.CoupleId, NotificationType.ExerciseMissed, Loc.T(\"Dare missed\"), body, data, now));"
+ },
+ "{used} of {limit} used.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:96"
+  ],
+  "code": "var used = Loc.T(\"{used} of {limit} used.\", (\"used\", PlanAlerts.Size(album.Used)), (\"limit\", PlanAlerts.Size(plan.Limits.MemoriesBytes)));"
+ },
+ "Heartpact Plus gives you {plus} for both of you, or delete a few shared photos.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:98"
+  ],
+  "code": "? Loc.T(\"Heartpact Plus gives you {plus} for both of you, or delete a few shared photos.\", (\"plus\", PlanAlerts.Size(billing.Plus.MemoriesBytes)))"
+ },
+ "Delete a few shared photos to make room for new ones.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:99"
+  ],
+  "code": ": Loc.T(\"Delete a few shared photos to make room for new ones.\");"
+ },
+ "Your shared album is almost full": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:101"
+  ],
+  "code": "level >= 95 ? Loc.T(\"Your shared album is almost full\") : Loc.T(\"Your shared album is filling up\"),"
+ },
+ "Your shared album is filling up": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:101"
+  ],
+  "code": "level >= 95 ? Loc.T(\"Your shared album is almost full\") : Loc.T(\"Your shared album is filling up\"),"
+ },
+ "To keep it, turn renewal back on in Google Play.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:129"
+  ],
+  "code": "if (plan.Subscription is not null) body += \" \" + Loc.T(\"To keep it, turn renewal back on in Google Play.\");"
+ },
+ "Heartpact Plus ends soon": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:130"
+  ],
+  "code": "notifications.Add(Notification.Create(userId, couple.Id, NotificationType.PlusEnding, Loc.T(\"Heartpact Plus ends soon\"), body,"
+ },
+ "Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.|Plus ends in {count} days. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.": {
+  "plural": true,
+  "uses": [
+   "Twogether.Api/Background/PlanAlertsWorker.cs:127"
+  ],
+  "code": "var body = Loc.Plural(days, \"Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.\",",
+  "one": "Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.",
+  "other": "Plus ends in {count} days. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room."
  },
  "Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.": {
   "plural": false,
@@ -326,197 +407,204 @@
  "Link your partner before setting goals.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:29"
+   "Twogether.Api/Controllers/ExerciseController.cs:31"
   ],
   "code": "private static ApiError NoCouple => new(\"exercise.no_couple\", Loc.T(\"Link your partner before setting goals.\"));"
  },
  "This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:30"
+   "Twogether.Api/Controllers/ExerciseController.cs:32"
   ],
   "code": "private static ApiError AlarmActive => new(\"exercise.alarm_active\", Loc.T(\"This goal is ringing for you right now. Finish it on camera, or ask your partner to let you off today.\"));"
  },
  "This alarm is no longer active.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:31"
+   "Twogether.Api/Controllers/ExerciseController.cs:33"
   ],
   "code": "private static ApiError NotActive => new(\"exercise.not_active\", Loc.T(\"This alarm is no longer active.\"));"
  },
  "Only the person this alarm is for can do that.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:32"
+   "Twogether.Api/Controllers/ExerciseController.cs:34"
   ],
   "code": "private static ApiError NotAssignee => new(\"exercise.not_assignee\", Loc.T(\"Only the person this alarm is for can do that.\"));"
  },
  "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:33"
+   "Twogether.Api/Controllers/ExerciseController.cs:35"
   ],
   "code": "private static ApiError NotDueToday => new(\"exercise.not_due_today\", Loc.T(\"Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.\"));"
  },
  "You already asked to call off today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:34"
+   "Twogether.Api/Controllers/ExerciseController.cs:36"
   ],
   "code": "private static ApiError AlreadyAsked => new(\"exercise.already_asked\", Loc.T(\"You already asked to call off today.\"));"
  },
  "Someone else just changed this. Refresh and try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:35"
+   "Twogether.Api/Controllers/ExerciseController.cs:37"
   ],
   "code": "private static ApiError VersionConflict => new(\"exercise.version_conflict\", Loc.T(\"Someone else just changed this. Refresh and try again.\"));"
+ },
+ "The free plan has one daily dare each, and you already have yours. Pause or stop it first, or get Heartpact Plus for unlimited dares.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:39"
+  ],
+  "code": "? Loc.T(\"The free plan has one daily dare each, and you already have yours. Pause or stop it first, or get Heartpact Plus for unlimited dares.\")"
+ },
+ "The free plan has one daily dare each, and {name} already has theirs. Pause or stop it first, or get Heartpact Plus for unlimited dares.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/ExerciseController.cs:40"
+  ],
+  "code": ": Loc.T(\"The free plan has one daily dare each, and {name} already has theirs. Pause or stop it first, or get Heartpact Plus for unlimited dares.\", (\"name\", name)));"
  },
  "Goals can only be assigned to you or your partner.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:64",
-   "Twogether.Api/Controllers/ExerciseController.cs:92"
+   "Twogether.Api/Controllers/ExerciseController.cs:79",
+   "Twogether.Api/Controllers/ExerciseController.cs:109"
   ],
   "code": "if (!IsMember(couple, request.AssignedUserId)) return UnprocessableEntity(new ApiError(\"exercise.invalid_assignee\", Loc.T(\"Goals can only be assigned to you or your partner.\")));"
  },
  "{name} finished {dare}: {target}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:329"
+   "Twogether.Api/Controllers/ExerciseController.cs:351"
   ],
   "code": "var done = Loc.T(\"{name} finished {dare}: {target}.\", (\"name\", Name(names, occurrence.UserId)),"
  },
  "Dare done": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:331"
+   "Twogether.Api/Controllers/ExerciseController.cs:353"
   ],
   "code": "notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T(\"Dare done\") : Loc.T(\"Dare done, worth a look\"),"
  },
  "Dare done, worth a look": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:331"
+   "Twogether.Api/Controllers/ExerciseController.cs:353"
   ],
   "code": "notification = Notification.Create(partner, couple.Id, NotificationType.ExerciseCompleted, flagged is null ? Loc.T(\"Dare done\") : Loc.T(\"Dare done, worth a look\"),"
  },
  "{name} asks to call off today's {dare}": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:406"
+   "Twogether.Api/Controllers/ExerciseController.cs:428"
   ],
   "code": "Loc.T(\"{name} asks to call off today's {dare}\", (\"name\", asker), (\"dare\", ExerciseText.InSentence(occurrence.Title, occurrence.ExerciseType))),"
  },
  "Let {name} off today, or keep the alarm ringing.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:407"
+   "Twogether.Api/Controllers/ExerciseController.cs:429"
   ],
   "code": "note.Value ?? Loc.T(\"Let {name} off today, or keep the alarm ringing.\", (\"name\", asker)),"
  },
  "Dare set": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:497"
+   "Twogether.Api/Controllers/ExerciseController.cs:519"
   ],
   "code": "GoalChange.Set => (Loc.T(\"Dare set\"), forYou ? Loc.T(\"{name} set {dare} for you: {target} at {time}.\", args)"
  },
  "{name} set {dare} for you: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:497"
+   "Twogether.Api/Controllers/ExerciseController.cs:519"
   ],
   "code": "GoalChange.Set => (Loc.T(\"Dare set\"), forYou ? Loc.T(\"{name} set {dare} for you: {target} at {time}.\", args)"
  },
  "{name} set {dare} for themselves: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:498"
+   "Twogether.Api/Controllers/ExerciseController.cs:520"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} set {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} set {dare}: {target} at {time}.\", args)),"
  },
  "{name} set {dare}: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:498"
+   "Twogether.Api/Controllers/ExerciseController.cs:520"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} set {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} set {dare}: {target} at {time}.\", args)),"
  },
  "Dare updated": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:499"
+   "Twogether.Api/Controllers/ExerciseController.cs:521"
   ],
   "code": "GoalChange.Updated => (Loc.T(\"Dare updated\"), forYou ? Loc.T(\"{name} updated {dare} for you: {target} at {time}.\", args)"
  },
  "{name} updated {dare} for you: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:499"
+   "Twogether.Api/Controllers/ExerciseController.cs:521"
   ],
   "code": "GoalChange.Updated => (Loc.T(\"Dare updated\"), forYou ? Loc.T(\"{name} updated {dare} for you: {target} at {time}.\", args)"
  },
  "{name} updated {dare} for themselves: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:500"
+   "Twogether.Api/Controllers/ExerciseController.cs:522"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} updated {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} updated {dare}: {target} at {time}.\", args)),"
  },
  "{name} updated {dare}: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:500"
+   "Twogether.Api/Controllers/ExerciseController.cs:522"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} updated {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} updated {dare}: {target} at {time}.\", args)),"
- },
- "Dare paused": {
-  "plural": false,
-  "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:501"
-  ],
-  "code": "_ => (Loc.T(\"Dare paused\"), forYou ? Loc.T(\"{name} paused {dare} for you: {target} at {time}.\", args)"
  },
  "{name} paused {dare} for you: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:501"
+   "Twogether.Api/Controllers/ExerciseController.cs:523"
   ],
   "code": "_ => (Loc.T(\"Dare paused\"), forYou ? Loc.T(\"{name} paused {dare} for you: {target} at {time}.\", args)"
  },
  "{name} paused {dare} for themselves: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:502"
+   "Twogether.Api/Controllers/ExerciseController.cs:524"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} paused {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} paused {dare}: {target} at {time}.\", args)),"
  },
  "{name} paused {dare}: {target} at {time}.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:502"
+   "Twogether.Api/Controllers/ExerciseController.cs:524"
   ],
   "code": ": forThemselves ? Loc.T(\"{name} paused {dare} for themselves: {target} at {time}.\", args) : Loc.T(\"{name} paused {dare}: {target} at {time}.\", args)),"
  },
  "{dare} was changed while it was ringing, so today does not count.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:514"
+   "Twogether.Api/Controllers/ExerciseController.cs:536"
   ],
   "code": "? Loc.T(\"{dare} was changed while it was ringing, so today does not count.\", (\"dare\", dare))"
  },
  "{name} let you off {dare} today.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:515"
+   "Twogether.Api/Controllers/ExerciseController.cs:537"
   ],
   "code": ": Loc.T(\"{name} let you off {dare} today.\", (\"name\", Name(names, actorId)), (\"dare\", dare));"
  },
  "Skipped today": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/ExerciseController.cs:516"
+   "Twogether.Api/Controllers/ExerciseController.cs:538"
   ],
   "code": "return Notification.Create(occurrence.UserId, couple.Id, NotificationType.ExerciseCancelled, Loc.T(\"Skipped today\"), body,"
  },

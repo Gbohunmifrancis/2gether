@@ -218,6 +218,7 @@
  "Dare updated": "चुनौती बदली",
  "Date must be yesterday, today or tomorrow in yyyy-MM-dd.": "तारीख कल, आज या आने वाले कल की हो और yyyy-MM-dd में हो।",
  "Date must look like yyyy-MM-dd.": "तारीख yyyy-MM-dd जैसी होनी चाहिए।",
+ "Delete a few shared photos to make room for new ones.": "नई फ़ोटो के लिए जगह बनाने को कुछ शेयर्ड फ़ोटो हटा दो।",
  "Depends on the day": "दिन पर निर्भर",
  "Description must be at most {max} characters.": "ब्योरा ज़्यादा से ज़्यादा {max} कैरेक्टर का हो सकता है।",
  "Diamond": "हीरा",
@@ -325,6 +326,8 @@
  "heart": "दिल",
  "Heart to heart expects a score.": "दिल से दिल को एक स्कोर चाहिए।",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact बालिगों के लिए है। साइन अप करने के लिए 18 साल या उससे ज़्यादा उम्र होनी चाहिए।",
+ "Heartpact Plus ends soon": "Heartpact Plus जल्द खत्म हो रहा है",
+ "Heartpact Plus gives you {plus} for both of you, or delete a few shared photos.": "Heartpact Plus से तुम दोनों को {plus} मिलता है, या कुछ शेयर्ड फ़ोटो हटा दो।",
  "Helium": "हीलियम",
  "High knees": "हाई नीज़",
  "Hip-hop": "हिप-हॉप",
@@ -598,6 +601,10 @@
  "Play every instrument": "हर साज़ बजा पाना",
  "Play one English word of two letters or more, A to Z only.": "A से Z तक के अक्षरों में, दो या ज़्यादा अक्षरों का एक अंग्रेज़ी शब्द खेलो।",
  "Plums": "आलूबुखारा",
+ "Plus ends in {count} day. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.|Plus ends in {count} days. Then you're both on the free plan: one daily dare each, fewer photo estimates and less album room.": {
+  "one": "Plus {count} दिन में खत्म होगा। फिर तुम दोनों फ़्री प्लान पर आ जाओगे: हर किसी की एक रोज़ की चुनौती, कम फ़ोटो अनुमान और एल्बम में कम जगह।",
+  "other": "Plus {count} दिनों में खत्म होगा। फिर तुम दोनों फ़्री प्लान पर आ जाओगे: हर किसी की एक रोज़ की चुनौती, कम फ़ोटो अनुमान और एल्बम में कम जगह।"
+ },
  "Pop": "पॉप",
  "Popcorn": "पॉपकॉर्न",
  "Portion must be between {min}x and {max}x the photo.": "मात्रा फ़ोटो की {min}x से {max}x के बीच होनी चाहिए।",
@@ -792,6 +799,8 @@
  "The file has not finished uploading yet.": "फ़ाइल अभी पूरी अपलोड नहीं हुई है।",
  "The file is empty.": "फ़ाइल खाली है।",
  "The food": "खाना",
+ "The free plan has one daily dare each, and you already have yours. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "फ़्री प्लान में हर किसी की एक रोज़ की चुनौती होती है, और तुम्हारी पहले से है। पहले उसे रोको या बंद करो, या असीमित चुनौतियों के लिए Heartpact Plus लो।",
+ "The free plan has one daily dare each, and {name} already has theirs. Pause or stop it first, or get Heartpact Plus for unlimited dares.": "फ़्री प्लान में हर किसी की एक रोज़ की चुनौती होती है, और {name} की पहले से है। पहले उसे रोको या बंद करो, या असीमित चुनौतियों के लिए Heartpact Plus लो।",
  "The game is not in progress.": "गेम अभी नहीं चल रहा।",
  "The game state changed. The latest board has been loaded.": "गेम बदल गया है। सबसे नया बोर्ड लोड कर दिया गया है।",
  "The Gobi": "गोबी",
@@ -884,6 +893,7 @@
  "Title must be at most {max} characters.": "टाइटल ज़्यादा से ज़्यादा {max} कैरेक्टर का हो सकता है।",
  "To cook": "खाना बनाना",
  "To dance": "डांस",
+ "To keep it, turn renewal back on in Google Play.": "इसे रखने के लिए Google Play में रिन्यूअल फिर से चालू करो।",
  "Today's dare has already rung or is done. Start it from the alarm, or try again tomorrow.": "आज की चुनौती पहले ही बज चुकी है या पूरी हो चुकी है। अलार्म से शुरू करो, या कल फिर कोशिश करो।",
  "Tokyo": "टोक्यो",
  "Tomato": "टमाटर",
@@ -1226,6 +1236,8 @@
  "Your perfect birthday?": "तुम्हारा परफ़ेक्ट बर्थडे?",
  "Your perfect breakfast?": "तुम्हारा परफ़ेक्ट नाश्ता?",
  "Your road trip music?": "रोड ट्रिप पर तुम्हारा म्यूज़िक?",
+ "Your shared album is almost full": "तुम्हारा शेयर्ड एल्बम लगभग भर गया है",
+ "Your shared album is filling up": "तुम्हारा शेयर्ड एल्बम भर रहा है",
  "Your shared album is full. Heartpact Plus gives you more room, or remove some memories.": "तुम्हारा शेयर्ड एल्बम भर गया है। Heartpact Plus से ज़्यादा जगह मिलती है, या कुछ यादें हटा दो।",
  "Your shared album is full. Remove some memories to add more.": "तुम्हारा शेयर्ड एल्बम भर गया है। और जोड़ने के लिए कुछ यादें हटा दो।",
  "Your superpower of choice?": "तुम्हें कौन-सी सुपरपावर चाहिए?",
@@ -1233,6 +1245,7 @@
  "Your turn in Heart to heart": "दिल से दिल में तुम्हारी बारी",
  "Your word has to start with {letter}.": "तुम्हारा शब्द {letter} से शुरू होना चाहिए।",
  "Your workout of choice?": "तुम्हारी पसंदीदा कसरत?",
+ "Your {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": "तुम्हारी {dare} चुनौती रुक गई है: फ़्री प्लान में हर किसी की एक रोज़ की चुनौती होती है। सब रखने के लिए Heartpact Plus लो, या कोई दूसरी रोककर इसे फिर शुरू करो।",
  "Yuri Gagarin": "यूरी गागरिन",
  "{count} day until period|{count} days until period": {
   "one": "पीरियड में {count} दिन",
@@ -1292,5 +1305,7 @@
  "{name} shared pregnancy mode with you.": "{name} ने तुम्हारे साथ प्रेगनेंसी मोड शेयर किया है।",
  "{name} updated {dare} for themselves: {target} at {time}.": "{name} ने अपनी चुनौती बदली: {time} पर {dare}, {target}।",
  "{name} updated {dare} for you: {target} at {time}.": "{name} ने तुम्हारी चुनौती बदली: {time} पर {dare}, {target}।",
- "{name} updated {dare}: {target} at {time}.": "{name} ने चुनौती बदली: {time} पर {dare}, {target}।"
+ "{name} updated {dare}: {target} at {time}.": "{name} ने चुनौती बदली: {time} पर {dare}, {target}।",
+ "{name}'s {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.": "{name} की {dare} चुनौती रुक गई है: फ़्री प्लान में हर किसी की एक रोज़ की चुनौती होती है। सब रखने के लिए Heartpact Plus लो, या कोई दूसरी रोककर इसे फिर शुरू करो।",
+ "{used} of {limit} used.": "{limit} में से {used} इस्तेमाल हुआ।"
 }

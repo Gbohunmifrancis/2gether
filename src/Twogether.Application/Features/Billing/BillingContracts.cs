@@ -3,7 +3,8 @@ using Twogether.Shared.Results;
 
 namespace Twogether.Application.Features.Billing;
 
-public sealed record PlanLimits(int FoodScansPerDay, long MemoriesBytes, int QuestionHistoryDays);
+/// <param name="ActiveDaresPerPerson">How many daily dares can be active for each partner at once; null is no limit.</param>
+public sealed record PlanLimits(int FoodScansPerDay, long MemoriesBytes, int QuestionHistoryDays, int? ActiveDaresPerPerson = null);
 
 /// <summary>Bound from the "Billing" section.</summary>
 public sealed class BillingSettings
@@ -16,7 +17,7 @@ public sealed class BillingSettings
     public IReadOnlyList<string> ProductIds { get; init; } = [];
     /// <summary>Secret in the Pub/Sub push URL for real-time notifications.</summary>
     public string? RtdnSecret { get; init; }
-    public PlanLimits Free { get; init; } = new(3, 500L * 1024 * 1024, 7);
+    public PlanLimits Free { get; init; } = new(3, 500L * 1024 * 1024, 7, 1);
     public PlanLimits Plus { get; init; } = new(20, 2L * 1024 * 1024 * 1024, 90);
 
     public PlanLimits Limits(Plan plan) => plan == Plan.Plus ? Plus : Free;

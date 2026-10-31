@@ -50,12 +50,34 @@ another package name or an unknown signing key gets "Google Play isn't available
 
 | Limit | Free | Plus | Used by |
 |---|---|---|---|
+| Active daily dares per partner | 1 | no limit | `POST /api/exercise/goals`, `PUT /api/exercise/goals/{id}` (resuming, reassigning), the alarm worker |
 | Photo calorie scans per day | 3 | 20 | `POST /api/food/scans`, `GET /api/food/day` |
 | Shared album storage | 500 MB | 2 GB | `POST /api/memories/uploads`, `GET /api/memories/usage` |
 | Daily question history | 7 days | 90 days | `GET /api/questions/history` |
 
-The free loop stays free, as the research recommended: daily questions, streaks, camera-verified challenges and
-partner answers are never gated. Limits are configurable under `Billing:Free:*` and `Billing:Plus:*`.
+The free loop stays free, as the research recommended: daily questions, streaks, partner answers and a camera-verified
+daily dare for each partner are never gated; Plus adds more dares. Limits are configurable under `Billing:Free:*` and
+`Billing:Plus:*` (`ActiveDaresPerPerson`: a number, or `0`/`none` for no limit).
+
+### Dares over the limit
+
+Creating a dare, resuming a paused one, or handing an active one to the other partner past the limit is refused with
+403 `exercise.dare_limit`; the app says so on the new-dare screen before the form is filled in, with a way to Plus.
+When Plus ends with more dares running, nothing is deleted: as each extra dare comes due the alarm worker pauses it
+instead of ringing (the oldest keep ringing) and tells both partners (`exercisePausedByPlan`). Resuming it takes Plus or
+pausing another.
+
+## Alerts
+
+`PlanAlertsWorker` runs hourly and tells both partners once, reading what was already told back from the notifications:
+
+| Alert | When | Type, category |
+|---|---|---|
+| Album filling up / almost full | the shared album passes 80%, then 95%, of the plan's room (not again for 30 days at the same level) | `albumAlmostFull`, Album |
+| Plus ends soon | 3 days before a cancelled subscription or a complimentary grant ends (not again for 7 days) | `plusEnding`, Couple (always delivered) |
+
+In the app, the album offers Plus from 80% full, the food tab shows the photo estimates left today, and the new-dare
+screen shows when the partner's free dare is taken.
 
 ## Configuration
 

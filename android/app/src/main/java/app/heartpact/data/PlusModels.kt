@@ -8,7 +8,13 @@ import kotlinx.serialization.Serializable
 enum class Plan { @SerialName("free") Free, @SerialName("plus") Plus }
 
 @Serializable
-data class PlanLimits(val foodScansPerDay: Int = 0, val memoriesBytes: Long = 0, val questionHistoryDays: Int = 0)
+data class PlanLimits(
+    val foodScansPerDay: Int = 0,
+    val memoriesBytes: Long = 0,
+    val questionHistoryDays: Int = 0,
+    /** Active daily dares each partner can have at once; null is no limit (Plus, or an older server). */
+    val activeDaresPerPerson: Int? = null,
+)
 
 /** The subscription that gives the couple Plus. [status] stays a string: Google adds states. */
 @Serializable
