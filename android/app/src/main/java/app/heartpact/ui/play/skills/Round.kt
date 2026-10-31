@@ -121,7 +121,7 @@ internal fun newPlay(kind: SkillKind, seed: Long, difficulty: Difficulty = Diffi
 internal fun revealMs(score: Int): Long = 650L + score * 4 + 380 + 420
 
 @Composable
-internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null) {
+internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null, againLabel: String? = null) {
     val colors = Heartpact.colors
     val done by rememberUpdatedState(onDone)
     val scored = play.scored
@@ -153,7 +153,7 @@ internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, mod
         }
         Box(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 10.dp, bottom = 18.dp).height(56.dp), contentAlignment = Alignment.Center) {
             when {
-                result != null && onAgain != null -> HeartButton(tr("New round"), onAgain)
+                result != null && onAgain != null -> HeartButton(againLabel ?: tr("New round"), onAgain)
                 result == null && scored == null && play.hasControls -> play.Controls(Modifier.fillMaxWidth())
                 result == null && scored == null && onAgain != null -> HeartButton(tr("New round"), onAgain, kind = ButtonKind.Outline)
             }

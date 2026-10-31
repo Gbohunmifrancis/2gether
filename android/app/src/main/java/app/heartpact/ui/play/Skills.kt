@@ -92,18 +92,24 @@ fun SkillIcon(kind: SkillKind, tint: Color, size: Dp, modifier: Modifier = Modif
 }
 
 /**
- * Practice: rounds of one skill game, alone, as many as you like. Keeps the best score on the phone.
- * [onBack] leaves for the picker.
+ * Practice: one skill game, alone, a level at a time. Clear a level's pass mark and the next is harder; the best score
+ * and the level reached stay on the phone. [onBack] leaves for the picker.
  */
 @Composable
 fun SkillPracticeScreen(kind: SkillKind, onBack: () -> Unit) {
     PracticeScreen(kind, onBack, rememberSkillBests())
 }
 
-/** Best practice scores, kept on the phone. */
+/** Best practice scores and the levels reached, kept on the phone. */
 interface SkillBests {
     fun best(kind: SkillKind): Int?
     fun record(result: SkillResult)
+
+    /** The highest level opened in practice (where practice picks up), 1 before any is cleared. */
+    fun level(kind: SkillKind): Int = 1
+
+    /** Opens [level] (clearing the one before it). Only ever goes up. */
+    fun reach(kind: SkillKind, level: Int) {}
 
     companion object {
         /** The phone's own best scores (its preferences, keyed by [SkillKind.name]). */

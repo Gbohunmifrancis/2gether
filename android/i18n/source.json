@@ -1452,7 +1452,8 @@
    "app/heartpact/ui/album/AlbumTab.kt:193",
    "app/heartpact/ui/camera/CameraRep.kt:351",
    "app/heartpact/ui/food/FoodScan.kt:164",
-   "app/heartpact/ui/pair/Pair.kt:102"
+   "app/heartpact/ui/pair/Pair.kt:102",
+   "app/heartpact/ui/play/skills/Practice.kt:138"
   ],
   "code": "if (refused) TextButton(onClick = { onRetry(photo.clientId); openLocal = null }) { Text(tr(\"Try again\")) }"
  },
@@ -2570,7 +2571,7 @@
    "app/heartpact/ui/components/TopBar.kt:24",
    "app/heartpact/ui/food/FoodScan.kt:79",
    "app/heartpact/ui/map/MapScreen.kt:193",
-   "app/heartpact/ui/play/skills/Practice.kt:74"
+   "app/heartpact/ui/play/skills/Practice.kt:101"
   ],
   "code": "if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, tr(\"Back\"), tint = Heartpact.colors.ink2) }"
  },
@@ -4612,7 +4613,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/games/GamesHub.kt:218",
-   "app/heartpact/ui/play/skills/Practice.kt:112"
+   "app/heartpact/ui/play/skills/Practice.kt:173"
   ],
   "code": "bests.best(kind)?.let { Tag(tr(\"best {score}\", \"score\" to it), kind.colour.fill, kind.colour.ink) }"
  },
@@ -6839,6 +6840,59 @@
   ],
   "code": ".semantics { contentDescription = tr(\"An odd shape. Tap once where you think its center is.\") }"
  },
+ "Level {n}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:138",
+   "app/heartpact/ui/play/skills/LevelUp.kt:253",
+   "app/heartpact/ui/play/skills/LevelUp.kt:265"
+  ],
+  "code": "Text(tr(\"Level {n}\", \"n\" to cleared.level), style = Heartpact.type.label, color = kind.colour.ink,"
+ },
+ "Cleared!": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:140"
+  ],
+  "code": "Box(Modifier.padding(top = 14.dp)) { Stamp(tr(\"Cleared!\"), tilt = -6f, key = cleared, delayMs = if (motionOff) 0 else 260) }"
+ },
+ "Score {score}. {pass} cleared it.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:145"
+  ],
+  "code": "tr(\"Score {score}. {pass} cleared it.\", \"score\" to cleared.score, \"pass\" to cleared.passMark),"
+ },
+ "On to level {n}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:148"
+  ],
+  "code": "HeartButton(tr(\"On to level {n}\", \"n\" to cleared.level + 1), onNext, Modifier.padding(top = 18.dp))"
+ },
+ "Play this level again": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:149"
+  ],
+  "code": "HeartButton(tr(\"Play this level again\"), onReplay, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline)"
+ },
+ "Level": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:241"
+  ],
+  "code": "Text(tr(\"Level\"), style = Heartpact.type.label, color = ink)"
+ },
+ "Level {n} cleared, with {count} star. Score {score}.|Level {n} cleared, with {count} stars. Score {score}.": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/play/skills/LevelUp.kt:105"
+  ],
+  "code": "val said = trn(cleared.stars, \"Level {n} cleared, with {count} star. Score {score}.\", \"Level {n} cleared, with {count} stars. Score {score}.\",",
+  "one": "Level {n} cleared, with {count} star. Score {score}.",
+  "other": "Level {n} cleared, with {count} stars. Score {score}."
+ },
  "Start anywhere on the right.": {
   "plural": false,
   "uses": [
@@ -6869,12 +6923,26 @@
   ],
   "code": ".semantics { contentDescription = tr(\"Half a shape left of a dashed fold. Draw its other half on the right.\") }"
  },
+ "Not quite. Score {pass} or more to clear level {n}.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/Practice.kt:108"
+  ],
+  "code": "if (short) tr(\"Not quite. Score {pass} or more to clear level {n}.\", \"pass\" to difficulty.passMark, \"n\" to level)"
+ },
+ "Score {pass} or more to clear this level.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/Practice.kt:109"
+  ],
+  "code": "else tr(\"Score {pass} or more to clear this level.\", \"pass\" to difficulty.passMark),"
+ },
  "New best": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Practice.kt:94"
+   "app/heartpact/ui/play/skills/Practice.kt:141"
   ],
-  "code": "if (newBest == seed) Stamp(tr(\"New best\"), Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 18.dp), tilt = 9f, key = seed)"
+  "code": "if (newBest == seed && cleared == null) Stamp(tr(\"New best\"), Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 18.dp), tilt = 9f, key = seed)"
  },
  "Anywhere on the page. One go.": {
   "plural": false,
@@ -6900,15 +6968,15 @@
  "New round": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Round.kt:153",
-   "app/heartpact/ui/play/skills/Round.kt:155"
+   "app/heartpact/ui/play/skills/Round.kt:156",
+   "app/heartpact/ui/play/skills/Round.kt:158"
   ],
-  "code": "result != null && onAgain != null -> HeartButton(tr(\"New round\"), onAgain)"
+  "code": "result != null && onAgain != null -> HeartButton(againLabel ?: tr(\"New round\"), onAgain)"
  },
  "Score {score} of 100. {grade}. {note}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Round.kt:174"
+   "app/heartpact/ui/play/skills/Round.kt:177"
   ],
   "code": "val said = tr(\"Score {score} of 100. {grade}. {note}\", \"score\" to result.score, \"grade\" to Grade.of(result.score).label, \"note\" to result.note)"
  },
