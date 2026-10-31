@@ -47,7 +47,10 @@ fun ConnectFourBoard(s: GameSession, me: String, partnerName: String, busy: Bool
     GridMatchFrame(s, me, partnerName, busy, tr("Your turn: tap a column")) { g, shown ->
         val columns = g.columns
         val rows = g.rows
-        StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Well) {
+        // The newest disc gets a ring, so a partner's move that landed while you looked away is easy to find.
+        val latest = g.lastMove?.takeIf { shown.line.isEmpty() && shown.game == g.game && shown.cells.getOrNull(it) != null }
+        // Column 1 is on the left in every language, as on the partner's phone and under the win line's pen.
+        StickerCard(Modifier.fillMaxWidth(), shape = Shapes.Well) { LeftToRight {
             Box {
                 Row(Modifier.padding(8.dp)) {
                     (0 until columns).forEach { column ->
@@ -60,19 +63,19 @@ fun ConnectFourBoard(s: GameSession, me: String, partnerName: String, busy: Bool
                                 .semantics { contentDescription = label },
                         ) {
                             cells.forEachIndexed { row, index ->
-                                Hole(row, shown.cells.getOrNull(index), index in shown.line, shown.line.isNotEmpty(), shown.canMove && index == landing, me)
+                                Hole(row, shown.cells.getOrNull(index), index in shown.line, shown.line.isNotEmpty(), shown.canMove && index == landing, me, partnerName, latest = index == latest)
                             }
                         }
                     }
                 }
                 WinLine(shown.line, columns, rows, 0.dp, Modifier.matchParentSize().padding(8.dp))
             }
-        }
+        } }
     }
 }
 
 @Composable
-private fun Hole(row: Int, owner: String?, winning: Boolean, decided: Boolean, landing: Boolean, me: String) {
+private fun Hole(row: Int, owner: String?, winning: Boolean, decided: Boolean, landing: Boolean, me: String, partnerName: String, latest: Boolean) {
     val colors = Heartpact.colors
     // A new disc falls in from above the board and settles with a small bounce; a cleared board empties at once.
     // It falls under gravity (slow, then fast), lands with a squash and wobbles flat: the deeper the hole, the longer the fall.
@@ -95,9 +98,17 @@ private fun Hole(row: Int, owner: String?, winning: Boolean, decided: Boolean, l
     val side = owner?.let { sideOf(it, me) }
     val hole = if (side != null) lerp(colors.page2, colors.partner(side).soft, lifted) else colors.page2
     val slot = Heartpact.actor.action
-    Box(Modifier.fillMaxWidth().aspectRatio(1f).padding(3.dp), contentAlignment = Alignment.Center) {
+    val ring = side?.let { colors.partner(it).action }
+    // Read out with the column (it merges its holes): the discs from the top down.
+    val label = when {
+        owner == null -> null
+        owner == me -> tr("Your disc")
+        else -> tr("{partner}'s disc", "partner" to partnerName)
+    }
+    Box(Modifier.fillMaxWidth().aspectRatio(1f).padding(3.dp).then(if (label != null) Modifier.semantics { contentDescription = label } else Modifier), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             drawCircle(hole)
+            if (latest && ring != null && dropped.value >= 1f) drawCircle(ring, size.minDimension / 2 - 0.5.dp.toPx(), style = Stroke(2.5.dp.toPx()))
             if (landing) drawCircle(slot.copy(alpha = 0.55f), size.minDimension / 2 - 3.dp.toPx(), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(7f, 6f))))
         }
         if (side != null) {

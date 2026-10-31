@@ -49,8 +49,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -203,10 +205,12 @@ internal fun TicTacToeBoard(s: GameSession, me: String, partnerName: String, liv
             myX -> tr("You're X. Draw fast!")
             else -> tr("You're O. Draw fast!")
         }
-        Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp))
+        // Read out when a game ends (and when the next begins).
+        Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp).semantics { liveRegion = LiveRegionMode.Polite })
     }
 
-    StickerCard(Modifier.fillMaxWidth()) {
+    // Square 1 is top left in every language: the partner's phone, the win line and "Too slow!" all count from there.
+    StickerCard(Modifier.fillMaxWidth()) { LeftToRight {
         BoxWithConstraints(Modifier.dottedPage(colors.rule)) {
             val gap = 8.dp
             val pad = 12.dp
@@ -237,7 +241,7 @@ internal fun TicTacToeBoard(s: GameSession, me: String, partnerName: String, liv
                 }
             }
         }
-    }
+    } }
 
     if (open) {
         PenMeter(live.penFromMs, live.penReadyAtMs, now, penShake, Modifier.padding(top = 14.dp))

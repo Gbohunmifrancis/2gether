@@ -1283,9 +1283,9 @@
    "app/heartpact/ui/games/SkillDuelBoard.kt:242",
    "app/heartpact/ui/games/SkillDuelBoard.kt:388",
    "app/heartpact/ui/games/SkillDuelBoard.kt:564",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:379",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:668",
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:196",
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:380",
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:674",
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:200",
    "app/heartpact/ui/map/MapScreen.kt:178",
    "app/heartpact/ui/map/MapScreen.kt:223",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:225",
@@ -3597,16 +3597,30 @@
  "Column {number}, full": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/ConnectFourBoard.kt:56"
+   "app/heartpact/ui/games/ConnectFourBoard.kt:59"
   ],
   "code": "val label = if (landing == null) tr(\"Column {number}, full\", \"number\" to column + 1) else tr(\"Column {number}\", \"number\" to column + 1)"
  },
  "Column {number}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/ConnectFourBoard.kt:56"
+   "app/heartpact/ui/games/ConnectFourBoard.kt:59"
   ],
   "code": "val label = if (landing == null) tr(\"Column {number}, full\", \"number\" to column + 1) else tr(\"Column {number}\", \"number\" to column + 1)"
+ },
+ "Your disc": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/ConnectFourBoard.kt:105"
+  ],
+  "code": "owner == me -> tr(\"Your disc\")"
+ },
+ "{partner}'s disc": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/ConnectFourBoard.kt:106"
+  ],
+  "code": "else -> tr(\"{partner}'s disc\", \"partner\" to partnerName)"
  },
  "Round {round} of {rounds}": {
   "plural": false,
@@ -4594,7 +4608,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/games/GameResults.kt:67",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:665"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:671"
   ],
   "code": "score.won -> tr(\"You won!\")"
  },
@@ -4603,7 +4617,7 @@
   "uses": [
    "app/heartpact/ui/games/GameResults.kt:68",
    "app/heartpact/ui/games/SkillDuelBoard.kt:546",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:665"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:671"
   ],
   "code": "score.lost -> tr(\"{partner} won\", \"partner\" to partner)"
  },
@@ -4770,83 +4784,84 @@
  "Game {game} of {games}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:117",
-   "app/heartpact/ui/games/TicTacToeBoard.kt:185"
+   "app/heartpact/ui/games/GridMatch.kt:129",
+   "app/heartpact/ui/games/TicTacToeBoard.kt:187"
   ],
   "code": "if (s.status != GameStatus.Completed) Text(tr(\"Game {game} of {games}\", \"game\" to shown.game + 1, \"games\" to g.totalGames), style = Heartpact.type.labelSmall, color = colors.ink3)"
  },
  "You won game {game}!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:139",
-   "app/heartpact/ui/games/TicTacToeBoard.kt:199"
+   "app/heartpact/ui/games/GridMatch.kt:151",
+   "app/heartpact/ui/games/TicTacToeBoard.kt:201"
   ],
   "code": "me -> tr(\"You won game {game}!\", \"game\" to g.game + 1)"
  },
  "Game {game} is a draw": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:140",
-   "app/heartpact/ui/games/TicTacToeBoard.kt:200"
+   "app/heartpact/ui/games/GridMatch.kt:152",
+   "app/heartpact/ui/games/TicTacToeBoard.kt:202"
   ],
   "code": "null -> tr(\"Game {game} is a draw\", \"game\" to g.game + 1)"
  },
  "{partner} won game {game}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:141",
-   "app/heartpact/ui/games/TicTacToeBoard.kt:201"
+   "app/heartpact/ui/games/GridMatch.kt:153",
+   "app/heartpact/ui/games/TicTacToeBoard.kt:203"
   ],
   "code": "else -> tr(\"{partner} won game {game}\", \"partner\" to partnerName, \"game\" to g.game + 1)"
  },
  "{partner}'s turn": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:144",
-   "app/heartpact/ui/games/MemoryBoard.kt:70"
+   "app/heartpact/ui/games/GridMatch.kt:156",
+   "app/heartpact/ui/games/MemoryBoard.kt:70",
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:331"
   ],
   "code": "else -> tr(\"{partner}'s turn\", \"partner\" to partnerName)"
  },
  "Start game {game}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:151"
+   "app/heartpact/ui/games/GridMatch.kt:164"
   ],
   "code": "if (myTurn) HeartButton(tr(\"Start game {game}\", \"game\" to g.game + 2), { clearedGame = g.game }, Modifier.padding(top = 16.dp))"
  },
  "{partner} starts game {game}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:152"
+   "app/heartpact/ui/games/GridMatch.kt:165"
   ],
   "code": "else Text(tr(\"{partner} starts game {game}.\", \"partner\" to partnerName, \"game\" to g.game + 2), style = Heartpact.type.bodyLarge, color = colors.ink2,"
  },
  "Game {game}: a draw": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:163"
+   "app/heartpact/ui/games/GridMatch.kt:176"
   ],
   "code": "winner == null -> tr(\"Game {game}: a draw\", \"game\" to number)"
  },
  "Game {game}: you won": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:164"
+   "app/heartpact/ui/games/GridMatch.kt:177"
   ],
   "code": "winner == me -> tr(\"Game {game}: you won\", \"game\" to number)"
  },
  "Game {game}: {partner} won": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:165"
+   "app/heartpact/ui/games/GridMatch.kt:178"
   ],
   "code": "else -> tr(\"Game {game}: {partner} won\", \"game\" to number, \"partner\" to partnerName)"
  },
  "{count} win|{count} wins": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/GridMatch.kt:132",
-   "app/heartpact/ui/games/TicTacToeBoard.kt:195"
+   "app/heartpact/ui/games/GridMatch.kt:144",
+   "app/heartpact/ui/games/TicTacToeBoard.kt:197"
   ],
   "code": "Scoreboard(g.scores[me] ?: 0, partnerId?.let { g.scores[it] } ?: 0, partnerName, turn, { trn(it, \"{count} win\", \"{count} wins\") }, middle = games)",
   "one": "{count} win",
@@ -5379,7 +5394,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:127",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:530"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:533"
   ],
   "code": "else -> tr(\"You're on {mine}, {partner} on {theirs}\", \"mine\" to mine, \"partner\" to partner, \"theirs\" to theirs)"
  },
@@ -5502,98 +5517,95 @@
   ],
   "code": "g.last?.player != me && g.last?.extraTurn == true -> tr(\"{partner} rolled a six and goes again\", \"partner\" to partnerName)"
  },
- "{partner} is rolling…": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:330"
-  ],
-  "code": "else -> tr(\"{partner} is rolling…\", \"partner\" to partnerName)"
- },
  "The board: you're on square {mine}, {partner} on square {theirs}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:341"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:342"
   ],
   "code": "val description = tr(\"The board: you're on square {mine}, {partner} on square {theirs}\", \"mine\" to (positions[me] ?: 0), \"partner\" to partnerName, \"theirs\" to (partner?.let { positions[it] } ?: 0))"
  },
  "Tap the die, or hold it to shake": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:359"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:360"
   ],
   "code": "hint = if (canRoll) tr(\"Tap the die, or hold it to shake\") else null,"
  },
- "Start": {
+ "At the start": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:408",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:436",
-   "app/heartpact/ui/play/skills/Heartbeat.kt:213",
-   "app/heartpact/ui/pregnancy/PregnancyScreen.kt:186"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:409"
   ],
-  "code": "Text(if (square == 0) tr(\"Start\") else tr(\"Square {number}\", \"number\" to square), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1)"
+  "code": "Text(if (square == 0) tr(\"At the start\") else tr(\"Square {number}\", \"number\" to square), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1)"
  },
  "Square {number}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:408",
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:683"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:409",
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:689"
   ],
-  "code": "Text(if (square == 0) tr(\"Start\") else tr(\"Square {number}\", \"number\" to square), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1)"
+  "code": "Text(if (square == 0) tr(\"At the start\") else tr(\"Square {number}\", \"number\" to square), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1)"
  },
  "Hug shield on": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:418"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:419"
   ],
   "code": "val label = tr(\"Hug shield on\")"
+ },
+ "Start line": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:438"
+  ],
+  "code": "val startText = tr(\"Start line\")"
  },
  "Roll the die": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:585"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:589"
   ],
   "code": "val label = tr(\"Roll the die\")"
  },
  "Kiss & swap": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:633"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:639"
   ],
   "code": "listOf(\"swap\" to tr(\"Kiss & swap\"), \"boost\" to tr(\"Love boost +3\"), \"shield\" to tr(\"Hug shield\"), \"heartbreak\" to tr(\"Heartbreak −5\")).forEach { (kind, text) ->"
  },
  "Love boost +3": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:633"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:639"
   ],
   "code": "listOf(\"swap\" to tr(\"Kiss & swap\"), \"boost\" to tr(\"Love boost +3\"), \"shield\" to tr(\"Hug shield\"), \"heartbreak\" to tr(\"Heartbreak −5\")).forEach { (kind, text) ->"
  },
  "Hug shield": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:633"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:639"
   ],
   "code": "listOf(\"swap\" to tr(\"Kiss & swap\"), \"boost\" to tr(\"Love boost +3\"), \"shield\" to tr(\"Hug shield\"), \"heartbreak\" to tr(\"Heartbreak −5\")).forEach { (kind, text) ->"
  },
  "Heartbreak −5": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:633"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:639"
   ],
   "code": "listOf(\"swap\" to tr(\"Kiss & swap\"), \"boost\" to tr(\"Love boost +3\"), \"shield\" to tr(\"Hug shield\"), \"heartbreak\" to tr(\"Heartbreak −5\")).forEach { (kind, text) ->"
  },
  "Kiss & swap trades places with whoever is ahead. A hug shield stops your next snake.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:649"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:655"
   ],
   "code": "Text(tr(\"Kiss & swap trades places with whoever is ahead. A hug shield stops your next snake.\"), style = Heartpact.type.small, color = colors.ink2,"
  },
  "{count} roll|{count} rolls": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:686"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:692"
   ],
   "code": "trn(stats.rolls, \"{count} roll\", \"{count} rolls\"),",
   "one": "{count} roll",
@@ -5602,7 +5614,7 @@
  "{count} ladder climbed|{count} ladders climbed": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:687"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:693"
   ],
   "code": "trn(stats.ladders, \"{count} ladder climbed\", \"{count} ladders climbed\"),",
   "one": "{count} ladder climbed",
@@ -5611,7 +5623,7 @@
  "{count} snake slide|{count} snake slides": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:688"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:694"
   ],
   "code": "trn(stats.snakes, \"{count} snake slide\", \"{count} snake slides\"),",
   "one": "{count} snake slide",
@@ -5620,7 +5632,7 @@
  "{count} six|{count} sixes": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:689"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:695"
   ],
   "code": "trn(stats.sixes, \"{count} six\", \"{count} sixes\"),",
   "one": "{count} six",
@@ -5629,7 +5641,7 @@
  "{count} swap|{count} swaps": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:691"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:697"
   ],
   "code": "stats.swaps.takeIf { it > 0 }?.let { trn(it, \"{count} swap\", \"{count} swaps\") },",
   "one": "{count} swap",
@@ -5638,7 +5650,7 @@
  "{count} hug save|{count} hug saves": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:692"
+   "app/heartpact/ui/games/SnakesAndLaddersBoard.kt:698"
   ],
   "code": "stats.saves.takeIf { it > 0 }?.let { trn(it, \"{count} hug save\", \"{count} hug saves\") },",
   "one": "{count} hug save",
@@ -5654,113 +5666,113 @@
  "Picture {number} of {total}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:207"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:211"
   ],
   "code": "Text(tr(\"Picture {number} of {total}\", \"number\" to g.scene + 1, \"total\" to g.totalScenes), style = Heartpact.type.label, color = colors.ink2)"
  },
  "Picture done": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:208"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:212"
   ],
   "code": "Text(if (g.phase == \"between\") tr(\"Picture done\") else trn(left, \"{count} difference left\", \"{count} differences left\"), style = Heartpact.type.titleSmall, color = colors.ink,"
  },
  "{partner} got that one": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:227",
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:257"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:231",
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:261"
   ],
   "code": "if (find.by != me && find.index in claims) kindNote = tr(\"{partner} got that one\", \"partner\" to partnerName)"
  },
  "This picture needs a newer Heartpact. Update the app to play it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:277"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:281"
   ],
   "code": "NoteCard(tr(\"This picture needs a newer Heartpact. Update the app to play it.\"))"
  },
  "Tap a difference on either picture. First to tap it gets it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:308"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:312"
   ],
   "code": "else -> Text(tr(\"Tap a difference on either picture. First to tap it gets it.\"), style = Heartpact.type.body, color = colors.ink2, textAlign = TextAlign.Center,"
  },
  "The changed picture": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:340"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:344"
   ],
   "code": "val label = if (changed) tr(\"The changed picture\") else tr(\"The original picture\")"
  },
  "The original picture": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:340"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:344"
   ],
   "code": "val label = if (changed) tr(\"The changed picture\") else tr(\"The original picture\")"
  },
  "Time's up!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:458"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:463"
   ],
   "code": "Stamp(if (picture?.timedOut == true) tr(\"Time's up!\") else tr(\"All found!\"), key = g.scene)"
  },
  "All found!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:458"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:463"
   ],
   "code": "Stamp(if (picture?.timedOut == true) tr(\"Time's up!\") else tr(\"All found!\"), key = g.scene)"
  },
  "This picture: you {mine}, {partner} {theirs}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:459"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:464"
   ],
   "code": "Text(tr(\"This picture: you {mine}, {partner} {theirs}\", \"mine\" to mine, \"partner\" to partnerName, \"theirs\" to theirs),"
  },
  "The ones nobody found are circled.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:461"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:466"
   ],
   "code": "if (picture?.timedOut == true) Text(tr(\"The ones nobody found are circled.\"), style = Heartpact.type.small, color = colors.ink3, textAlign = TextAlign.Center)"
  },
  "Next picture in {seconds}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:462"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:467"
   ],
   "code": "Text(if (next > 0) tr(\"Next picture in {seconds}\", \"seconds\" to next) else tr(\"Next picture coming up\"), style = Heartpact.type.label, color = colors.ink2,"
  },
  "Next picture coming up": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:462"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:467"
   ],
   "code": "Text(if (next > 0) tr(\"Next picture in {seconds}\", \"seconds\" to next) else tr(\"Next picture coming up\"), style = Heartpact.type.label, color = colors.ink2,"
  },
  "Picture by picture": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:475"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:480"
   ],
   "code": "Text(tr(\"Picture by picture\"), style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(top = 4.dp, bottom = 10.dp))"
  },
  "You found {mine}, {partner} found {theirs}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:486"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:491"
   ],
   "code": ".semantics { contentDescription = tr(\"You found {mine}, {partner} found {theirs}\", \"mine\" to mine, \"partner\" to partnerName, \"theirs\" to theirs) }) {"
  },
  "{count} spot|{count} spots": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:191"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:195"
   ],
   "code": "if (s.status != GameStatus.Completed) Scoreboard(mine, theirs, partnerName, if (over) Turn.None else Turn.Both, { trn(it, \"{count} spot\", \"{count} spots\") })",
   "one": "{count} spot",
@@ -5769,7 +5781,7 @@
  "{count} difference left|{count} differences left": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:208"
+   "app/heartpact/ui/games/SpotTheDifferenceBoard.kt:212"
   ],
   "code": "Text(if (g.phase == \"between\") tr(\"Picture done\") else trn(left, \"{count} difference left\", \"{count} differences left\"), style = Heartpact.type.titleSmall, color = colors.ink,",
   "one": "{count} difference left",
@@ -5778,84 +5790,84 @@
  "You're X. Draw fast!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:203"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:205"
   ],
   "code": "myX -> tr(\"You're X. Draw fast!\")"
  },
  "You're O. Draw fast!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:204"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:206"
   ],
   "code": "else -> tr(\"You're O. Draw fast!\")"
  },
  "Draw your mark on a square, or tap one. First one there gets it!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:244"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:248"
   ],
   "code": "Text(tr(\"Draw your mark on a square, or tap one. First one there gets it!\"), style = Heartpact.type.body, color = colors.ink2,"
  },
  "Game {game} starts in a moment…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:247"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:251"
   ],
   "code": "Text(tr(\"Game {game} starts in a moment…\", \"game\" to t.game + 2), style = Heartpact.type.bodyLarge, color = colors.ink2,"
  },
  "Square {number}, {partner} is drawing": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:317"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:321"
   ],
   "code": "owner == null && trail != null -> tr(\"Square {number}, {partner} is drawing\", \"number\" to index + 1, \"partner\" to partnerName)"
  },
  "Square {number}, empty": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:318"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:322"
   ],
   "code": "owner == null -> tr(\"Square {number}, empty\", \"number\" to index + 1)"
  },
  "Square {number}, yours": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:319"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:323"
   ],
   "code": "owner == me -> tr(\"Square {number}, yours\", \"number\" to index + 1)"
  },
  "Square {number}, {partner}'s": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:320"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:324"
   ],
   "code": "else -> tr(\"Square {number}, {partner}'s\", \"number\" to index + 1, \"partner\" to partnerName)"
  },
  "Place your mark": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:322"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:326"
   ],
   "code": "val place = tr(\"Place your mark\")"
  },
  "Too slow!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:449"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:453"
   ],
   "code": "tr(\"Too slow!\"), style = Heartpact.type.label, color = Color.White,"
  },
  "Pen ready": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:484"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:488"
   ],
   "code": "val state = if (ready) tr(\"Pen ready\") else tr(\"Ink drying…\")"
  },
  "Ink drying…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/games/TicTacToeBoard.kt:484"
+   "app/heartpact/ui/games/TicTacToeBoard.kt:488"
   ],
   "code": "val state = if (ready) tr(\"Pen ready\") else tr(\"Ink drying…\")"
  },
@@ -7914,6 +7926,14 @@
    "app/heartpact/ui/play/skills/Heartbeat.kt:189"
   ],
   "code": "if (phase == Phase.Beating) hint = tr(\"Not yet. Wait for the quiet.\")"
+ },
+ "Start": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/Heartbeat.kt:213",
+   "app/heartpact/ui/pregnancy/PregnancyScreen.kt:186"
+  ],
+  "code": "if (phase == Phase.Ready) HeartButton(tr(\"Start\"), { haptics.tick(); start() }, modifier)"
  },
  "Tap on beat {n}": {
   "plural": false,

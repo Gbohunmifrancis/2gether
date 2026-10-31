@@ -93,6 +93,11 @@ class TicTacToeShotsTest {
         screen(session(state("mtt.m...m", 2, "gameOver", """["maya","theo","maya"]""", 2, 1, "[0,4,8]", next = "2026-10-11T18:00:01Z")))
     }
 
+    /** One X made two lines at once (the top row and the right column): both are struck through, each on its own. */
+    @Test fun twoLines() = shot("games-tictactoe-twolines") {
+        screen(session(state("mmmttmttm", 2, "gameOver", """["maya","theo","maya"]""", 2, 1, "[0,1,2,5,8]", next = "2026-10-11T18:00:01Z")))
+    }
+
     @Test fun draw() = shot("games-tictactoe-draw") {
         screen(session(state("tmttmmmtt", 1, "gameOver", """["maya",null]""", 1, 0, next = "2026-10-11T18:00:01Z")))
     }

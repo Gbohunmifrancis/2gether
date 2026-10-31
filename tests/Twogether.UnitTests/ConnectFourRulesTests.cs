@@ -88,6 +88,16 @@ public sealed class ConnectFourRulesTests
     }
 
     [Fact]
+    public void A_disc_that_makes_two_fours_at_once_marks_both()
+    {
+        // The last disc, bottom of column 3, finishes the bottom row and the diagonal up to column 0, row 2. The app
+        // strikes each through on its own (GridMatch.winRuns), so both must be in the line.
+        var won = Play(Start(), 0, 0, 1, 1, 2, 0, 2, 6, 1, 6, 0, 5, 3);
+        Assert.Equal([Cell(0, 2), Cell(1, 3), Cell(2, 4), Cell(0, 5), Cell(1, 5), Cell(2, 5), Cell(3, 5)], Line(State(won)));
+        Assert.Equal(players[0], Guid.Parse(State(won).GetProperty("results")[0].GetString()!));
+    }
+
+    [Fact]
     public void A_win_scores_the_winner_a_game()
     {
         var state = State(Play(Start(), StarterWins));

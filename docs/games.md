@@ -10,8 +10,8 @@ game list also links to After Round 1 on Google Play. A game that finished in th
 Every response and the couple hub's `GameStarted`, `GameStateChanged` and `GameCompleted` events carry the whole
 session. `stateJson` is a JSON string of the public state (nothing hidden from the other player leaks into it);
 `stateVersion` goes up by one on every change, and a move against an older version is `409 game.version_conflict`:
-reload and try again (except in a game whose moves may cross, Tic-tac-toe: there a move is judged against the board
-as it is when it arrives, and `409` only comes from two writes at the same instant). `GameInvitation`,
+reload and try again (except in the games whose moves may cross, Tic-tac-toe and Spot the difference: there a move is
+judged against the board as it is when it arrives, and `409` only comes from two writes at the same instant). `GameInvitation`,
 `GameCountdown` and `GameEnded` say "refetch". The game hub (`/hubs/game`) is not needed: REST plus the couple hub
 covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 
@@ -103,8 +103,10 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
   the same time. The setup draws a seed and from it three different picture kinds (`Picnic`, `Bedroom`, `Kitchen`,
   `Beach`, `Garden`, `NightSky`, `Cafe`, `LivingRoom`, the app's `SceneKind` names), each with its own seed; the phones
   build both pictures and the differences from the kind and seed (`SpotScenes`, pure arithmetic, so both phones agree),
-  and the server never sees a picture. A player who finds one sends `spot` (`index` 0–6, which difference). The first
-  claim scores; a later claim of the same one is refused ("Your partner spotted that one first."), and the app shows
+  and the server never sees a picture. A player who finds one sends `spot` (`index` 0–6, which difference; `value`
+  `{"scene":n}`, the picture it was found on, so a spot that crossed the end of a picture is refused, "That picture is
+  over.", instead of landing on the next; a phone that sends no value still plays). Spots may cross in flight: each is
+  judged on arrival, whatever `expectedStateVersion` it names. The first claim scores; a later claim of the same one is refused ("Your partner spotted that one first."), and the app shows
   that kindly. A player's spots must be at least 300 ms apart (server time); wrong taps never reach the server (the
   app pauses tapping for 1.5 seconds). When all seven are found, or after 90 seconds (the rest are then revealed,
   `timedOut`), `phase` is `between` for 3 seconds (`deadlineUtc`), then the next picture starts; spots in between are
@@ -124,8 +126,8 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
     tail, unless you carry a hug shield, which cancels that one snake and is used up (`shield`); a heart square:
     **Love boost** +3, **Heartbreak** back 5, **Hug shield** gives you a shield (one at a time; it shows on your token
     and in `shields`), **Kiss & swap** trades places with your partner if they're ahead (`swap`), and is just a kiss
-    if you're ahead or level (`kiss`). That's the only catch-up in the game: no hidden rubber-banding. A swap, a
-    bounce and three sixes never set off the square you end up on.
+    if you're ahead or level (`kiss`). That's the only catch-up in the game: no hidden rubber-banding. A swap and
+    three sixes never set off the square you end up on; a bounce does (bouncing back onto a snake's head still slides).
   - **The board** comes from the setup's seed (`Layout`), so each game has its own: 7 to 9 ladders and 7 to 9 snakes
     of mixed lengths (at least a one-row and a three-row-or-more of each, a snake head in the last row, a ladder in
     the first two), and seven heart squares (two swaps, two boosts, two shields, a heartbreak). Every board is

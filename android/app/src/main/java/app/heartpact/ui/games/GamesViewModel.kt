@@ -12,7 +12,10 @@ import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.utc
 import java.time.Duration
 import java.time.Instant
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -47,6 +50,14 @@ data class GamesUi(
     }
     val history: List<GameSession> get() = sessions.filter { it.status == GameStatus.Completed }.take(8)
 
+    /**
+     * The list as fetched, except that a game this phone already holds at a newer version (an event that arrived while
+     * the fetch was on its way) keeps that version: a refresh never rolls a board back.
+     */
+    fun withSessions(fetched: List<GameSession>): GamesUi = copy(sessions = fetched.map { session ->
+        sessions.firstOrNull { it.id == session.id && it.stateVersion > session.stateVersion } ?: session
+    })
+
     /** Newer state wins: an echo of my own move (or an out-of-order event) never rolls the board back. */
     fun withSession(session: GameSession): GamesUi {
         val current = sessions.firstOrNull { it.id == session.id }
@@ -56,6 +67,15 @@ data class GamesUi(
 }
 
 private val KEEP_FINISHED: Duration = Duration.ofMinutes(15)
+
+/** Each time the hub comes up after being down (not when it is already up as the screen opens, which loads anyway). */
+internal fun reconnections(connected: Flow<Boolean>): Flow<Unit> = flow {
+    var before: Boolean? = null
+    connected.distinctUntilChanged().collect { up ->
+        if (up && before == false) emit(Unit)
+        before = up
+    }
+}
 
 /** The couple hub's `GameInk`: the partner's live stroke on a tic-tac-toe square ([cell] -1 clears it). */
 @Serializable
@@ -85,6 +105,9 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+        // Events sent while the hub was down (the app in the background, the network gone) never arrive: when it
+        // connects again, fetch the games as they stand, so a turn that came round meanwhile isn't missed.
+        viewModelScope.launch { reconnections(app.live.connected).collect { refresh() } }
     }
 
     private fun upsert(session: GameSession) = _ui.update { it.withSession(session) }
@@ -96,13 +119,13 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Spot the difference: both spot at once, so spots go one at a time and retry on a version conflict. */
     private val spots = SpotSender(viewModelScope, _ui,
-        send = { s, index -> app.games.act(s.id, s.stateVersion, "spot", null, index) },
+        send = { s, index -> app.games.act(s.id, s.stateVersion, "spot", spotValue(GamePlay.spot(s).scene), index) },
         load = { app.games.session(it) })
 
     fun refresh() = viewModelScope.launch {
         (app.games.region() as? ApiResult.Ok)?.value?.let { found -> _ui.update { it.copy(region = found.region) } }
         when (val result = app.games.sessions()) {
-            is ApiResult.Ok -> _ui.update { it.copy(sessions = result.value, loaded = true, note = null) }
+            is ApiResult.Ok -> _ui.update { it.withSessions(result.value).copy(loaded = true, note = null) }
             else -> _ui.update { it.copy(loaded = true, note = result.note()) }
         }
     }

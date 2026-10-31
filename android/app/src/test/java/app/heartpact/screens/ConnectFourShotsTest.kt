@@ -23,8 +23,8 @@ class ConnectFourShotsTest {
     /** Six rows of seven from the top: m for Maya, t for Theo, a dot for empty. */
     private fun cells(vararg rows: String) = rows.joinToString("").map { if (it == 'm') "\"maya\"" else if (it == 't') "\"theo\"" else "null" }.joinToString(",", "[", "]")
 
-    private fun state(cells: String, game: Int, phase: String, results: String, maya: Int, theo: Int, line: String = "null") =
-        """{"players":["maya","theo"],"columns":7,"rows":6,"cells":$cells,"game":$game,"totalGames":3,"winsNeeded":2,"phase":"$phase","line":$line,"scores":{"maya":$maya,"theo":$theo},"results":$results}"""
+    private fun state(cells: String, game: Int, phase: String, results: String, maya: Int, theo: Int, line: String = "null", last: Int? = null) =
+        """{"players":["maya","theo"],"columns":7,"rows":6,"cells":$cells,"game":$game,"totalGames":3,"winsNeeded":2,"phase":"$phase","line":$line,"lastMove":$last,"scores":{"maya":$maya,"theo":$theo},"results":$results}"""
 
     private fun session(state: String, turn: String?, status: GameStatus = GameStatus.InProgress) =
         GameSession("g", "c", GameType.ConnectFour, status, currentTurnUserId = turn, stateVersion = 12, stateJson = state, invitedByUserId = "theo")
@@ -39,7 +39,7 @@ class ConnectFourShotsTest {
             "...t...",
             "..mm.tt",
             ".tmtmmt",
-        ), 1, "playing", """["theo"]""", 0, 1), "maya")
+        ), 1, "playing", """["theo"]""", 0, 1, last = 24), "maya")
         shot("games-connectfour") { screen(s) }
         shot("games-connectfour-night", night = true) { screen(s) }
     }
@@ -53,6 +53,18 @@ class ConnectFourShotsTest {
             "..mtt..",
             ".mttm.m",
         ), 0, "gameOver", """["maya"]""", 1, 0, "[18,24,30,36]"), "theo"))
+    }
+
+    /** One disc made two fours at once (the bottom row and a diagonal): both are struck through. */
+    @Test fun twoLines() = shot("games-connectfour-twolines") {
+        screen(session(state(cells(
+            ".......",
+            ".......",
+            "m......",
+            "tm.....",
+            "ttm.t..",
+            "mmmmtt.",
+        ), 0, "gameOver", """["maya"]""", 1, 0, "[14,22,30,35,36,37,38]", last = 38), "theo"))
     }
 
     /** Columns stack Theo first or Maya first in the pattern AABBAAB, so no four ever line up. */

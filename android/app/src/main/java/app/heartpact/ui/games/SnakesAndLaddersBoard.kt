@@ -327,7 +327,8 @@ internal fun SnakesAndLaddersBoard(s: GameSession, me: String, partnerName: Stri
         myTurn && g.last?.player == me && g.last.extraTurn -> tr("Six! Roll again")
         myTurn -> tr("Your roll!")
         g.last?.player != me && g.last?.extraTurn == true -> tr("{partner} rolled a six and goes again", "partner" to partnerName)
-        else -> tr("{partner} is rolling…", "partner" to partnerName)
+        // No clock: it may be hours before they roll, so this says whose turn it is, not that they're rolling now.
+        else -> tr("{partner}'s turn", "partner" to partnerName)
     }
     Text(headline, style = Heartpact.type.title, color = colors.ink, textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).semantics { liveRegion = LiveRegionMode.Polite })
@@ -405,7 +406,7 @@ private fun RacerPill(name: String, square: Int, side: Side, who: Who, active: B
             Text(name, style = Heartpact.type.label, color = if (active) partner.onSoft else colors.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (shield && !mine) ShieldBadge()
-                Text(if (square == 0) tr("Start") else tr("Square {number}", "number" to square), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1)
+                Text(if (square == 0) tr("At the start") else tr("Square {number}", "number" to square), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1)
                 if (shield && mine) ShieldBadge()
             }
         }
@@ -433,7 +434,8 @@ private fun BoardCard(
     val density = LocalDensity.current
     val numberStyle = TextStyle(fontSize = 8.5.sp, fontWeight = FontWeight.Bold, lineHeight = 9.sp)
     val numbers = remember(measurer, density) { (1..100).map { measurer.measure("$it", numberStyle) } }
-    val startText = tr("Start")
+    // A place, not the button's "Start" (which other languages word as a verb).
+    val startText = tr("Start line")
     val start = remember(measurer, startText) { measurer.measure(startText, TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold)) }
     val shape = RoundedCornerShape(20.dp)
     Box(
@@ -444,7 +446,8 @@ private fun BoardCard(
             .clip(RoundedCornerShape(15.dp))
             .semantics { contentDescription = description },
     ) {
-        BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(SnakesGeometry.SIDE / SnakesGeometry.HEIGHT)) {
+        // The board reads 1 to 100 from the bottom left in every language; the bubbles and hearts sit on its squares.
+        LeftToRight { BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(SnakesGeometry.SIDE / SnakesGeometry.HEIGHT)) {
             val unitDp = maxWidth / SnakesGeometry.SIDE
             Canvas(Modifier.fillMaxSize()) {
                 val u = size.width / SnakesGeometry.SIDE
@@ -498,7 +501,7 @@ private fun BoardCard(
                 val c = SnakesGeometry.center(100)
                 HeartBurst(burst, Modifier.offset(x = unitDp * c.x - 60.dp, y = unitDp * c.y - 60.dp).size(120.dp), count = 24, spread = 140.dp)
             }
-        }
+        } }
     }
 }
 
@@ -528,7 +531,8 @@ private fun SpeechBubble(bubble: Bubble, modifier: Modifier) {
 private fun ProgressStrip(mine: Int, theirs: Int, meSide: Side, theirSide: Side, partnerName: String, modifier: Modifier = Modifier) {
     val colors = Heartpact.colors
     val label = tr("You're on {mine}, {partner} on {theirs}", "mine" to mine, "partner" to partnerName, "theirs" to theirs)
-    BoxWithConstraints(modifier.fillMaxWidth().height(52.dp).semantics { contentDescription = label }) {
+    // It runs from 1 on the left to 100 on the right, as the board does, in every language.
+    LeftToRight { BoxWithConstraints(modifier.fillMaxWidth().height(52.dp).semantics { contentDescription = label }) {
         val track = maxWidth - 20.dp
         Canvas(Modifier.fillMaxSize()) {
             val y = size.height / 2f
@@ -553,7 +557,7 @@ private fun ProgressStrip(mine: Int, theirs: Int, meSide: Side, theirSide: Side,
             }
         }
     }
-}
+} }
 
 @Composable
 private fun StripNumber(square: Int) = Text("$square", style = Heartpact.type.labelSmall.copy(fontSize = 10.sp, lineHeight = 11.sp), color = Heartpact.colors.ink2)

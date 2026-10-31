@@ -676,9 +676,9 @@
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:143",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:118",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:249",
-   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:450",
-   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:451",
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:192",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:475",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:476",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:217",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:110"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"game.invalid_state\", Loc.T(\"This game session is corrupted. End it and start a new game.\")));"
@@ -6688,7 +6688,7 @@
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:46",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:67",
    "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:80",
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:73",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:80",
    "Twogether.Application/Features/Games/TriviaRules.cs:49",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:48"
   ],
@@ -6702,7 +6702,7 @@
    "Twogether.Application/Features/Games/SameAnswerRules.cs:51",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:65",
    "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:77",
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:69",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:76",
    "Twogether.Application/Features/Games/TriviaRules.cs:48",
    "Twogether.Application/Features/Games/TruthOrDareRules.cs:43",
    "Twogether.Application/Features/Games/WordDashRules.cs:54",
@@ -6903,42 +6903,50 @@
  "Spot the difference expects a spot.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:72"
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
   ],
   "code": "throw new InvalidOperationException(Loc.T(\"Spot the difference expects a spot.\"));"
  },
  "The next picture is on its way.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:74"
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:81"
   ],
   "code": "if (state.Phase == BetweenPhase) throw new InvalidOperationException(Loc.T(\"The next picture is on its way.\"));"
+ },
+ "That picture is over.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:82"
+  ],
+  "code": "if (SceneOf(move.Value) is { } made && made != state.Scene) throw new InvalidOperationException(Loc.T(\"That picture is over.\"));"
  },
  "That isn't one of the differences.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:76"
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:84",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:200"
   ],
   "code": "throw new InvalidOperationException(Loc.T(\"That isn't one of the differences.\"));"
  },
  "You already spotted that one.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:87"
   ],
   "code": "throw new InvalidOperationException(found.By == move.Actor ? Loc.T(\"You already spotted that one.\") : Loc.T(\"Your partner spotted that one first.\"));"
  },
  "Your partner spotted that one first.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:87"
   ],
   "code": "throw new InvalidOperationException(found.By == move.Actor ? Loc.T(\"You already spotted that one.\") : Loc.T(\"Your partner spotted that one first.\"));"
  },
  "Not so fast: one spot at a time.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:81"
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:89"
   ],
   "code": "throw new InvalidOperationException(Loc.T(\"Not so fast: one spot at a time.\"));"
  },

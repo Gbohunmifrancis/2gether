@@ -37,6 +37,13 @@ public sealed class SpotTheDifferenceRules : IGameRules
 
     public bool Timed => true;
 
+    /// <summary>
+    /// Both race for the same differences, so a spot is judged on arrival rather than refused for naming an older
+    /// version: whoever's claim reaches the server first scores. A spot names its picture (<c>{"scene":n}</c>), so one
+    /// that crossed the end of a picture is never played on the next.
+    /// </summary>
+    public bool MovesMayCross => true;
+
     /// <summary>The setup for a new game: its region, a seed, and the three pictures that seed draws.</summary>
     public static string CreateSetup(string region, int? seed = null)
     {
@@ -72,6 +79,7 @@ public sealed class SpotTheDifferenceRules : IGameRules
             throw new InvalidOperationException(Loc.T("Spot the difference expects a spot."));
         if (!state.Players.Contains(move.Actor)) throw new InvalidOperationException(Loc.T("You are not a player in this game."));
         if (state.Phase == BetweenPhase) throw new InvalidOperationException(Loc.T("The next picture is on its way."));
+        if (SceneOf(move.Value) is { } made && made != state.Scene) throw new InvalidOperationException(Loc.T("That picture is over."));
         if (move.Index is not { } index || index < 0 || index >= Differences)
             throw new InvalidOperationException(Loc.T("That isn't one of the differences."));
         var scene = state.Scenes[state.Scene];
@@ -173,6 +181,23 @@ public sealed class SpotTheDifferenceRules : IGameRules
         var best = state.Scores.Values.Max();
         var leaders = state.Scores.Where(item => item.Value == best).Select(item => item.Key).ToList();
         return leaders.Count == 1 ? leaders[0] : null;
+    }
+
+    /// <summary>The picture a spot was made on (<c>{"scene":n}</c>), or null from a phone that doesn't say.</summary>
+    private static int? SceneOf(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        try
+        {
+            using var document = JsonDocument.Parse(value, new JsonDocumentOptions { MaxDepth = 2 });
+            if (document.RootElement.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("scene", out var scene)
+                && scene.ValueKind == JsonValueKind.Number && scene.TryGetInt32(out var number) && number >= 0)
+                return number;
+        }
+        catch (JsonException)
+        {
+        }
+        throw new InvalidOperationException(Loc.T("That isn't one of the differences."));
     }
 
     private static List<Scene>? SetupScenes(string? setupJson)

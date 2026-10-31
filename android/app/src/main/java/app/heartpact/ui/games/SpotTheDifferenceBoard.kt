@@ -106,6 +106,9 @@ fun GamePlay.spot(s: GameSession): SpotTheDifferenceState =
 internal fun GamePlay.spotOutcome(g: SpotTheDifferenceState, me: String, partner: String): String =
     tr("You spotted {mine}, {partner} {theirs}", "mine" to (g.scores[me] ?: 0), "partner" to partner, "theirs" to (g.scores.entries.firstOrNull { it.key != me }?.value ?: 0))
 
+/** A spot's value on the wire: the picture it was made on, so the server never plays it on the next one. */
+internal fun spotValue(scene: Int): String = """{"scene":$scene}"""
+
 /** How long a wrong tap pauses tapping. */
 internal const val SPOT_PENALTY_MS = 1500L
 
@@ -117,8 +120,9 @@ internal fun finderInk(side: Side): Color = if (side == Side.Left) Art.Left else
 
 /**
  * Sends spots one at a time, at least [gap] ms apart (the server refuses spots closer than 300 ms). Both partners spot
- * at once, so a spot can meet `game.version_conflict`: then the session reloads and the spot goes again, as long as
- * that difference is still unfound in the same picture. A spot the partner beat you to, or one for a picture that has
+ * at once; the server judges each spot on arrival (it names its picture), so only two writes at the same instant meet
+ * `game.version_conflict`: then the session reloads and the spot goes again, as long as that difference is still
+ * unfound in the same picture. A spot the partner beat you to, or one for a picture that has
  * moved on, is dropped quietly (the board says "{partner} got that one" itself); anything else shows its message.
  */
 internal class SpotSender(
@@ -354,7 +358,8 @@ private fun Picture(scene: SpotScene, changed: Boolean, rings: List<Ring>, miss:
             .clip(inner)
             .semantics { contentDescription = label },
     ) {
-        BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(SpotScenes.WIDTH / SpotScenes.HEIGHT)) {
+        // The rings sit where the picture draws them in every language: a picture isn't mirrored right to left.
+        LeftToRight { BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(SpotScenes.WIDTH / SpotScenes.HEIGHT)) {
             val unit: Dp = maxWidth / SpotScenes.WIDTH
             Canvas(Modifier.fillMaxSize()) { drawSpotScene(scene, changed) }
             rings.forEach { ring -> RingMark(ring, unit, showPop = changed) }
@@ -364,7 +369,7 @@ private fun Picture(scene: SpotScene, changed: Boolean, rings: List<Ring>, miss:
                 if (!enabled) return@pointerInput
                 detectTapGestures { o -> onTap(o.x / size.width * SpotScenes.WIDTH, o.y / size.height * SpotScenes.HEIGHT, changed) }
             })
-        }
+        } }
     }
 }
 

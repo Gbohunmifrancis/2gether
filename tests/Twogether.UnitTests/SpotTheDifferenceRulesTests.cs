@@ -128,6 +128,28 @@ public sealed class SpotTheDifferenceRulesTests
     }
 
     [Fact]
+    public void Spots_cross_in_flight_and_are_judged_on_arrival_but_never_on_the_next_picture()
+    {
+        // Both race for the same differences: a spot made on an older version still counts (no 409 to retry).
+        Assert.True(engine.MovesMayCross(GameType.SpotTheDifference));
+        var started = Start(11);
+        var onFirst = engine.Apply(GameType.SpotTheDifference, started.StateJson, maya, "spot", """{"scene":0}""", 2, start.AddSeconds(2));
+        Assert.Equal(1, View(onFirst).GetProperty("scores").GetProperty(maya.ToString()).GetInt32());
+
+        // A spot made on the first picture that arrives once the second is up is refused, not claimed there.
+        var done = FindAll(started, start, 0, 1, 2, 3);
+        var second = Timeout(done, start.AddSeconds(SpotTheDifferenceRules.Differences + SpotTheDifferenceRules.BeatSeconds));
+        var stale = Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.SpotTheDifference, second.StateJson, theo, "spot", """{"scene":0}""", 5, start.AddSeconds(20)));
+        Assert.Equal("That picture is over.", stale.Message);
+        var fresh = engine.Apply(GameType.SpotTheDifference, second.StateJson, theo, "spot", """{"scene":1}""", 5, start.AddSeconds(20));
+        Assert.Equal(1, View(fresh).GetProperty("found").GetArrayLength());
+        // A phone that doesn't name the picture still plays; anything else in the value is refused.
+        Assert.Equal(1, View(Spot(second, theo, 5, start.AddSeconds(20))).GetProperty("found").GetArrayLength());
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.SpotTheDifference, second.StateJson, theo, "spot", "not json", 5, start.AddSeconds(20)));
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.SpotTheDifference, second.StateJson, theo, "spot", """{"scene":-1}""", 5, start.AddSeconds(20)));
+    }
+
+    [Fact]
     public void Spots_too_close_together_are_refused_by_server_time_per_player()
     {
         var started = Start();

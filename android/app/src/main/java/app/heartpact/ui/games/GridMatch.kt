@@ -17,11 +17,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,7 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -91,6 +96,13 @@ internal fun motionOff(): Boolean {
     return off || LocalStillLogo.current
 }
 
+/**
+ * A board laid out left to right whatever the language: squares, columns and pictures are places, not reading order,
+ * so square 1 is in the same corner on both phones (and where the server, the win line and the drawings put it).
+ */
+@Composable
+internal fun LeftToRight(content: @Composable () -> Unit) = CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr, content = content)
+
 /** [spec], or an instant change when motion is off. */
 @Composable
 internal fun <T> gentle(spec: AnimationSpec<T>): AnimationSpec<T> = if (motionOff()) snap() else spec
@@ -143,7 +155,8 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
         myTurn -> yourMove
         else -> tr("{partner}'s turn", "partner" to partnerName)
     }
-    if (title != null) Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp))
+    // Read out when it changes: the partner's move makes it your turn, a game ends.
+    if (title != null) Text(title, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp).semantics { liveRegion = LiveRegionMode.Polite })
 
     board(g, shown)
 
@@ -179,8 +192,8 @@ internal fun GamePip(winner: String?, played: Boolean, number: Int, me: String, 
 internal fun HalfHeartPiece(side: Side, size: Dp, modifier: Modifier = Modifier) {
     // The half sits off the sticker's centre line; this shift puts its middle in the middle.
     val shift = size * 0.22f
-    if (side == Side.Left) HeartSticker(HalfState.Stuck, HalfState.Empty, size, modifier.offset(x = shift))
-    else HeartSticker(HalfState.Empty, HalfState.Stuck, size, modifier.offset(x = -shift))
+    if (side == Side.Left) HeartSticker(HalfState.Stuck, HalfState.Empty, size, modifier.absoluteOffset(x = shift))
+    else HeartSticker(HalfState.Empty, HalfState.Stuck, size, modifier.absoluteOffset(x = -shift))
 }
 
 /** A connect four disc in a partner's colour, with a white keyline and their half of the heart pressed into it. */
@@ -200,12 +213,32 @@ internal fun HeartDisc(side: Side, modifier: Modifier = Modifier) {
 }
 
 /**
- * The pen struck through a winning line, over a grid of [columns] by [rows] cells [gap] apart that fills this canvas.
- * It's drawn on once, after the winning pieces have lifted.
+ * The straight runs in a winning [line] (cells row by row on a grid [columns] wide), each as its two end cells. One
+ * mark can make two lines at once (a row and a column through it): the server sends their cells together, and each
+ * is struck through on its own, never one stroke from the smallest cell to the largest.
+ */
+internal fun winRuns(line: Set<Int>, columns: Int, rows: Int, shortest: Int = 3): List<Pair<Int, Int>> {
+    val directions = listOf(1 to 0, 0 to 1, 1 to 1, -1 to 1)
+    fun cell(column: Int, row: Int) = if (column in 0 until columns && row in 0 until rows) row * columns + column else -1
+    return directions.flatMap { (dc, dr) ->
+        line.sorted().mapNotNull { start ->
+            val (c, r) = start % columns to start / columns
+            if (cell(c - dc, r - dr) in line) return@mapNotNull null
+            var length = 1
+            while (cell(c + dc * length, r + dr * length) in line) length++
+            if (length >= shortest) start to cell(c + dc * (length - 1), r + dr * (length - 1)) else null
+        }
+    }
+}
+
+/**
+ * The pen struck through a winning line (two, when one mark made two), over a grid of [columns] by [rows] cells [gap]
+ * apart that fills this canvas. It's drawn on once, after the winning pieces have lifted.
  */
 @Composable
 internal fun WinLine(line: Set<Int>, columns: Int, rows: Int, gap: Dp, modifier: Modifier = Modifier) {
-    if (line.size < 2) return
+    val runs = remember(line, columns, rows) { winRuns(line, columns, rows) }
+    if (runs.isEmpty()) return
     val still = motionOff()
     val haptics = rememberPlayHaptics()
     val pen = remember(line) { Animatable(if (still) 1f else 0f) }
@@ -220,8 +253,7 @@ internal fun WinLine(line: Set<Int>, columns: Int, rows: Int, gap: Dp, modifier:
         val cellW = (size.width - g * (columns - 1)) / columns
         val cellH = (size.height - g * (rows - 1)) / rows
         fun centre(index: Int) = Offset((index % columns) * (cellW + g) + cellW / 2, (index / columns) * (cellH + g) + cellH / 2)
-        // Along any straight line the cell numbers only grow, so the ends are the smallest and the largest.
-        penLine(centre(line.min()), centre(line.max()), pen.value)
+        runs.forEach { (from, to) -> penLine(centre(from), centre(to), pen.value) }
     }
 }
 
