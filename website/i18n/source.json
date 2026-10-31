@@ -385,13 +385,13 @@
    "index.html"
   ]
  },
- "$5.99<small>/mo</small>": {
+ "$7.99<small>/mo</small>": {
   "kind": "text",
   "pages": [
    "index.html"
   ]
  },
- "or $39.99 a year · either of you can pay": {
+ "or $39.99 a year (about $3.33 a month) · either of you can pay": {
   "kind": "text",
   "pages": [
    "index.html"
@@ -421,7 +421,7 @@
    "index.html"
   ]
  },
- "Prices in US dollars; Google Play shows your local price. Cancel any time in Google Play.": {
+ "Prices in US dollars; Google Play shows your local price. The yearly plan starts with 7 days free. Cancel any time in Google Play.": {
   "kind": "text",
   "pages": [
    "index.html"
@@ -687,7 +687,7 @@
    "privacy/index.html"
   ]
  },
- "Heartpact is run by HeartPact, 651 N Broad Street, Middletown, Delaware 19709, USA (\"we\", \"us\"). We are the controller of the personal data described in this policy. If you have a question or want to use any of your rights, email us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>.": {
+ "Heartpact is run by HeartPact, 651 N Broad Street, Middletown, Delaware 19709, USA (\"we\", \"us\"). We are the controller of the personal data described in this policy. If you have a question or want to use any of your rights, email us at <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a>.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1275,7 +1275,7 @@
    "privacy/index.html"
   ]
  },
- "Serves our website, heartpact.app.": {
+ "Serves our website, heartpact.me.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1744,13 +1744,13 @@
    "privacy/index.html"
   ]
  },
- "<strong>On the web:</strong> visit <a href=\"/delete-account/\">heartpact.app/delete-account/</a>, sign in, and confirm. This works even if you no longer have the app installed.": {
+ "<strong>On the web:</strong> visit <a href=\"/delete-account/\">heartpact.me/delete-account/</a>, sign in, and confirm. This works even if you no longer have the app installed.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "<strong>Signed up with Google?</strong> Email <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a> from that address and we'll delete your account.": {
+ "<strong>Signed up with Google?</strong> Email <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a> from that address and we'll delete your account.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1822,7 +1822,7 @@
    "privacy/index.html"
   ]
  },
- "You can download a copy of everything we hold about you as a single file (JSON format) by emailing <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a> from the address on your account. It includes:": {
+ "You can download a copy of everything we hold about you as a single file (JSON format) by emailing <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a> from the address on your account. It includes:": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1948,7 +1948,7 @@
    "privacy/index.html"
   ]
  },
- "To use any right, email <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a> from the address on your account. We may need to confirm it is you. We reply within one month (or the time your local law sets), and we do not charge for reasonable requests.": {
+ "To use any right, email <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a> from the address on your account. We may need to confirm it is you. We reply within one month (or the time your local law sets), and we do not charge for reasonable requests.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1960,7 +1960,7 @@
    "privacy/index.html"
   ]
  },
- "Heartpact is for adults only. You must be 18 or older to create an account. We ask for your date of birth when you sign up and do not create an account for anyone under 18. We do not knowingly collect data from anyone under 18. If you believe someone under 18 is using Heartpact, tell us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a> and we will delete the account.": {
+ "Heartpact is for adults only. You must be 18 or older to create an account. We ask for your date of birth when you sign up and do not create an account for anyone under 18. We do not knowingly collect data from anyone under 18. If you believe someone under 18 is using Heartpact, tell us at <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a> and we will delete the account.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2057,7 +2057,7 @@
    "terms/index.html"
   ]
  },
- "HeartPact<br>651 N Broad Street, Middletown, Delaware 19709<br>USA<br>Email: <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>": {
+ "HeartPact<br>651 N Broad Street, Middletown, Delaware 19709<br>USA<br>Email: <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a>": {
   "kind": "text",
   "pages": [
    "privacy/index.html",
@@ -2442,7 +2442,7 @@
    "terms/index.html"
   ]
  },
- "<strong>Refunds.</strong> Refunds are handled through Google Play under Google's refund policies. In some cases we may also be able to help; contact us at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>. Nothing here affects your legal rights as a consumer.": {
+ "<strong>Refunds.</strong> Refunds are handled through Google Play under Google's refund policies. In some cases we may also be able to help; contact us at <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a>. Nothing here affects your legal rights as a consumer.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2526,7 +2526,7 @@
    "terms/index.html"
   ]
  },
- "<strong>You</strong> can stop using Heartpact at any time and delete your account in the app (Us, then Delete my account) or at <a href=\"/delete-account/\">heartpact.app/delete-account/</a>. Deletion is immediate and permanent; the Privacy Policy explains exactly what is removed.": {
+ "<strong>You</strong> can stop using Heartpact at any time and delete your account in the app (Us, then Delete my account) or at <a href=\"/delete-account/\">heartpact.me/delete-account/</a>. Deletion is immediate and permanent; the Privacy Policy explains exactly what is removed.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2592,7 +2592,7 @@
    "terms/index.html"
   ]
  },
- "If something goes wrong, please contact us first at <a href=\"mailto:support@heartpact.app\">support@heartpact.app</a>. Most problems can be sorted out quickly that way.": {
+ "If something goes wrong, please contact us first at <a href=\"mailto:support@heartpact.me\">support@heartpact.me</a>. Most problems can be sorted out quickly that way.": {
   "kind": "text",
   "pages": [
    "terms/index.html"
@@ -2742,7 +2742,7 @@
    "delete-account/index.html"
   ]
  },
- "Email <a href=\"mailto:support@heartpact.app?subject=Delete%20my%20account\">support@heartpact.app</a> from the address on your account, and we'll delete it for you.": {
+ "Email <a href=\"mailto:support@heartpact.me?subject=Delete%20my%20account\">support@heartpact.me</a> from the address on your account, and we'll delete it for you.": {
   "kind": "text",
   "pages": [
    "delete-account/index.html"
@@ -2797,7 +2797,7 @@
    "assets/delete.js"
   ]
  },
- "Email or password is incorrect. If you signed up with Google, email support@heartpact.app from that address and we’ll delete it.": {
+ "Email or password is incorrect. If you signed up with Google, email support@heartpact.me from that address and we’ll delete it.": {
   "kind": "script",
   "pages": [
    "assets/delete.js"
@@ -2815,7 +2815,7 @@
    "assets/delete.js"
   ]
  },
- "Something went wrong. Try again, or email support@heartpact.app.": {
+ "Something went wrong. Try again, or email support@heartpact.me.": {
   "kind": "script",
   "pages": [
    "assets/delete.js"

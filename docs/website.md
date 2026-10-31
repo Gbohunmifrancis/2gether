@@ -1,6 +1,6 @@
 # Marketing website
 
-`website/` is heartpact.app: the home page that sends people to Google Play, the Privacy Policy, the Terms of Use,
+`website/` is heartpact.me: the home page that sends people to Google Play, the Privacy Policy, the Terms of Use,
 and the account deletion page Google Play requires. It is plain HTML, CSS and a little JavaScript, with no build step
 and nothing loaded from other sites (fonts and images are served from `website/assets/`).
 
@@ -14,8 +14,9 @@ and nothing loaded from other sites (fonts and images are served from `website/a
 | `assets/config.js` | The API's address (for the deletion page and the Christmas switch); the deploy job writes the real one |
 | `assets/festive.js` | Turns on the Christmas look when the admin flag is on (below) |
 
-The prices on the home page ($5.99 a month, $39.99 a year) must match the Plus base plans in Play Console; change
-both together. The contact address throughout is `support@heartpact.app`.
+The prices on the home page ($7.99 a month, $39.99 a year, with a 7-day free trial on the yearly plan) must match the
+Plus base plans and the yearly plan's trial offer in Play Console; change both together. Why these prices:
+`docs/research/pricing-2026.md`. The contact address throughout is `support@heartpact.me`.
 
 ## Motion
 
@@ -57,7 +58,7 @@ The Deploy workflow's `website` job publishes `website/` to Cloudflare Pages whe
 checks the live site serves this build with its headers, and warns if the API doesn't allow the site's origin.
 
 1. Create the Pages project once: `npx wrangler pages project create heartpact-site --production-branch main`.
-2. Add the custom domain (`heartpact.app`) and set the `SITE_URL` variable to it.
+2. Add the custom domain (`heartpact.me`) and set the `SITE_URL` variable to it.
 3. Add the site's origin to `Frontend__Origin` on the API (comma-separated, next to the dashboard's), or the
    deletion page can't sign in.
 4. In Play Console, use `SITE_URL/privacy/` as the privacy policy and `SITE_URL/delete-account/` as the account

@@ -17,8 +17,8 @@ public sealed class AdminAuditRetentionTests : IDisposable
     {
         await using (var db = database.CreateContext())
         {
-            db.AdminAuditEvents.Add(AdminAuditEvent.Record(null, "ops@heartpact.app", "user.delete", "user", "old", "gone@example.com", null, true, Now.AddDays(-731)));
-            db.AdminAuditEvents.Add(AdminAuditEvent.Record(null, "ops@heartpact.app", "user.disable", "user", "kept", null, null, true, Now.AddDays(-729)));
+            db.AdminAuditEvents.Add(AdminAuditEvent.Record(null, "ops@heartpact.me", "user.delete", "user", "old", "gone@example.com", null, true, Now.AddDays(-731)));
+            db.AdminAuditEvents.Add(AdminAuditEvent.Record(null, "ops@heartpact.me", "user.disable", "user", "kept", null, null, true, Now.AddDays(-729)));
             await db.SaveChangesAsync();
         }
 

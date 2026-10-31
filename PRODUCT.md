@@ -47,7 +47,7 @@ The name is **Heartpact** (fallbacks Twinpact and Vowfit; research §7). An earl
 
 - Market, policy and monetization research: `docs/research/mobile-pivot-viability.md`.
 - Backend contracts for every feature: `docs/*.md`.
-- No real users, testimonials, reviews, press, install counts or prices to show. Do not invent any. Plan prices are not set; the Play product ids are `heartpact_plus_monthly` and `heartpact_plus_yearly`.
+- No real users, testimonials, reviews, press or install counts to show. Do not invent any. Plus is $7.99 a month or $39.99 a year in US dollars, with 7 days free on the yearly plan (`docs/research/pricing-2026.md`); the Play product ids are `heartpact_plus_monthly` and `heartpact_plus_yearly`. Any price shown must match Play Console.
 
 ## Product Principles
 

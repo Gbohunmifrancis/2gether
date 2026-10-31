@@ -24,9 +24,9 @@ import app.heartpact.i18n.tr
 import app.heartpact.ui.theme.Heartpact
 import java.util.Locale
 
-/** The Privacy Policy and Terms of Use on heartpact.app, in the app's language (website/i18n, docs/website.md). */
+/** The Privacy Policy and Terms of Use on heartpact.me, in the app's language (website/i18n, docs/website.md). */
 object LegalPages {
-    private const val SITE = "https://heartpact.app"
+    private const val SITE = "https://heartpact.me"
 
     /** The website's languages besides English; English pages sit at the root. Keep in step with website/i18n/build.py. */
     private val SITE_LANGUAGES = setOf("fr", "pt", "es", "ar", "hi")

@@ -44,11 +44,11 @@ public sealed class AdminTests
     [Fact]
     public void Only_allowlisted_emails_are_admins_and_the_uri_names_the_issuer()
     {
-        var settings = new AdminSettings { Emails = ["ops@heartpact.app"] };
-        Assert.True(settings.IsAdmin(" OPS@heartpact.app "));
+        var settings = new AdminSettings { Emails = ["ops@heartpact.me"] };
+        Assert.True(settings.IsAdmin(" OPS@heartpact.me "));
         Assert.False(settings.IsAdmin("maya@example.com"));
-        Assert.False(new AdminSettings().IsAdmin("ops@heartpact.app"));
-        Assert.StartsWith("otpauth://totp/Heartpact%20Admin:ops%40heartpact.app?secret=", Totp.Uri("ABC", "ops@heartpact.app"));
+        Assert.False(new AdminSettings().IsAdmin("ops@heartpact.me"));
+        Assert.StartsWith("otpauth://totp/Heartpact%20Admin:ops%40heartpact.me?secret=", Totp.Uri("ABC", "ops@heartpact.me"));
     }
 
     [Fact]

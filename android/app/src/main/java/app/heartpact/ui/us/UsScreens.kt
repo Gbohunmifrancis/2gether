@@ -143,7 +143,7 @@ fun UsTab(
     }
 }
 
-/** The Privacy Policy and Terms of Use, opened on heartpact.app in the app's language. */
+/** The Privacy Policy and Terms of Use, opened on heartpact.me in the app's language. */
 @Composable
 fun LegalCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current

@@ -16,7 +16,7 @@ public sealed class AdminInsightsPostgresTests : IAsyncLifetime
     private static readonly DateTime Now = new(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc);
     private readonly PostgresDatabase database = new();
     private readonly FakeClock clock = new(Now);
-    private readonly AdminSettings settings = new() { Emails = ["ops@heartpact.app"] };
+    private readonly AdminSettings settings = new() { Emails = ["ops@heartpact.me"] };
     private readonly BillingSettings billing = new() { Free = new PlanLimits(3, 1000, 7) };
 
     public Task InitializeAsync() => database.InitializeAsync();

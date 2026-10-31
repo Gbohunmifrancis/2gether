@@ -50,7 +50,7 @@ public sealed class SignOutLocationTests : IDisposable
     {
         var http = new DefaultHttpContext
         {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.app")], "test")),
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.me")], "test")),
         };
         return new AdminUsersController(db, clock, new AdminAudit(db, clock, new HttpContextAccessor { HttpContext = http }), new HubConnectionRegistry(), null!, hub, null!, null!,
             new LocationSharingStopper(db, hub, clock))

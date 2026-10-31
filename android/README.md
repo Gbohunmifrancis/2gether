@@ -27,7 +27,7 @@ The album test needs the API started with S3-compatible storage (`Media__Service
 
 Push (Firebase), release signing and the release API URL come from environment variables or `~/.gradle/gradle.properties`; see `docs/secrets.md`. CI is `.github/workflows/android.yml`.
 
-`gradle.properties` sets the API base URL per build type: debug uses `http://10.0.2.2:5135/` (the host machine from the emulator), release `https://api.heartpact.app/`. Debug builds allow plain HTTP to the emulator host and localhost only.
+`gradle.properties` sets the API base URL per build type: debug uses `http://10.0.2.2:5135/` (the host machine from the emulator), release `https://api.heartpact.me/`. Debug builds allow plain HTTP to the emulator host and localhost only.
 
 ## What is wired
 
@@ -39,7 +39,7 @@ Push (Firebase), release signing and the release API URL come from environment v
 - Google button (`ui/auth/GoogleButton.kt`): Google's own sign-in button style (the official "G" from Google's branding pack, `drawable-nodpi/google_g.png`), labelled "Continue with Google", "Sign up with Google" or "Sign in with Google" by screen.
 - Onboarding (three pages), welcome, sign up and sign in against `api/auth`.
 - Forgot password (an emailed six-digit code, then a new password; it signs out every other session) and "Continue with Google" through Credential Manager when the build has `GOOGLE_WEB_CLIENT_ID`; a new Google account is asked only for a birthday and gender.
-- Pairing against `api/couple`: invite code and link, share and copy, enter a partner's code, accept an invite link (`https://heartpact.app/invite/{token}`), and moving on when the partner joins.
+- Pairing against `api/couple`: invite code and link, share and copy, enter a partner's code, accept an invite link (`https://heartpact.me/invite/{token}`), and moving on when the partner joins.
 - The five-tab home shell: Today, Pacts, Food, Us and Album.
 - **Dares** (`ui/today`, `alarm`, `exercise`, `ui/camera`):
   - Today shows my next or ringing dare, my partner's, the week of stickers, and a card when the phone isn't ready to ring (notifications, exact alarms, full-screen). The first time I have a dare and exact alarms are off (the default from Android 14), it explains why and offers the system's "Alarms & reminders" page, once. Today also saves the phone's time zone with the notification settings when it changed.

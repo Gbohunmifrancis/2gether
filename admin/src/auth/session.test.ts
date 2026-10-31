@@ -4,7 +4,7 @@ import type { AdminSession } from "../api/types";
 const session = (expiresInMs: number): AdminSession => ({
   accessToken: "token",
   expiresAtUtc: new Date(Date.now() + expiresInMs).toISOString(),
-  admin: { id: "a", email: "ops@heartpact.app", displayName: "Ops" },
+  admin: { id: "a", email: "ops@heartpact.me", displayName: "Ops" },
 });
 
 afterEach(() => {

@@ -279,7 +279,7 @@ export function buildWorld(): DemoWorld {
   }
   users.sort((a, b) => Date.parse(b.createdAtUtc) - Date.parse(a.createdAtUtc));
 
-  const admin = { id: "a0000000-0000-4000-a000-00000000a11a", email: "ada@heartpact.app", displayName: "Ada" };
+  const admin = { id: "a0000000-0000-4000-a000-00000000a11a", email: "ada@heartpact.me", displayName: "Ada" };
   const team: DemoUser = {
     ...person(rng(7), 1, NOW - 390 * DAY),
     id: admin.id,
@@ -289,7 +289,7 @@ export function buildWorld(): DemoWorld {
     country: "GB",
     lastActiveAtUtc: iso(NOW - 30_000),
   };
-  const tester: DemoUser = { ...person(rng(8), 2, NOW - 200 * DAY), email: "qa+theo@heartpact.app", displayName: "QA Theo", internal: true, country: "GB" };
+  const tester: DemoUser = { ...person(rng(8), 2, NOW - 200 * DAY), email: "qa+theo@heartpact.me", displayName: "QA Theo", internal: true, country: "GB" };
   users.push(team, tester);
 
   // Couples: most people pair up with someone who joined around the same time.
@@ -419,8 +419,8 @@ export function buildWorld(): DemoWorld {
 
   const admins: AdminRow[] = [
     { email: admin.email, userId: admin.id, displayName: admin.displayName, hasAccount: true, authenticatorEnrolledAtUtc: iso(NOW - 380 * DAY) },
-    { email: "sam@heartpact.app", userId: uuid(random), displayName: "Sam", hasAccount: true, authenticatorEnrolledAtUtc: iso(NOW - 200 * DAY) },
-    { email: "support@heartpact.app", userId: null, displayName: null, hasAccount: false, authenticatorEnrolledAtUtc: null },
+    { email: "sam@heartpact.me", userId: uuid(random), displayName: "Sam", hasAccount: true, authenticatorEnrolledAtUtc: iso(NOW - 200 * DAY) },
+    { email: "support@heartpact.me", userId: null, displayName: null, hasAccount: false, authenticatorEnrolledAtUtc: null },
   ];
 
   const audit: AuditRow[] = [];

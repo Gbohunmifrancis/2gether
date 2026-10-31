@@ -202,7 +202,7 @@ Method: for each candidate, the Google Play search results page and the App Stor
 
 | Name | Meaning | Play title matches | App Store title matches | Web trademark hits | Domains | Notes |
 |---|---|---|---|---|---|---|
-| **Heartpact** | Heart + pact: the promise one partner makes to the other; fits the partner-set challenge exactly | 0 of 30 results | 0 (nearest: Hearts card games) | None found | heartpact.app free; .com registered | Strongest fit to the product. Top recommendation |
+| **Heartpact** | Heart + pact: the promise one partner makes to the other; fits the partner-set challenge exactly | 0 of 30 results | 0 (nearest: Hearts card games) | None found | heartpact.me free; .com registered | Strongest fit to the product. Top recommendation |
 | **Twinpact** | Twin + pact, or twin impact | 0 of 30 | 0 (1 result, unrelated) | None found | .app and .com registered | Clean, slightly less warm than Heartpact |
 | **Vowfit** | Vow + fit | 0 of 10 | 0 | None found | vowfit.app free; .com registered | "Vow" skews married; good if that is the target |
 | **Yokely** | From "yoked": joined as a pair, and gym slang for strong | 0 of 30 | 0 (nearest: Yokee Music) | None found | yokely.app free; .com registered | "Yoke: Couples Check-in" and "Yoked - AI Fitness Coach" exist on Play; similar-sounding neighbours raise confusion risk |
@@ -230,4 +230,4 @@ Method: for each candidate, the Google Play search results page and the App Stor
 
 ### 7.4 Recommendation
 
-Go with **Heartpact**, store title "Heartpact: Couple Goals & Fitness" (Play allows 30 characters), domain heartpact.app, with Twinpact and Vowfit as fallbacks if clearance fails. Check whether heartpact.com is parked and purchasable, file a trademark application in your home jurisdiction in classes 9 and 42 before the public launch, and reserve the handle on Instagram and TikTok on the same day.
+Go with **Heartpact**, store title "Heartpact: Couple Goals & Fitness" (Play allows 30 characters), domain heartpact.me, with Twinpact and Vowfit as fallbacks if clearance fails. Check whether heartpact.com is parked and purchasable, file a trademark application in your home jurisdiction in classes 9 and 42 before the public launch, and reserve the handle on Instagram and TikTok on the same day.

@@ -1,6 +1,6 @@
 // Screenshots of every page, signed in through the real sign-in form, for review.
 //
-//   ADMIN_EMAIL=ops@heartpact.app ADMIN_PASSWORD=... ADMIN_TOTP_SECRET=... npm run screens
+//   ADMIN_EMAIL=ops@heartpact.me ADMIN_PASSWORD=... ADMIN_TOTP_SECRET=... npm run screens
 //
 // Needs the dashboard running (npm run dev, default http://localhost:5173) against an API with data
 // (scripts/seed.py). Writes PNGs to screens/. CHROMIUM_PATH picks the browser binary; SCREEN_USER whose
@@ -10,7 +10,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 
 const BASE = (process.env.ADMIN_URL ?? "http://localhost:5173").replace(/\/$/, "");
-const EMAIL = process.env.ADMIN_EMAIL ?? "ops@heartpact.app";
+const EMAIL = process.env.ADMIN_EMAIL ?? "ops@heartpact.me";
 const PASSWORD = process.env.ADMIN_PASSWORD;
 const SECRET = process.env.ADMIN_TOTP_SECRET;
 if (!PASSWORD || !SECRET) {

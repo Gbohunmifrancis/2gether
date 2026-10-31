@@ -2,7 +2,7 @@
 """
 Seeds a local API with a few couples, then signs in as the admin (enrolling the authenticator) and
 prints the admin token and authenticator secret. Development only: it needs the API started with
-Admin__Emails=ops@heartpact.app, Billing__Provider=fake, Email__Provider=log and RateLimits__Enabled=false.
+Admin__Emails=ops@heartpact.me, Billing__Provider=fake, Email__Provider=log and RateLimits__Enabled=false.
 
     python3 admin/scripts/seed.py http://localhost:5135
 
@@ -11,7 +11,7 @@ If the admin enrolled on an earlier run, pass the authenticator secret it printe
 import base64, hashlib, hmac, json, os, struct, sys, time, urllib.request, urllib.error, uuid
 
 API = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5135").rstrip("/")
-ADMIN = "ops@heartpact.app"
+ADMIN = "ops@heartpact.me"
 PASSWORD = "longenough"
 
 def call(method, path, body=None, token=None):

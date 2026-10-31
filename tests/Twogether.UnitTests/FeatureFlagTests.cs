@@ -25,7 +25,7 @@ public sealed class FeatureFlagTests : IDisposable
     {
         var http = new DefaultHttpContext
         {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.app")], "test")),
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.me")], "test")),
         };
         return new AdminFeaturesController(new FeatureFlagService(db, clock), new AdminAudit(db, clock, new HttpContextAccessor { HttpContext = http }), db)
         {
@@ -120,8 +120,8 @@ public sealed class FeatureFlagTests : IDisposable
         await using var check = database.CreateContext();
         Assert.False((await new FeatureFlagService(check, clock).GetAsync(default)).Christmas);
         var events = (await check.AdminAuditEvents.AsNoTracking().ToListAsync()).Select(item => (item.Action, item.TargetType, item.TargetId, item.Details, item.AdminEmail)).ToList();
-        Assert.Contains(("features.updated", "feature", "christmas", "christmas: off -> on", "ops@heartpact.app"), events);
-        Assert.Contains(("features.updated", "feature", "christmas", "christmas: on -> off", "ops@heartpact.app"), events);
+        Assert.Contains(("features.updated", "feature", "christmas", "christmas: off -> on", "ops@heartpact.me"), events);
+        Assert.Contains(("features.updated", "feature", "christmas", "christmas: on -> off", "ops@heartpact.me"), events);
     }
 
     [Fact]

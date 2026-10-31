@@ -124,7 +124,7 @@ alone, and another admin resets their authenticator. Changing `Jwt__SigningKey` 
 | `Admin__StorageBudgetGb` | Album storage budget in GB (10^9 bytes): an alert is raised at 80% and turns red at 100%. Unset: no storage alert |
 | `Admin__SecretKey` | Encrypts admins' authenticator secrets in the database. Any long random string. Without it, a key derived from `Jwt__SigningKey` is used |
 | `Admin__PreviousSecretKey` | The key before the last change, so existing secrets still open; they are re-encrypted under the new key at start-up |
-| `Frontend__Origin` | Add the dashboard's origin (for example `https://admin.heartpact.app`) to this comma-separated CORS list |
+| `Frontend__Origin` | Add the dashboard's origin (for example `https://admin.heartpact.me`) to this comma-separated CORS list |
 
 Refunds and revocations call Google Play, so they need `Billing__Provider=googleplay` and a service account with
 "Manage orders and subscriptions" (see `docs/billing.md`).
@@ -134,7 +134,7 @@ Refunds and revocations call Google Play, so they need `Billing__Provider=google
 ```bash
 # 1. The API, with an admin and fake billing (see AGENTS.md for the database)
 Database__EnsureCreated=true ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5135 \
-Admin__Emails=ops@heartpact.app Admin__MonthlyPrices__heartpact_plus_monthly=4.99 \
+Admin__Emails=ops@heartpact.me Admin__MonthlyPrices__heartpact_plus_monthly=4.99 \
 Billing__Provider=fake Email__Provider=log RateLimits__Enabled=false \
 dotnet run --project src/Twogether.Api --no-launch-profile
 

@@ -35,7 +35,7 @@ function start(path: string) {
 const admin: AdminSession = {
   accessToken: "admin-token",
   expiresAtUtc: new Date(Date.now() + 4 * 3600_000).toISOString(),
-  admin: { id: "00000000-0000-0000-0000-00000000000a", email: "ops@heartpact.app", displayName: "Ops" },
+  admin: { id: "00000000-0000-0000-0000-00000000000a", email: "ops@heartpact.me", displayName: "Ops" },
 };
 
 const maya: UserRow = {
@@ -97,7 +97,7 @@ describe("the dashboard", () => {
               code: "admin.enrollment_required",
               message: "Scan this",
               secret: "JBSWY3DPEHPK3PXPJBSWY3DP",
-              otpauthUri: "otpauth://totp/Heartpact:ops@heartpact.app?secret=JBSWY3DPEHPK3PXPJBSWY3DP",
+              otpauthUri: "otpauth://totp/Heartpact:ops@heartpact.me?secret=JBSWY3DPEHPK3PXPJBSWY3DP",
             },
           };
         if (code === "000000") return { status: 401, body: { code: "admin.invalid_code", message: "That code didn't work. Codes change every 30 seconds." } };
@@ -108,7 +108,7 @@ describe("the dashboard", () => {
     });
 
     start("/sign-in?redirect=%2Fusers");
-    await user.type(await screen.findByLabelText("Email"), "ops@heartpact.app");
+    await user.type(await screen.findByLabelText("Email"), "ops@heartpact.me");
     await user.type(screen.getByLabelText("Password"), "longenough");
     await user.click(screen.getByRole("button", { name: "Continue" }));
 

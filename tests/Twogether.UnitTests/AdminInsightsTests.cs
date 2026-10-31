@@ -13,11 +13,11 @@ public sealed class AdminInsightsTests : IDisposable
 {
     /// <summary>A Wednesday; its week began on Monday 26 October.</summary>
     private static readonly DateTime Now = new(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc);
-    private const string AdminEmail = "ops@heartpact.app";
+    private const string AdminEmail = "ops@heartpact.me";
 
     private readonly TestDatabase database = new();
     private readonly FakeClock clock = new(Now);
-    private readonly AdminSettings settings = new() { Emails = ["Ops@Heartpact.app"] };
+    private readonly AdminSettings settings = new() { Emails = ["Ops@Heartpact.me"] };
     private readonly BillingSettings billing = new() { Free = new PlanLimits(3, 1000, 7) };
 
     public void Dispose() => database.Dispose();

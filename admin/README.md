@@ -35,7 +35,7 @@ python3 admin/scripts/seed_demo.py --reset      # wipes every table's data (sche
 python3 admin/scripts/seed_demo.py --dry-run    # only prints what it would make
 ```
 
-Development only: the API started as below (fake billing, log email, no rate limits, `ops@heartpact.app` as admin)
+Development only: the API started as below (fake billing, log email, no rate limits, `ops@heartpact.me` as admin)
 and psql to its database (`--psql`, default the dev database on `/var/lib/postgresql/heartpact-dev:5544`). It acts
 through the real API, then moves each row back to when it happened with SQL, keeping timestamps consistent; food
 scans and photos, which the API can't make without a model key or storage, are inserted as plain rows. `--seed`

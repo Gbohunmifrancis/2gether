@@ -16,7 +16,7 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `PLAY_INTEGRITY_PROJECT_NUMBER` | proving a finished dare came from the genuine app | the **number** of the Google Cloud project linked in Play Console → App integrity. Without it no token is sent. See `docs/exercise-checks.md` |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | signed release bundle | chosen when the keystore was made |
-| `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to the `API_URL` variable, else `https://api.heartpact.app/` |
+| `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to the `API_URL` variable, else `https://api.heartpact.me/` |
 | `PLAY_SERVICE_ACCOUNT_JSON` | uploading to Google Play | see `docs/deploy.md` |
 | `RAILWAY_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | deploying the API and dashboard | see `docs/deploy.md`, with the `API_URL`, `ADMIN_URL` and other variables |
 

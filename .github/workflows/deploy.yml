@@ -246,28 +246,62 @@ jobs:
           rm -rf "$RUNNER_TEMP/site/i18n"
           api="${API_URL%/}"
           # The script that calls the API, and the Content-Security-Policy that allows it.
-          sed -i "s#https://api.heartpact.app#$api#g" "$RUNNER_TEMP/site/assets/config.js" "$RUNNER_TEMP/site/_headers"
+          sed -i "s#https://api.heartpact.me#$api#g" "$RUNNER_TEMP/site/assets/config.js" "$RUNNER_TEMP/site/_headers"
           grep -q "$api" "$RUNNER_TEMP/site/assets/config.js" && grep -q "connect-src 'self' $api" "$RUNNER_TEMP/site/_headers"
+      - name: Pages project and custom domain
+        id: pages
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          # First deploy: create the project. Then attach SITE_URL's host as a custom domain; Cloudflare adds the DNS
+          # record when the domain's zone is in this account. Until the domain is active (certificate issued), the
+          # live check uses the project's pages.dev address instead.
+          projects="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects"
+          cf() { curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" "$@"; }
+          if [ "$(cf "$projects/$PAGES_PROJECT" | jq -r .success)" != "true" ]; then
+            created=$(cf -X POST "$projects" -d "{\"name\":\"$PAGES_PROJECT\",\"production_branch\":\"main\"}")
+            [ "$(echo "$created" | jq -r .success)" = "true" ] || { echo "::error title=Pages project::$(echo "$created" | jq -c .errors)"; exit 1; }
+            echo "Created the Pages project $PAGES_PROJECT."
+          fi
+          subdomain=$(cf "$projects/$PAGES_PROJECT" | jq -r .result.subdomain)
+          check="https://$subdomain"
+          if [ -n "$SITE_URL" ]; then
+            host="${SITE_URL#*://}"; host="${host%%/*}"
+            status=$(cf "$projects/$PAGES_PROJECT/domains/$host" | jq -r '.result.status // empty')
+            if [ -z "$status" ]; then
+              added=$(cf -X POST "$projects/$PAGES_PROJECT/domains" -d "{\"name\":\"$host\"}")
+              [ "$(echo "$added" | jq -r .success)" = "true" ] || echo "::warning title=Custom domain::Couldn't add $host: $(echo "$added" | jq -c .errors)"
+              status=$(cf "$projects/$PAGES_PROJECT/domains/$host" | jq -r '.result.status // empty')
+            fi
+            if [ "$status" = "active" ]; then
+              check="${SITE_URL%/}"
+            else
+              echo "::warning title=Domain not active yet::$host is '${status:-missing}'. Cloudflare activates it once its DNS points at Pages; the site is live at $check meanwhile."
+            fi
+          fi
+          echo "check_url=$check" >> "$GITHUB_OUTPUT"
       - name: Upload to Cloudflare Pages
         if: steps.ready.outputs.go == 'true'
         run: npx --yes wrangler@4.151.0 pages deploy "$RUNNER_TEMP/site" --project-name "$PAGES_PROJECT" --branch main --commit-hash "$GITHUB_SHA" --commit-message "$(git log -1 --format=%s | head -c 80)"
       - name: Check the live site
-        if: steps.ready.outputs.go == 'true' && env.SITE_URL != ''
+        if: steps.ready.outputs.go == 'true'
+        env:
+          CHECK_URL: ${{ steps.pages.outputs.check_url }}
         run: |
           # This build's stylesheet must be what the site serves, with the security headers on.
+          SITE_URL="${SITE_URL:-$CHECK_URL}"
           for i in $(seq 1 30); do
-            if curl -fsS --max-time 10 "$SITE_URL/assets/site.css" | cmp -s - website/assets/site.css; then
-              headers=$(curl -sS -D - -o /dev/null "$SITE_URL/privacy/")
+            if curl -fsS --max-time 10 "$CHECK_URL/assets/site.css" | cmp -s - website/assets/site.css; then
+              headers=$(curl -sS -D - -o /dev/null "$CHECK_URL/privacy/")
               echo "$headers" | grep -iq "^content-security-policy:" || { echo "::error::$SITE_URL has no Content-Security-Policy (website/_headers)."; exit 1; }
               # The deletion page signs in from the site's origin: the API must allow it in Frontend__Origin.
               allowed=$(curl -sS -D - -o /dev/null -X OPTIONS -H "Origin: $SITE_URL" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type" "${API_URL%/}/api/auth/login" | tr -d '\r' | grep -i "^access-control-allow-origin:" || true)
               [ -n "$allowed" ] || echo "::warning title=Deletion page can't reach the API::Add $SITE_URL to Frontend__Origin on the API. See docs/website.md."
-              echo "Live: $SITE_URL"
+              echo "Live: $CHECK_URL"
               exit 0
             fi
             sleep 10
           done
-          echo "::error title=Website not live::$SITE_URL doesn't serve this build's stylesheet after 5 minutes."
+          echo "::error title=Website not live::$CHECK_URL doesn't serve this build's stylesheet after 5 minutes."
           exit 1
 
   android:
