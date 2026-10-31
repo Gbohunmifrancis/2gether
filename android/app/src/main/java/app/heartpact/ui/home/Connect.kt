@@ -32,7 +32,7 @@ fun ConnectBanner(onConnect: () -> Unit, modifier: Modifier = Modifier) {
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             // My half, the partner's still an empty slot.
-            HeartSticker(HalfState.Empty, HalfState.Slot, 40.dp)
+            HeartSticker(HalfState.Stuck, HalfState.Slot, 44.dp)
             Column(Modifier.weight(1f)) {
                 Text(tr("Connect with your partner"), style = Heartpact.type.title, color = colors.ink)
                 Text(tr("Share your invite code, or enter theirs."), style = Heartpact.type.small, color = colors.ink2)
