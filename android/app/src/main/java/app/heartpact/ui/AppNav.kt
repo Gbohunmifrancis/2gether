@@ -36,6 +36,7 @@ import app.heartpact.ui.plus.PlusSummaryViewModel
 import app.heartpact.ui.plus.PlusText
 import app.heartpact.ui.plus.PlusViewModel
 import app.heartpact.ui.components.ReadableScreen
+import app.heartpact.push.PushInbox
 import app.heartpact.ui.games.GameActions
 import app.heartpact.ui.games.GamesScreen
 import app.heartpact.ui.games.GamesViewModel
@@ -179,6 +180,16 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
             if (!splashDone) return@LaunchedEffect
             val route = target.route()
             if (nav.currentDestination?.route != route) nav.resetTo(route)
+        }
+
+        // A game push (an invite, your turn, a game ended) opens the games over home, once the app is in.
+        val requested by appModel.openTab.collectAsStateWithLifecycle()
+        LaunchedEffect(requested, splashDone, destination, entry?.destination?.route) {
+            if (requested != PushInbox.GAMES || !splashDone || destination != Destination.Home) return@LaunchedEffect
+            val route = entry?.destination?.route ?: return@LaunchedEffect
+            if (route == Routes.SPLASH) return@LaunchedEffect
+            appModel.tabOpened()
+            if (route != Routes.GAMES) nav.navigate(Routes.GAMES) { launchSingleTop = true }
         }
 
         CompositionLocalProvider(LocalAvatars provides container.avatars) {
@@ -454,7 +465,11 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: GamesViewModel = viewModel(factory = viewModelFactory { initializer { GamesViewModel(application) } })
-                    LaunchedEffect(Unit) { model.refresh() }
+                    // Opening, and coming back to the app mid-game: what the partner did meanwhile may not have reached this phone.
+                    LifecycleResumeEffect(Unit) {
+                        model.refresh()
+                        onPauseOrDispose { }
+                    }
                     val state by model.ui.collectAsStateWithLifecycle()
                     GamesScreen(state, me, partner, GameActions(
                         onInvite = { type, letter -> model.invite(type, letter) }, onAccept = { model.accept(it) }, onAbandon = { model.abandon(it) },

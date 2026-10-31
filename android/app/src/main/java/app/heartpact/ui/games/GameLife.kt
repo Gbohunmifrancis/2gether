@@ -13,6 +13,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -49,12 +52,14 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -140,9 +145,12 @@ internal fun Couple(size: Dp, mine: Reaction, theirs: Reaction, modifier: Modifi
     val left = if (leftIsMe) mine else theirs
     val right = if (leftIsMe) theirs else mine
     // Each half fills one side of its own canvas, so the canvases overlap most of the way to bring the halves together.
-    Row(modifier, verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(-size * 0.8f)) {
-        PlayCharacter(Who.Left, left, size, key = key ?: left)
-        PlayCharacter(Who.Right, right, size, key = key ?: right)
+    // The heart is a picture, not text: it keeps its left half on the left in a right-to-left language too.
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Row(modifier, verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(-size * 0.8f)) {
+            PlayCharacter(Who.Left, left, size, key = key ?: left)
+            PlayCharacter(Who.Right, right, size, key = key ?: right)
+        }
     }
 }
 
@@ -230,7 +238,10 @@ private fun ScoreSide(name: String, score: Int, side: Side, who: Who, active: Bo
             if (mine) PlayCharacter(who, reaction, 46.dp, key = cheer ?: reaction)
             Column(horizontalAlignment = if (mine) Alignment.Start else Alignment.End, modifier = Modifier.weight(1f, fill = false)) {
                 Text(name, style = Heartpact.type.label, color = if (active) partner.onSoft else colors.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(count(shown.value.roundToInt()), style = Heartpact.type.small, color = if (active) partner.onSoft else colors.ink2, maxLines = 1,
+                // The count always reads whole ("2 wins", never a bare "2" cut at the space): on a narrow pill it shrinks to fit.
+                val small = Heartpact.type.small
+                BasicText(count(shown.value.roundToInt()), style = small.copy(color = if (active) partner.onSoft else colors.ink2), maxLines = 1, softWrap = false,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = small.fontSize, stepSize = 0.5.sp),
                     modifier = Modifier.graphicsLayer { scaleX = bump.value; scaleY = bump.value; transformOrigin = TransformOrigin(if (mine) 0f else 1f, 0.5f) })
             }
             if (!mine) PlayCharacter(who, reaction, 46.dp, key = cheer ?: reaction)
@@ -257,6 +268,8 @@ internal fun Countdown(seconds: Long) {
     Column(Modifier.fillMaxWidth().padding(top = 72.dp).semantics(mergeDescendants = true) { contentDescription = tr("Starting in {seconds}", "seconds" to seconds) },
         horizontalAlignment = Alignment.CenterHorizontally) {
         // The two lean in either side of the number; each half fills only one side of its canvas, hence the overlap.
+        // Left half on the left in every language, as in the heart.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy((-34).dp)) {
             PlayCharacter(Who.Left, Reaction.Cheer, 112.dp, key = seconds)
             Box(Modifier.size(width = 150.dp, height = 170.dp), contentAlignment = Alignment.Center) {
@@ -277,6 +290,7 @@ internal fun Countdown(seconds: Long) {
                         })
             }
             PlayCharacter(Who.Right, Reaction.Cheer, 112.dp, key = seconds)
+        }
         }
         Text(tr("Get ready"), style = Heartpact.type.title, color = colors.ink2, modifier = Modifier.padding(top = 20.dp))
     }

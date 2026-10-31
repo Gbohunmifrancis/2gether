@@ -4,6 +4,7 @@ import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
 import app.heartpact.i18n.tr
+import app.heartpact.i18n.trn
 
 /** How a finished game came out, from the phone holder's side. */
 internal data class GameScore(
@@ -44,12 +45,38 @@ internal fun GamePlay.lastLine(s: GameSession, me: String, partner: String): Str
     val game = title(s)
     if (s.status == GameStatus.Abandoned) return tr("{game} ended early", "game" to game)
     if (s.gameType == GameType.SnakesAndLadders) return tr("Last time, {game}: {outcome}", "game" to game, "outcome" to outcome(s, me, partner))
+    // A duel is won on hearts, or on points when the hearts were level.
+    if (s.gameType == GameType.SkillDuel && skillDuel(s).finished) {
+        val d = skillDuel(s)
+        val hearts = d.margin ?: 0
+        return when (duelDecision(d)) {
+            GamePlay.DuelDecision.Tie -> tr("{game} was a perfect tie", "game" to game)
+            GamePlay.DuelDecision.Points -> if (d.winner == me) tr("You won {game} on points", "game" to game)
+                else tr("{partner} won {game} on points", "partner" to partner, "game" to game)
+            GamePlay.DuelDecision.Hearts -> if (d.winner == me) trn(hearts, "You won {game} by {count} heart", "You won {game} by {count} hearts", "game" to game)
+                else trn(hearts, "{partner} won {game} by {count} heart", "{partner} won {game} by {count} hearts", "partner" to partner, "game" to game)
+        }
+    }
     val score = score(s, me) ?: return tr("Last game: {game}", "game" to game)
     return when {
         score.together -> tr("Last time, {game}: {outcome}", "game" to game, "outcome" to outcome(s, me, partner))
         score.won -> tr("You won {game}, {mine} to {theirs}", "game" to game, "mine" to score.mine, "theirs" to score.theirs)
         score.lost -> tr("{partner} won {game}, {theirs} to {mine}", "partner" to partner, "game" to game, "theirs" to score.theirs, "mine" to score.mine)
         else -> tr("{game} was a draw, {score} each", "game" to game, "score" to score.mine)
+    }
+}
+
+/**
+ * How the last game went for the phone holder, for Maya and Theo on the hub: true they won, false their partner did,
+ * null for a draw, a game played as a team, or one that didn't finish.
+ */
+internal fun GamePlay.won(s: GameSession, me: String): Boolean? {
+    if (s.status != GameStatus.Completed) return null
+    fun by(winner: String?) = winner?.let { it == me }
+    return when (s.gameType) {
+        GameType.SkillDuel -> by(skillDuel(s).winner)
+        GameType.SnakesAndLadders -> by(snakes(s).winner)
+        else -> score(s, me)?.let { if (it.won) true else if (it.lost) false else null }
     }
 }
 

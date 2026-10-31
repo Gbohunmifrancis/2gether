@@ -10,11 +10,13 @@ import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.utc
+import app.heartpact.i18n.tr
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -53,6 +55,37 @@ data class GamesUi(
         return if (current != null && current.stateVersion > session.stateVersion) this
         else copy(sessions = (listOf(session) + sessions.filterNot { it.id == session.id }).sortedWith(compareByDescending<GameSession> { it.open }))
     }
+
+    /**
+     * The list as the server just sent it, except that a game this phone already holds at a newer version (a move or
+     * an event that landed while the list was on its way) keeps that version, so a refresh never rolls a board back.
+     */
+    fun withList(list: List<GameSession>): GamesUi {
+        val held = sessions.associateBy { it.id }
+        return copy(sessions = list.map { s -> held[s.id]?.takeIf { it.stateVersion > s.stateVersion } ?: s })
+    }
+}
+
+/** The couple hub's `GameEnded`: who ended the game (an empty id when the server ended a forgotten one). */
+@Serializable
+internal data class GameEndedEvent(val sessionId: String, val endedByUserId: String = "", val endedByName: String = "")
+
+private const val NOBODY = "00000000-0000-0000-0000-000000000000"
+
+/**
+ * What to tell the person when a game ends without them: their partner took back an invite, said not now, or ended a
+ * game part way, or the server ended one left too long. Null when they ended it themselves.
+ */
+internal fun endedNote(ended: GameEndedEvent, session: GameSession?, me: String?): String? {
+    if (me != null && ended.endedByUserId == me) return null
+    if (ended.endedByUserId.isEmpty() || ended.endedByUserId == NOBODY) return tr("That game sat untouched for too long, so it ended.")
+    val partner = ended.endedByName.ifBlank { tr("your partner") }
+    val invite = session != null && session.inviteAcceptedAtUtc == null && session.startedAtUtc == null
+    return when {
+        invite && session?.invitedByUserId == ended.endedByUserId -> tr("{partner} took back the invite.", "partner" to partner)
+        invite -> tr("{partner} can't play right now.", "partner" to partner)
+        else -> tr("{partner} ended the game.", "partner" to partner)
+    }
 }
 
 private val KEEP_FINISHED: Duration = Duration.ofMinutes(15)
@@ -79,11 +112,28 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
                 when (event.name) {
                     "GameStarted", "GameStateChanged", "GameCompleted" ->
                         runCatching { app.json.decodeFromString(GameSession.serializer(), event.json) }.getOrNull()?.let(::upsert)
-                    "GameInvitation", "GameEnded", "GameCountdown" -> refresh()
+                    "GameInvitation", "GameCountdown" -> refresh()
+                    "GameEnded" -> {
+                        val ended = runCatching { app.json.decodeFromString(GameEndedEvent.serializer(), event.json) }.getOrNull()
+                        launch {
+                            val me = runCatching { app.session.load()?.user?.id }.getOrNull()
+                            refresh().join()
+                            // Whether it was ever accepted says if this was an invite or a game part way.
+                            val session = ended?.let { e -> _ui.value.sessions.firstOrNull { it.id == e.sessionId } }
+                            ended?.let { endedNote(it, session, me) }?.let { note -> _ui.update { it.copy(note = note) } }
+                        }
+                    }
                     "GameInk" -> runCatching { app.json.decodeFromString(GameInkEvent.serializer(), event.json) }.getOrNull()
                         ?.let { _ui.value.ink.receive(it.sessionId, it.cell, it.stroke, it.points, System.currentTimeMillis()) }
                 }
             }
+        }
+    }
+
+    init {
+        // Back from a dropped connection (or the app coming back to the front): events went by unseen, so catch up.
+        viewModelScope.launch {
+            app.live.connected.drop(1).collect { connected -> if (connected) refresh() }
         }
     }
 
@@ -102,7 +152,8 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     fun refresh() = viewModelScope.launch {
         (app.games.region() as? ApiResult.Ok)?.value?.let { found -> _ui.update { it.copy(region = found.region) } }
         when (val result = app.games.sessions()) {
-            is ApiResult.Ok -> _ui.update { it.copy(sessions = result.value, loaded = true, note = null) }
+            // Back online clears the offline note; a refusal just shown (a refresh follows it) stays until the next tap.
+            is ApiResult.Ok -> _ui.update { it.withList(result.value).copy(loaded = true, note = it.note?.takeUnless { n -> n == OFFLINE_MESSAGE }) }
             else -> _ui.update { it.copy(loaded = true, note = result.note()) }
         }
     }
@@ -146,12 +197,17 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = block()
             if (result is ApiResult.Ok) upsert(result.value)
-            _ui.update { it.copy(busy = false, note = result.note()) }
+            // Both invited at once, or the game moved on under the tap: the reload shows what happened, so no note.
+            val quiet = result is ApiResult.Failure && result.code in RELOAD_ONLY
+            _ui.update { it.copy(busy = false, note = if (quiet) null else result.note()) }
             if (result !is ApiResult.Ok) refresh()
         }
     }
 
     companion object {
+        /** Refusals the reload explains by itself: the partner invited first, or a move landed as the game was ended. */
+        private val RELOAD_ONLY = setOf("game.active_session", "game.version_conflict")
+
         /** The ICallOn letter the inviter chose, if any. */
         fun chosenLetter(session: GameSession, json: kotlinx.serialization.json.Json): String? =
             runCatching { json.parseToJsonElement(session.setupJson).jsonObject["letter"]?.jsonPrimitive?.content }.getOrNull()

@@ -115,6 +115,8 @@ object GamePlay {
             GameType.SpotTheDifference -> return spotOutcome(spot(s), me, partner)
             GameType.SnakesAndLadders -> return snakesOutcome(snakes(s), me, partner)
             GameType.SkillDuel -> skillDuel(s).let { d -> if (d.totals != null) return duelOutcome(d, me, partner) else d.hearts }
+            // A newer game's scores can't be read here: say only that it was played.
+            GameType.Unknown -> return tr("Played")
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0

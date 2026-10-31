@@ -29,6 +29,12 @@ public sealed class SkillDuelRules : IGameRules
 
     public bool AnyoneMayAct => true;
 
+    /// <summary>
+    /// Each score is one partner's own round, judged on arrival (a round scored twice is refused), so two scores sent
+    /// at the same moment never need a reload and a resend.
+    /// </summary>
+    public bool MovesMayCross => true;
+
     /// <summary>The setup for a new duel: its region, a seed, and the five rounds that seed draws.</summary>
     public static string CreateSetup(string region, int? seed = null)
     {

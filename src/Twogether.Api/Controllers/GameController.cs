@@ -3,13 +3,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Twogether.Api.Common;
 using Twogether.Api.Hubs;
+using Twogether.Api.Presence;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Games;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Infrastructure.Persistence;
 using Twogether.Shared.Localization;
 using Twogether.Application.Features.Notifications;
 
@@ -23,8 +26,14 @@ public sealed class GameController(
     IGameEngine engine,
     IGameWordValidator wordValidator,
     IGameSetupFactory setupFactory,
-    IHubContext<CoupleHub> hub) : ApiControllerBase
+    IHubContext<CoupleHub> hub,
+    CouplePresenceTracker? presence = null) : ApiControllerBase
 {
+    private DatabaseFacade Database => ((DbContext)db).Database;
+
+    /// <summary>A "your turn" push waits this long before another may follow, unless the first has been read.</summary>
+    public static readonly TimeSpan TurnNudgeQuietPeriod = TimeSpan.FromHours(6);
+
     [HttpGet("sessions")]
     public async Task<ActionResult<IReadOnlyList<GameSessionDto>>> List(CancellationToken cancellationToken)
     {
@@ -46,7 +55,10 @@ public sealed class GameController(
         if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return BadRequest(new ApiError("game.no_couple", Loc.T("Link a partner before starting a game.")));
         var linkedCouple = await db.Couples.AsNoTracking().AnyAsync(couple => couple.Id == currentUser.CoupleId.Value && couple.Status == CoupleStatus.Active, cancellationToken);
         if (!linkedCouple) return BadRequest(new ApiError("game.no_partner", Loc.T("Link a partner before starting a game.")));
-        var active = await db.GameSessions.AnyAsync(session => session.CoupleId == currentUser.CoupleId.Value && (session.Status == GameSessionStatus.WaitingForPartner || session.Status == GameSessionStatus.InProgress), cancellationToken);
+        // Both partners may invite at the same moment: one check-and-invite at a time per couple, so only one game opens.
+        await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+        await Database.LockAsync(LockScope.GameInvite, currentUser.CoupleId.Value, cancellationToken);
+        var active = await db.GameSessions.AnyAsync(session => session.CoupleId == currentUser.CoupleId.Value && (session.Status == GameSessionStatus.WaitingForPartner || session.Status == GameSessionStatus.InProgress || session.Status == GameSessionStatus.Paused), cancellationToken);
         if (active) return Conflict(new ApiError("game.active_session", Loc.T("Your couple already has an active game.")));
 
         var inviter = await db.Users.AsNoTracking().SingleAsync(user => user.Id == currentUser.UserId.Value, cancellationToken);
@@ -64,6 +76,7 @@ public sealed class GameController(
         db.GameSessions.Add(session);
         db.Notifications.Add(notification);
         await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         await hub.Clients.Group(CoupleHub.UserGroupName(partnerId.Value)).SendAsync("GameInvitation", new GameInvitationDto(session.Id, session.GameType, inviter.Id, inviter.DisplayName, session.CreatedAtUtc), cancellationToken);
         await hub.Clients.Group(CoupleHub.UserGroupName(partnerId.Value)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);
@@ -91,7 +104,15 @@ public sealed class GameController(
         session.AcceptInvite(countdownEnds, clock.UtcNow);
         var initial = engine.Start(session.GameType, players, countdownEnds, session.SetupJson);
         session.Start(initial.CurrentTurnUserId!.Value, initial.DeadlineUtc, initial.StateJson, clock.UtcNow);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The invite was taken back (or accepted on another phone) as this accept arrived.
+            return Conflict(new ApiError("game.not_waiting", Loc.T("This game is no longer waiting for a partner.")));
+        }
 
         await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameCountdown", new GameCountdownDto(session.Id, countdownEnds), cancellationToken);
         await GameEvents.SendAsync(hub, engine, session, await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken), "GameStarted", cancellationToken);
@@ -120,6 +141,7 @@ public sealed class GameController(
         if (session.StateVersion != request.ExpectedStateVersion && !engine.MovesMayCross(session.GameType))
             return Conflict(new ApiError("game.version_conflict", Loc.T("The game state changed. The latest board has been loaded.")));
         if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
+        var turnBefore = session.CurrentTurnUserId;
         try
         {
             // Timed games play the server's timeout once the clock runs out; the rest wait for the player whose turn it is.
@@ -150,7 +172,32 @@ public sealed class GameController(
         }
         var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
         await GameEvents.SendAsync(hub, engine, session, players, session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged", cancellationToken);
+        if (turnBefore != session.CurrentTurnUserId) await NudgeTurnAsync(session, currentUser.UserId.Value, cancellationToken);
         return Ok(ToDto(session));
+    }
+
+    /// <summary>
+    /// A game played turn by turn without a clock may wait hours for the next move, so when the turn passes to a
+    /// partner who isn't in the app, they get one "your turn" push. Not another until they've read it or a few hours
+    /// have passed, so a long game of memory match never buzzes on every move. Games played at once or on a clock
+    /// send none: both are in the app already.
+    /// </summary>
+    private async Task NudgeTurnAsync(GameSession session, Guid moverId, CancellationToken cancellationToken)
+    {
+        if (session.Status != GameSessionStatus.InProgress || session.CurrentTurnUserId is not { } next || next == moverId) return;
+        if (engine.IsTimed(session.GameType) || engine.MovesMayCross(session.GameType) || engine.AnyoneMayAct(session.GameType)) return;
+        if (presence?.IsOnline(session.CoupleId, next) == true) return;
+        var since = clock.UtcNow - TurnNudgeQuietPeriod;
+        var nudged = await db.Notifications.AnyAsync(item => item.UserId == next && item.Type == NotificationType.GameTurn && item.ReadAtUtc == null && item.CreatedAtUtc > since, cancellationToken);
+        if (nudged) return;
+        var mover = await db.Users.AsNoTracking().Where(user => user.Id == moverId).Select(user => user.DisplayName).SingleAsync(cancellationToken);
+        Notification notification;
+        using (Loc.Use(await db.LanguageOfAsync(next, cancellationToken)))
+            notification = Notification.Create(next, session.CoupleId, NotificationType.GameTurn, Loc.T("Your turn"),
+                Loc.T("{name} made a move. It's your turn.", ("name", mover)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);
+        db.Notifications.Add(notification);
+        await db.SaveChangesAsync(cancellationToken);
+        await hub.Clients.Group(CoupleHub.UserGroupName(next)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);
     }
 
     [HttpPost("sessions/{sessionId:guid}/abandon")]
@@ -159,18 +206,33 @@ public sealed class GameController(
         var session = await OwnedSession(sessionId, cancellationToken);
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
         if (!session.IsOpen) return Conflict(new ApiError("game.already_ended", Loc.T("This game has already ended.")));
+        var wasInvite = session.Status == GameSessionStatus.WaitingForPartner;
+        var declined = wasInvite && session.InvitedByUserId != currentUser.UserId.Value;
         session.EndBy(currentUser.UserId.Value, clock.UtcNow);
         var endedBy = await db.Users.AsNoTracking().SingleAsync(user => user.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = await db.Users.AsNoTracking().Where(user => user.CoupleId == session.CoupleId && user.Id != endedBy.Id).Select(user => (Guid?)user.Id).SingleOrDefaultAsync(cancellationToken);
         Notification? notification = null;
-        if (partnerId.HasValue)
+        // An invite taken back before it was answered sends no push: it only leaves the partner's screen. A declined
+        // invite tells whoever sent it; a game ended part way tells the partner.
+        if (partnerId.HasValue && (!wasInvite || declined))
         {
             using var _ = Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken));
-            notification = Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameEnded, Loc.T("Game ended"),
-                Loc.T("{name} ended your game.", ("name", endedBy.DisplayName)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);
+            notification = declined
+                ? Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameEnded, Loc.T("Not right now"),
+                    Loc.T("{name} can't play right now. Try again later.", ("name", endedBy.DisplayName)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow)
+                : Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameEnded, Loc.T("Game ended"),
+                    Loc.T("{name} ended your game.", ("name", endedBy.DisplayName)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);
             db.Notifications.Add(notification);
         }
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A move (or the partner's accept) landed first: let the phone reload and decide again.
+            return Conflict(new ApiError("game.version_conflict", Loc.T("The game state changed. The latest board has been loaded.")));
+        }
         var ended = new GameEndedDto(session.Id, endedBy.Id, endedBy.DisplayName, session.EndedAtUtc ?? clock.UtcNow);
         await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameEnded", ended, cancellationToken);
         if (notification is not null) await hub.Clients.Group(CoupleHub.UserGroupName(notification.UserId)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);

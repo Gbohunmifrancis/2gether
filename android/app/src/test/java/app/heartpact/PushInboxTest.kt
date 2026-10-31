@@ -21,6 +21,8 @@ class PushInboxTest {
         assertEquals("today", PushInbox.tabFor("exerciseCallOffAsked"))
         assertEquals("album", PushInbox.tabFor("memoriesSynced"))
         assertEquals("us", PushInbox.tabFor("dailyQuestionAnswered"))
+        // A game invite, a turn waiting, a game ended or declined: straight to the games, not the Us tab.
+        listOf("gameInvite", "gameTurn", "gameEnded", "gameStarted").forEach { assertEquals(PushInbox.GAMES, PushInbox.tabFor(it)) }
         assertTrue(PushInbox.refreshesToday("exerciseCompleted"))
         assertFalse(PushInbox.refreshesToday("memoriesSynced"))
     }

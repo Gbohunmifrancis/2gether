@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Twogether.Api.Controllers;
 using Twogether.Application.Features.Billing;
 using Twogether.Application.Features.Food;
+using Twogether.Application.Features.Games;
 using Twogether.Application.Features.Memories;
 using Twogether.Core.Enums;
 using Twogether.Infrastructure.Account;
@@ -122,5 +123,37 @@ public sealed class PostgresRaceTests : IAsyncLifetime
         Assert.Single(accepted, ok => ok);
         await using var check = database.CreateContext();
         Assert.Equal(6_000, await check.Memories.Where(item => item.Status != MemoryStatus.Deleting).SumAsync(item => item.SizeBytes));
+    }
+
+    [PostgresFact]
+    public async Task Both_partners_inviting_at_once_open_one_game()
+    {
+        TestCouple couple;
+        await using (var db = database.CreateContext()) couple = await TestCouple.AddAsync(db);
+        var invites = Enumerable.Range(0, 10).Select(async index =>
+        {
+            await using var db = database.CreateContext();
+            var userId = index % 2 == 0 ? couple.MayaId : couple.TheoId;
+            var controller = new GameController(db, new FakeCurrentUser(userId, couple.CoupleId), clock, new GameEngine(), new NoWords(), new GameSetupFactory(new NoQuestions()), new FakeHub());
+            return (await controller.Create(new CreateGameSessionRequest(GameType.MemoryMatch), default)).Result is OkObjectResult;
+        }).ToList();
+
+        var opened = await Task.WhenAll(invites);
+
+        Assert.Single(opened, ok => ok);
+        await using var check = database.CreateContext();
+        Assert.Equal(1, await check.GameSessions.CountAsync(item => item.CoupleId == couple.CoupleId));
+    }
+
+    private sealed class NoWords : IGameWordValidator
+    {
+        public Task<IReadOnlyDictionary<string, bool?>> ValidateAsync(string stateJson, string answersJson, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyDictionary<string, bool?>>(new Dictionary<string, bool?>());
+    }
+
+    private sealed class NoQuestions : IGameQuestionProvider
+    {
+        public Task<IReadOnlyList<string>> GetQuestionsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<string>>([]);
+        public Task<IReadOnlyList<TriviaQuestion>> GetTriviaAsync(int amount, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<TriviaQuestion>>([]);
     }
 }

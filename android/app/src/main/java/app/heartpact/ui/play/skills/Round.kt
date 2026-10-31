@@ -127,12 +127,16 @@ internal fun newPlay(kind: SkillKind, seed: Long, difficulty: Difficulty = Diffi
 internal fun revealMs(score: Int): Long = 650L + score * 4 + 380 + 420
 
 @Composable
-internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null, againLabel: String? = null) {
+internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null, againLabel: String? = null,
+    onScored: ((SkillResult) -> Unit)? = null) {
     val colors = Heartpact.colors
     val done by rememberUpdatedState(onDone)
+    val locked by rememberUpdatedState(onScored)
     val scored = play.scored
     LaunchedEffect(scored) {
         if (scored == null) return@LaunchedEffect
+        // The score is final the moment it's made, before the reveal plays: leaving during the reveal can't undo it.
+        locked?.invoke(SkillResult(play.kind, scored.score, scored.note))
         delay(play.revealAfterMs)
         val r = SkillResult(play.kind, scored.score, scored.note)
         play.result = r
