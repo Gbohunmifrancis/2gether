@@ -25,14 +25,15 @@ public sealed class OpenTriviaQuestionProvider(HttpClient client) : IGameQuestio
     }
 
     /// <summary>
-    /// Open Trivia DB's multiple-choice questions, HTML entities decoded and options shuffled. Any failure (network,
+    /// Open Trivia DB's multiple-choice questions, HTML entities decoded and options shuffled. Its "hard" questions are
+    /// left out (a couple's game night, not a pub quiz final), so twice as many are asked for. Any failure (network,
     /// rate limit, odd payload) gives an empty list: the setup then falls back to the built-in bank.
     /// </summary>
     public async Task<IReadOnlyList<TriviaQuestion>> GetTriviaAsync(int amount, CancellationToken cancellationToken = default)
     {
         try
         {
-            using var response = await client.GetAsync($"https://opentdb.com/api.php?amount={amount}&type=multiple", cancellationToken);
+            using var response = await client.GetAsync($"https://opentdb.com/api.php?amount={Math.Clamp(amount * 2, 1, 50)}&type=multiple", cancellationToken);
             if (!response.IsSuccessStatusCode) return [];
             using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             var root = payload.RootElement;
@@ -40,7 +41,9 @@ public sealed class OpenTriviaQuestionProvider(HttpClient client) : IGameQuestio
             // response_code 0 is success; 1 to 5 mean too few questions, a bad token, rate limited and so on.
             if (root.TryGetProperty("response_code", out var code) && code.ValueKind == JsonValueKind.Number && code.GetInt32() != 0) return [];
             if (!root.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array) return [];
-            return results.EnumerateArray().Select(Read).OfType<TriviaQuestion>().Where(question => question.IsPlayable).Take(amount).ToList();
+            return results.EnumerateArray()
+                .Where(item => !(item.ValueKind == JsonValueKind.Object && item.TryGetProperty("difficulty", out var difficulty) && difficulty.ValueKind == JsonValueKind.String && difficulty.GetString() == "hard"))
+                .Select(Read).OfType<TriviaQuestion>().Where(question => question.IsPlayable).Take(amount).ToList();
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return []; }
         catch (HttpRequestException) { return []; }

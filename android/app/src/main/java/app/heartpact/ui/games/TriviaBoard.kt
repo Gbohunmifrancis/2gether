@@ -22,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -50,10 +52,15 @@ internal fun TriviaBoard(s: GameSession, me: String, partnerName: String, busy: 
         Scoreboard(t.scores, me, partnerName, waitingOn(t.players, me, t.answered)) { trn(it, "{count} point", "{count} points") }
         Text(tr("Question {round} of {rounds}", "round" to minOf(t.round + 1, t.totalRounds), "rounds" to t.totalRounds), style = Heartpact.type.small, color = colors.ink2)
     }
+    if (finished) {
+        // The result card above has the score; under it, every question with the right answer and both picks.
+        if (t.history.isNotEmpty()) RecapCard(t.history.map { triviaRecapRow(it, me, partnerName) })
+        else t.reveal?.let { RevealCard(it, me, partnerName) }
+        return
+    }
     t.reveal?.let { RevealCard(it, me, partnerName) }
 
     val question = t.question
-    if (finished) return
     if (question == null) {
         Text(GamePlay.outcome(s, me, partnerName), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
         return
@@ -66,7 +73,8 @@ internal fun TriviaBoard(s: GameSession, me: String, partnerName: String, busy: 
             val mine = t.myAnswer
             val partnerIn = t.answered.any { it != me }
             when {
-                mine != null -> Text(tr("Locked in. Waiting for {partner}…", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
+                mine != null -> Text(tr("Locked in. Waiting for {partner}…", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2,
+                    modifier = Modifier.padding(top = 10.dp).semantics { liveRegion = LiveRegionMode.Polite })
                 partnerIn -> NoteCard(tr("{partner} has answered. Your pick?", "partner" to partnerName), Modifier.padding(top = 12.dp))
                 else -> Text(tr("Pick one. {partner} is answering too.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 10.dp))
             }
@@ -119,8 +127,8 @@ private fun RevealCard(reveal: TriviaReveal, me: String, partnerName: String) {
         iWasRight -> tr("Right!")
         else -> null
     }
-    RoundReveal(reveal.round, stamp, hearts = iWasRight, Modifier.padding(top = 12.dp)) { StickerCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    RoundReveal(reveal.round, stamp, hearts = iWasRight, Modifier.padding(top = 12.dp)) { StickerCard(Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite }) {
+        Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp, top = if (stamp != null) 30.dp else 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(when {
                 iWasRight && theyWereRight -> tr("You both got it right")
                 iWasRight -> tr("You got it right")
@@ -145,4 +153,20 @@ private fun Pick(text: String, right: Boolean) {
         Icon(if (right) Icons.Rounded.Check else Icons.Rounded.Close, if (right) tr("Right") else tr("Wrong"), Modifier.size(16.dp), tint = if (right) Heartpact.actor.action else colors.ink3)
         Text(text, style = Heartpact.type.small, color = if (right) colors.ink else colors.ink3, modifier = Modifier.padding(start = 6.dp))
     }
+}
+
+/** A Trivia question in the recap: the right answer, and what each of you picked. */
+@Composable
+private fun triviaRecapRow(played: TriviaReveal, me: String, partnerName: String): RecapRow {
+    val options = played.question.options
+    val right = options.getOrElse(played.answer) { "" }
+    val mine = played.picks[me]
+    val theirs = played.picks.entries.firstOrNull { it.key != me }?.value
+    fun said(pick: Int?) = options.getOrElse(pick ?: -1) { "—" }
+    val lines = listOf(
+        tr("Answer: {answer}", "answer" to right),
+        if (mine == played.answer) tr("You: right") else tr("You: {answer}", "answer" to said(mine)),
+        if (theirs == played.answer) tr("{partner}: right", "partner" to partnerName) else tr("{partner}: {answer}", "partner" to partnerName, "answer" to said(theirs)),
+    )
+    return RecapRow(played.question.text, lines, mine == played.answer)
 }

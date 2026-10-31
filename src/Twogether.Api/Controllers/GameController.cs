@@ -35,6 +35,9 @@ public sealed class GameController(
     /// <summary>A "your turn" push waits this long before another may follow, unless the first has been read.</summary>
     public static readonly TimeSpan TurnNudgeQuietPeriod = TimeSpan.FromHours(6);
 
+    /// <summary>How many of the couple's last games of a kind a new one avoids repeating content from.</summary>
+    private const int RecentSetups = 3;
+
     [HttpGet("sessions")]
     public async Task<ActionResult<IReadOnlyList<GameSessionDto>>> List(CancellationToken cancellationToken)
     {
@@ -68,7 +71,13 @@ public sealed class GameController(
 
         // Nigerian couples play the Naija versions: trivia, words and pictures (docs/games.md).
         var region = await CoupleRegion(currentUser.CoupleId.Value, cancellationToken);
-        var setupJson = await setupFactory.CreateAsync(request.GameType, region, request.Letter, cancellationToken);
+        // The setup knows both partners' languages (Trivia's fetched questions are English only) and the couple's last
+        // few games of this kind, so a new one doesn't deal the same questions again.
+        var recent = await db.GameSessions.AsNoTracking()
+            .Where(session => session.CoupleId == currentUser.CoupleId.Value && session.GameType == request.GameType)
+            .OrderByDescending(session => session.CreatedAtUtc).Take(RecentSetups).Select(session => session.SetupJson).ToListAsync(cancellationToken);
+        var context = new GameSetupContext([inviter.Language, await db.LanguageOfAsync(partnerId.Value, cancellationToken)], recent);
+        var setupJson = await setupFactory.CreateAsync(request.GameType, region, request.Letter, cancellationToken, context);
         var session = GameSession.Create(currentUser.CoupleId.Value, request.GameType, inviter.Id, clock.UtcNow, setupJson);
         Notification notification;
         using (Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken)))

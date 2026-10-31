@@ -34,7 +34,7 @@ public sealed class BackendBehaviorTests
     }
 
     [Fact]
-    public void Quiz_requires_current_turn_and_advances_after_each_answer()
+    public void Quiz_takes_one_answer_from_each_partner_in_either_order()
     {
         var first = Guid.NewGuid();
         var second = Guid.NewGuid();
@@ -42,10 +42,10 @@ public sealed class BackendBehaviorTests
         var now = DateTime.UtcNow;
         var started = engine.Start(GameType.CoupleQuiz, [first, second], now);
 
-        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.CoupleQuiz, started.StateJson, second, "answer", "no", null, now));
-        var next = engine.Apply(GameType.CoupleQuiz, started.StateJson, first, "answer", "yes", null, now);
+        var next = engine.Apply(GameType.CoupleQuiz, started.StateJson, second, "answer", "no", null, now);
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.CoupleQuiz, next.StateJson, second, "answer", "yes", null, now));
 
-        Assert.Equal(second, next.CurrentTurnUserId);
+        Assert.Equal(first, next.CurrentTurnUserId);
         Assert.False(next.Completed);
         Assert.Contains("answerCount", engine.ToPublicState(GameType.CoupleQuiz, next.StateJson), StringComparison.Ordinal);
     }

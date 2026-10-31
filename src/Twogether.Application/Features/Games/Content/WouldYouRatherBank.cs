@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Games.Content;
@@ -119,13 +118,9 @@ public static class WouldYouRatherBank
 
     public static IReadOnlyList<RatherPair> For(string region) => region == GameRegion.Nigeria ? Nigerian : Global;
 
-    /// <summary><paramref name="count"/> different questions at random, for one game.</summary>
-    public static IReadOnlyList<RatherPair> Pick(string region, int count)
-    {
-        var copy = For(region).ToArray();
-        RandomNumberGenerator.Shuffle(copy.AsSpan());
-        return copy.Take(count).ToList();
-    }
+    /// <summary><paramref name="count"/> different questions at random for one game, those in <paramref name="seen"/> last.</summary>
+    public static IReadOnlyList<RatherPair> Pick(string region, int count, IReadOnlySet<string>? seen = null)
+        => FreshPick.Pick(For(region), count, pair => pair.A, seen);
 
     private static RatherPair P(string a, string b) => new(a, b);
 }

@@ -23,8 +23,8 @@ public sealed class WouldYouRatherRules : IGameRules
     public bool AnyoneMayAct => true;
 
     /// <summary>The setup for a new game: its region and its ten questions, fixed once the game is invited.</summary>
-    public static string CreateSetup(string region)
-        => JsonSerializer.Serialize(new { region, pairs = WouldYouRatherBank.Pick(region, Rounds) }, SetupJson);
+    public static string CreateSetup(string region, IEnumerable<string>? recentSetups = null)
+        => JsonSerializer.Serialize(new { region, pairs = WouldYouRatherBank.Pick(region, Rounds, FreshPick.Seen(recentSetups, "pairs", "a")) }, SetupJson);
 
     public GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson)
     {
@@ -57,6 +57,7 @@ public sealed class WouldYouRatherRules : IGameRules
         var match = state.Picks.Values.Distinct().Count() == 1;
         if (match) foreach (var player in state.Players) state.Scores[player] = state.Scores.GetValueOrDefault(player) + 1;
         state.Last = new Reveal { Round = state.Round, A = pair.A, B = pair.B, Picks = new Dictionary<Guid, int>(state.Picks), Match = match };
+        state.History.Add(state.Last);
         state.Picks.Clear();
         state.Round++;
         var completed = state.Round >= state.Deck.Count;
@@ -80,9 +81,13 @@ public sealed class WouldYouRatherRules : IGameRules
             // Who has picked is public; what they picked is theirs alone until both are in.
             picked = state.Picks.Keys,
             myPick = viewer is { } who && state.Picks.TryGetValue(who, out var mine) ? mine : (int?)null,
-            last = state.Last is { } last ? new { last.Round, a = Show(state, last.A), b = Show(state, last.B), last.Picks, last.Match } : null
+            last = state.Last is { } last ? View(state, last) : null,
+            // Every round played so far, both picks shown: the game's recap once it's over.
+            history = state.History.Select(played => View(state, played)),
         }, PublicJson);
     }
+
+    private static object View(State state, Reveal played) => new { played.Round, a = Show(state, played.A), b = Show(state, played.B), played.Picks, played.Match };
 
     public GameScoreSummary Summarise(string stateJson)
     {
@@ -129,6 +134,8 @@ public sealed class WouldYouRatherRules : IGameRules
         /// <summary>This round's picks: 0 for A, 1 for B. Secret until both are in.</summary>
         public Dictionary<Guid, int> Picks { get; set; } = [];
         public Reveal? Last { get; set; }
+        /// <summary>Every round played, both picks (empty in games from before it was kept).</summary>
+        public List<Reveal> History { get; set; } = [];
     }
 
     private sealed class Pair

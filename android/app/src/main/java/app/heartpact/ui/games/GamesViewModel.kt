@@ -62,6 +62,9 @@ data class GamesUi(
         sessions.firstOrNull { it.id == session.id && it.stateVersion > session.stateVersion } ?: session
     })
 
+    /** The fetched list with [withSessions]' rule: a session the hub already brought further along stays as it is. */
+    fun newest(fetched: List<GameSession>): List<GameSession> = withSessions(fetched).sessions
+
     /** Newer state wins: an echo of my own move (or an out-of-order event) never rolls the board back. */
     fun withSession(session: GameSession): GamesUi {
         val current = sessions.firstOrNull { it.id == session.id }
@@ -195,14 +198,18 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     fun draft(session: GameSession, round: Int, answersJson: String) = app.live.draft(session.id, round, answersJson)
 
     /**
-     * A move at the version on screen; if the partner moved first, reload and let the person try again. I call on's
-     * answers and verdicts cross the partner's all the time (both judge at once), so those go again on the new version
-     * while they still mean something (GamePlay.iCallOnStillWanted) instead of quietly vanishing.
+     * A move at the version on screen. If the partner moved first (`409`), reload; a move that still means something on
+     * the new board goes again by itself, so a tap made at the same moment as the partner's never quietly vanishes:
+     * I call on's answers and verdicts (both judge at once, GamePlay.iCallOnStillWanted), and a pick in a game you both
+     * play at once (Same answer, Would you rather, Trivia: GamePlay.resendable). Otherwise the person sees the new board
+     * and tries again.
      */
     fun act(session: GameSession, action: String, value: String? = null, index: Int? = null) {
         if (session.gameType == GameType.Handwriting) return moves.add(session, action, value)
         if (session.gameType == GameType.TicTacToe) return marks.act(session, action, value, index)
         if (session.gameType == GameType.SpotTheDifference && action == "spot" && index != null) return spots.spot(session, index)
+        // One move at a time: a second tap while the first is on its way would only be refused.
+        if (_ui.value.busy) return
         _ui.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             var on = session
@@ -210,11 +217,15 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
             while (true) {
                 val result = app.games.act(on.id, on.stateVersion, action, value, index)
                 if (result is ApiResult.Failure) {
-                    val conflict = result.code == "game.version_conflict"
+                    val conflict = result.code == GameMoveQueue.VERSION_CONFLICT
                     val latest = (app.games.session(session.id) as? ApiResult.Ok)?.value?.also(::upsert)
-                    if (conflict && latest != null && tries < RETRIES && session.gameType == GameType.ICallOn && GamePlay.iCallOnStillWanted(session, latest, action, value)) {
+                    val again = latest != null && when (session.gameType) {
+                        GameType.ICallOn -> tries < RETRIES && GamePlay.iCallOnStillWanted(session, latest, action, value)
+                        else -> tries < GameMoveQueue.MAX_RETRIES && GamePlay.resendable(session, latest)
+                    }
+                    if (conflict && again) {
                         tries++
-                        on = latest
+                        on = latest!!
                         continue
                     }
                     _ui.update { it.copy(busy = false, note = if (conflict) null else result.message) }

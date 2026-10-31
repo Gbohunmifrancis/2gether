@@ -25,7 +25,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.GameSession
@@ -54,10 +58,15 @@ internal fun GuessMyAnswerBoard(s: GameSession, me: String, partnerName: String,
         Scoreboard(g.scores, me, partnerName, turnOf(s, me)) { trn(it, "{count} point", "{count} points") }
         Text(tr("Round {round} of {rounds}", "round" to minOf(g.round + 1, g.totalRounds), "rounds" to g.totalRounds), style = Heartpact.type.small, color = colors.ink2)
     }
+    if (finished) {
+        // The result card above has the score; under it, every round: who answered, what, and the guess.
+        if (g.history.isNotEmpty()) RecapCard(g.history.map { guessRecapRow(it, me, partnerName) })
+        else g.last?.let { GuessRevealCard(it, me, partnerName, Modifier.padding(top = 12.dp)) }
+        return
+    }
     g.last?.let { GuessRevealCard(it, me, partnerName, Modifier.padding(top = 12.dp)) }
 
     val question = g.question
-    if (finished) return
     if (question == null) {
         Text(GamePlay.outcome(s, me, partnerName), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
         return
@@ -77,7 +86,7 @@ internal fun GuessMyAnswerBoard(s: GameSession, me: String, partnerName: String,
                     !g.answered -> tr("{partner} is picking an answer. Your guess comes next.", "partner" to partnerName)
                     else -> tr("{partner} has answered. What did they pick?", "partner" to partnerName)
                 },
-                style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp),
+                style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp).semantics { liveRegion = LiveRegionMode.Polite },
             )
             Column(Modifier.padding(top = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 g.choices.forEachIndexed { i, choice ->
@@ -101,7 +110,7 @@ private fun GuessChoice(letter: String, text: String, selected: Boolean, enabled
     if (enabled) m = m.shadow(4.dp, shape, ambientColor = colors.left.art.copy(alpha = 0.4f), spotColor = colors.left.art.copy(alpha = 0.45f))
     m = m.clip(shape).background(if (selected) actor.soft else colors.sticker)
     if (!selected) m = m.border(2.dp, colors.rule, shape)
-    m = m.alpha(if (enabled || selected) 1f else 0.7f).clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+    m = m.alpha(if (enabled || selected) 1f else 0.7f).clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick).semantics { this.selected = selected }
     Row(m.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(34.dp).graphicsLayer { rotationY = pick.turn }.clip(CircleShape).background(if (selected) actor.action else colors.sticker2), contentAlignment = Alignment.Center) {
             Text(letter, style = Heartpact.type.label, color = if (selected) colors.onAction else colors.ink2)
@@ -126,8 +135,8 @@ private fun GuessRevealCard(last: GuessReveal, me: String, partnerName: String, 
     }
     // A right guess is stamped and bursts hearts, whoever made it: one of you knew the other.
     RoundReveal(last.round, if (last.right) tr("Got it!") else null, hearts = last.right, modifier) {
-        StickerCard(Modifier.fillMaxWidth()) {
-            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        StickerCard(Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite }) {
+            Row(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp, top = if (last.right) 30.dp else 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.size(40.dp).clip(CircleShape).background(if (last.right) Heartpact.actor.soft else colors.sticker2), contentAlignment = Alignment.Center) {
                     Icon(if (last.right) Icons.Rounded.Favorite else Icons.Rounded.HeartBroken, null, Modifier.size(22.dp), tint = if (last.right) Heartpact.actor.onSoft else colors.ink3)
                 }
@@ -138,4 +147,22 @@ private fun GuessRevealCard(last: GuessReveal, me: String, partnerName: String, 
             }
         }
     }
+}
+
+/** A Guess my answer round in the recap: the question, whose it was, their answer and the guess. */
+@Composable
+private fun guessRecapRow(played: GuessReveal, me: String, partnerName: String): RecapRow {
+    val answer = played.choices.getOrElse(played.answer) { "" }
+    val guess = played.choices.getOrElse(played.guess) { "" }
+    val aboutMe = played.subject == me
+    val lines = listOf(
+        if (aboutMe) tr("You: {answer}", "answer" to answer) else tr("{partner}: {answer}", "partner" to partnerName, "answer" to answer),
+        when {
+            played.right && aboutMe -> tr("{partner} guessed it", "partner" to partnerName)
+            played.right -> tr("You guessed it")
+            aboutMe -> tr("{partner} guessed {guess}", "partner" to partnerName, "guess" to guess)
+            else -> tr("You guessed {guess}", "guess" to guess)
+        },
+    )
+    return RecapRow(played.question, lines, played.right)
 }

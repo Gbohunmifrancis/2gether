@@ -1,29 +1,29 @@
-using System.Security.Cryptography;
 using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Games.Content;
 
 /// <summary>
 /// Same answer's prompts: questions about the two of you, which both partners answer in their own words
-/// (docs/games.md). Global ones are English marked with <c>Loc.N</c> and translated where they're shown; the
-/// Nigerian ones are English and Pidgin by design.
+/// (docs/games.md). Every prompt is about "us", never about "you", so both can give the same answer. A prompt that
+/// starts with "Who" asks which of you two, and is answered by picking one (<see cref="IsWho"/>). Global ones are
+/// English marked with <c>Loc.N</c> and translated where they're shown; the Nigerian ones are English and Pidgin by design.
 /// </summary>
 public static class SameAnswerBank
 {
     public static IReadOnlyList<string> Global { get; } =
     [
         Loc.N("What is our ideal date night?"),
-        Loc.N("Which trip should we take next?"),
+        Loc.N("Which board game would we play tonight?"),
         Loc.N("What always makes us laugh?"),
         Loc.N("What is our best shared memory?"),
         Loc.N("Which meal would we happily repeat?"),
-        Loc.N("What small thing makes you feel loved?"),
-        Loc.N("What song belongs on our soundtrack?"),
+        Loc.N("What's our favourite ice cream flavour?"),
+        Loc.N("Which animal are we most like as a couple?"),
         Loc.N("What would our perfect slow Sunday look like?"),
         Loc.N("Which new skill should we learn together?"),
         Loc.N("What place feels like home to us?"),
         Loc.N("What is one dream we should make time for?"),
-        Loc.N("What is your favorite way for us to reconnect?"),
+        Loc.N("What's our favourite way to unwind after a long day?"),
         Loc.N("What's our song?"),
         Loc.N("Where should our next trip be?"),
         Loc.N("Who said \"I love you\" first?"),
@@ -54,6 +54,12 @@ public static class SameAnswerBank
         Loc.N("Which singer should we see live together?"),
         Loc.N("Who wakes up first?"),
         Loc.N("What's our favourite way to spend a Friday night?"),
+        Loc.N("Who is more likely to cry at a film?"),
+        Loc.N("Who picks the restaurant most often?"),
+        Loc.N("What did we eat on our first date?"),
+        Loc.N("Who remembers birthdays better?"),
+        Loc.N("Which series should we watch next?"),
+        Loc.N("What's our favourite breakfast?"),
     ];
 
     public static IReadOnlyList<string> Nigerian { get; } =
@@ -94,11 +100,15 @@ public static class SameAnswerBank
 
     public static IReadOnlyList<string> For(string region) => region == GameRegion.Nigeria ? Nigerian : Global;
 
-    /// <summary><paramref name="count"/> different prompts at random, for one game.</summary>
-    public static IReadOnlyList<string> Pick(string region, int count)
-    {
-        var copy = For(region).ToArray();
-        RandomNumberGenerator.Shuffle(copy.AsSpan());
-        return copy.Take(count).ToList();
-    }
+    /// <summary><paramref name="count"/> different prompts at random for one game, those in <paramref name="seen"/> last.</summary>
+    public static IReadOnlyList<string> Pick(string region, int count, IReadOnlySet<string>? seen = null)
+        => FreshPick.Pick(For(region), count, prompt => prompt, seen);
+
+    /// <summary>
+    /// A prompt answered by picking one of the two of you ("Who wakes up first?"), not in words. Only the bank's own
+    /// prompts: an old game's trivia question ("Who painted the Mona Lisa?") is still answered in words.
+    /// </summary>
+    public static bool IsWho(string prompt) => prompt.StartsWith("Who ", StringComparison.Ordinal) && Known.Contains(prompt);
+
+    private static readonly HashSet<string> Known = [.. Global, .. Nigerian];
 }
