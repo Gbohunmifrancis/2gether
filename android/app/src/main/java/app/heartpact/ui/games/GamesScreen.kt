@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
@@ -57,6 +58,8 @@ data class GameActions(
     val onClose: (String) -> Unit = {},
     /** Tic-tac-toe: the stroke being drawn on a square, for the partner to watch (square, stroke number, x,y pairs). */
     val onInk: (GameSession, Int, Int, FloatArray) -> Unit = { _, _, _, _ -> },
+    /** I call on: the answers typed so far this round (round, answers as JSON), so they count if time runs out. */
+    val onDraft: (GameSession, Int, String) -> Unit = { _, _, _ -> },
 )
 
 /**
@@ -82,7 +85,8 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
         )
     }
     val active = ui.active ?: ui.justFinished(now())
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+    // The keyboard pushes the board up rather than covering the answer being typed.
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
         TopBar(active?.let { GamePlay.title(it) } ?: tr("Games"), actions.onBack)
         // On a tablet the boards keep a readable width, and the hub spreads its two grids side by side.
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).readable(if (active == null) TwoPaneWidth else ReadableWidth).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
@@ -140,7 +144,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
     }
     when (s.gameType) {
         GameType.MemoryMatch -> MemoryBoard(s, me, partnerName, busy, actions)
-        GameType.ICallOn -> ICallOnBoard(s, me, partnerName, busy, actions, now)
+        GameType.ICallOn -> ICallOnBoard(s, me, partnerName, busy, actions, now, ui.progress[s.id])
         GameType.TruthOrDare -> TruthOrDareBoard(s, me, partnerName, busy, actions)
         GameType.WordDash -> WordDashBoard(s, me, partnerName, busy, actions, now)
         GameType.GuessMyAnswer -> GuessMyAnswerBoard(s, me, partnerName, busy, actions)

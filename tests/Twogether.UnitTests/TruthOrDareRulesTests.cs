@@ -26,7 +26,7 @@ public sealed class TruthOrDareRulesTests
         var engine = new GameEngine();
         Assert.Same(typeof(TruthOrDareRules), GameEngine.RulesFor(GameType.TruthOrDare)?.GetType());
         Assert.False(engine.IsTimed(GameType.TruthOrDare));
-        Assert.False(engine.AnyoneMayAct(GameType.TruthOrDare));
+        Assert.True(engine.AnyoneMayAct(GameType.TruthOrDare));
         var started = engine.Start(GameType.TruthOrDare, [maya, theo], Now, """{"region":"global"}""");
         Assert.Null(started.DeadlineUtc);
     }

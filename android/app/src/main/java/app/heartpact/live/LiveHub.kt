@@ -60,6 +60,8 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
     fun reportExerciseProgress(occurrenceId: String, count: Int, confidence: Double) = send("ReportExerciseProgress", occurrenceId, count, confidence)
     /** Tic-tac-toe's live ink for the partner: a square (-1 clears), a stroke number, and x,y pairs as fractions of the square. */
     fun ink(sessionId: String, cell: Int, stroke: Int, points: FloatArray) = send("Ink", sessionId, cell, stroke, points)
+    /** I call on: what's typed so far this round, so it still counts if the clock runs out (docs/games.md). */
+    fun draft(sessionId: String, round: Int, answersJson: String) = send("ReportDraft", sessionId, round, answersJson)
 
     private fun send(method: String, vararg args: Any) = scope.launch {
         ensure()
@@ -129,7 +131,7 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
             "LocationUpdated", "LocationStopped", "LocationSharingChanged",
             "FoodDayUpdated", "DailyQuestionAnswered", "PregnancyChanged", "MemoriesChanged",
             "CoupleEnded", "AccountDeleted", "NotificationCreated",
-            "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded", "GameInk",
+            "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded", "GameInk", "GameProgress",
         )
 
         /** Hub names to the app's event names: "ExerciseCompleted" becomes "exerciseCompleted", as pushes use. */

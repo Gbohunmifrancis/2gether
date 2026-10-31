@@ -73,7 +73,8 @@ internal fun TruthOrDareBoard(s: GameSession, me: String, partnerName: String, b
             val mine = t.chooser == me
             val truth = t.choice == "truth"
             // The prompt is a card drawn and turned face up.
-            FlipIn(t.turn to t.choice) { PromptCard(
+            // A swapped prompt turns over afresh.
+            FlipIn(Triple(t.turn, t.choice, t.prompt)) { PromptCard(
                 when {
                     mine && truth -> tr("Your truth")
                     mine -> tr("Your dare")
@@ -86,6 +87,13 @@ internal fun TruthOrDareBoard(s: GameSession, me: String, partnerName: String, b
                 Text(if (truth) tr("Answer by message, call or voice note. {partner} marks it once you have.", "partner" to partnerName)
                     else tr("Do it and send {partner} the proof. They mark it done.", "partner" to partnerName),
                     style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 14.dp))
+                // A way out that never needs asking: swap it once, or pass on it.
+                Text(if (t.swapped) tr("Not feeling this one? You can pass, no pressure.") else tr("Not feeling it? Swap it once, or pass. No pressure."),
+                    style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 14.dp))
+                Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (!t.swapped) HeartButton(tr("Another one"), { actions.onAct(s, "swap", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = !busy)
+                    HeartButton(tr("Pass on it"), { actions.onAct(s, "pass", null, null) }, Modifier.weight(1f), kind = ButtonKind.Outline, height = 48.dp, enabled = !busy)
+                }
             } else {
                 Text(if (truth) tr("Did {partner} answer? Mark it once they have.", "partner" to partnerName)
                     else tr("Did {partner} do it? Mark it once you've seen the proof.", "partner" to partnerName),
@@ -98,6 +106,8 @@ internal fun TruthOrDareBoard(s: GameSession, me: String, partnerName: String, b
 }
 
 private fun lastNote(last: TruthOrDareOutcome, me: String, partnerName: String) = when {
+    last.passed && last.chooser == me -> tr("You passed on that one. No pressure.")
+    last.passed -> tr("{partner} passed on that one.", "partner" to partnerName)
     last.chooser == me && last.result == "done" -> tr("Done! A heart for you.")
     last.chooser == me -> tr("Skipped. No heart this time.")
     last.result == "done" -> tr("{partner} did it. A heart for them.", "partner" to partnerName)

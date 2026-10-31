@@ -9,7 +9,8 @@ namespace Twogether.Application.Features.Games;
 /// <summary>
 /// Truth or dare (docs/games.md): in turn, no clock. Ten turns, alternating. The chooser picks truth or dare and
 /// gets a prompt from the region's bank (never the same one twice in a game); the partner then marks it done (a point
-/// to the chooser) or skipped, and becomes the next chooser.
+/// to the chooser) or skipped, and becomes the next chooser. Nobody has to do a prompt they don't want to: the chooser
+/// may swap it for another of the same kind once a turn, or pass on it (no point, no fuss).
 /// </summary>
 public sealed class TruthOrDareRules : IGameRules
 {
@@ -25,6 +26,9 @@ public sealed class TruthOrDareRules : IGameRules
     private static readonly JsonSerializerOptions PublicJson = new(JsonSerializerDefaults.Web);
 
     public GameType Type => GameType.TruthOrDare;
+
+    /// <summary>The partner judges while the chooser may still swap or pass, so both may move; the rules check who.</summary>
+    public bool AnyoneMayAct => true;
 
     public GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson)
     {
@@ -54,24 +58,51 @@ public sealed class TruthOrDareRules : IGameRules
             state.Used.Add(prompt);
             state.Choice = value;
             state.Prompt = prompt;
+            state.Swapped = false;
             state.Phase = JudgingPhase;
             return Result(state);
+        }
+        if (string.Equals(move.Action, "swap", StringComparison.OrdinalIgnoreCase))
+        {
+            if (state.Phase != JudgingPhase || state.Choice is null) throw new InvalidOperationException(Loc.T("There is no prompt to swap yet."));
+            if (move.Actor != Chooser(state)) throw new InvalidOperationException(Loc.T("Only the one with the prompt can swap it."));
+            if (state.Swapped) throw new InvalidOperationException(Loc.T("You've swapped once this turn. Do this one or pass on it."));
+            var bank = state.Choice == Truth ? TruthOrDarePrompts.Truths(state.Region) : TruthOrDarePrompts.Dares(state.Region);
+            var unused = bank.Where(prompt => !state.Used.Contains(prompt)).ToList();
+            if (unused.Count == 0) throw new InvalidOperationException(Loc.T("There are no new prompts of that kind left."));
+            var prompt = unused[RandomNumberGenerator.GetInt32(unused.Count)];
+            state.Used.Add(prompt);
+            state.Prompt = prompt;
+            state.Swapped = true;
+            return Result(state);
+        }
+        if (string.Equals(move.Action, "pass", StringComparison.OrdinalIgnoreCase))
+        {
+            if (state.Phase != JudgingPhase) throw new InvalidOperationException(Loc.T("There is nothing to pass on yet."));
+            if (move.Actor != Chooser(state)) throw new InvalidOperationException(Loc.T("Only the one with the prompt can pass on it."));
+            return EndTurn(state, Skipped, passed: true);
         }
         if (string.Equals(move.Action, "judge", StringComparison.OrdinalIgnoreCase))
         {
             if (state.Phase != JudgingPhase) throw new InvalidOperationException(Loc.T("There is nothing to judge yet."));
             if (move.Actor != Judge(state)) throw new InvalidOperationException(Loc.T("Your partner judges your prompt."));
             if (value is not (Done or Skipped)) throw new InvalidOperationException(Loc.T("Mark it done or skipped."));
-            var chooser = Chooser(state);
-            if (value == Done) state.Scores[chooser]++;
-            state.Last = new Outcome { Chooser = chooser, Choice = state.Choice!, Prompt = state.Prompt!, Result = value };
-            state.Choice = null;
-            state.Prompt = null;
-            state.Turn++;
-            state.Phase = state.Turn >= Turns ? CompletedPhase : ChoosingPhase;
-            return Result(state);
+            return EndTurn(state, value, passed: false);
         }
         throw new InvalidOperationException(Loc.T("That move isn't part of Truth or dare."));
+    }
+
+    private static GameEngineResult EndTurn(State state, string result, bool passed)
+    {
+        var chooser = Chooser(state);
+        if (result == Done) state.Scores[chooser]++;
+        state.Last = new Outcome { Chooser = chooser, Choice = state.Choice!, Prompt = state.Prompt!, Result = result, Passed = passed };
+        state.Choice = null;
+        state.Prompt = null;
+        state.Swapped = false;
+        state.Turn++;
+        state.Phase = state.Turn >= Turns ? CompletedPhase : ChoosingPhase;
+        return Result(state);
     }
 
     public string ToPublicState(string stateJson, Guid? viewer)
@@ -89,7 +120,8 @@ public sealed class TruthOrDareRules : IGameRules
             judge = state.Phase == CompletedPhase ? (Guid?)null : Judge(state),
             choice = state.Choice,
             prompt = Show(state.Prompt),
-            last = state.Last is null ? null : new { state.Last.Chooser, state.Last.Choice, prompt = Show(state.Last.Prompt), state.Last.Result },
+            swapped = state.Swapped,
+            last = state.Last is null ? null : new { state.Last.Chooser, state.Last.Choice, prompt = Show(state.Last.Prompt), state.Last.Result, state.Last.Passed },
         }, PublicJson);
     }
 
@@ -127,6 +159,8 @@ public sealed class TruthOrDareRules : IGameRules
         /// <summary>The prompt in its English (or Naija) form; translated as it is shown.</summary>
         public string? Prompt { get; set; }
         public List<string> Used { get; set; } = [];
+        /// <summary>The chooser has swapped this turn's prompt (once a turn).</summary>
+        public bool Swapped { get; set; }
         public Outcome? Last { get; set; }
     }
 
@@ -136,5 +170,7 @@ public sealed class TruthOrDareRules : IGameRules
         public string Choice { get; set; } = Truth;
         public string Prompt { get; set; } = string.Empty;
         public string Result { get; set; } = Done;
+        /// <summary>The chooser passed on the prompt themselves (the result is then "skipped").</summary>
+        public bool Passed { get; set; }
     }
 }

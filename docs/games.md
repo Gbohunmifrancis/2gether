@@ -18,7 +18,11 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 ## Clocks
 
 - **I call on** is played against the clock: 15 seconds to answer once one player has submitted, 20 to judge. The
-  timeout worker closes rounds that run out, and a late move is treated as the timeout.
+  timeout worker closes rounds that run out, and a late move is treated as the timeout. Answers aren't lost to the
+  clock: while a player types, the app reports what's typed to the couple hub (`ReportDraft(sessionId, round,
+  answersJson)`, never stored), and when the round runs out those drafts count as that player's answers, partial or
+  not; a `submit` that arrives just after the deadline counts the same way. The partner sees how far the other has
+  got (`GameProgress` `{sessionId, userId, round, filled, total}`).
 - **Spot the difference** gives each picture 90 seconds, then a 3-second beat before the next picture; the timeout
   worker plays both.
 - **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match**, **Heart to heart** and **Snakes
@@ -46,15 +50,22 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
   round's letter (`letter`); later rounds draw at random. Answers a checker can't confirm go to the partner to judge
   (`vet`). A unique answer scores 2, a shared one 1 each. Categories travel as English keys (`Name`, `Place`, `Thing`,
   `Food`; `Animal` for Nigerian couples) in answers and verdicts; the app shows each as its own translated phrase
-  (`GamePlay.categoryField`).
+  (`GamePlay.categoryField`). Answers are compared without accents, case or extra spaces ("Éric" starts with E,
+  "Zürich" and "zurich" are the same answer), kept to one line of 40 characters, and a later round never repeats a
+  letter already played. The online checker confirms a name or a place by looking it up; a food or an animal only when
+  the dictionary describes it as one (any real word is a thing), so "bicycle" for a food goes to the partner to judge.
+  Verdicts from both partners cross all the time, so the app sends one that gets `game.version_conflict` again while
+  that answer still waits for it.
 - **Draw and guess** (`handwriting`): 6 rounds, the drawer alternates (round 0: the first player). Each round's word
   comes from the setup (a global bank written with `Loc.N`, or a Naija one) and is the drawer's alone (`word` is null
   for everyone else until the round ends; then `lastRound` shows it, the outcome and the drawing to both). Both may
   move at once. The drawer sends `stroke` (`value` `{"points":[[x,y],...],"width":w}`: coordinates and width as
   fractions of the canvas, 1 to 200 points, width 0.001 to 0.1, nothing else; at most 250 strokes on the canvas),
-  `undo`, `clear` and `pass`; the guesser sends `guess` (any case or accents, a leading "a"/"an"/"the" ignored, in
-  English or their own language). A right guess gives both a point; three wrong ones or a pass end the round with
-  none. Strokes and guesses cross, so the app queues its moves and resends one that gets `game.version_conflict`.
+  `undo`, `clear` and `pass`; the guesser sends `guess` (any case or accents, a leading "a"/"an"/"the" ignored, a
+  plural "s" or "es" either way, in English or their own language). A right guess gives both a point; three wrong
+  ones or a pass end the round with none. Strokes and guesses cross, so the app queues its moves and resends one that
+  gets `game.version_conflict`; with no connection it keeps them and tries again, checking first whether a move whose
+  answer was lost had landed, so nothing is drawn or undone twice.
 - **Tic-tac-toe** (`ticTacToe`), at once: a match of up to five games, first to three wins; the couple's first player
   (`players[0]`) is X, the other O. Both mark squares whenever they like (`AnyoneMayAct`; `place`, `index` the square
   0–8 row by row) and a square goes to whoever's move reaches the server first: a claim on a taken square is
@@ -190,8 +201,8 @@ ethnic groups; no politics, religion or tribal jokes.
 | Trivia (`trivia`) | both at once | Ten multiple-choice questions; both answer, then the right answer shows. Global: Open Trivia DB. Nigeria: Naija trivia. | a point per right answer |
 | Memory match (`memoryMatch`) | in turn | Twelve cards, six pairs. | a point per pair |
 | I call on (`iCallOn`) | both at once, timed | A letter and four categories, 15 seconds; partners vet unknown words. | 2 unique, 1 shared |
-| Truth or dare (`truthOrDare`) | in turn, no clock | Pick truth or dare, get a couple-safe prompt, the partner marks it done or skipped. | a point per done |
-| Word dash (`wordDash`) | in turn, timed | Word chain: each word starts with the last letter of the one before, no repeats, 20 seconds a turn. A refused word may be retried while the time lasts. First to five. | the other partner, when time runs out |
+| Truth or dare (`truthOrDare`) | in turn, no clock | Pick truth or dare (`choose`), get a couple-safe prompt, the partner marks it done or skipped (`judge`). Nobody is pushed: the one with the prompt may `swap` it for another of the same kind once a turn, or `pass` on it (no point, `last.passed`), without asking. | a point per done |
+| Word dash (`wordDash`) | in turn, timed | Word chain: each word starts with the last letter of the one before, no repeats, 20 seconds a turn. English words, A to Z: accents are dropped ("café" plays as "cafe") and hyphens closed up ("puff-puff"). A refused word may be retried while the time lasts. First to five. | the other partner, when time runs out |
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | both at once | 3×3, drawn by hand; first to a square gets it, a 650 ms pen cooldown, the next game 1.5 s after each one; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |

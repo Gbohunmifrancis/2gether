@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Common;
 using Twogether.Api.Hubs;
+using Twogether.Api.Presence;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Games;
@@ -23,7 +24,8 @@ public sealed class GameController(
     IGameEngine engine,
     IGameWordValidator wordValidator,
     IGameSetupFactory setupFactory,
-    IHubContext<CoupleHub> hub) : ApiControllerBase
+    IHubContext<CoupleHub> hub,
+    GameLiveState? liveState = null) : ApiControllerBase
 {
     [HttpGet("sessions")]
     public async Task<ActionResult<IReadOnlyList<GameSessionDto>>> List(CancellationToken cancellationToken)
@@ -128,8 +130,9 @@ public sealed class GameController(
                 return UnprocessableEntity(new ApiError("game.invalid_action", Loc.T("That action is not available.")));
             var action = expired ? GameEngine.TimeoutAction : request.Action;
             var validations = await wordValidator.ForMoveAsync(session.GameType, session.StateJson, action, request.Value, cancellationToken);
-            var next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, request.Value, request.Index, clock.UtcNow, validations);
-            if (next.Completed) session.Complete(next.StateJson, clock.UtcNow);
+            var late = expired ? LateAnswers(liveState, session, currentUser.UserId.Value, request.Action, request.Value) : null;
+            var next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, request.Value, request.Index, clock.UtcNow, validations, late);
+            if (next.Completed) { session.Complete(next.StateJson, clock.UtcNow); liveState?.ClearSession(session.Id); }
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, clock.UtcNow);
         }
         catch (JsonException)
@@ -160,6 +163,7 @@ public sealed class GameController(
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
         if (!session.IsOpen) return Conflict(new ApiError("game.already_ended", Loc.T("This game has already ended.")));
         session.EndBy(currentUser.UserId.Value, clock.UtcNow);
+        liveState?.ClearSession(session.Id);
         var endedBy = await db.Users.AsNoTracking().SingleAsync(user => user.Id == currentUser.UserId.Value, cancellationToken);
         var partnerId = await db.Users.AsNoTracking().Where(user => user.CoupleId == session.CoupleId && user.Id != endedBy.Id).Select(user => (Guid?)user.Id).SingleOrDefaultAsync(cancellationToken);
         Notification? notification = null;
@@ -175,6 +179,20 @@ public sealed class GameController(
         await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameEnded", ended, cancellationToken);
         if (notification is not null) await hub.Clients.Group(CoupleHub.UserGroupName(notification.UserId)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);
         return Ok(ToDto(session));
+    }
+
+    /// <summary>
+    /// I call on, once the clock has run out: what each partner had typed (the drafts their phones reported, docs/games.md)
+    /// still counts, and so do the answers in a submit that arrived just too late. Null for any other game or moment.
+    /// </summary>
+    public static IReadOnlyDictionary<Guid, CoSubmission>? LateAnswers(GameLiveState? liveState, GameSession session, Guid actor, string? action, string? value)
+    {
+        if (session.GameType != GameType.ICallOn || GameEngine.ICallOnAnsweringRound(session.StateJson) is not { } round) return null;
+        var answers = (liveState?.Drafts(session.Id, round) ?? new Dictionary<Guid, string>())
+            .ToDictionary(item => item.Key, item => new CoSubmission(item.Value));
+        if (string.Equals(action?.Trim(), "submit", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(value))
+            answers[actor] = new CoSubmission(value);
+        return answers.Count == 0 ? null : answers;
     }
 
     private async Task<string> CoupleRegion(Guid coupleId, CancellationToken cancellationToken)
