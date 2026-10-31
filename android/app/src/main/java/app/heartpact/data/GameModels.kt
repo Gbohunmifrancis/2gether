@@ -74,7 +74,11 @@ data class QuizState(
     val history: List<QuizReveal> = emptyList(),
 )
 
-/** A Same answer round once both are in: the prompt and each partner's answer (a partner's id for a "who" prompt). */
+/**
+ * A Same answer round once both are in: the prompt and each partner's answer (a partner's id for a "who" prompt).
+ * [match] is true for a round either of you counted by hand ("That counts!") too; [accepted] says it was counted,
+ * and [acceptedBy] by whom.
+ */
 @Serializable
 data class QuizReveal(
     val round: Int = 0,
@@ -82,7 +86,14 @@ data class QuizReveal(
     val kind: String = "text",
     val answers: Map<String, String> = emptyMap(),
     val match: Boolean = false,
-)
+    val accepted: Boolean = false,
+    val acceptedBy: String? = null,
+) {
+    /** The answers matched on their own, not by counting. */
+    val matched: Boolean get() = match && !accepted
+    /** Revealed, different, and not counted yet: "That counts!" can still count it. */
+    val countable: Boolean get() = !match && !accepted && answers.size >= 2
+}
 
 @Serializable
 data class MemoryCardState(val index: Int, val value: Int? = null, val matched: Boolean = false)

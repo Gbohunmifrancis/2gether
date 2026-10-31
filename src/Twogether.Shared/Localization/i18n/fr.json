@@ -870,6 +870,7 @@
  "This round is about you. Your partner is guessing.": "Cette manche porte sur toi. C'est ton partenaire qui devine.",
  "This round is about your partner. Wait to guess their answer.": "Cette manche porte sur ton partenaire. Attends pour deviner sa réponse.",
  "This round is being judged. Wait for the verdicts.": "Cette manche est en cours de jugement. Attends les verdicts.",
+ "Those answers already match.": "Ces réponses sont déjà les mêmes.",
  "Those answers couldn't be read. Try again.": "Ces réponses n'ont pas pu être lues. Réessaie.",
  "Thriller": "Thriller",
  "Thumbnails must be JPEG or WebP and at most {kilobytes} KB.": "Les miniatures doivent être en JPEG ou WebP et faire {kilobytes} Ko maximum.",
@@ -1170,6 +1171,7 @@
  "You are not a player in this game.": "Tu ne joues pas à cette partie.",
  "You are not sharing your location.": "Tu ne partages pas ta position.",
  "You can both see your answers": "Vos réponses sont visibles",
+ "You can count a question once you've both answered it.": "Tu peux compter une question une fois que vous y avez répondu tous les deux.",
  "You can log today or a day in the past year.": "Tu peux noter aujourd'hui ou un jour de l'année passée.",
  "You cannot accept your own invitation.": "Tu ne peux pas accepter ta propre invitation.",
  "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.|You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand.": {

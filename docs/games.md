@@ -24,6 +24,14 @@ passing to a partner who isn't in the app (no couple hub connection) sends one "
 other until they've read it or six hours have passed. Every game push opens the games screen. The game hub (`/hubs/game`) is not needed: REST plus the couple hub
 covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 
+The app's Today tab shows a card near the top while the couple's open game waits on you (`TodayGames.waiting`): the
+partner's invite ("Theo invited you to play" the game, with Play and Not now, answered right there; Play then opens the
+game for its countdown), your turn in a game played in turn without a clock (Guess my answer, Memory match, Connect four,
+Snakes and ladders, Truth or dare: `currentTurnUserId` is you), or your move in one played at once without a clock where
+the state says you haven't moved this round (Same answer, Would you rather, Trivia, Heart to heart). Games on a clock or
+played live (I call on, Word dash, Spot the difference, Tic-tac-toe, Draw and guess) never show there. It follows the
+same couple hub events as the games screen (no connection of its own), and reloads on resume and when the hub reconnects.
+
 ## Clocks
 
 - **I call on** is played against the clock: 15 seconds to answer once one player has submitted, 20 to judge. The
@@ -53,6 +61,19 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
   punctuation, spacing or a leading article ("the", "our", "la"...), or one letter apart in words of five letters or
   more (`SameAnswerRules.Same`). A match is a point each. Cooperative: the score is how many you matched. Games
   started with trivia prompts before the bank existed carry on with them.
+  - **"That counts!"**: answers that didn't match but mean the same to you ("pizza", "pepperoni pizza") either
+    partner may count as a match: `counts`, `index` the round (`round` in `last`/`history`), no `value`. Any round
+    revealed and not matched may be counted, during the game or after it while the finished game is still on screen
+    (`GameController.FinishedGameAmendWindow`, 15 minutes after it ends, and only until the couple's next game is
+    invited; the session stays `completed` with the same end time and only its `stateVersion` goes up). It gives both
+    the point a match gives, once: counting a round already counted changes nothing (two taps that cross make one
+    point each), and it can't be undone. A round not yet revealed is refused ("You can count a question once you've
+    both answered it."), so is one that matched on its own ("Those answers already match."). The round then reads
+    `match: true` (older apps show its heart), with `accepted: true` and `acceptedBy` (who counted it); rounds from
+    before read `accepted: false`. `Summarise` and the recap count it. The app offers it on the reveal of the last
+    round and on each unmatched row of the finished game's recap; the stamp ("Counted!") and the hearts land on both
+    phones from the `GameStateChanged`/`GameCompleted` that follows. A `409` sends it again while the round is still
+    there to count.
 - **Guess my answer**: 8 rounds; the subject alternates, the first player first. The subject answers a question about
   themselves (`answer`, `index` 0–3), then the other guesses (`guess`, `index`). The answer is the subject's secret
   until the guess is in; `last` then shows both to both. A right guess is a point for the guesser.

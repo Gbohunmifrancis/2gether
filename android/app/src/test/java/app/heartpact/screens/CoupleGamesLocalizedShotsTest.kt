@@ -68,6 +68,12 @@ class CoupleGamesLocalizedShotsTest {
         at("games-same", session(GameType.CoupleQuiz, """{"players":["maya","theo"],"scores":{"maya":3,"theo":3},"round":4,"totalRounds":10,
             "prompt":${q("What's our favourite way to unwind after a long day?")},"kind":"text","answerCount":1,"answered":["theo"],"mine":null,
             "last":{"round":3,"prompt":${q("What's our go-to takeaway?")},"kind":"text","answers":{"maya":"Thai green curry","theo":"thai green curry!"},"match":true}}"""))
+        at("games-same-counted", session(GameType.CoupleQuiz, """{"players":["maya","theo"],"scores":{"maya":4,"theo":4},"round":5,"totalRounds":10,
+            "prompt":${q("Which series should we watch next?")},"kind":"text","answerCount":0,"answered":[],"mine":null,
+            "last":{"round":4,"prompt":${q("What did we eat on our first date?")},"kind":"text","answers":{"maya":"pizza","theo":"Pepperoni pizza"},"match":true,"accepted":true,"acceptedBy":"theo"}}"""))
+        at("games-same-countable", session(GameType.CoupleQuiz, """{"players":["maya","theo"],"scores":{"maya":3,"theo":3},"round":5,"totalRounds":10,
+            "prompt":${q("Which series should we watch next?")},"kind":"text","answerCount":0,"answered":[],"mine":null,
+            "last":{"round":4,"prompt":${q("What did we eat on our first date?")},"kind":"text","answers":{"maya":"pizza","theo":"Pepperoni pizza"},"match":false}}"""))
         at("games-same-who", session(GameType.CoupleQuiz, """{"players":["maya","theo"],"scores":{"maya":3,"theo":3},"round":4,"totalRounds":10,
             "prompt":${q("Who is more likely to cry at a film?")},"kind":"who","answerCount":0,"answered":[],"mine":null,
             "last":{"round":3,"prompt":${q("Who remembers birthdays better?")},"kind":"who","answers":{"maya":"maya","theo":"theo"},"match":false}}"""))

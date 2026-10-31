@@ -45,6 +45,34 @@ class CoupleGamesShotsTest {
         """{"players":["maya","theo"],"scores":{"maya":5,"theo":5},"round":6,"totalRounds":10,"prompt":"Which board game would we play tonight?","kind":"text",
         "answerCount":1,"answered":["maya"],"mine":"Scrabble","last":{"round":5,"prompt":"Who is the better cook?","kind":"who","answers":{"maya":"theo","theo":"theo"},"match":true}}"""), night = true)
 
+    private val close = """{"round":4,"prompt":"What's our perfect Friday-night dinner?","kind":"text","answers":{"maya":"pizza","theo":"Pepperoni pizza"},"match":false}"""
+    private fun counting(last: String) = """{"players":["maya","theo"],"scores":{"maya":4,"theo":4},"round":5,"totalRounds":10,"prompt":"Where should we go for our next weekend away?","kind":"text",
+        "answerCount":0,"answered":[],"mine":null,"last":$last}"""
+
+    /** Close, but not the same: either of them can say it counts. */
+    @Test fun sameAnswerCountable() = screen("games-same-countable", session(GameType.CoupleQuiz, counting(close)))
+
+    /** Theo said it counts: stamped, a heart each, on Maya's phone too. */
+    @Test fun sameAnswerCounted() = screen("games-same-counted", session(GameType.CoupleQuiz,
+        counting(close.replace(""""match":false""", """"match":true,"accepted":true,"acceptedBy":"theo""""))))
+
+    @Test fun sameAnswerCountedNight() = screen("games-same-counted-night", session(GameType.CoupleQuiz,
+        counting(close.replace(""""match":false""", """"match":true,"accepted":true,"acceptedBy":"maya""""))), night = true)
+
+    private val countedHistory = """{"round":0,"prompt":"What's our song?","kind":"text","answers":{"maya":"Golden hour","theo":"golden hour"},"match":true},
+        {"round":1,"prompt":"What's our perfect Friday-night dinner?","kind":"text","answers":{"maya":"pizza","theo":"Pepperoni pizza"},"match":true,"accepted":true,"acceptedBy":"theo"},
+        {"round":2,"prompt":"Who falls asleep first?","kind":"who","answers":{"maya":"maya","theo":"theo"},"match":false},
+        {"round":3,"prompt":"Where did we first meet?","kind":"text","answers":{"maya":"At Sam's party","theo":"Sam's birthday"},"match":false}"""
+
+    /** Over: the recap still counts a round that was close, and says which ones were counted. */
+    @Test fun sameAnswerFinishedCounted() = screen("games-same-finished-counted", session(GameType.CoupleQuiz,
+        """{"players":["maya","theo"],"scores":{"maya":2,"theo":2},"round":4,"totalRounds":4,"prompt":null,"kind":null,"answerCount":0,"answered":[],"history":[$countedHistory]}""",
+        GameStatus.Completed))
+
+    @Test fun sameAnswerFinishedCountedNight() = screen("games-same-finished-counted-night", session(GameType.CoupleQuiz,
+        """{"players":["maya","theo"],"scores":{"maya":2,"theo":2},"round":4,"totalRounds":4,"prompt":null,"kind":null,"answerCount":0,"answered":[],"history":[$countedHistory]}""",
+        GameStatus.Completed), night = true)
+
     private val quizHistory = (0 until 10).joinToString(",") { i ->
         val prompts = listOf("What's our song?", "Who said \"I love you\" first?", "Where did we first meet?", "What's our go-to takeaway?", "Who falls asleep first?",
             "Which season suits us best?", "What one word sums us up?", "Who is the funnier one?", "Which city should we live in one day?", "What's our favourite breakfast?")

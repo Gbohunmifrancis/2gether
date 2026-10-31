@@ -890,6 +890,7 @@
  "This round is about you. Your partner is guessing.": "هذه الجولة عنك، والتخمين على شريكك.",
  "This round is about your partner. Wait to guess their answer.": "هذه الجولة عن شريكك. انتظر لتخمّن إجابته.",
  "This round is being judged. Wait for the verdicts.": "يجري الحكم على هذه الجولة. انتظر الأحكام.",
+ "Those answers already match.": "هاتان الإجابتان متطابقتان بالفعل.",
  "Those answers couldn't be read. Try again.": "تعذّرت قراءة هذه الإجابات. حاول مرة أخرى.",
  "Thriller": "تشويق",
  "Thumbnails must be JPEG or WebP and at most {kilobytes} KB.": "يجب أن تكون الصور المصغّرة بصيغة JPEG أو WebP وبحجم لا يتجاوز {kilobytes} كيلوبايت.",
@@ -1190,6 +1191,7 @@
  "You are not a player in this game.": "لست من لاعبي هذه اللعبة.",
  "You are not sharing your location.": "موقعك غير مُشارَك.",
  "You can both see your answers": "يمكنكما الآن رؤية إجابتيكما",
+ "You can count a question once you've both answered it.": "يمكنك احتساب السؤال بعد أن تجيبا عليه كلاكما.",
  "You can log today or a day in the past year.": "يمكنك التسجيل لليوم أو ليوم من العام الماضي.",
  "You cannot accept your own invitation.": "لا يمكنك قبول دعوتك أنت.",
  "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.|You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand.": {

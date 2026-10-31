@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -26,6 +31,7 @@ import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
 import app.heartpact.i18n.tr
 import app.heartpact.ui.components.StickerCard
+import app.heartpact.ui.play.HeartBurst
 import app.heartpact.ui.play.PlayInk
 import app.heartpact.ui.play.unitHeart
 import app.heartpact.ui.theme.Heartpact
@@ -49,8 +55,26 @@ internal fun GamePlay.resendable(before: GameSession, after: GameSession): Boole
     }
 }
 
-/** One round in a finished game's recap: what was asked, what each of you said, and whether it was a hit. */
-internal data class RecapRow(val question: String, val lines: List<String>, val hit: Boolean)
+/**
+ * Same answer's "That counts!" after a `409` (an answer landed first): [round] is still there to count on [after],
+ * revealed, different and not counted yet, so the count goes again. Counted already (by the partner, at the same
+ * moment) means there's nothing left to do.
+ */
+internal fun GamePlay.countStillWanted(after: GameSession, round: Int?): Boolean {
+    if (after.gameType != GameType.CoupleQuiz || round == null) return false
+    if (after.status != GameStatus.InProgress && after.status != GameStatus.Completed) return false
+    val q = quiz(after)
+    return (q.history + listOfNotNull(q.last)).any { it.round == round && it.countable }
+}
+
+/**
+ * One round in a finished game's recap: what was asked, what each of you said, and whether it was a hit. [action] is
+ * something still to do about that round (Same answer's "That counts!"), shown under it.
+ */
+internal data class RecapRow(val question: String, val lines: List<String>, val hit: Boolean, val action: RecapAction? = null)
+
+/** A button under a recap row. */
+internal class RecapAction(val content: @Composable () -> Unit)
 
 /**
  * The finished game, round by round: each question with both of your answers under it, a heart beside the ones you
@@ -77,6 +101,7 @@ internal fun RecapCard(rows: List<RecapRow>, modifier: Modifier = Modifier, titl
                 Column(Modifier.weight(1f)) {
                     Text(row.question, style = Heartpact.type.label, color = colors.ink)
                     row.lines.forEach { Text(it, style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 2.dp)) }
+                    row.action?.content?.invoke()
                 }
             }
         }
@@ -87,12 +112,22 @@ internal fun RecapCard(rows: List<RecapRow>, modifier: Modifier = Modifier, titl
 /** Ink on the pen-pink heart, by day and by night (white on pink is too faint to read). */
 private val OnPen = androidx.compose.ui.graphics.Color(0xFF161A3D)
 
-/** The round's number in a heart: filled in pen for a hit, an outline for a miss, so it reads without colour. */
+/**
+ * The round's number in a heart: filled in pen for a hit, an outline for a miss, so it reads without colour. A miss
+ * that turns into a hit while it's on screen (counted after all) bursts with hearts.
+ */
 @Composable
 private fun RecapMark(number: Int, hit: Boolean) {
     val colors = Heartpact.colors
     val outline = colors.rule2
+    var was by remember { mutableStateOf(hit) }
+    var burst by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(hit) {
+        if (hit && !was) burst = (burst ?: 0) + 1
+        was = hit
+    }
     Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+        HeartBurst(burst, Modifier.size(30.dp), count = 10, spread = 60.dp)
         Canvas(Modifier.size(30.dp)) {
             translate(center.x, center.y + 1.dp.toPx()) {
                 val heart = unitHeart(size.minDimension * 0.98f)

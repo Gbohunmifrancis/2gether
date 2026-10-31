@@ -145,7 +145,8 @@ public sealed class GameController(
             return UnprocessableEntity(new ApiError("game.invalid_action", Loc.T("That action is not available.")));
         var session = await OwnedSession(sessionId, cancellationToken);
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
-        if (session.Status != GameSessionStatus.InProgress) return Conflict(new ApiError("game.not_in_progress", Loc.T("The game is not in progress.")));
+        var afterEnd = await AmendableAsync(session, request.Action, cancellationToken);
+        if (session.Status != GameSessionStatus.InProgress && !afterEnd) return Conflict(new ApiError("game.not_in_progress", Loc.T("The game is not in progress.")));
         if (session.CountdownEndsAtUtc > clock.UtcNow) return Conflict(new ApiError("game.countdown", Loc.T("Wait for the countdown to finish.")));
         // A game whose moves may cross (both at once, judged on arrival) plays a move made on an older board too.
         if (session.StateVersion != request.ExpectedStateVersion && !engine.MovesMayCross(session.GameType))
@@ -162,7 +163,8 @@ public sealed class GameController(
             var validations = await wordValidator.ForMoveAsync(session.GameType, session.StateJson, action, request.Value, cancellationToken);
             var late = expired ? LateAnswers(liveState, session, currentUser.UserId.Value, request.Action, request.Value) : null;
             var next = engine.Apply(session.GameType, session.StateJson, currentUser.UserId.Value, action, request.Value, request.Index, clock.UtcNow, validations, late);
-            if (next.Completed) { session.Complete(next.StateJson, clock.UtcNow); liveState?.ClearSession(session.Id); }
+            if (afterEnd) session.Amend(next.StateJson);
+            else if (next.Completed) { session.Complete(next.StateJson, clock.UtcNow); liveState?.ClearSession(session.Id); }
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, clock.UtcNow);
         }
         catch (JsonException)
@@ -185,6 +187,21 @@ public sealed class GameController(
         await GameEvents.SendAsync(hub, engine, session, players, session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged", cancellationToken);
         if (turnBefore != session.CurrentTurnUserId) await NudgeTurnAsync(session, currentUser.UserId.Value, cancellationToken);
         return Ok(ToDto(session));
+    }
+
+    /// <summary>How long a finished game still takes a move its rules allow after the end (as long as the app keeps it on screen).</summary>
+    public static readonly TimeSpan FinishedGameAmendWindow = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// A move on a game that has finished (Same answer's "That counts!", <see cref="IGameRules.PlayableAfterEnd"/>):
+    /// allowed while the finished game is still on screen, within <see cref="FinishedGameAmendWindow"/> of its end and
+    /// before the couple's next game is invited.
+    /// </summary>
+    private async Task<bool> AmendableAsync(GameSession session, string action, CancellationToken cancellationToken)
+    {
+        if (session.Status != GameSessionStatus.Completed || !engine.PlayableAfterEnd(session.GameType, action)) return false;
+        if (session.EndedAtUtc is not { } ended || clock.UtcNow - ended > FinishedGameAmendWindow) return false;
+        return !await db.GameSessions.AnyAsync(other => other.CoupleId == session.CoupleId && other.Id != session.Id && other.CreatedAtUtc > session.CreatedAtUtc, cancellationToken);
     }
 
     /// <summary>

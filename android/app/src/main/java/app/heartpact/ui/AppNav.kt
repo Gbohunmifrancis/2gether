@@ -85,6 +85,8 @@ import app.heartpact.ui.pacts.PactsViewModel
 import app.heartpact.ui.today.MyDare
 import app.heartpact.ui.today.NewDareScreen
 import app.heartpact.ui.today.NewDareViewModel
+import app.heartpact.ui.today.TodayGames
+import app.heartpact.ui.today.TodayGamesViewModel
 import app.heartpact.ui.today.TodayTab
 import app.heartpact.ui.today.TodayViewModel
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -281,9 +283,13 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val context = LocalContext.current
                     val todayModel: TodayViewModel = viewModel(factory = viewModelFactory { initializer { TodayViewModel(application, me.id, partner) } })
                     val todayUi by todayModel.ui.collectAsStateWithLifecycle()
-                    // Back from Settings (permissions) or from a dare: re-read readiness and today.
+                    // A game waiting on me (an invite, my turn), for Today's card: live from the couple hub, fresh on resume.
+                    val todayGames: TodayGamesViewModel = viewModel(factory = viewModelFactory { initializer { TodayGamesViewModel(application) } })
+                    val todayGamesUi by todayGames.ui.collectAsStateWithLifecycle()
+                    // Back from Settings (permissions), a dare or a game: re-read readiness, today and what game waits.
                     LifecycleResumeEffect(Unit) {
                         todayModel.refresh()
+                        todayGames.refresh()
                         onPauseOrDispose { }
                     }
                     val pactsModel: PactsViewModel = viewModel(factory = viewModelFactory { initializer { PactsViewModel(application, me.id) } })
@@ -335,7 +341,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         showTour = !container.tour.seen(), onTourDone = container.tour::markSeen,
                         onRefresh = {
                             when (it) {
-                                Tab.Today -> todayModel.refresh()
+                                Tab.Today -> { todayModel.refresh(); todayGames.refresh() }
                                 Tab.Pacts -> pactsModel.refresh()
                                 Tab.Album -> albumModel.refresh()
                                 Tab.Food -> foodModel.refresh()
@@ -411,6 +417,10 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
                             onGames = { nav.navigate(Routes.GAMES) },
                             onExactAlarmsAsked = todayModel::exactAlarmsAsked,
+                            game = TodayGames.waiting(todayGamesUi.sessions, me.id),
+                            gameBusy = todayGamesUi.busy,
+                            onAcceptGame = { id -> todayGames.accept(id) { nav.navigate(Routes.GAMES) { launchSingleTop = true } } },
+                            onDeclineGame = todayGames::decline,
                         )
                     })
                 }

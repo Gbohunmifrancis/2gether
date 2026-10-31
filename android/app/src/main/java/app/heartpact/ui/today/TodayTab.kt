@@ -77,6 +77,11 @@ fun TodayTab(
     now: Instant = Instant.now(),
     onGames: () -> Unit = {},
     onExactAlarmsAsked: () -> Unit = {},
+    /** A game waiting on me (TodayGames.waiting): shown near the top, accepted or put off right here. */
+    game: WaitingGame? = null,
+    gameBusy: Boolean = false,
+    onAcceptGame: (String) -> Unit = {},
+    onDeclineGame: (String) -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val view = ui.view
@@ -113,6 +118,8 @@ fun TodayTab(
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp)) }
         if (!ui.readiness.ready) Readiness(ui)
         view?.partnerRinging?.takeIf { it.callOffRequestedAtUtc != null && it.id !in ui.kept }?.let { CallOffRequest(it, partnerName, ui.busy, onCallOff, onKeep) }
+        // A game waiting on me (an invite, my turn) is quick to answer, so it comes before the day's dare.
+        game?.let { GameWaitingCard(it, partnerName, gameBusy, onAcceptGame, onDeclineGame, onGames, Modifier.padding(horizontal = 12.dp).padding(top = 6.dp)) }
         when {
             view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera, onDoItNow)
             view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {

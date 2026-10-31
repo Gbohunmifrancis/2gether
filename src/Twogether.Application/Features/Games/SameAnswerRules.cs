@@ -11,8 +11,9 @@ namespace Twogether.Application.Features.Games;
 /// Same answer (<see cref="GameType.CoupleQuiz"/>, docs/games.md): ten prompts about the two of you, both answer at
 /// once, no clock. A prompt is answered in your own words, or, for a "Who…" prompt, by picking one of you two. Once
 /// both are in, both answers show to both; matching answers (<see cref="Same"/>: any case, accents, punctuation or a
-/// leading "the", and a one-letter slip in a longer word) give each partner a heart. Cooperative: the score is how
-/// many you matched. Until both are in, each partner sees only their own answer.
+/// leading "the", and a one-letter slip in a longer word) give each partner a heart, and so does a pair either partner
+/// counts as the same by hand (<see cref="CountsAction"/>). Cooperative: the score is how many you matched. Until both
+/// are in, each partner sees only their own answer.
 /// </summary>
 /// <remarks>
 /// The state is the one the engine's built-in quiz kept (plus the region, the kept answers and the rounds so far), so
@@ -56,8 +57,15 @@ public sealed class SameAnswerRules : IGameRules
         return new GameEngineResult(JsonSerializer.Serialize(state), state.Players[0], null, false);
     }
 
+    /// <summary>The move that counts a revealed round that didn't match as a match ("That counts!").</summary>
+    public const string CountsAction = "counts";
+
+    /// <summary>A round may still be counted once the game is over, while the finished game is on screen.</summary>
+    public bool PlayableAfterEnd(string action) => string.Equals(action?.Trim(), CountsAction, StringComparison.OrdinalIgnoreCase);
+
     public GameEngineResult Apply(GameMove move)
     {
+        if (PlayableAfterEnd(move.Action)) return Count(move);
         if (!string.Equals(move.Action, "answer", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(move.Value))
             throw new InvalidOperationException(Loc.T("Write an answer first."));
         var state = Read(move.StateJson);
@@ -91,6 +99,30 @@ public sealed class SameAnswerRules : IGameRules
             state.TurnIndex = 0;
         }
         return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[0], null, completed);
+    }
+
+    /// <summary>
+    /// "That counts!": either partner may count a revealed round whose answers didn't match ("pizza", "pepperoni
+    /// pizza") as a match: any round of the game, while it's played or for a while after it ends (the controller's
+    /// <c>FinishedGameAmendWindow</c>). Both get the heart a match gives. Once per round and for good: counting a round
+    /// already counted changes nothing, so two taps that cross make one heart each, not two.
+    /// </summary>
+    private GameEngineResult Count(GameMove move)
+    {
+        var state = Read(move.StateJson);
+        if (!state.Players.Contains(move.Actor)) throw new InvalidOperationException(Loc.T("You are not a player in this game."));
+        var played = move.Index is { } round ? state.History.FirstOrDefault(item => item.Round == round) : null;
+        if (played is null) throw new InvalidOperationException(Loc.T("You can count a question once you've both answered it."));
+        if (played.Match) throw new InvalidOperationException(Loc.T("Those answers already match."));
+        if (!played.Accepted)
+        {
+            played.Accepted = true;
+            played.AcceptedBy = move.Actor;
+            foreach (var player in state.Players) state.Scores[player] = state.Scores.GetValueOrDefault(player) + 1;
+        }
+        var completed = state.Round >= state.Questions.Count;
+        var turn = completed ? (Guid?)null : state.Players.FirstOrDefault(player => !state.Answers.ContainsKey(player), state.Players[0]);
+        return new GameEngineResult(JsonSerializer.Serialize(state), turn, null, completed);
     }
 
     /// <summary>
@@ -189,7 +221,11 @@ public sealed class SameAnswerRules : IGameRules
         prompt = Show(state, played.Prompt),
         kind = Kind(played.Prompt),
         played.Answers,
-        played.Match,
+        // A round counted by hand reads as a match (older apps show its heart); accepted and acceptedBy say it was
+        // counted, and by whom.
+        match = played.Match || played.Accepted,
+        accepted = played.Accepted,
+        acceptedBy = played.AcceptedBy,
     };
 
     /// <summary>
@@ -242,6 +278,10 @@ public sealed class SameAnswerRules : IGameRules
         public int Round { get; set; }
         public string Prompt { get; set; } = string.Empty;
         public Dictionary<Guid, string> Answers { get; set; } = [];
+        /// <summary>The answers matched on their own (<see cref="Same"/>).</summary>
         public bool Match { get; set; }
+        /// <summary>Counted as a match by hand ("That counts!"); false in games from before it existed.</summary>
+        public bool Accepted { get; set; }
+        public Guid? AcceptedBy { get; set; }
     }
 }

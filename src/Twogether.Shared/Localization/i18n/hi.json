@@ -870,6 +870,7 @@
  "This round is about you. Your partner is guessing.": "यह राउंड तुम्हारे बारे में है। बूझने की बारी पार्टनर की है।",
  "This round is about your partner. Wait to guess their answer.": "यह राउंड तुम्हारे पार्टनर के बारे में है। उनका जवाब बूझने के लिए थोड़ा रुको।",
  "This round is being judged. Wait for the verdicts.": "इस राउंड को परखा जा रहा है। फ़ैसलों का इंतज़ार करो।",
+ "Those answers already match.": "ये जवाब पहले से मेल खाते हैं।",
  "Those answers couldn't be read. Try again.": "ये जवाब पढ़े नहीं जा सके। फिर से कोशिश करो।",
  "Thriller": "थ्रिलर",
  "Thumbnails must be JPEG or WebP and at most {kilobytes} KB.": "थंबनेल JPEG या WebP में और ज़्यादा से ज़्यादा {kilobytes} KB का होना चाहिए।",
@@ -1170,6 +1171,7 @@
  "You are not a player in this game.": "तुम इस गेम के खिलाड़ी नहीं हो।",
  "You are not sharing your location.": "तुम्हारी लोकेशन शेयरिंग बंद है।",
  "You can both see your answers": "अब दोनों एक-दूसरे का जवाब देख सकते हो",
+ "You can count a question once you've both answered it.": "तुम दोनों के जवाब देने के बाद ही तुम सवाल गिन सकते हो।",
  "You can log today or a day in the past year.": "तुम आज का या पिछले एक साल के किसी दिन का दर्ज कर सकते हो।",
  "You cannot accept your own invitation.": "अपना ही इनवाइट खुद स्वीकार नहीं किया जा सकता।",
  "You have used today's {count} free photo scan. Heartpact Plus gives you more, or log this one by hand.|You have used today's {count} free photo scans. Heartpact Plus gives you more, or log this one by hand.": {

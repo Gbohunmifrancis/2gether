@@ -221,7 +221,8 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
                     val latest = (app.games.session(session.id) as? ApiResult.Ok)?.value?.also(::upsert)
                     val again = latest != null && when (session.gameType) {
                         GameType.ICallOn -> tries < RETRIES && GamePlay.iCallOnStillWanted(session, latest, action, value)
-                        else -> tries < GameMoveQueue.MAX_RETRIES && GamePlay.resendable(session, latest)
+                        // Same answer's "That counts!": again while the round is still there to count.
+                        else -> tries < GameMoveQueue.MAX_RETRIES && if (action == COUNTS) GamePlay.countStillWanted(latest, index) else GamePlay.resendable(session, latest)
                     }
                     if (conflict && again) {
                         tries++

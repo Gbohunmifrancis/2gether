@@ -22,6 +22,12 @@ public interface IGameRules
     /// </summary>
     bool MovesMayCross => false;
 
+    /// <summary>
+    /// A move that may still be made for a short while after the game has finished (Same answer's "That counts!"): it
+    /// changes the finished game's state without starting it again.
+    /// </summary>
+    bool PlayableAfterEnd(string action) => false;
+
     /// <summary>The first state. <paramref name="setupJson"/> comes from <see cref="GameSetupFactory"/>.</summary>
     GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson);
 
