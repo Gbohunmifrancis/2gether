@@ -29,9 +29,9 @@ internal fun twoDecimals(v: Float): String = String.format(Locale.getDefault(), 
 
 /**
  * Fair share. [firstShare] is the share (0 to 100) of the first piece: the left one, or the top one when the cut ran
- * [across]. About 5 points off half scores 70.
+ * [across]. About 5 points off half scores 70 at level 1; higher levels of [difficulty] score the same miss lower.
  */
-fun fairShareScore(firstShare: Float, across: Boolean): Scored {
+fun fairShareScore(firstShare: Float, across: Boolean, difficulty: Difficulty = Difficulty.Start): Scored {
     val off = abs(firstShare - 50f)
     // The difference between the two shares as the pieces show them (each to a tenth).
     val tenth = (firstShare * 10f).roundToInt() / 10f
@@ -43,7 +43,7 @@ fun fairShareScore(firstShare: Float, across: Boolean): Scored {
         firstShare > 50f -> tr("Left side got {pct}% more.", "pct" to gap)
         else -> tr("Right side got {pct}% more.", "pct" to gap)
     }
-    return Scored(falloff(off, 14f), note)
+    return Scored(falloff(off, difficulty.k(14f)), note)
 }
 
 /**
@@ -77,10 +77,10 @@ fun heartbeatScore(errorMs: Float): Scored {
 fun heartbeatMissed(): Scored = Scored(0, tr("No tap. The beat slipped by."))
 
 /**
- * Kiss the center. [size] is the shape's size (the square root of its area): 5% of it off scores about 72.
- * Screen axes: y grows downwards.
+ * Kiss the center. [size] is the shape's size (the square root of its area): 5% of it off scores about 72 at level 1;
+ * higher levels of [difficulty] score the same miss lower. Screen axes: y grows downwards.
  */
-fun kissScore(kiss: Offset, centre: Offset, size: Float): Scored {
+fun kissScore(kiss: Offset, centre: Offset, size: Float, difficulty: Difficulty = Difficulty.Start): Scored {
     val d = kiss - centre
     val off = d.getDistance() / size
     val pct = oneDecimal(off * 100f)
@@ -98,15 +98,16 @@ fun kissScore(kiss: Offset, centre: Offset, size: Float): Scored {
             else -> tr("Off center by {pct}%, down and to the right.", "pct" to pct)
         }
     }
-    return Scored(falloff(off, 0.15f), note)
+    return Scored(falloff(off, difficulty.k(0.15f)), note)
 }
 
 /**
  * Other half. [drawn] is what the player drew (strokes) and [truth] the real half, both in units where the shape is 1
  * tall and the fold is x = 0. Scored on the distance both ways: drawn to true (did you draw it right?) and true to
- * drawn (did you draw all of it?), so half a drawing can't score well.
+ * drawn (did you draw all of it?), so half a drawing can't score well. Higher levels of [difficulty] score the same
+ * wobble lower.
  */
-fun otherHalfScore(drawn: List<List<Offset>>, truth: List<Offset>): Scored {
+fun otherHalfScore(drawn: List<List<Offset>>, truth: List<Offset>, difficulty: Difficulty = Difficulty.Start): Scored {
     val strokes = drawn.filter { it.isNotEmpty() }.map { resample(it, 0.005f) }
     if (strokes.isEmpty()) return Scored(0, tr("Nothing drawn yet."))
     val mine = strokes.flatten()
@@ -139,7 +140,7 @@ fun otherHalfScore(drawn: List<List<Offset>>, truth: List<Offset>): Scored {
         miss < 0.008f -> tr("A mirror image. Beautiful.")
         else -> tr("Close. A little wobbly in places.")
     }
-    return Scored(falloff(miss, 0.08f), note)
+    return Scored(falloff(miss, difficulty.k(0.08f)), note)
 }
 
 /** A drawn ring, measured: the best circle, where the stroke was cut off past a full turn, and the flaws. */

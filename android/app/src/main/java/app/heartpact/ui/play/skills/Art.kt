@@ -25,8 +25,19 @@ import app.heartpact.ui.theme.Art
  * underneath, a soft lift), the treats to share, the kiss, and the small labels that ride on pieces.
  */
 
-/** Colours of a treat: its top, its side (the depth under it), and what's on it. */
-internal class TreatInk(val top: Color, val side: Color, val inner: Color, val line: Color, val dots: List<Color>)
+/**
+ * Colours of a treat: its top, its side (the depth under it), and what's on it: its [Treat.fills] in [fill], its
+ * [Treat.curves] in [curve].
+ */
+internal class TreatInk(
+    val top: Color,
+    val side: Color,
+    val inner: Color,
+    val line: Color,
+    val dots: List<Color>,
+    val fill: Color = Color.Transparent,
+    val curve: Color = Color.Transparent,
+)
 
 internal fun inkOf(t: Treat): TreatInk = when (t.kind) {
     TreatKind.Cookie -> TreatInk(BlobColour.Peach.fill, lerp(BlobColour.Peach.fill, BlobColour.Peach.ink, 0.55f), BlobColour.Rose.fill, Color.Transparent,
@@ -38,6 +49,7 @@ internal fun inkOf(t: Treat): TreatInk = when (t.kind) {
         val b = listOf(BlobColour.Mint, BlobColour.Sky, BlobColour.Lilac)[(t.colour - 3).coerceIn(0, 2)]
         TreatInk(b.fill, lerp(b.fill, b.ink, 0.45f), Color.Transparent, Color.Transparent, emptyList())
     }
+    else -> moreInkOf(t)
 }
 
 /**
@@ -98,6 +110,7 @@ internal fun DrawScope.drawTreat(t: Treat, fit: Fit, piece: List<Offset> = t.out
                     drawCircle(Color.White.copy(alpha = 0.55f), fit.px(0.035f), fit.px(glint))
                     drawCircle(Color.White.copy(alpha = 0.4f), fit.px(0.016f), fit.px(glint + Offset(0.06f, 0.035f)))
                 }
+                else -> moreTreatDetails(t, fit, ink)
             }
         }
     }

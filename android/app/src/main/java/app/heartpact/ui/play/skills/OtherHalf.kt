@@ -41,15 +41,17 @@ import app.heartpact.ui.play.PlayInk
 import app.heartpact.ui.play.SkillKind
 import app.heartpact.ui.play.rememberPlayHaptics
 import app.heartpact.ui.theme.Heartpact
+import kotlinx.coroutines.delay
 
 /*
  * Other half: half a shape sits left of a dashed fold; draw its mirror on the right, in one stroke or a few, then
  * submit. The reveal draws the true half under yours and folds your drawing back over the given half, ghosted, so
- * you can see where they part.
+ * you can see where they part. Up the levels the shapes get more intricate, and from level 10 the given half shows
+ * only for a moment before it fades to a faint ghost, so the rest is drawn from memory.
  */
 
 internal class OtherHalfPlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.OtherHalf, seed, difficulty) {
-    val shape = HalfShape.of(seed)
+    val shape = HalfShape.of(seed, difficulty)
     /** Finished strokes and the one being drawn, in shape units (1 tall, fold at x = 0). */
     val strokes = mutableStateListOf<List<Offset>>()
     var drawing by mutableStateOf<List<Offset>>(emptyList())
@@ -57,7 +59,31 @@ internal class OtherHalfPlay(seed: Long, difficulty: Difficulty = Difficulty.Sta
     var submitted by mutableStateOf(false)
         private set
 
-    init { hint = tr("Start anywhere on the right.") }
+    /** From level 10 the given half shows for [showMs], then fades to a ghost at [ghostAlpha] (both shorter and fainter higher up). */
+    val fades = difficulty.from(10)
+    val showMs: Long = if (fades) (2000 - 800 * up(difficulty)).toLong() else 0L
+    val ghostAlpha: Float = if (fades) 0.2f - 0.1f * up(difficulty) else 1f
+    /** True once the given half has faded to its ghost. */
+    var faded by mutableStateOf(false)
+        private set
+
+    private fun up(d: Difficulty) = ((d.level - 10) / (Difficulty.RAMP - 10f)).coerceIn(0f, 1f)
+
+    /** What to say while nothing is drawn. */
+    private fun idle(): String = when {
+        faded -> tr("Only a ghost is left. Draw it from memory.")
+        fades -> tr("Look closely. It fades to a ghost.")
+        else -> tr("Start anywhere on the right.")
+    }
+
+    init { hint = idle() }
+
+    /** The given half has faded to its ghost. */
+    fun fade() {
+        if (faded) return
+        faded = true
+        if (strokes.isEmpty() && drawing.isEmpty() && !submitted) hint = idle()
+    }
 
     fun begin(p: Offset) { drawing = listOf(p) }
 
@@ -70,20 +96,20 @@ internal class OtherHalfPlay(seed: Long, difficulty: Difficulty = Difficulty.Sta
     fun end() {
         if (drawing.size > 1) strokes += drawing
         drawing = emptyList()
-        hint = if (strokes.isEmpty()) tr("Start anywhere on the right.") else tr("Done? Submit it.")
+        hint = if (strokes.isEmpty()) idle() else tr("Done? Submit it.")
     }
 
     fun clear() {
         strokes.clear()
         drawing = emptyList()
-        hint = tr("Start anywhere on the right.")
+        hint = idle()
     }
 
     fun submit() {
         if (strokes.isEmpty() || submitted) return
         submitted = true
         hint = ""
-        finish(otherHalfScore(strokes.toList(), shape.half), 1300)
+        finish(otherHalfScore(strokes.toList(), shape.half, difficulty), 1300)
     }
 
     override val hasControls: Boolean get() = true
@@ -112,8 +138,19 @@ internal class OtherHalfPlay(seed: Long, difficulty: Difficulty = Difficulty.Sta
         val ghost = remember { Animatable(0f) }
         val draw = moving(tween<Float>(900, easing = FastOutSlowInEasing))
         val fade = moving(tween<Float>(500))
+        // The given half, fully there, or (high up) a fading ghost of it until the reveal brings it back.
+        val shown = remember { Animatable(1f) }
+        val toGhost = moving(tween<Float>(700, easing = FastOutSlowInEasing))
+        val backIn = moving(tween<Float>(400))
+        LaunchedEffect(Unit) {
+            if (!fades) return@LaunchedEffect
+            delay(showMs)
+            if (!submitted) shown.animateTo(ghostAlpha, toGhost)
+            fade()
+        }
         LaunchedEffect(submitted) {
             if (!submitted) return@LaunchedEffect
+            if (shown.value < 1f) shown.animateTo(1f, backIn)
             reveal.animateTo(1f, draw)
             ghost.animateTo(1f, fade)
         }
@@ -141,9 +178,10 @@ internal class OtherHalfPlay(seed: Long, difficulty: Difficulty = Difficulty.Sta
         ) {
             // The given half, as a pastel sticker cut along the fold.
             val given = fit.path(shape.given)
-            drawPath(given, Color.White, style = Stroke(9.dp.toPx(), join = StrokeJoin.Round))
-            drawPath(given, tint.fill)
-            drawPath(fit.path(shape.given, close = false), tint.ink, style = Stroke(4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            val a = shown.value
+            drawPath(given, Color.White, alpha = a, style = Stroke(9.dp.toPx(), join = StrokeJoin.Round))
+            drawPath(given, tint.fill, alpha = a)
+            drawPath(fit.path(shape.given, close = false), tint.ink, alpha = a, style = Stroke(4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
             // The fold.
             drawLine(colors.ink3, fit.px(Offset(0f, -0.03f)), fit.px(Offset(0f, 1.03f)), 2.dp.toPx(),
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(7.dp.toPx(), 6.dp.toPx())), cap = StrokeCap.Round)
