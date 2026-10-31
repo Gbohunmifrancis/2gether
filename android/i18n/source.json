@@ -3654,7 +3654,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/games/DrawAndGuessBoard.kt:111",
-   "app/heartpact/ui/play/skills/OtherHalf.kt:95"
+   "app/heartpact/ui/play/skills/OtherHalf.kt:121"
   ],
   "code": "HeartButton(tr(\"Clear\"), { actions.onAct(s, \"clear\", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 44.dp, enabled = strokes.isNotEmpty())"
  },
@@ -6787,7 +6787,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/play/skills/DrawShapes.kt:229",
-   "app/heartpact/ui/play/skills/Scoring.kt:143"
+   "app/heartpact/ui/play/skills/Scoring.kt:144"
   ],
   "code": "fit.miss < 0.035f -> tr(\"Close. A little wobbly in places.\")"
  },
@@ -6801,42 +6801,140 @@
  "A heart cookie, iced pink.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/FairShare.kt:62"
+   "app/heartpact/ui/play/skills/FairShare.kt:63"
   ],
   "code": "TreatKind.Cookie -> tr(\"A heart cookie, iced pink.\")"
  },
  "A chocolate bar, one bite gone.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/FairShare.kt:63"
+   "app/heartpact/ui/play/skills/FairShare.kt:64"
   ],
   "code": "TreatKind.Chocolate -> tr(\"A chocolate bar, one bite gone.\")"
  },
  "A pizza, a slice already gone.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/FairShare.kt:64"
+   "app/heartpact/ui/play/skills/FairShare.kt:65"
   ],
   "code": "TreatKind.Pizza -> tr(\"A pizza, a slice already gone.\")"
  },
  "A jelly, very wobbly.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/FairShare.kt:65"
+   "app/heartpact/ui/play/skills/FairShare.kt:66"
   ],
   "code": "TreatKind.Jelly -> tr(\"A jelly, very wobbly.\")"
+ },
+ "A macaron, cream in the middle.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:67"
+  ],
+  "code": "TreatKind.Macaron -> tr(\"A macaron, cream in the middle.\")"
+ },
+ "A slice of toast, buttered.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:68"
+  ],
+  "code": "TreatKind.Toast -> tr(\"A slice of toast, buttered.\")"
+ },
+ "A slice of watermelon, seeds and all.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:69"
+  ],
+  "code": "TreatKind.Watermelon -> tr(\"A slice of watermelon, seeds and all.\")"
+ },
+ "A candy heart, sweet as you.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:70"
+  ],
+  "code": "TreatKind.CandyHeart -> tr(\"A candy heart, sweet as you.\")"
+ },
+ "A wedge of cheese, full of holes.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:71"
+  ],
+  "code": "TreatKind.Cheese -> tr(\"A wedge of cheese, full of holes.\")"
+ },
+ "A waffle with a pat of butter.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:72"
+  ],
+  "code": "TreatKind.Waffle -> tr(\"A waffle with a pat of butter.\")"
+ },
+ "A slice of cake, a strawberry on top.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:73"
+  ],
+  "code": "TreatKind.CakeSlice -> tr(\"A slice of cake, a strawberry on top.\")"
+ },
+ "A cupcake, the frosting piled high.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:74"
+  ],
+  "code": "TreatKind.Cupcake -> tr(\"A cupcake, the frosting piled high.\")"
+ },
+ "A donut. Mind the hole.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:75"
+  ],
+  "code": "TreatKind.Donut -> tr(\"A donut. Mind the hole.\")"
+ },
+ "A lollipop, stick and all.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:76"
+  ],
+  "code": "TreatKind.Lollipop -> tr(\"A lollipop, stick and all.\")"
+ },
+ "An ice cream cone, melting fast.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:77"
+  ],
+  "code": "TreatKind.IceCream -> tr(\"An ice cream cone, melting fast.\")"
+ },
+ "A jelly bean, a big one.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:78"
+  ],
+  "code": "TreatKind.JellyBean -> tr(\"A jelly bean, a big one.\")"
+ },
+ "A croissant, still warm.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:79"
+  ],
+  "code": "TreatKind.Croissant -> tr(\"A croissant, still warm.\")"
+ },
+ "A gummy, squished out of shape.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/FairShare.kt:80"
+  ],
+  "code": "TreatKind.Gummy -> tr(\"A gummy, squished out of shape.\")"
  },
  "All the way through. One straight swipe.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/FairShare.kt:78"
+   "app/heartpact/ui/play/skills/FairShare.kt:93"
   ],
   "code": "hint = tr(\"All the way through. One straight swipe.\")"
  },
  "Swipe across it once to cut it in two.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/FairShare.kt:137"
+   "app/heartpact/ui/play/skills/FairShare.kt:152"
   ],
   "code": ".semantics { contentDescription = describe + \" \" + tr(\"Swipe across it once to cut it in two.\") }"
  },
@@ -7137,17 +7235,45 @@
   ],
   "code": "Vase -> tr(\"a vase\")"
  },
+ "It moves, then fades. Look closely.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/KissTheCenter.kt:130"
+  ],
+  "code": "motion.fadeAfterMs != null -> tr(\"It moves, then fades. Look closely.\")"
+ },
+ "It turns and drifts while you aim.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/KissTheCenter.kt:131"
+  ],
+  "code": "motion.drift > 0f -> tr(\"It turns and drifts while you aim.\")"
+ },
+ "It turns while you aim.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/KissTheCenter.kt:132"
+  ],
+  "code": "motion.turn != 0f -> tr(\"It turns while you aim.\")"
+ },
  "Where would it balance on a fingertip?": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/KissTheCenter.kt:58"
+   "app/heartpact/ui/play/skills/KissTheCenter.kt:133"
   ],
-  "code": "init { hint = tr(\"Where would it balance on a fingertip?\") }"
+  "code": "else -> tr(\"Where would it balance on a fingertip?\")"
+ },
+ "Remember where it was.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/KissTheCenter.kt:141"
+  ],
+  "code": "if (motion.gone(ms)) hint = tr(\"Remember where it was.\")"
  },
  "An odd shape. Tap once where you think its center is.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/KissTheCenter.kt:100"
+   "app/heartpact/ui/play/skills/KissTheCenter.kt:207"
   ],
   "code": ".semantics { contentDescription = tr(\"An odd shape. Tap once where you think its center is.\") }"
  },
@@ -7204,33 +7330,45 @@
   "one": "Level {n} cleared, with {count} star. Score {score}.",
   "other": "Level {n} cleared, with {count} stars. Score {score}."
  },
+ "Only a ghost is left. Draw it from memory.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/OtherHalf.kt:74"
+  ],
+  "code": "faded -> tr(\"Only a ghost is left. Draw it from memory.\")"
+ },
+ "Look closely. It fades to a ghost.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/OtherHalf.kt:75"
+  ],
+  "code": "fades -> tr(\"Look closely. It fades to a ghost.\")"
+ },
  "Start anywhere on the right.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/OtherHalf.kt:60",
-   "app/heartpact/ui/play/skills/OtherHalf.kt:73",
-   "app/heartpact/ui/play/skills/OtherHalf.kt:79"
+   "app/heartpact/ui/play/skills/OtherHalf.kt:76"
   ],
-  "code": "init { hint = tr(\"Start anywhere on the right.\") }"
+  "code": "else -> tr(\"Start anywhere on the right.\")"
  },
  "Done? Submit it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/OtherHalf.kt:73"
+   "app/heartpact/ui/play/skills/OtherHalf.kt:99"
   ],
-  "code": "hint = if (strokes.isEmpty()) tr(\"Start anywhere on the right.\") else tr(\"Done? Submit it.\")"
+  "code": "hint = if (strokes.isEmpty()) idle() else tr(\"Done? Submit it.\")"
  },
  "Submit": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/OtherHalf.kt:96"
+   "app/heartpact/ui/play/skills/OtherHalf.kt:122"
   ],
   "code": "HeartButton(tr(\"Submit\"), { haptics.thud(); submit() }, Modifier.weight(1f), enabled = strokes.isNotEmpty())"
  },
  "Half a shape left of a dashed fold. Draw its other half on the right.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/OtherHalf.kt:124"
+   "app/heartpact/ui/play/skills/OtherHalf.kt:161"
   ],
   "code": ".semantics { contentDescription = tr(\"Half a shape left of a dashed fold. Draw its other half on the right.\") }"
  },
@@ -7314,15 +7452,15 @@
  "New round": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Round.kt:156",
-   "app/heartpact/ui/play/skills/Round.kt:158"
+   "app/heartpact/ui/play/skills/Round.kt:159",
+   "app/heartpact/ui/play/skills/Round.kt:161"
   ],
   "code": "result != null && onAgain != null -> HeartButton(againLabel ?: tr(\"New round\"), onAgain)"
  },
  "Score {score} of 100. {grade}. {note}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Round.kt:177"
+   "app/heartpact/ui/play/skills/Round.kt:180"
   ],
   "code": "val said = tr(\"Score {score} of 100. {grade}. {note}\", \"score\" to result.score, \"grade\" to Grade.of(result.score).label, \"note\" to result.note)"
  },
@@ -7476,84 +7614,84 @@
  "Nothing drawn yet.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:114"
+   "app/heartpact/ui/play/skills/Scoring.kt:115"
   ],
   "code": "if (strokes.isEmpty()) return Scored(0, tr(\"Nothing drawn yet.\"))"
  },
  "Part of the top half is missing.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:139"
+   "app/heartpact/ui/play/skills/Scoring.kt:140"
   ],
   "code": "if (missed.map { it.y }.average() < 0.5) tr(\"Part of the top half is missing.\") else tr(\"Part of the bottom half is missing.\")"
  },
  "Part of the bottom half is missing.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:139"
+   "app/heartpact/ui/play/skills/Scoring.kt:140"
   ],
   "code": "if (missed.map { it.y }.average() < 0.5) tr(\"Part of the top half is missing.\") else tr(\"Part of the bottom half is missing.\")"
  },
  "A bit too wide. Hug the fold closer.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:140"
+   "app/heartpact/ui/play/skills/Scoring.kt:141"
   ],
   "code": "bias > 0.015f -> tr(\"A bit too wide. Hug the fold closer.\")"
  },
  "A bit too narrow. Swing out wider.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:141"
+   "app/heartpact/ui/play/skills/Scoring.kt:142"
   ],
   "code": "bias < -0.015f -> tr(\"A bit too narrow. Swing out wider.\")"
  },
  "A mirror image. Beautiful.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:142"
+   "app/heartpact/ui/play/skills/Scoring.kt:143"
   ],
   "code": "miss < 0.008f -> tr(\"A mirror image. Beautiful.\")"
  },
  "Round as a promise.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:239"
+   "app/heartpact/ui/play/skills/Scoring.kt:240"
   ],
   "code": "cost < 0.03f -> tr(\"Round as a promise.\")"
  },
  "Left {deg}° open.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:241"
+   "app/heartpact/ui/play/skills/Scoring.kt:242"
   ],
   "code": "worst == gapCost -> tr(\"Left {deg}° open.\", \"deg\" to ring.gapDegrees.roundToInt())"
  },
  "A bit oval.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:242"
+   "app/heartpact/ui/play/skills/Scoring.kt:243"
   ],
   "code": "worst == ovalCost -> if (ring.oval < 0.06f) tr(\"A bit oval.\") else tr(\"Quite oval. Keep the sides even.\")"
  },
  "Quite oval. Keep the sides even.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:242"
+   "app/heartpact/ui/play/skills/Scoring.kt:243"
   ],
   "code": "worst == ovalCost -> if (ring.oval < 0.06f) tr(\"A bit oval.\") else tr(\"Quite oval. Keep the sides even.\")"
  },
  "Lumpy in places. Keep the same distance from the middle.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:243"
+   "app/heartpact/ui/play/skills/Scoring.kt:244"
   ],
   "code": "worst == lumpCost -> tr(\"Lumpy in places. Keep the same distance from the middle.\")"
  },
  "A shaky line. Slow and steady.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:244"
+   "app/heartpact/ui/play/skills/Scoring.kt:245"
   ],
   "code": "else -> tr(\"A shaky line. Slow and steady.\")"
  },
