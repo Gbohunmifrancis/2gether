@@ -34,6 +34,15 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     private val _couple = MutableStateFlow<Couple?>(null)
     val couple: StateFlow<Couple?> = _couple.asStateFlow()
 
+    private val _linked = MutableStateFlow(false)
+    /** Linked with a partner. False while someone looks around first ("Connect later"): Home offers to connect. */
+    val linked: StateFlow<Boolean> = _linked.asStateFlow()
+
+    private val _pairRequested = MutableStateFlow(false)
+    /** An invite link opened while on Home, not linked yet: the pair screen opens over Home and consumes it. */
+    val pairRequested: StateFlow<Boolean> = _pairRequested.asStateFlow()
+    fun pairOpened() { _pairRequested.value = false }
+
     val session = app.session.session.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val side: StateFlow<Side> = app.session.session.map { if (it?.side == CoupleSide.Right) Side.Right else Side.Left }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Side.Left)
@@ -56,8 +65,27 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     fun openedInvite(token: String) {
         pendingInviteToken = token
         // Already signed in and still waiting for a partner: go straight to pairing with it.
-        if (_destination.value == Destination.Home || _destination.value == null) return
+        if (_destination.value == null) return
+        if (_destination.value == Destination.Home) {
+            if (!_linked.value) _pairRequested.value = true
+            return
+        }
         if (session.value != null) _destination.value = Destination.Pair
+    }
+
+    /** "Connect later" on the pair screen: remembered for this account, so the app opens on Home from now on. */
+    fun connectLater() = viewModelScope.launch {
+        val userId = session.value?.user?.id ?: app.session.load()?.user?.id ?: return@launch
+        app.session.connectLater(userId)
+        _destination.value = Destination.Home
+    }
+
+    /** On Home before linking: has the partner joined with this person's code meanwhile? Linking sends no push. */
+    fun checkLinked() = viewModelScope.launch {
+        if (_linked.value || _destination.value != Destination.Home) return@launch
+        val userId = session.value?.user?.id ?: return@launch
+        val fresh = app.couple.current(userId)
+        if ((fresh as? ApiResult.Ok)?.value?.status == CoupleStatus.Active) _destination.value = decide()
     }
 
     /** After signing in or up, or after linking: re-read the couple and move on. */
@@ -82,6 +110,7 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         // Photos waiting on this phone belong to this account's album: never sync them into another's.
         app.albumQueue.clear()
         _couple.value = null
+        _linked.value = false
         _destination.value = Destination.Welcome
     }
 
@@ -114,7 +143,13 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         // later) is verified now; Play refunds anything unacknowledged after three days.
         viewModelScope.launch { runCatching { PlusRestore.run(app.playStore, app.plus, session.user.id, onlyUnacknowledged = true) } }
         val status = couple?.status ?: session.coupleStatus
+        _linked.value = status == CoupleStatus.Active
         if (status != CoupleStatus.Active) stopAlarms()
-        return if (status == CoupleStatus.Active) Destination.Home else Destination.Pair
+        return when {
+            status == CoupleStatus.Active -> Destination.Home
+            // Chose to look around first: Home, with a way to connect from there.
+            app.session.connectsLater(session.user.id) -> Destination.Home
+            else -> Destination.Pair
+        }
     }
 }

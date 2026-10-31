@@ -16,6 +16,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -98,5 +99,16 @@ class ApiTest {
         auth.signOut()
         assertNull(session.token)
         assertNull(session.load())
+    }
+
+    @Test fun `connecting later is remembered for that account only, and forgotten on sign out`() = runTest {
+        server.enqueue(MockResponse().setBody(authBody))
+        auth.login("maya@example.com", "longenough")
+        assertFalse(session.connectsLater("u1"))
+        session.connectLater("u1")
+        assertTrue(session.connectsLater("u1"))
+        assertFalse(session.connectsLater("u2"))
+        auth.signOut()
+        assertFalse(session.connectsLater("u1"))
     }
 }

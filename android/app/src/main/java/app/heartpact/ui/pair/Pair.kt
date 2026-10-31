@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import app.heartpact.i18n.Dates
@@ -67,12 +68,16 @@ fun PairScreen(
     onSubmitCode: () -> Unit,
     onRetry: () -> Unit,
     onSignOut: () -> Unit,
+    /** Straight after signing up: look around first and connect later, from the banner at the top of the app. */
+    onLater: (() -> Unit)? = null,
+    /** Opened from Home ("Connect"): back to Home, and no sign-out here. */
+    onBack: (() -> Unit)? = null,
 ) {
     val colors = Heartpact.colors
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar(tr("Find your other half"), trailing = { LiveLogo(30.dp, LogoMood.Waiting, night = colors.isNight) })
+        TopBar(tr("Find your other half"), onBack = onBack, trailing = { LiveLogo(30.dp, LogoMood.Waiting, night = colors.isNight) })
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                 Character(Who.Left, Pose.Wave, 124.dp)
@@ -122,7 +127,12 @@ fun PairScreen(
             }
             if (!state.entering) HeartButton(tr("I have a code from my partner"), onStartEntering, Modifier.padding(top = 12.dp), kind = ButtonKind.Text, icon = Icons.Rounded.Keyboard)
         }
-        HeartButton(tr("Sign out"), onSignOut, Modifier.padding(bottom = 8.dp), kind = ButtonKind.Text)
+        onLater?.let {
+            HeartButton(tr("Connect later"), it, Modifier.padding(horizontal = 20.dp).padding(top = 8.dp), kind = ButtonKind.Outline)
+            Text(tr("You can look around first. Your invite code stays at the top of the app until you connect."), style = Heartpact.type.small,
+                color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 6.dp))
+        }
+        if (onBack == null) HeartButton(tr("Sign out"), onSignOut, Modifier.padding(bottom = 8.dp), kind = ButtonKind.Text)
     }
 }
 

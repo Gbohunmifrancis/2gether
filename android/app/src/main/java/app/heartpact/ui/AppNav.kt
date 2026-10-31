@@ -125,13 +125,16 @@ import app.heartpact.ui.auth.SignInViewModel
 import app.heartpact.ui.auth.SignUpScreen
 import app.heartpact.ui.auth.SignUpViewModel
 import app.heartpact.ui.auth.WelcomeScreen
+import app.heartpact.ui.home.ConnectBanner
 import app.heartpact.ui.home.HomeScreen
+import app.heartpact.ui.home.NeedsPartnerDialog
 import app.heartpact.ui.onboarding.OnboardingScreen
 import app.heartpact.ui.pair.PairScreen
 import app.heartpact.ui.pair.PairViewModel
 import app.heartpact.ui.splash.AnimatedSplash
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.HeartpactTheme
+import kotlinx.coroutines.delay
 
 private object Routes {
     const val SPLASH = "splash"
@@ -192,6 +195,25 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
             if (route == Routes.SPLASH) return@LaunchedEffect
             appModel.tabOpened()
             if (route != Routes.GAMES) nav.navigate(Routes.GAMES) { launchSingleTop = true }
+        }
+
+        // An invite link opened on Home before linking: the pair screen opens over Home with it.
+        val pairRequested by appModel.pairRequested.collectAsStateWithLifecycle()
+        LaunchedEffect(pairRequested, splashDone, destination, entry?.destination?.route) {
+            if (!pairRequested || !splashDone || destination != Destination.Home) return@LaunchedEffect
+            val route = entry?.destination?.route ?: return@LaunchedEffect
+            if (route == Routes.SPLASH) return@LaunchedEffect
+            appModel.pairOpened()
+            if (route != Routes.PAIR) nav.navigate(Routes.PAIR) { launchSingleTop = true }
+        }
+        // Linked while on Home (from the pair screen over it, or the partner used this person's code): Home starts
+        // afresh, so every tab picks up the partner.
+        val linked by appModel.linked.collectAsStateWithLifecycle()
+        var wasLinked by remember { mutableStateOf<Boolean?>(null) }
+        LaunchedEffect(linked) {
+            val before = wasLinked
+            wasLinked = linked
+            if (before == false && linked && splashDone && destination == Destination.Home) nav.resetTo(Routes.HOME)
         }
 
         CompositionLocalProvider(LocalAvatars provides container.avatars) {
@@ -269,7 +291,11 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val model: PairViewModel = viewModel(factory = viewModelFactory { initializer { PairViewModel(container.couple, userId, token) } })
                         val state by model.state.collectAsStateWithLifecycle()
                         LaunchedEffect(state.linked) { if (state.linked) appModel.refresh() }
-                        PairScreen(state, model::code, model::startEntering, model::stopEntering, model::submitCode, model::newInvite, onSignOut = { appModel.signOut() })
+                        // Over Home ("Connect"), Back returns there; straight after signing up, "Connect later" goes there.
+                        val fromHome = destination == Destination.Home
+                        PairScreen(state, model::code, model::startEntering, model::stopEntering, model::submitCode, model::newInvite, onSignOut = { appModel.signOut() },
+                            onLater = if (fromHome) null else ({ appModel.connectLater() }),
+                            onBack = if (fromHome) ({ nav.popBackStack() }) else null)
                     }
                 }
                 composable(Routes.HOME) {
@@ -298,6 +324,12 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val albumUi by albumModel.ui.collectAsStateWithLifecycle()
                     val pickPhotos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(50)) { albumModel.add(it) }
                     val sides = couple?.members.orEmpty().associate { it.userId to if (it.side == CoupleSide.Right) Side.Right else Side.Left }
+                    // Not linked yet ("Connect later"): what needs a partner asks to connect first instead of failing.
+                    var askConnect by remember { mutableStateOf(false) }
+                    val connect = { nav.navigate(Routes.PAIR) { launchSingleTop = true } }
+                    fun withPartner(action: () -> Unit): () -> Unit = { if (linked) action() else askConnect = true }
+                    // Linking sends no push: while not linked, look now and then for the partner having used our code.
+                    if (!linked) LaunchedEffect(Unit) { while (true) { delay(15_000); appModel.checkLinked() } }
                     val requestedTab by appModel.openTab.collectAsStateWithLifecycle()
                     val foodModel: FoodViewModel = viewModel(factory = viewModelFactory { initializer { FoodViewModel(container.food, container.pushEvents) } })
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
@@ -321,6 +353,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         cycleSummary.load()
                         locationModel.refresh()
                         pregnancySummary.load()
+                        appModel.checkLinked()
                         onPauseOrDispose { }
                     }
                     var mealPhoto by remember { mutableStateOf<Uri?>(null) }
@@ -335,7 +368,9 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     }
                     // The app declares CAMERA (for rep counting), so the system camera needs it granted too.
                     val cameraForMeal = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) snapMeal() else pickMealPhoto() }
+                    if (askConnect) NeedsPartnerDialog(onConnect = connect, onDismiss = { askConnect = false })
                     HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() },
+                        banner = if (linked) null else ({ ConnectBanner(onConnect = connect) }),
                         requestedTab = requestedTab?.let { name -> Tab.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } },
                         onRequestedTab = appModel::tabOpened,
                         showTour = !container.tour.seen(), onTourDone = container.tour::markSeen,
@@ -361,9 +396,9 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             UsTab(
                                 ui = usUi, me = Face(me.id, me.displayName, me.avatarVersion, side), partner = Face(partnerMember?.userId ?: "", partner, partnerMember?.avatarVersion ?: 0, partnerSide),
                                 togetherSince = UsText.togetherSince(couple?.linkedAtUtc),
-                                onQuestion = { nav.navigate(Routes.QUESTION) }, onProfile = { nav.navigate(Routes.PROFILE) }, onGames = { nav.navigate(Routes.GAMES) },
+                                onQuestion = withPartner { nav.navigate(Routes.QUESTION) }, onProfile = { nav.navigate(Routes.PROFILE) }, onGames = { nav.navigate(Routes.GAMES) },
                                 location = {
-                                    LocationCard(locationUi, partner, onOpen = { nav.navigate(Routes.MAP) }, onShare = shareLocation,
+                                    LocationCard(locationUi, partner, onOpen = withPartner { nav.navigate(Routes.MAP) }, onShare = withPartner(shareLocation),
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)
                                 },
                                 extraRows = {
@@ -385,27 +420,27 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         food = {
                             FoodTab(
                                 ui = foodUi, partnerName = partner,
-                                onSnap = {
+                                onSnap = withPartner {
                                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) snapMeal()
                                     else cameraForMeal.launch(Manifest.permission.CAMERA)
                                 },
-                                onChoosePhoto = pickMealPhoto,
-                                onLogByHand = { nav.navigate(Routes.foodEntry(null)) },
+                                onChoosePhoto = withPartner(pickMealPhoto),
+                                onLogByHand = withPartner { nav.navigate(Routes.foodEntry(null)) },
                                 onOpenEntry = { nav.navigate(Routes.foodEntry(it.id)) },
-                                onSaveTargets = foodModel::saveTargets,
+                                onSaveTargets = { kcal, share -> withPartner { foodModel.saveTargets(kcal, share) }() },
                             )
                         },
                         album = {
                             AlbumTab(
                                 ui = albumUi, sides = sides, localModel = albumModel::localModel,
-                                onAdd = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) },
-                                onSync = albumModel::sync, onRemove = { albumModel.remove(it) }, onRetry = { albumModel.retry(it) },
+                                onAdd = withPartner { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) },
+                                onSync = withPartner(albumModel::sync), onRemove = { albumModel.remove(it) }, onRetry = { albumModel.retry(it) },
                                 onLoadMore = albumModel::loadMore, onDismissResult = albumModel::dismissResult, unmetered = albumModel::onUnmetered,
                                 onGetPlus = if (plusUi.offersPlus) ({ nav.navigate(Routes.PLUS) }) else null,
                                 myId = me.id, onCaption = albumModel::saveCaption, onDeleteShared = albumModel::deleteShared,
                             )
                         },
-                        pacts = { PactsTab(pactsUi, partner, onStop = pactsModel::stop, onNewDare = { nav.navigate(Routes.NEW_DARE) }) },
+                        pacts = { PactsTab(pactsUi, partner, onStop = pactsModel::stop, onNewDare = withPartner { nav.navigate(Routes.NEW_DARE) }) },
                         today = {
                         TodayTab(
                             ui = todayUi,
@@ -414,7 +449,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onDoItNow = { dare -> context.startActivity(alarmIntent(context, dare, partner, early = true)) },
                             onCallOff = todayModel::callOffTogether,
                             onKeep = todayModel::keepIt,
-                            onNewDare = { nav.navigate(Routes.NEW_DARE) },
+                            onNewDare = withPartner { nav.navigate(Routes.NEW_DARE) },
                             onGames = { nav.navigate(Routes.GAMES) },
                             onExactAlarmsAsked = todayModel::exactAlarmsAsked,
                             game = TodayGames.waiting(todayGamesUi.sessions, me.id),

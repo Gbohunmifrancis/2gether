@@ -46,7 +46,9 @@ class ScreenShotsTest {
 
     @Test fun pair() {
         val invite = PartnerInvite("i1", "482039", "ab12cd34ef56ab12cd34ef56ab12cd34ef56ab12cd34ef56", "2026-10-13T09:14:00Z")
-        shot("pair") { PairScreen(PairState(invite = invite, loadingInvite = false), {}, {}, {}, {}, {}, {}) }
+        shot("pair") { PairScreen(PairState(invite = invite, loadingInvite = false), {}, {}, {}, {}, {}, {}, onLater = {}) }
+        shot("pair-from-home") { PairScreen(PairState(invite = invite, loadingInvite = false), {}, {}, {}, {}, {}, {}, onBack = {}) }
+        shot("home-connect-banner") { app.heartpact.ui.home.ConnectBanner(onConnect = {}) }
         shot("pair-enter-code") { PairScreen(PairState(invite = invite, loadingInvite = false, entering = true, code = "48203", codeError = "That code didn't work. Check it with your partner, or ask for a new one."), {}, {}, {}, {}, {}, {}) }
     }
 
