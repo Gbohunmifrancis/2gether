@@ -173,6 +173,7 @@ export const GAMES = [
   "connectFour",
   "trivia",
   "skillDuel",
+  "spotTheDifference",
 ] as const;
 export const SKILLS = ["FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing"] as const;
 export const PRODUCTS = ["heartpact_plus_monthly", "heartpact_plus_yearly"] as const;

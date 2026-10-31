@@ -19,6 +19,7 @@
  "A letter, four categories, 15 seconds. Judge each other's answers.": "एक अक्षर, चार कैटेगरी, 15 सेकंड। एक-दूसरे के जवाब जाँचो।",
  "A mirror image. Beautiful.": "हूबहू आईने जैसा। कमाल।",
  "A name starting with {letter}": "{letter} से कोई नाम",
+ "A new game": "एक नया गेम",
  "A number from 0 to 5,000": "0 से 5,000 तक का नंबर",
  "A packet or a menu usually says": "पैकेट या मेन्यू पर अक्सर लिखा होता है",
  "A pair! Go again": "जोड़ा मिला! फिर तुम्हारी बारी",
@@ -64,6 +65,7 @@
   "one": "पाँचों खेल लिए। {partner} का {count} राउंड बाकी है।",
   "other": "पाँचों खेल लिए। {partner} के {count} राउंड बाकी हैं।"
  },
+ "All found!": "सब मिल गए!",
  "All the way through. One straight swipe.": "पूरा आर-पार। एक सीधा स्वाइप।",
  "Allow": "अनुमति दो",
  "Allow exact alarms, or Android may ring it up to an hour late": "सटीक अलार्म की अनुमति दो, वरना Android इसे एक घंटे तक देर से बजा सकता है",
@@ -382,6 +384,7 @@
  "Its due date, appointments and kick counts are removed for good, for you and {partner}. This can't be undone.": "इसकी ड्यू डेट, अपॉइंटमेंट और किक की गिनती हमेशा के लिए मिट जाएगी, तुम्हारे और {partner} दोनों के लिए। इसे वापस नहीं किया जा सकता।",
  "Join me on Heartpact: {link}\nOr enter the code {code} in the app.": "Heartpact पर मेरे साथ जुड़ो: {link}\nया ऐप में कोड {code} डालो।",
  "Join my partner": "पार्टनर से जुड़ो",
+ "Join the game": "गेम में आओ",
  "Jollof": "जोलोफ़",
  "Jumping jacks": "जंपिंग जैक्स",
  "just for fun": "बस मज़े के लिए",
@@ -512,6 +515,8 @@
  "New round": "नया राउंड",
  "New to Heartpact?": "Heartpact पर पहली बार?",
  "Next": "आगे",
+ "Next picture coming up": "अगली तस्वीर आ रही है",
+ "Next picture in {seconds}": "अगली तस्वीर {seconds} में",
  "Next round": "अगला राउंड",
  "nine": "नौ",
  "no": "कोई नहीं",
@@ -649,6 +654,9 @@
  "Pick the time. Their phone rings, and the camera counts every rep until it's done.": "समय चुनो। उनका फ़ोन बजेगा, और कैमरा हर रेप गिनेगा जब तक पूरा न हो।",
  "Pick your honest answer. {partner} will try to guess it.": "सच्चा जवाब चुनो। {partner} उसे बूझने की कोशिश करेंगे।",
  "Picked. Waiting for {partner}…": "चुन लिया। {partner} का इंतज़ार…",
+ "Picture by picture": "तस्वीर दर तस्वीर",
+ "Picture done": "तस्वीर पूरी",
+ "Picture {number} of {total}": "{total} में से तस्वीर {number}",
  "place": "जगह",
  "Plank": "प्लैंक",
  "plank, {count} second|plank, {count} seconds": {
@@ -666,6 +674,7 @@
  "Play Memory match": "मेमोरी मैच खेलो",
  "Play Naija trivia": "नाइजा क्विज़ खेलो",
  "Play Same answer": "एक जैसा जवाब खेलो",
+ "Play Spot the difference": "अंतर ढूँढो खेलो",
  "Play this level again": "यह लेवल फिर खेलो",
  "Play Tic-tac-toe": "टिक-टैक-टो खेलो",
  "Play together": "साथ खेलो",
@@ -828,6 +837,7 @@
  "So the photos and food tips you see feel like home.": "ताकि तुम्हें दिखने वाली फ़ोटो और खाने के टिप्स अपने से लगें।",
  "Something went wrong on our side. Try again in a moment.": "हमारी तरफ़ कुछ गड़बड़ हो गई। थोड़ी देर में फिर कोशिश करो।",
  "soon": "जल्द",
+ "Spot the difference": "अंतर ढूँढो",
  "Spotting": "स्पॉटिंग",
  "Square {number}, empty": "खाना {number}, खाली",
  "Square {number}, yours": "खाना {number}, तुम्हारा",
@@ -870,6 +880,7 @@
  "Syncing {done} of {total}": "सिंक हो रहा है: {total} में से {done}",
  "Take turns answering.": "बारी-बारी से जवाब दो।",
  "Talking drum": "टॉकिंग ड्रम",
+ "Tap a difference on either picture. First to tap it gets it.": "किसी भी तस्वीर में अंतर पर टैप करो। जो पहले टैप करे, उसका।",
  "Tap on beat eight": "आठवीं धड़कन पर टैप करो",
  "Tap the exact middle of the shape.": "आकार के ठीक बीच में टैप करो।",
  "Tapped {s} s early.": "{s} सेकंड पहले टैप किया।",
@@ -897,8 +908,11 @@
   "one": "अब तक की चेन · {count} शब्द",
   "other": "अब तक की चेन · {count} शब्द"
  },
+ "The changed picture": "बदली हुई तस्वीर",
  "The drawing": "ड्रॉइंग",
  "The Naija finger-count game: call a number, lay your fingers, and the winner slaps. Play it with friends.": "नाइजा उँगलियाँ गिनने वाला खेल: एक नंबर बोलो, अपनी उँगलियाँ दिखाओ, और जीतने वाला थप्पड़ मारता है। दोस्तों के साथ खेलो।",
+ "The ones nobody found are circled.": "जो किसी को नहीं मिले, उन पर गोला बना है।",
+ "The original picture": "असली तस्वीर",
  "the phone was moving during {count} rep|the phone was moving during {count} reps": {
   "one": "{count} रेप के दौरान फ़ोन हिल रहा था",
   "other": "{count} रेप के दौरान फ़ोन हिल रहा था"
@@ -920,17 +934,21 @@
  "They stick on their half when they set the dare. Do the reps and the camera sticks on yours.": "डेयर देते समय वो अपना आधा हिस्सा चिपकाते हैं। रेप्स पूरे करो और कैमरा तुम्हारा हिस्सा चिपका देगा।",
  "thing": "चीज़",
  "This dare was changed or already finished.": "यह चुनौती बदल दी गई या पहले ही पूरी हो चुकी है।",
+ "This game needs a newer Heartpact. Update the app to play it.": "इस गेम के लिए Heartpact का नया वर्ज़न चाहिए। खेलने के लिए app अपडेट करो।",
  "This Google account has no Plus subscription for you.": "इस Google अकाउंट पर तुम्हारे लिए कोई Plus सब्सक्रिप्शन नहीं है।",
  "This kind of file can't go in the album.": "इस तरह की फ़ाइल एल्बम में नहीं जा सकती।",
  "This offer isn't available on your Google account. Pick the plan without it.": "यह ऑफ़र तुम्हारे Google अकाउंट पर उपलब्ध नहीं है। इसके बिना वाला प्लान चुनो।",
  "This phone's camera couldn't start.": "इस फ़ोन का कैमरा शुरू नहीं हो पाया।",
  "This photo couldn't be added.": "यह फ़ोटो जोड़ी नहीं जा सकी।",
  "This photo is too large for the album.": "यह फ़ोटो एल्बम के लिए बहुत बड़ी है।",
+ "This picture needs a newer Heartpact. Update the app to play it.": "इस तस्वीर के लिए Heartpact का नया वर्ज़न चाहिए। खेलने के लिए app अपडेट करो।",
+ "This picture: you {mine}, {partner} {theirs}": "इस तस्वीर में: तुम {mine}, {partner} {theirs}",
  "This video is too large for the album (100 MB at most).": "यह वीडियो एल्बम के लिए बहुत बड़ा है (ज़्यादा से ज़्यादा 100 MB)।",
  "three": "तीन",
  "Three in a row, your half of the heart against mine. First to win three games takes the match.": "तीन एक लाइन में, तुम्हारा आधा दिल बनाम मेरा। जो पहले तीन गेम जीते, मैच उसका।",
  "Three misses. No hearts this round.": "तीनों अंदाज़े गलत। इस राउंड कोई दिल नहीं।",
  "Tic-tac-toe": "टिक-टैक-टो",
+ "Time's up!": "टाइम खत्म!",
  "Tiny tests of a steady hand. Practice alone and beat your best.": "सधे हाथ के छोटे-छोटे टेस्ट। अकेले प्रैक्टिस करो और अपना बेस्ट तोड़ो।",
  "Tired": "थकान",
  "To go": "बाकी",
@@ -955,6 +973,7 @@
  "two": "दो",
  "Two choices, you both pick at once. A heart each time you pick the same.": "दो विकल्प, दोनों एक साथ चुनो। जब भी एक ही चुनो, दोनों को एक-एक दिल।",
  "Two halves, one heart.": "दो हिस्से, एक दिल।",
+ "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "दो तस्वीरें, सात अंतर, तुम दोनों एक साथ ढूँढो। जो अंतर पहले टैप करेगा, वो उसका; जिसके ज़्यादा, वो जीता।",
  "Undo": "अनडू",
  "Unlinks you both and stops every dare": "दोनों का लिंक हटेगा और हर चुनौती बंद होगी",
  "Until": "कब तक",
@@ -1033,6 +1052,7 @@
  "You can do it any time on the day, or ask {partner} to call it off once it rings.": "उस दिन इसे कभी भी किया जा सकता है, या बजने पर {partner} से छूट माँगो।",
  "You can sign back in any time": "कभी भी वापस साइन इन किया जा सकता है",
  "You each choose": "अपना-अपना फ़ैसला",
+ "You found {mine}, {partner} found {theirs}": "तुमने {mine} ढूँढे, {partner} ने {theirs} ढूँढे",
  "You go first. {partner} answers after you.": "पहले तुम। फिर {partner} की बारी।",
  "You got it right": "तुम्हारा जवाब सही",
  "You guessed it. A heart each!": "तुमने बूझ लिया। दोनों को एक-एक दिल!",
@@ -1047,6 +1067,7 @@
  "You picked {answer}. {partner} guessed {guess}.": "तुमने {answer} चुना। {partner} का अंदाज़ा था {guess}।",
  "You picked: {mine}. {partner} picked: {theirs}.": "तुमने चुना: {mine}। {partner} ने चुना: {theirs}।",
  "You scored {score}": "तुम्हारा स्कोर {score}",
+ "You spotted {mine}, {partner} {theirs}": "तुमने {mine} ढूँढे, {partner} ने {theirs}",
  "You won game {game}!": "गेम {game} तुम्हारे नाम!",
  "You won the duel": "तुमने ड्यूल जीता",
  "You won the duel by {count} heart|You won the duel by {count} hearts": {
@@ -1133,6 +1154,10 @@
  "{count} day|{count} days": {
   "one": "{count} दिन",
   "other": "{count} दिन"
+ },
+ "{count} difference left|{count} differences left": {
+  "one": "{count} अंतर बाकी",
+  "other": "{count} अंतर बाकी"
  },
  "{count} drawing guessed|{count} drawings guessed": {
   "one": "{count} ड्रॉइंग बूझी",
@@ -1235,6 +1260,10 @@
   "one": "{count} सिट-अप",
   "other": "{count} सिट-अप्स"
  },
+ "{count} spot|{count} spots": {
+  "one": "{count} अंतर",
+  "other": "{count} अंतर"
+ },
  "{count} squat|{count} squats": {
   "one": "{count} स्क्वैट",
   "other": "{count} स्क्वैट्स"
@@ -1289,6 +1318,7 @@
  "{partner} doesn't see pregnancy mode": "{partner} को प्रेगनेंसी मोड नहीं दिखता",
  "{partner} finished {dare}": "{partner} ने पूरे किए: {dare}",
  "{partner} got it right": "{partner} का जवाब सही",
+ "{partner} got that one": "ये {partner} ने पहले ढूँढ लिया",
  "{partner} guessed it. A heart each!": "{partner} ने बूझ लिया। दोनों को एक-एक दिल!",
  "{partner} guessed it: {answer}. A point for {partner}.": "{partner} ने सही बूझा: {answer}। {partner} को एक पॉइंट।",
  "{partner} has answered. What did they pick?": "{partner} ने जवाब दे दिया। उन्होंने क्या चुना होगा?",

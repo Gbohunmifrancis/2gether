@@ -676,6 +676,7 @@
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:143",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:118",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:248",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:192",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:110"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"game.invalid_state\", Loc.T(\"This game session is corrupted. End it and start a new game.\")));"
@@ -792,10 +793,17 @@
   ],
   "code": "GameType.SkillDuel => Loc.T(\"{name} invited you to play Heart to heart.\", (\"name\", name)),"
  },
- "{name} invited you to a game.": {
+ "{name} invited you to play Spot the difference.": {
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/GameController.cs:207"
+  ],
+  "code": "GameType.SpotTheDifference => Loc.T(\"{name} invited you to play Spot the difference.\", (\"name\", name)),"
+ },
+ "{name} invited you to a game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:208"
   ],
   "code": "_ => Loc.T(\"{name} invited you to a game.\", (\"name\", name)),"
  },
@@ -6670,6 +6678,7 @@
    "Twogether.Application/Features/Games/DrawAndGuessRules.cs:55",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:46",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:66",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:73",
    "Twogether.Application/Features/Games/TriviaRules.cs:49",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:48"
   ],
@@ -6682,6 +6691,7 @@
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:45",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:51",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:64",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:69",
    "Twogether.Application/Features/Games/TriviaRules.cs:48",
    "Twogether.Application/Features/Games/TruthOrDareRules.cs:43",
    "Twogether.Application/Features/Games/WordDashRules.cs:54",
@@ -6868,6 +6878,48 @@
    "Twogether.Application/Features/Games/SkillDuelRules.cs:70"
   ],
   "code": "if (mine[round] is not null) throw new InvalidOperationException(Loc.T(\"You already played this round.\"));"
+ },
+ "Spot the difference expects a spot.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:72"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Spot the difference expects a spot.\"));"
+ },
+ "The next picture is on its way.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:74"
+  ],
+  "code": "if (state.Phase == BetweenPhase) throw new InvalidOperationException(Loc.T(\"The next picture is on its way.\"));"
+ },
+ "That isn't one of the differences.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:76"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"That isn't one of the differences.\"));"
+ },
+ "You already spotted that one.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
+  ],
+  "code": "throw new InvalidOperationException(found.By == move.Actor ? Loc.T(\"You already spotted that one.\") : Loc.T(\"Your partner spotted that one first.\"));"
+ },
+ "Your partner spotted that one first.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
+  ],
+  "code": "throw new InvalidOperationException(found.By == move.Actor ? Loc.T(\"You already spotted that one.\") : Loc.T(\"Your partner spotted that one first.\"));"
+ },
+ "Not so fast: one spot at a time.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:81"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Not so fast: one spot at a time.\"));"
  },
  "Pick a square on the board.": {
   "plural": false,

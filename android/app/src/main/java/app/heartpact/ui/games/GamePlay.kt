@@ -35,7 +35,7 @@ object GamePlay {
     fun region(s: GameSession): String = runCatching { json.parseToJsonElement(s.setupJson).jsonObject["region"]?.jsonPrimitive?.content }.getOrNull() ?: "global"
 
     /** The games the app offers (docs/games.md). */
-    val offered = listOf(GameType.SkillDuel, GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
+    val offered = listOf(GameType.SkillDuel, GameType.SpotTheDifference, GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
         GameType.TruthOrDare, GameType.WordDash, GameType.Handwriting, GameType.TicTacToe, GameType.ConnectFour)
 
     /** A session's name; Nigerian couples' trivia is Naija trivia. */
@@ -54,6 +54,8 @@ object GamePlay {
         GameType.ConnectFour -> tr("Connect four")
         GameType.Trivia -> if (region == "ng") tr("Naija trivia") else tr("Trivia")
         GameType.SkillDuel -> tr("Heart to heart")
+        GameType.SpotTheDifference -> tr("Spot the difference")
+        GameType.Unknown -> tr("A new game")
     }
 
     /** The button that accepts an invite: one whole phrase per game. */
@@ -70,6 +72,8 @@ object GamePlay {
         GameType.ConnectFour -> tr("Play Connect four")
         GameType.Trivia -> if (region == "ng") tr("Play Naija trivia") else tr("Play Trivia")
         GameType.SkillDuel -> tr("Play Heart to heart")
+        GameType.SpotTheDifference -> tr("Play Spot the difference")
+        GameType.Unknown -> tr("Join the game")
     }
 
     fun blurb(type: GameType, region: String? = null) = when (type) {
@@ -86,6 +90,8 @@ object GamePlay {
         GameType.Trivia -> if (region == "ng") tr("Ten questions on Naija music, Nollywood, food and more. You both answer, then see who got it.")
             else tr("Ten questions, four choices each. You both answer, then the right one shows.")
         GameType.SkillDuel -> tr("The same five skill rounds for both of you, each on your own time. Your scores show side by side.")
+        GameType.SpotTheDifference -> tr("Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.")
+        GameType.Unknown -> tr("This game needs a newer Heartpact. Update the app to play it.")
         else -> tr("Take turns answering.")
     }
 
@@ -101,6 +107,7 @@ object GamePlay {
             GameType.TicTacToe, GameType.ConnectFour -> grid(s).scores
             GameType.Handwriting -> return trn(drawAndGuess(s).scores[me] ?: 0, "{count} drawing guessed", "{count} drawings guessed")
             GameType.Trivia -> trivia(s).scores
+            GameType.SpotTheDifference -> return spotOutcome(spot(s), me, partner)
             GameType.SkillDuel -> skillDuel(s).let { d -> if (d.totals != null) return duelOutcome(d, me, partner) else d.hearts }
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }

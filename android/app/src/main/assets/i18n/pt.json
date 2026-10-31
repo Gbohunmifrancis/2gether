@@ -19,6 +19,7 @@
  "A letter, four categories, 15 seconds. Judge each other's answers.": "Uma letra, quatro categorias, 15 segundos. Um julga as respostas do outro.",
  "A mirror image. Beautiful.": "Um reflexo perfeito. Lindo.",
  "A name starting with {letter}": "Um nome com {letter}",
+ "A new game": "Um jogo novo",
  "A number from 0 to 5,000": "Um número de 0 a 5.000",
  "A packet or a menu usually says": "A embalagem ou o cardápio costuma dizer",
  "A pair! Go again": "Um par! Jogue de novo",
@@ -64,6 +65,7 @@
   "one": "Você jogou as cinco. Falta {count} rodada para {partner}.",
   "other": "Você jogou as cinco. Faltam {count} rodadas para {partner}."
  },
+ "All found!": "Achamos todas!",
  "All the way through. One straight swipe.": "De ponta a ponta. Um deslize reto.",
  "Allow": "Permitir",
  "Allow exact alarms, or Android may ring it up to an hour late": "Permita alarmes exatos, ou o Android pode tocar com até uma hora de atraso",
@@ -382,6 +384,7 @@
  "Its due date, appointments and kick counts are removed for good, for you and {partner}. This can't be undone.": "A data prevista, as consultas e as contagens de chutes são apagadas para sempre, para você e para {partner}. Não dá para desfazer.",
  "Join me on Heartpact: {link}\nOr enter the code {code} in the app.": "Vem comigo no Heartpact: {link}\nOu digite o código {code} no app.",
  "Join my partner": "Conectar ao meu amor",
+ "Join the game": "Entrar no jogo",
  "Jollof": "Jollof",
  "Jumping jacks": "Polichinelos",
  "just for fun": "só por diversão",
@@ -512,6 +515,8 @@
  "New round": "Nova rodada",
  "New to Heartpact?": "Primeira vez no Heartpact?",
  "Next": "Próximo",
+ "Next picture coming up": "Já vem a próxima imagem",
+ "Next picture in {seconds}": "Próxima imagem em {seconds}",
  "Next round": "Próxima rodada",
  "nine": "nove",
  "no": "nenhuma",
@@ -649,6 +654,9 @@
  "Pick the time. Their phone rings, and the camera counts every rep until it's done.": "Escolha o horário. O celular da pessoa toca, e a câmera conta cada repetição até terminar.",
  "Pick your honest answer. {partner} will try to guess it.": "Escolha sua resposta sincera. {partner} vai tentar adivinhar.",
  "Picked. Waiting for {partner}…": "Escolhido. Esperando {partner}…",
+ "Picture by picture": "Imagem por imagem",
+ "Picture done": "Imagem concluída",
+ "Picture {number} of {total}": "Imagem {number} de {total}",
  "place": "lugar",
  "Plank": "Prancha",
  "plank, {count} second|plank, {count} seconds": {
@@ -666,6 +674,7 @@
  "Play Memory match": "Jogar Jogo da memória",
  "Play Naija trivia": "Jogar Quiz Naija",
  "Play Same answer": "Jogar Mesma resposta",
+ "Play Spot the difference": "Jogar Jogo dos sete erros",
  "Play this level again": "Jogar este nível de novo",
  "Play Tic-tac-toe": "Jogar Jogo da velha",
  "Play together": "Jogar juntos",
@@ -828,6 +837,7 @@
  "So the photos and food tips you see feel like home.": "Para que as fotos e dicas de comida tenham a sua cara.",
  "Something went wrong on our side. Try again in a moment.": "Algo deu errado do nosso lado. Tente de novo daqui a pouco.",
  "soon": "em breve",
+ "Spot the difference": "Jogo dos sete erros",
  "Spotting": "Escape",
  "Square {number}, empty": "Casa {number}, vazia",
  "Square {number}, yours": "Casa {number}, sua",
@@ -870,6 +880,7 @@
  "Syncing {done} of {total}": "Sincronizando {done} de {total}",
  "Take turns answering.": "Respondam um de cada vez.",
  "Talking drum": "Tambor falante",
+ "Tap a difference on either picture. First to tap it gets it.": "Toque numa diferença em qualquer uma das imagens. Quem tocar primeiro fica com ela.",
  "Tap on beat eight": "Toque na oitava batida",
  "Tap the exact middle of the shape.": "Toque bem no meio da forma.",
  "Tapped {s} s early.": "Tocou {s} s antes.",
@@ -897,8 +908,11 @@
   "one": "A corrente até agora · {count} palavra",
   "other": "A corrente até agora · {count} palavras"
  },
+ "The changed picture": "A imagem alterada",
  "The drawing": "O desenho",
  "The Naija finger-count game: call a number, lay your fingers, and the winner slaps. Play it with friends.": "O jogo naija de contar dedos: escolha um número, mostre os dedos, e quem ganha dá o tapa. Jogue com seus amigos.",
+ "The ones nobody found are circled.": "As que ninguém achou estão circuladas.",
+ "The original picture": "A imagem original",
  "the phone was moving during {count} rep|the phone was moving during {count} reps": {
   "one": "o celular se mexeu durante {count} repetição",
   "other": "o celular se mexeu durante {count} repetições"
@@ -920,17 +934,21 @@
  "They stick on their half when they set the dare. Do the reps and the camera sticks on yours.": "A outra pessoa cola a metade dela ao lançar o desafio. Faça as repetições e a câmera cola a sua.",
  "thing": "coisa",
  "This dare was changed or already finished.": "Este desafio mudou ou já terminou.",
+ "This game needs a newer Heartpact. Update the app to play it.": "Este jogo precisa de uma versão mais nova do Heartpact. Atualize o app para jogar.",
  "This Google account has no Plus subscription for you.": "Esta conta do Google não tem uma assinatura do Plus para você.",
  "This kind of file can't go in the album.": "Esse tipo de arquivo não pode ir para o álbum.",
  "This offer isn't available on your Google account. Pick the plan without it.": "Esta oferta não está disponível na sua conta do Google. Escolha o plano sem ela.",
  "This phone's camera couldn't start.": "A câmera deste celular não iniciou.",
  "This photo couldn't be added.": "Não deu para adicionar esta foto.",
  "This photo is too large for the album.": "Esta foto é grande demais para o álbum.",
+ "This picture needs a newer Heartpact. Update the app to play it.": "Esta imagem precisa de uma versão mais nova do Heartpact. Atualize o app para jogar.",
+ "This picture: you {mine}, {partner} {theirs}": "Nesta imagem: você {mine}, {partner} {theirs}",
  "This video is too large for the album (100 MB at most).": "Este vídeo é grande demais para o álbum (no máximo 100 MB).",
  "three": "três",
  "Three in a row, your half of the heart against mine. First to win three games takes the match.": "Três em linha, a sua metade do coração contra a minha. Quem ganhar três partidas primeiro leva.",
  "Three misses. No hearts this round.": "Três erros. Nenhum coração nesta rodada.",
  "Tic-tac-toe": "Jogo da velha",
+ "Time's up!": "Acabou o tempo!",
  "Tiny tests of a steady hand. Practice alone and beat your best.": "Testes rapidinhos de mão firme. Treine por conta própria e bata seu recorde.",
  "Tired": "Cansaço",
  "To go": "Faltam",
@@ -955,6 +973,7 @@
  "two": "duas",
  "Two choices, you both pick at once. A heart each time you pick the same.": "Duas opções, vocês escolhem ao mesmo tempo. Um coração para cada sempre que escolherem igual.",
  "Two halves, one heart.": "Duas metades, um coração.",
+ "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "Duas imagens, sete diferenças, vocês dois procurando ao mesmo tempo. Toque primeiro numa diferença para ficar com ela; quem achar mais ganha.",
  "Undo": "Desfazer",
  "Unlinks you both and stops every dare": "Desconecta vocês dois e para todos os desafios",
  "Until": "Até",
@@ -1033,6 +1052,7 @@
  "You can do it any time on the day, or ask {partner} to call it off once it rings.": "Você pode fazer a qualquer hora do dia, ou pedir para {partner} cancelar quando tocar.",
  "You can sign back in any time": "Você pode entrar de novo quando quiser",
  "You each choose": "Cada um escolhe",
+ "You found {mine}, {partner} found {theirs}": "Você achou {mine}, {partner} achou {theirs}",
  "You go first. {partner} answers after you.": "Você começa. {partner} responde depois.",
  "You got it right": "Você acertou",
  "You guessed it. A heart each!": "Você acertou. Um coração para cada!",
@@ -1047,6 +1067,7 @@
  "You picked {answer}. {partner} guessed {guess}.": "Você escolheu {answer}. {partner} chutou {guess}.",
  "You picked: {mine}. {partner} picked: {theirs}.": "Você escolheu: {mine}. {partner} escolheu: {theirs}.",
  "You scored {score}": "Você fez {score}",
+ "You spotted {mine}, {partner} {theirs}": "Você achou {mine}, {partner} {theirs}",
  "You won game {game}!": "Você ganhou a partida {game}!",
  "You won the duel": "Você ganhou o duelo",
  "You won the duel by {count} heart|You won the duel by {count} hearts": {
@@ -1133,6 +1154,10 @@
  "{count} day|{count} days": {
   "one": "{count} dia",
   "other": "{count} dias"
+ },
+ "{count} difference left|{count} differences left": {
+  "one": "Falta {count} diferença",
+  "other": "Faltam {count} diferenças"
  },
  "{count} drawing guessed|{count} drawings guessed": {
   "one": "{count} desenho adivinhado",
@@ -1235,6 +1260,10 @@
   "one": "{count} abdominal",
   "other": "{count} abdominais"
  },
+ "{count} spot|{count} spots": {
+  "one": "{count} achada",
+  "other": "{count} achadas"
+ },
  "{count} squat|{count} squats": {
   "one": "{count} agachamento",
   "other": "{count} agachamentos"
@@ -1289,6 +1318,7 @@
  "{partner} doesn't see pregnancy mode": "{partner} não vê o modo gravidez",
  "{partner} finished {dare}": "{partner} terminou: {dare}",
  "{partner} got it right": "{partner} acertou",
+ "{partner} got that one": "{partner} achou essa primeiro",
  "{partner} guessed it. A heart each!": "{partner} acertou. Um coração para cada!",
  "{partner} guessed it: {answer}. A point for {partner}.": "{partner} acertou: {answer}. Um ponto para {partner}.",
  "{partner} has answered. What did they pick?": "{partner} já respondeu. O que será que escolheu?",

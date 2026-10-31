@@ -83,6 +83,11 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         send = { s, move -> app.games.act(s.id, s.stateVersion, move.action, move.value) },
         load = { app.games.session(it) })
 
+    /** Spot the difference: both spot at once, so spots go one at a time and retry on a version conflict. */
+    private val spots = SpotSender(viewModelScope, _ui,
+        send = { s, index -> app.games.act(s.id, s.stateVersion, "spot", null, index) },
+        load = { app.games.session(it) })
+
     fun refresh() = viewModelScope.launch {
         (app.games.region() as? ApiResult.Ok)?.value?.let { found -> _ui.update { it.copy(region = found.region) } }
         when (val result = app.games.sessions()) {
@@ -98,6 +103,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     /** A move at the version on screen; if the partner moved first, reload and let the person try again. */
     fun act(session: GameSession, action: String, value: String? = null, index: Int? = null) {
         if (session.gameType == GameType.Handwriting) return moves.add(session, action, value)
+        if (session.gameType == GameType.SpotTheDifference && action == "spot" && index != null) return spots.spot(session, index)
         _ui.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             val result = app.games.act(session.id, session.stateVersion, action, value, index)

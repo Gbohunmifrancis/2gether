@@ -17,6 +17,8 @@ is not needed: REST plus the couple hub covers everything.
 
 - **I call on** is played against the clock: 15 seconds to answer once one player has submitted, 20 to judge. The
   timeout worker closes rounds that run out, and a late move is treated as the timeout.
+- **Spot the difference** gives each picture 90 seconds, then a 3-second beat before the next picture; the timeout
+  worker plays both.
 - **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match** and **Heart to heart** are turn by
   turn and have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
 - An invite nobody answers ends after a day, and a turn-by-turn game left alone for a week ends, so a forgotten game
@@ -61,6 +63,18 @@ is not needed: REST plus the couple hub covers everything.
   `margin` (the difference in hearts) and `pointMargin` (the difference in points) show. The hearts are the game's
   scores in the history, and a finished duel declares its winner, so a duel won on points with level hearts is
   still recorded as that partner's win; a tie declares none.
+- **Spot the difference** (`spotTheDifference`): 3 pictures, 7 differences each, both partners on the same picture at
+  the same time. The setup draws a seed and from it three different picture kinds (`Picnic`, `Bedroom`, `Kitchen`,
+  `Beach`, `Garden`, `NightSky`, `Cafe`, `LivingRoom`, the app's `SceneKind` names), each with its own seed; the phones
+  build both pictures and the differences from the kind and seed (`SpotScenes`, pure arithmetic, so both phones agree),
+  and the server never sees a picture. A player who finds one sends `spot` (`index` 0–6, which difference). The first
+  claim scores; a later claim of the same one is refused ("Your partner spotted that one first."), and the app shows
+  that kindly. A player's spots must be at least 300 ms apart (server time); wrong taps never reach the server (the
+  app pauses tapping for 1.5 seconds). When all seven are found, or after 90 seconds (the rest are then revealed,
+  `timedOut`), `phase` is `between` for 3 seconds (`deadlineUtc`), then the next picture starts; spots in between are
+  refused. After the third picture, more spots wins (`winner`; `tie` when equal). The state shows `scene`, `kind`,
+  `seed` and `found` (`{index, by}`) for the picture in play, `scenes` for every picture so far, and `scores`;
+  each player's spots are their score in the history.
 
 # Adding a game
 
@@ -83,6 +97,8 @@ is not needed: REST plus the couple hub covers everything.
   (`GameRegion.PublicSetup`); the rest stays on the server.
 - **Scores:** `Summarise` gives each player's score and the rounds played; the result is kept for the couple's game
   history. A heart is a point.
+- **Older apps:** a game type the app doesn't know reads as `GameType.Unknown` (the session's default, so the list
+  still loads): it shows "update the app" with the usual "End this game", and is never offered.
 
 ## Nigerian couples
 
@@ -107,6 +123,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
+| Spot the difference (`spotTheDifference`) | both at once, timed | The same two pictures on both phones; tap a difference first to claim it. Three pictures, seven differences each, 90 seconds a picture. | a point per spot; most spots wins |
 | Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
 
 ## Text

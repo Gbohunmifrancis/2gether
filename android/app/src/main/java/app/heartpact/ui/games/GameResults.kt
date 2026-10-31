@@ -33,7 +33,8 @@ internal fun GamePlay.score(s: GameSession, me: String): GameScore? {
         GameType.WouldYouRather -> wouldYouRather(s).let { GameScore(it.scores[me] ?: 0, it.scores[me] ?: 0, together = true, outOf = it.totalRounds) }
         GameType.Handwriting -> drawAndGuess(s).let { GameScore(it.scores[me] ?: 0, it.scores[me] ?: 0, together = true, outOf = it.totalRounds) }
         GameType.CoupleQuiz -> quiz(s).let { GameScore(it.scores[me] ?: 0, it.scores[me] ?: 0, together = true, outOf = it.totalRounds.takeIf { n -> n > 0 }) }
-        GameType.SkillDuel -> null
+        GameType.SpotTheDifference -> versus(spot(s).scores)
+        GameType.SkillDuel, GameType.Unknown -> null
     }
 }
 
