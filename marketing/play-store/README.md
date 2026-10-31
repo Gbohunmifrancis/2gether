@@ -77,6 +77,19 @@ and the album.
   - The alarm can always be silenced on the phone.
 - **Icon:** no text and no badges.
 
+## Promo video (`video/<lang>/heartpact-promo-<lang>.mp4`)
+
+Play's Video field takes a YouTube link only: upload the file to YouTube as **public or unlisted**, with **ads off** and
+**not age-restricted**, then paste the link. Add each language's video under that language's translation.
+
+- 26 seconds, 1920 × 1080 (16:9, as Play shows it), 30 fps, H.264 with AAC sound.
+- It opens on the feature graphic, then the phone panorama glides past three screenshots at a time, pausing on each
+  view, and ends on the logo and heartpact.me. Arabic glides right to left, like its panorama.
+- Every screen is the same real-app screenshot as above. The music is made by the script itself (soft chords and a
+  plucked arpeggio), with the app's own splash heartbeat on the logo, so nothing needs a licence.
+- The MP4s aren't committed (about 4 MB each): `python3 tools/video.py` rebuilds all six in a couple of minutes
+  (Pillow, numpy and ffmpeg).
+
 ## Logo (`logo/`)
 
 | File | What |
