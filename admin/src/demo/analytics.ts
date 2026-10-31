@@ -291,7 +291,8 @@ export function games(days: number): GameInsights {
       return { type, started, finished, abandoned: started - finished, medianMinutes: Math.round((2 + random() * 14) * 10) / 10 };
     }),
     skills: SKILLS.map((kind, index) => {
-      const centre = 3 + index * 0.7 + random() * 2;
+      // Centres spread across the middle of the range, so no game piles up at the top.
+      const centre = 3 + ((index * 0.7) % 4.2) + random() * 2;
       const buckets = Array.from({ length: 10 }, (_, bucket) =>
         Math.round(220 * scale * Math.exp(-((bucket - centre) ** 2) / (2 * (1.6 + random()) ** 2)) * (1 + noise(random) * 0.15)),
       );

@@ -115,6 +115,9 @@ internal fun newPlay(kind: SkillKind, seed: Long, difficulty: Difficulty = Diffi
     SkillKind.Heartbeat -> HeartbeatPlay(seed, difficulty)
     SkillKind.KissTheCenter -> KissPlay(seed, difficulty)
     SkillKind.PromiseRing -> RingPlay(seed, difficulty)
+    SkillKind.CupidsAim -> CupidPlay(seed, difficulty)
+    SkillKind.SlowKiss -> SlowKissPlay(seed, difficulty)
+    SkillKind.DrawAHeart -> DrawHeartPlay(seed, difficulty)
 }
 
 /** How long the score reveal takes to count, circle and stamp (ScoreReveal's own timings). */

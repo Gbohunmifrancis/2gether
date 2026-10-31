@@ -208,7 +208,7 @@ private fun SkillSection(bests: SkillBests, startAt: Int, onPractice: (SkillKind
     var picked by rememberSaveable { mutableStateOf(SkillKind.entries.first()) }
     Column(modifier) {
         SectionHead(tr("Heart skills"), tr("Tiny tests of a steady hand. Practice alone and beat your best."))
-        BlobGrid(SkillKind.entries, picked, { picked = it }, startAt = startAt, counts = listOf(6, 3), label = { it.title }, colour = { it.colour }) { kind, tint, size ->
+        BlobGrid(SkillKind.entries, picked, { picked = it }, startAt = startAt, counts = listOf(9, 3), label = { it.title }, colour = { it.colour }) { kind, tint, size ->
             SkillIcon(kind, tint, size)
         }
         Detail(picked) { kind ->

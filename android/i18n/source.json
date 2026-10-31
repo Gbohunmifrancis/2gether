@@ -6491,184 +6491,483 @@
  "Perfect!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:141"
+   "app/heartpact/ui/play/PlayKit.kt:142"
   ],
   "code": "Perfect -> tr(\"Perfect!\")"
  },
  "Excellent!": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:142"
+   "app/heartpact/ui/play/PlayKit.kt:143"
   ],
   "code": "Excellent -> tr(\"Excellent!\")"
  },
  "Very good": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:143"
+   "app/heartpact/ui/play/PlayKit.kt:144"
   ],
   "code": "VeryGood -> tr(\"Very good\")"
  },
  "Good": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:144"
+   "app/heartpact/ui/play/PlayKit.kt:145"
   ],
   "code": "Good -> tr(\"Good\")"
  },
  "Not bad": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:145"
+   "app/heartpact/ui/play/PlayKit.kt:146"
   ],
   "code": "Average -> tr(\"Not bad\")"
  },
  "So close": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:146"
+   "app/heartpact/ui/play/PlayKit.kt:147"
   ],
   "code": "Poor -> tr(\"So close\")"
  },
  "Keep trying": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:147"
+   "app/heartpact/ui/play/PlayKit.kt:148"
   ],
   "code": "VeryPoor -> tr(\"Keep trying\")"
  },
  "Missed": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/PlayKit.kt:148"
+   "app/heartpact/ui/play/PlayKit.kt:149"
   ],
   "code": "Missed -> tr(\"Missed\")"
  },
  "Fair share": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:44"
+   "app/heartpact/ui/play/Skills.kt:50"
   ],
   "code": "FairShare -> tr(\"Fair share\")"
  },
  "Fill the heart": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:45"
+   "app/heartpact/ui/play/Skills.kt:51"
   ],
   "code": "FillTheHeart -> tr(\"Fill the heart\")"
  },
  "Other half": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:46"
+   "app/heartpact/ui/play/Skills.kt:52"
   ],
   "code": "OtherHalf -> tr(\"Other half\")"
  },
  "Heartbeat": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:47"
+   "app/heartpact/ui/play/Skills.kt:53"
   ],
   "code": "Heartbeat -> tr(\"Heartbeat\")"
  },
  "Kiss the center": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:48"
+   "app/heartpact/ui/play/Skills.kt:54"
   ],
   "code": "KissTheCenter -> tr(\"Kiss the center\")"
  },
  "Promise ring": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:49"
+   "app/heartpact/ui/play/Skills.kt:55"
   ],
   "code": "PromiseRing -> tr(\"Promise ring\")"
+ },
+ "Cupid's aim": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:56"
+  ],
+  "code": "CupidsAim -> tr(\"Cupid's aim\")"
+ },
+ "Slow kiss": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:57"
+  ],
+  "code": "SlowKiss -> tr(\"Slow kiss\")"
+ },
+ "Draw a heart": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:58"
+  ],
+  "code": "DrawAHeart -> tr(\"Draw a heart\")"
  },
  "One swipe. Split it dead even.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:54"
+   "app/heartpact/ui/play/Skills.kt:63"
   ],
   "code": "FairShare -> tr(\"One swipe. Split it dead even.\")"
  },
  "Pour to the line. Not a drop more.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:55"
+   "app/heartpact/ui/play/Skills.kt:64"
   ],
   "code": "FillTheHeart -> tr(\"Pour to the line. Not a drop more.\")"
  },
  "Draw the other half across the fold.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:56"
+   "app/heartpact/ui/play/Skills.kt:65"
   ],
   "code": "OtherHalf -> tr(\"Draw the other half across the fold.\")"
  },
  "Feel the beat. Tap when it would land.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:57"
+   "app/heartpact/ui/play/Skills.kt:66"
   ],
   "code": "Heartbeat -> tr(\"Feel the beat. Tap when it would land.\")"
  },
  "Drop the kiss dead center.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:58"
+   "app/heartpact/ui/play/Skills.kt:67"
   ],
   "code": "KissTheCenter -> tr(\"Drop the kiss dead center.\")"
  },
  "One stroke. As round as your promise.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:59"
+   "app/heartpact/ui/play/Skills.kt:68"
   ],
   "code": "PromiseRing -> tr(\"One stroke. As round as your promise.\")"
+ },
+ "One arrow. Right through the heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:69"
+  ],
+  "code": "CupidsAim -> tr(\"One arrow. Right through the heart.\")"
+ },
+ "Hold the kiss. Let go right on time.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:70"
+  ],
+  "code": "SlowKiss -> tr(\"Hold the kiss. Let go right on time.\")"
+ },
+ "One stroke. The truest heart you can.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:71"
+  ],
+  "code": "DrawAHeart -> tr(\"One stroke. The truest heart you can.\")"
  },
  "Cut it in two equal halves. Straight through, one swipe.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:64"
+   "app/heartpact/ui/play/Skills.kt:76"
   ],
   "code": "FairShare -> tr(\"Cut it in two equal halves. Straight through, one swipe.\")"
  },
  "Hold to pour. The line hides once the love runs.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:65"
+   "app/heartpact/ui/play/Skills.kt:77"
   ],
   "code": "FillTheHeart -> tr(\"Hold to pour. The line hides once the love runs.\")"
  },
  "Finish the other half across the fold. One stroke or a few.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:66"
+   "app/heartpact/ui/play/Skills.kt:78"
   ],
   "code": "OtherHalf -> tr(\"Finish the other half across the fold. One stroke or a few.\")"
  },
  "Count the beats. When it goes quiet, tap on beat eight.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:67"
+   "app/heartpact/ui/play/Skills.kt:79"
   ],
   "code": "Heartbeat -> tr(\"Count the beats. When it goes quiet, tap on beat eight.\")"
  },
  "Tap the exact middle of the shape.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:68"
+   "app/heartpact/ui/play/Skills.kt:80"
   ],
   "code": "KissTheCenter -> tr(\"Tap the exact middle of the shape.\")"
  },
  "Draw a circle in one stroke, as round as you can.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/Skills.kt:69"
+   "app/heartpact/ui/play/Skills.kt:81"
   ],
   "code": "PromiseRing -> tr(\"Draw a circle in one stroke, as round as you can.\")"
+ },
+ "Loose the arrow so it flies through the heart's center.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:82"
+  ],
+  "code": "CupidsAim -> tr(\"Loose the arrow so it flies through the heart's center.\")"
+ },
+ "Hold the lips for the time shown, then let go.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:83"
+  ],
+  "code": "SlowKiss -> tr(\"Hold the lips for the time shown, then let go.\")"
+ },
+ "Draw a heart in one stroke, as true as you can.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/Skills.kt:84"
+  ],
+  "code": "DrawAHeart -> tr(\"Draw a heart in one stroke, as true as you can.\")"
+ },
+ "Right through the heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:142"
+  ],
+  "code": "miss < 0.02f -> tr(\"Right through the heart.\")"
+ },
+ "Through the heart, {s} s early.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:144"
+  ],
+  "code": "if (earlySeconds > 0f) tr(\"Through the heart, {s} s early.\", \"s\" to s) else tr(\"Through the heart, {s} s late.\", \"s\" to s)"
+ },
+ "Through the heart, {s} s late.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:144"
+  ],
+  "code": "if (earlySeconds > 0f) tr(\"Through the heart, {s} s early.\", \"s\" to s) else tr(\"Through the heart, {s} s late.\", \"s\" to s)"
+ },
+ "Missed it. Loosed {s} s too early.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:146"
+  ],
+  "code": "if (earlySeconds > 0f) tr(\"Missed it. Loosed {s} s too early.\", \"s\" to s) else tr(\"Missed it. Loosed {s} s too late.\", \"s\" to s)"
+ },
+ "Missed it. Loosed {s} s too late.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:146"
+  ],
+  "code": "if (earlySeconds > 0f) tr(\"Missed it. Loosed {s} s too early.\", \"s\" to s) else tr(\"Missed it. Loosed {s} s too late.\", \"s\" to s)"
+ },
+ "Through the heart, right of center.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:147"
+  ],
+  "code": "hit -> if (rightOfCentre) tr(\"Through the heart, right of center.\") else tr(\"Through the heart, left of center.\")"
+ },
+ "Through the heart, left of center.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:147"
+  ],
+  "code": "hit -> if (rightOfCentre) tr(\"Through the heart, right of center.\") else tr(\"Through the heart, left of center.\")"
+ },
+ "Missed it, to the right.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:148"
+  ],
+  "code": "else -> if (rightOfCentre) tr(\"Missed it, to the right.\") else tr(\"Missed it, to the left.\")"
+ },
+ "Missed it, to the left.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:148"
+  ],
+  "code": "else -> if (rightOfCentre) tr(\"Missed it, to the right.\") else tr(\"Missed it, to the left.\")"
+ },
+ "Exactly {s} s. A perfect kiss.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:184"
+  ],
+  "code": "abs(e) <= 0.02f -> tr(\"Exactly {s} s. A perfect kiss.\", \"s\" to twoDecimals(target))"
+ },
+ "Let go {s} s too early.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:185",
+   "app/heartpact/ui/play/skills/Scoring.kt:59"
+  ],
+  "code": "e < 0f -> tr(\"Let go {s} s too early.\", \"s\" to s)"
+ },
+ "Held on {s} s too long.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:186",
+   "app/heartpact/ui/play/skills/Scoring.kt:58"
+  ],
+  "code": "else -> tr(\"Held on {s} s too long.\", \"s\" to s)"
+ },
+ "A true heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:403"
+  ],
+  "code": "how < 1f -> if (score >= 88) tr(\"A true heart.\") else tr(\"Close. A little wobbly in places.\")"
+ },
+ "Close. A little wobbly in places.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:403",
+   "app/heartpact/ui/play/skills/Scoring.kt:140"
+  ],
+  "code": "how < 1f -> if (score >= 88) tr(\"A true heart.\") else tr(\"Close. A little wobbly in places.\")"
+ },
+ "Close the bottom point.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:405"
+  ],
+  "code": "m.gapY > 0.2f -> tr(\"Close the bottom point.\")"
+ },
+ "Close the top. The lobes don't meet.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:406"
+  ],
+  "code": "m.gapY < -0.2f -> tr(\"Close the top. The lobes don't meet.\")"
+ },
+ "Close it up. The ends don't meet.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:407"
+  ],
+  "code": "else -> tr(\"Close it up. The ends don't meet.\")"
+ },
+ "The left lobe is smaller.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:409"
+  ],
+  "code": "worst == \"lobes\" -> if (m.lobes < 1f) tr(\"The left lobe is smaller.\") else tr(\"The right lobe is smaller.\")"
+ },
+ "The right lobe is smaller.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:409"
+  ],
+  "code": "worst == \"lobes\" -> if (m.lobes < 1f) tr(\"The left lobe is smaller.\") else tr(\"The right lobe is smaller.\")"
+ },
+ "Sharpen the point at the bottom.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:410"
+  ],
+  "code": "worst == \"tip\" -> tr(\"Sharpen the point at the bottom.\")"
+ },
+ "Give it a dip between the lobes.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:411"
+  ],
+  "code": "worst == \"dip\" -> tr(\"Give it a dip between the lobes.\")"
+ },
+ "Too big. Keep inside the dashed heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:412"
+  ],
+  "code": "worst == \"size\" -> if (m.sizeRatio > 1f) tr(\"Too big. Keep inside the dashed heart.\") else tr(\"Too small. Fill the dashed heart.\")"
+ },
+ "Too small. Fill the dashed heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:412"
+  ],
+  "code": "worst == \"size\" -> if (m.sizeRatio > 1f) tr(\"Too big. Keep inside the dashed heart.\") else tr(\"Too small. Fill the dashed heart.\")"
+ },
+ "Off the guide. Trace the dashed heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:413"
+  ],
+  "code": "worst == \"place\" -> tr(\"Off the guide. Trace the dashed heart.\")"
+ },
+ "It leans. Keep the point straight down.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:414"
+  ],
+  "code": "worst == \"lean\" -> tr(\"It leans. Keep the point straight down.\")"
+ },
+ "A shaky line. Slow and steady.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/AimHoldDrawScoring.kt:415",
+   "app/heartpact/ui/play/skills/Scoring.kt:236"
+  ],
+  "code": "else -> tr(\"A shaky line. Slow and steady.\")"
+ },
+ "Tap anywhere to loose the arrow.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/CupidsAim.kt:73"
+  ],
+  "code": "init { hint = tr(\"Tap anywhere to loose the arrow.\") }"
+ },
+ "Loose the arrow": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/CupidsAim.kt:112"
+  ],
+  "code": "PressPill(tr(\"Loose the arrow\"), shot == null, modifier, onDown = { t -> if (loose(clockAt(t))) haptics.tick() })"
+ },
+ "A heart floats across the sky above a bow. Tap to loose the arrow straight up.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/CupidsAim.kt:153"
+  ],
+  "code": ".semantics { contentDescription = tr(\"A heart floats across the sky above a bow. Tap to loose the arrow straight up.\") }"
+ },
+ "Draw it inside the dashed heart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/DrawAHeart.kt:77"
+  ],
+  "code": "init { hint = if (guide != null) tr(\"Draw it inside the dashed heart.\") else tr(\"Anywhere on the page. One go.\") }"
+ },
+ "Anywhere on the page. One go.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/DrawAHeart.kt:77",
+   "app/heartpact/ui/play/skills/PromiseRing.kt:60"
+  ],
+  "code": "init { hint = if (guide != null) tr(\"Draw it inside the dashed heart.\") else tr(\"Anywhere on the page. One go.\") }"
+ },
+ "Draw a whole heart, in one stroke.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/DrawAHeart.kt:98"
+  ],
+  "code": "hint = tr(\"Draw a whole heart, in one stroke.\")"
+ },
+ "A dotted page. Draw a heart in one stroke.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/DrawAHeart.kt:142"
+  ],
+  "code": ".semantics { contentDescription = tr(\"A dotted page. Draw a heart in one stroke.\") }"
  },
  "A heart cookie, iced pink.": {
   "plural": false,
@@ -6876,13 +7175,6 @@
   ],
   "code": "if (newBest == seed) Stamp(tr(\"New best\"), Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 18.dp), tilt = 9f, key = seed)"
  },
- "Anywhere on the page. One go.": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/play/skills/PromiseRing.kt:60"
-  ],
-  "code": "init { hint = tr(\"Anywhere on the page. One go.\") }"
- },
  "Go all the way round, in one stroke.": {
   "plural": false,
   "uses": [
@@ -6900,15 +7192,15 @@
  "New round": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Round.kt:153",
-   "app/heartpact/ui/play/skills/Round.kt:155"
+   "app/heartpact/ui/play/skills/Round.kt:159",
+   "app/heartpact/ui/play/skills/Round.kt:161"
   ],
   "code": "result != null && onAgain != null -> HeartButton(tr(\"New round\"), onAgain)"
  },
  "Score {score} of 100. {grade}. {note}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Round.kt:174"
+   "app/heartpact/ui/play/skills/Round.kt:180"
   ],
   "code": "val said = tr(\"Score {score} of 100. {grade}. {note}\", \"score\" to result.score, \"grade\" to Grade.of(result.score).label, \"note\" to result.note)"
  },
@@ -6953,20 +7245,6 @@
    "app/heartpact/ui/play/skills/Scoring.kt:57"
   ],
   "code": "abs(gap) < 0.25f -> tr(\"Right on the line.\")"
- },
- "Held on {s} s too long.": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:58"
-  ],
-  "code": "gap > 0f -> tr(\"Held on {s} s too long.\", \"s\" to s)"
- },
- "Let go {s} s too early.": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:59"
-  ],
-  "code": "else -> tr(\"Let go {s} s too early.\", \"s\" to s)"
  },
  "Right on the beat.": {
   "plural": false,
@@ -7101,13 +7379,6 @@
   ],
   "code": "miss < 0.008f -> tr(\"A mirror image. Beautiful.\")"
  },
- "Close. A little wobbly in places.": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:140"
-  ],
-  "code": "else -> tr(\"Close. A little wobbly in places.\")"
- },
  "Round as a promise.": {
   "plural": false,
   "uses": [
@@ -7143,12 +7414,68 @@
   ],
   "code": "worst == lumpCost -> tr(\"Lumpy in places. Keep the same distance from the middle.\")"
  },
- "A shaky line. Slow and steady.": {
+ "Hold for the time shown.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/play/skills/Scoring.kt:236"
+   "app/heartpact/ui/play/skills/SlowKiss.kt:88"
   ],
-  "code": "else -> tr(\"A shaky line. Slow and steady.\")"
+  "code": "init { hint = tr(\"Hold for the time shown.\") }"
+ },
+ "Count it in your head...": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:101"
+  ],
+  "code": "hint = tr(\"Count it in your head...\")"
+ },
+ "That was a peck. Press and hold.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:118"
+  ],
+  "code": "hint = tr(\"That was a peck. Press and hold.\")"
+ },
+ "Target": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:136"
+  ],
+  "code": "val targetLabel = tr(\"Target\")"
+ },
+ "You let go": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:137"
+  ],
+  "code": "val letGoLabel = tr(\"You let go\")"
+ },
+ "Lips to kiss. Press and hold for {s} seconds, then let go.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:158"
+  ],
+  "code": "contentDescription = tr(\"Lips to kiss. Press and hold for {s} seconds, then let go.\", \"s\" to twoDecimals(target))"
+ },
+ "Hold for": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:177"
+  ],
+  "code": "if (done == null) tr(\"Hold for\") else tr(\"You held\"),"
+ },
+ "You held": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:177"
+  ],
+  "code": "if (done == null) tr(\"Hold for\") else tr(\"You held\"),"
+ },
+ "{s} s": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/play/skills/SlowKiss.kt:181"
+  ],
+  "code": "tr(\"{s} s\", \"s\" to twoDecimals(done ?: target)),"
  },
  "One plan covers both of you. Either of you can buy it.": {
   "plural": false,

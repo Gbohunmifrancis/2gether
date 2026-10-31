@@ -49,9 +49,11 @@ is not needed: REST plus the couple hub covers everything.
   English or their own language). A right guess gives both a point; three wrong ones or a pass end the round with
   none. Strokes and guesses cross, so the app queues its moves and resends one that gets `game.version_conflict`.
 - **Heart to heart** (`skillDuel`): five skill rounds (Heart skills, `ui/play`), the same for both: the setup draws a
-  seed and from it five of the six kinds (`FairShare`, `FillTheHeart`, `OtherHalf`, `Heartbeat`, `KissTheCenter`,
-  `PromiseRing`, the app's `SkillKind` names), none twice, each with its own seed, so both get the same shape or
-  target. Both play at once, in any order, on their own time (no clock). The phone scores a round 0–100 and sends
+  seed and from it five of the nine kinds (`FairShare`, `FillTheHeart`, `OtherHalf`, `Heartbeat`, `KissTheCenter`,
+  `PromiseRing`, `CupidsAim`, `SlowKiss`, `DrawAHeart`, the app's `SkillKind` names, `SkillDuelRules.Kinds`), none
+  twice, each with its own seed, so both get the same shape, flight or target. Duels always play each game at its
+  first level, so two phones at different practice levels play the same round. An app older than a kind can't play
+  that round (it shows it but can't open it), so a new kind goes out in the app before the server draws it. Both play at once, in any order, on their own time (no clock). The phone scores a round 0–100 and sends
   `score` (`index` the round 0–4, `value` `{"score": n}`, a whole number; each round once). Each round in `rounds`
   shows `kind`, `seed`, `mine`, and `played` (the partner has played it); the partner's score (`partner`), the
   round's `winner` and `tie` show only once you've played that round too. A round goes to the higher score, a tie is a
@@ -107,7 +109,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
 | Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
-| Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
+| Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring, shoot an arrow through a floating heart, hold a kiss for the time shown, draw a heart), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
 
 ## Text
 

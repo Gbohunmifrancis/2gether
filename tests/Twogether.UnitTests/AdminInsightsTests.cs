@@ -223,9 +223,11 @@ public sealed class AdminInsightsTests : IDisposable
         var first = Assert.Single(games.Skills, skill => skill.Kind == firstKind);
         Assert.Equal(5, first.Rounds);
         Assert.Equal(34, first.AverageScore); // 50, 55, 10, 50, 5
-        var unplayed = games.Skills.Single(skill => SkillDuelRules.Plan(7).All(round => round.Kind != skill.Kind));
-        Assert.Equal(0, unplayed.Rounds);
-        Assert.Null(unplayed.AverageScore);
+        // Five kinds played; every other kind is listed, empty.
+        var unplayed = games.Skills.Where(skill => SkillDuelRules.Plan(7).All(round => round.Kind != skill.Kind)).ToList();
+        Assert.Equal(SkillDuelRules.Kinds.Count - SkillDuelRules.Rounds, unplayed.Count);
+        Assert.All(unplayed, skill => Assert.Equal(0, skill.Rounds));
+        Assert.All(unplayed, skill => Assert.Null(skill.AverageScore));
 
         // Hearts 4 to 3 (a margin of one), then 3 each on 150 points each: a tie, a margin of none.
         Assert.Equal(new DuelDto(2, 1, 0.5), games.Duels);
