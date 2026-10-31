@@ -29,3 +29,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Agent worktrees (local only)
+.claude/worktrees/
