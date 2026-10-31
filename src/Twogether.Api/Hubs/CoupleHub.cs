@@ -183,10 +183,11 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
     }
 
     /// <summary>
-    /// Live ink in real-time tic-tac-toe (docs/games.md): the stroke the caller is drawing on <paramref name="cell"/>
-    /// (-1 to clear it), as points that are fractions of the square, relayed to their partner only (<c>GameInk</c>).
-    /// Never stored. Relayed only for the caller's own couple's game in play, after its countdown; a malformed message,
-    /// one over the rate, or one for any other game is dropped. Returns whether it was relayed.
+    /// Live ink (docs/games.md): the stroke the caller is drawing, as points that are fractions of the square (Tic-tac-toe,
+    /// <paramref name="cell"/> the square) or of the canvas (Draw and guess, <paramref name="cell"/> the stroke's place in
+    /// the drawing), relayed to their partner only (<c>GameInk</c>); -1 un-draws. Never stored. Relayed only for the
+    /// caller's own couple's game in play, after its countdown, and in Draw and guess only from the round's drawer; a
+    /// malformed message, one over the rate, or one for any other game is dropped. Returns whether it was relayed.
     /// </summary>
     public async Task<bool> Ink(Guid sessionId, int cell, int stroke, float[] points)
     {
@@ -196,20 +197,25 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
         var userId = currentUser.UserId.Value;
         var now = clock.UtcNow;
         if (!inkGate.TryTake(userId, now)) return false;
-        var partnerId = inkGate.Known(userId, sessionId, now);
-        if (partnerId is null)
+        var known = inkGate.Known(userId, sessionId, now);
+        if (known is null)
         {
             var game = await db.GameSessions.AsNoTracking()
                 .Where(session => session.Id == sessionId && session.CoupleId == coupleId && session.Status == GameSessionStatus.InProgress
                     && (session.CountdownEndsAtUtc == null || session.CountdownEndsAtUtc <= now))
-                .Select(session => (GameType?)session.GameType)
+                .Select(session => new { session.GameType, session.CurrentTurnUserId })
                 .SingleOrDefaultAsync(Context.ConnectionAborted);
-            if (game is not { } type || !GameInkGate.Games.Contains(type)) return false;
-            partnerId = await PartnerId(coupleId, userId);
+            if (game is null || !GameInkGate.Games.TryGetValue(game.GameType, out var rules)) return false;
+            // Draw and guess: the drawer's turn is the whole round, so only they ink; the guesser never does.
+            if (rules.DrawerOnly && game.CurrentTurnUserId != userId) return false;
+            var partnerId = await PartnerId(coupleId, userId);
             if (partnerId is null) return false;
-            inkGate.Allow(userId, sessionId, partnerId.Value, now);
+            inkGate.Allow(userId, sessionId, partnerId.Value, game.GameType, now);
+            known = (partnerId.Value, game.GameType);
         }
-        await Clients.Group(UserGroupName(partnerId.Value)).SendAsync("GameInk", new GameInkDto(sessionId, userId, cell, stroke, points), Context.ConnectionAborted);
+        var (partner, type) = known.Value;
+        if (!GameInkGate.Fits(type, cell)) return false;
+        await Clients.Group(UserGroupName(partner)).SendAsync("GameInk", new GameInkDto(sessionId, userId, cell, stroke, points), Context.ConnectionAborted);
         return true;
     }
 

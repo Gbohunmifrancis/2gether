@@ -58,7 +58,7 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
     fun updateLocation(latitude: Double, longitude: Double, accuracy: Double, fixedAtMs: Long = System.currentTimeMillis()) =
         send("UpdateLocationAt", latitude, longitude, accuracy, fixedAtMs)
     fun reportExerciseProgress(occurrenceId: String, count: Int, confidence: Double) = send("ReportExerciseProgress", occurrenceId, count, confidence)
-    /** Tic-tac-toe's live ink for the partner: a square (-1 clears), a stroke number, and x,y pairs as fractions of the square. */
+    /** Live ink for the partner (docs/games.md): a place (a Tic-tac-toe square, a stroke's place in a Draw and guess drawing; -1 un-draws), a stroke number, and x,y pairs as fractions of the square or canvas. */
     fun ink(sessionId: String, cell: Int, stroke: Int, points: FloatArray) = send("Ink", sessionId, cell, stroke, points)
     /** I call on: what's typed so far this round, so it still counts if the clock runs out (docs/games.md). */
     fun draft(sessionId: String, round: Int, answersJson: String) = send("ReportDraft", sessionId, round, answersJson)

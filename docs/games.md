@@ -22,7 +22,7 @@ invite tells whoever sent it ("Not right now"); a game ended part way tells the 
 with no clock (Guess my answer, Memory match, Connect four, Snakes and ladders), the turn
 passing to a partner who isn't in the app (no couple hub connection) sends one "Your turn" (`gameTurn`), and no
 other until they've read it or six hours have passed. Every game push opens the games screen. The game hub (`/hubs/game`) is not needed: REST plus the couple hub
-covers everything, including Tic-tac-toe's live ink (`Ink`, below).
+covers everything, including the live ink of Tic-tac-toe and Draw and guess (`Ink`, below).
 
 The app's Today tab shows a card near the top while the couple's open game waits on you (`TodayGames.waiting`): the
 partner's invite ("Theo invited you to play" the game, with Play and Not now, answered right there; Play then opens the
@@ -111,6 +111,25 @@ same couple hub events as the games screen (no connection of its own), and reloa
   ones or a pass end the round with none. Strokes and guesses cross, so the app queues its moves and resends one that
   gets `game.version_conflict`; with no connection it keeps them and tries again, checking first whether a move whose
   answer was lost had landed, so nothing is drawn or undone twice.
+  - **Live drawing**: the guesser watches each stroke appear as it's drawn, through the couple hub's `Ink` (the
+    same method and limits as Tic-tac-toe's live ink, below). While a finger draws, the drawer's phone sends
+    `Ink(sessionId, cell, stroke, points)`: `cell` the place the stroke will take in the drawing (0 to 249: the number
+    of strokes on the drawer's canvas, its own moves still on their way included), `stroke` a number the phone counts
+    up per stroke, `points` up to 32 x,y pairs (64 numbers from 0 to 1, fractions of the canvas), only the points new
+    since the last message (the last one sent comes first again, so the line joins up; a burst of more is simplified
+    to fit), at most every 50 ms. An undo sends `cell` -1 with `stroke` the undone stroke's place, a clear -1 with 0:
+    the guesser's canvas takes those strokes away at once, before the move lands. The hub relays it, as `GameInk`
+    `{sessionId, userId, cell, stroke, points}`, to the guesser only, and only from the round's drawer
+    (`CurrentTurnUserId`): the guesser's ink is dropped, and so is the drawer's from the moment the round passes to the
+    other (a move that changes the turn makes the hub look the game up again). It carries points and nothing else, never
+    the word, and it is never stored nor in `stateJson`; the stroke itself still goes in with `stroke` when the finger
+    lifts. The guesser's phone draws the points on smoothly (each message's over 80 ms, the gap to the next and a
+    little more), in the drawer's pen; when the `stroke` move's state arrives with the stroke at that place (its first
+    point where the live one began), the drawing's stroke takes the live one's place in the same frame, without being
+    drawn on again. An undo or a clear seen live keeps what it took away hidden until a stroke drawn after it lands, or
+    for 5 seconds. A live stroke whose move never lands stays 2.5 s after its last message, then fades out over half a
+    second (with animations off it is simply gone at 3 s, and points are shown as they arrive, not drawn on). Without
+    a hub connection nothing is sent and the drawing arrives a stroke at a time, as before.
 - **Tic-tac-toe** (`ticTacToe`), at once: a match of up to five games, first to three wins; the couple's first player
   (`players[0]`) is X, the other O. Both mark squares whenever they like (`AnyoneMayAct`; `place`, `index` the square
   0–8 row by row) and a square goes to whoever's move reaches the server first: a claim on a taken square is
@@ -135,8 +154,10 @@ same couple hub events as the games screen (no connection of its own), and reloa
     counts up per stroke, `points` up to 32 x,y pairs (64 numbers from 0 to 1, fractions of the square), only the
     points new since the last message, at most every 50 ms (20 a second). The hub relays it to the partner only, as
     `GameInk` `{sessionId, userId, cell, stroke, points}`, for the caller's own couple's Tic-tac-toe in progress after
-    its countdown; anything else (another couple's game, one not in progress, another game type, a malformed message,
-    more than 30 a second from one person) is dropped, and the call returns false. It is never stored and never in
+    its countdown (or Draw and guess, above, where `cell` is a place in the drawing and only the drawer inks);
+    anything else (another couple's game, one not in progress, a game without live ink, a place off that game's board,
+    a malformed message, more than 30 a second from one person, shared by both games) is dropped, and the call returns
+    false (`GameInkGate`). It is never stored and never in
     `stateJson`: the mark itself still goes in with `place`. The partner's phone shows the stroke in the drawer's
     colour and fades it 1.5 s after the last message, or swaps it for the mark when the square is taken. Without a
     hub connection everything still works; the stroke just isn't live.

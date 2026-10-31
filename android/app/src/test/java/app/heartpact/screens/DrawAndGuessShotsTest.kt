@@ -6,6 +6,9 @@ import app.heartpact.data.GameType
 import app.heartpact.ui.games.GameActions
 import app.heartpact.ui.games.GamesScreen
 import app.heartpact.ui.games.GamesUi
+import app.heartpact.ui.games.LiveSketch
+import app.heartpact.ui.games.TicTacToeInk
+import androidx.compose.ui.geometry.Offset
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -72,6 +75,29 @@ class DrawAndGuessShotsTest {
     @Test fun guesser() {
         shot("games-draw-guess") { GamesScreen(GamesUi(listOf(guesser), loaded = true), "maya", "Theo", GameActions(), { now }) }
         shot("games-draw-guess-night", night = true) { GamesScreen(GamesUi(listOf(guesser), loaded = true), "maya", "Theo", GameActions(), { now }) }
+    }
+
+    /** Theo is drawing: the drawing so far, and the stroke under his finger as it reaches the guesser, message by message. */
+    private fun watching(strokes: String, live: List<Pair<Double, Double>>, place: Int): Pair<GameSession, LiveSketch> {
+        val s = session("""{"players":["maya","theo"],"scores":{"maya":1,"theo":1},"round":1,"totalRounds":6,"phase":"drawing","drawer":"theo","guesser":"maya",
+            "word":null,"strokes":[$strokes],"wrongGuesses":[],"guessesLeft":3,"maxGuesses":3,
+            "lastRound":{"round":0,"drawer":"maya","word":"rocket","outcome":"guessed","guess":"rocket","strokes":[],"wrongGuesses":[]}}""", "theo")
+        val at = now.toEpochMilli()
+        val sketch = LiveSketch(clock = { at })
+        live.map { (x, y) -> Offset(x.toFloat(), y.toFloat()) }.chunked(6).forEachIndexed { i, chunk ->
+            sketch.receive("g", "theo", place, 77, TicTacToeInk.inkNumbers(chunk).toList(), at - 50L * (live.size / 6 - i))
+        }
+        return s to sketch
+    }
+
+    @Test fun watchingLive() {
+        // The cat so far, a whisker on its way.
+        val catSoFar = cat.split("},").take(5).joinToString("},") + "}"
+        val (catGame, catInk) = watching(catSoFar, listOf(0.2 to 0.6, 0.26 to 0.605, 0.32 to 0.612, 0.37 to 0.62), place = 5)
+        shot("games-draw-live") { GamesScreen(GamesUi(listOf(catGame), loaded = true, sketch = catInk), "maya", "Theo", GameActions(), { now }) }
+        // The first stroke, half drawn on an empty canvas: no "hasn't started yet" over it.
+        val (first, firstInk) = watching("", arc(0.5, 0.52, 0.3, PI * 0.9, PI * 2.1, 30), place = 0)
+        shot("games-draw-live-night", night = true) { GamesScreen(GamesUi(listOf(first), loaded = true, sketch = firstInk), "maya", "Theo", GameActions(), { now }) }
     }
 
     @Test fun revealed() {

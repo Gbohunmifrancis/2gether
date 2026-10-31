@@ -60,7 +60,7 @@ data class GameActions(
     val onBack: () -> Unit = {},
     /** Leave a finished game's final board for the picker. */
     val onClose: (String) -> Unit = {},
-    /** Tic-tac-toe: the stroke being drawn on a square, for the partner to watch (square, stroke number, x,y pairs). */
+    /** Live ink: the stroke being drawn, for the partner to watch (a square or a place in the drawing, stroke number, x,y pairs). */
     val onInk: (GameSession, Int, Int, FloatArray) -> Unit = { _, _, _, _ -> },
     /** I call on: the answers typed so far this round (round, answers as JSON), so they count if time runs out. */
     val onDraft: (GameSession, Int, String) -> Unit = { _, _, _ -> },
@@ -188,7 +188,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.WouldYouRather -> WouldYouRatherBoard(s, me, partnerName, busy, actions)
         GameType.TicTacToe -> TicTacToeBoard(s, me, partnerName, ui.ttt, ui.ink, actions, now)
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
-        GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
+        GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions, ui.sketch)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
         GameType.SkillDuel -> SkillDuelBoard(s, me, partnerName, busy, actions)
         GameType.SpotTheDifference -> SpotTheDifferenceBoard(s, me, myName, partnerName, actions, now)

@@ -9,6 +9,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameMillis
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -82,11 +89,12 @@ import kotlin.math.roundToLong
 
 /**
  * Draw and guess (`handwriting` on the wire). The drawer sees the secret word and draws; each stroke goes to the
- * server when the finger lifts. The partner watches the strokes arrive and has three guesses. Strokes are kept as
- * fractions of the canvas, so the drawing scales to any phone.
+ * server when the finger lifts, and meanwhile shows on the partner's phone as it's drawn ([LiveSketch], over the
+ * couple hub). The partner watches the drawing appear and has three guesses. Strokes are kept as fractions of the
+ * canvas, so the drawing scales to any phone.
  */
 @Composable
-internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, pending: List<PendingMove>, actions: GameActions) {
+internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, pending: List<PendingMove>, actions: GameActions, sketch: LiveSketch = LiveSketch()) {
     val colors = Heartpact.colors
     val d = GamePlay.drawAndGuess(s)
     val mine = pending.filter { it.sessionId == s.id && it.round == d.round }
@@ -101,7 +109,10 @@ internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, 
     // A team game: a heart each for every drawing guessed.
     TogetherScore(d.scores[me] ?: 0, tr("Round {round} of {rounds}", "round" to minOf(d.round + 1, d.totalRounds), "rounds" to d.totalRounds), turnOf(s, me))
     val last = d.lastRound
-    val fresh = strokes.isEmpty() && d.wrongGuesses.isEmpty() && mine.isEmpty()
+    // The partner has started drawing (live, before any stroke has landed): for the guesser that ends the reveal too.
+    val drawingLive by remember(sketch, s.id, d.drawer) { derivedStateOf { sketch.ink.let { it.sessionId == s.id && it.drawer == d.drawer && d.drawer != me && it.lines.isNotEmpty() } } }
+    val fresh = strokes.isEmpty() && d.wrongGuesses.isEmpty() && mine.isEmpty() && !drawingLive
+    LaunchedEffect(drawingLive, last?.round) { if (drawingLive && last != null) seenReveal = maxOf(seenReveal, last.round) }
     if (last != null && last.round > seenReveal && fresh) {
         Reveal(last, d, me, partnerName, Modifier.padding(top = 12.dp))
         HeartButton(if (d.drawer == me) tr("Your turn to draw") else tr("Next round"), { seenReveal = last.round }, Modifier.padding(top = 14.dp))
@@ -118,10 +129,18 @@ internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, 
                 Text(tr("Only you can see it. No letters or numbers!"), style = Heartpact.type.small, color = colors.ink3)
             }
         }
-        DrawingCanvas(strokes, pen, Modifier.padding(top = 12.dp), maxSide = canvasSide(reserve = 330.dp), onStroke = { actions.onAct(s, "stroke", it, null) })
+        DrawingCanvas(strokes, pen, Modifier.padding(top = 12.dp), maxSide = canvasSide(reserve = 330.dp), onStroke = { actions.onAct(s, "stroke", it, null) },
+            onInk = { place, stroke, points -> actions.onInk(s, place, stroke, points) })
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            HeartButton(tr("Undo"), { actions.onAct(s, "undo", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = strokes.isNotEmpty())
-            HeartButton(tr("Clear"), { actions.onAct(s, "clear", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = strokes.isNotEmpty())
+            // Live, the partner sees an undo or a clear at once (-1, from the place it takes away); the move follows.
+            HeartButton(tr("Undo"), {
+                actions.onInk(s, -1, strokes.size - 1, FloatArray(0))
+                actions.onAct(s, "undo", null, null)
+            }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = strokes.isNotEmpty())
+            HeartButton(tr("Clear"), {
+                actions.onInk(s, -1, 0, FloatArray(0))
+                actions.onAct(s, "clear", null, null)
+            }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = strokes.isNotEmpty())
         }
         Text(trn(d.guessesLeft, "{partner} has {count} guess left", "{partner} has {count} guesses left", "partner" to partnerName),
             style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp).semantics { liveRegion = LiveRegionMode.Polite })
@@ -132,8 +151,9 @@ internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, 
         Text(tr("What is {partner} drawing?", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
         Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.Center) {
             // Smaller while the keyboard is up, so the drawing stays in view as the guess is typed.
-            DrawingCanvas(strokes, pen, maxSide = canvasSide(reserve = 320.dp), description = tr("{partner}'s drawing", "partner" to partnerName))
-            if (strokes.isEmpty()) Text(tr("{partner} hasn't started drawing yet", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink3,
+            val watch = SketchWatch(sketch, s.id, d.drawer)
+            DrawingCanvas(strokes, pen, maxSide = canvasSide(reserve = 320.dp), description = tr("{partner}'s drawing", "partner" to partnerName), watch = watch)
+            if (strokes.isEmpty() && !drawingLive) Text(tr("{partner} hasn't started drawing yet", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink3,
                 textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.Center).padding(24.dp))
         }
         Text(trn(d.guessesLeft, "{count} guess left", "{count} guesses left"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
@@ -197,29 +217,58 @@ private fun WrongGuesses(guesses: List<String>) {
 private fun penColor(d: DrawAndGuessState, drawer: String?): Color =
     Heartpact.colors.partner(if (d.players.indexOf(drawer) == 1) Side.Right else Side.Left).action
 
+/** The guesser's canvas watching [drawer]'s live ink in game [sessionId]. */
+internal data class SketchWatch(val sketch: LiveSketch, val sessionId: String, val drawer: String?)
+
 /**
- * A square canvas. With [onStroke] it takes drawing: the stroke under the finger shows as it's drawn and is handed
- * over, simplified and encoded, when the finger lifts.
+ * A square canvas. With [onStroke] it takes drawing: the stroke under the finger shows as it's drawn, its new points go
+ * to [onInk] every 50 ms (the place it will take, its stroke number, x,y pairs), and it's handed over, simplified and
+ * encoded, when the finger lifts. With [watch] it shows the partner's strokes as they're drawn, each replaced by the
+ * drawing's own stroke when that lands.
  */
 @Composable
-private fun DrawingCanvas(strokes: List<DrawStroke>, pen: Color, modifier: Modifier = Modifier, maxSide: Dp = Dp.Unspecified, description: String = tr("Drawing canvas"), onStroke: ((String) -> Unit)? = null) {
+private fun DrawingCanvas(
+    strokes: List<DrawStroke>, pen: Color, modifier: Modifier = Modifier, maxSide: Dp = Dp.Unspecified, description: String = tr("Drawing canvas"),
+    onStroke: ((String) -> Unit)? = null, onInk: ((Int, Int, FloatArray) -> Unit)? = null, watch: SketchWatch? = null,
+) {
     val colors = Heartpact.colors
     val live = remember { mutableStateListOf<Offset>() }
-    // Watching: a stroke that arrives is drawn on, pen-speed, rather than popping in whole. [shown] strokes are done.
     val still = motionOff()
-    var shown by remember { mutableIntStateOf(strokes.size) }
-    val drawing = remember { Animatable(0f) }
-    val arriving = onStroke == null && !still && strokes.size == shown + 1
-    LaunchedEffect(strokes.size) {
-        if (onStroke == null && !still && strokes.size == shown + 1) {
-            drawing.snapTo(0f)
-            drawing.animateTo(1f, tween(Sketching.drawOnMs(strokes.last()), easing = LinearEasing))
+    // Watching live: the drawing less anything just undone, and which of its strokes were already on screen live.
+    val committed by rememberUpdatedState(strokes)
+    val view by remember(watch, strokes) {
+        derivedStateOf { watch?.let { SketchLive.drawing(it.sketch.ink, it.sessionId, it.drawer, strokes, it.sketch.clock()) } ?: (strokes to emptySet<Int>()) }
+    }
+    val (drawn, wasLive) = view
+    // While live strokes are on screen: a frame clock to draw them on and fade them, and to let go of old ones.
+    var frameMs by remember { mutableLongStateOf(0L) }
+    val watching by remember(watch) { derivedStateOf { watch?.sketch?.ink?.let { it.lines.isNotEmpty() || it.cut != null } == true } }
+    LaunchedEffect(watching, still) {
+        val w = watch ?: return@LaunchedEffect
+        while (watching) {
+            if (still) delay(100) else withFrameMillis { }
+            frameMs = w.sketch.clock()
+            w.sketch.prune(committed, frameMs)
         }
-        shown = strokes.size
+    }
+    // Watching: a stroke that arrives is drawn on, pen-speed, rather than popping in whole, unless it was already
+    // drawn live. [shown] strokes are done.
+    var shown by remember { mutableIntStateOf(drawn.size) }
+    val drawing = remember { Animatable(0f) }
+    val arriving = onStroke == null && !still && drawn.size == shown + 1 && drawn.lastIndex !in wasLive
+    LaunchedEffect(drawn.size) {
+        if (arriving) {
+            drawing.snapTo(0f)
+            drawing.animateTo(1f, tween(Sketching.drawOnMs(drawn.last()), easing = LinearEasing))
+        }
+        shown = drawn.size
         drawing.snapTo(0f)
     }
-    // The gesture handler outlives recompositions: always hand the stroke to the latest callback.
+    // The gesture handler outlives recompositions: always hand the stroke to the latest callback, at the latest place.
     val send by rememberUpdatedState(onStroke)
+    val ink by rememberUpdatedState(onInk)
+    val place by rememberUpdatedState(strokes.size)
+    val scope = rememberCoroutineScope()
     var input = Modifier.semantics { contentDescription = description }
     if (onStroke != null) input = input.pointerInput(Unit) {
         awaitEachGesture {
@@ -227,14 +276,32 @@ private fun DrawingCanvas(strokes: List<DrawStroke>, pen: Color, modifier: Modif
             down.consume()
             live.clear()
             live.add(Sketching.normalize(down.position, size.width.toFloat(), size.height.toFloat()))
-            while (true) {
-                val event = awaitPointerEvent()
-                val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                change.historical.forEach { live.add(Sketching.normalize(it.position, size.width.toFloat(), size.height.toFloat())) }
-                live.add(Sketching.normalize(change.position, size.width.toFloat(), size.height.toFloat()))
-                change.consume()
-                if (!change.pressed) break
+            // Live ink: what's new under the finger, every 50 ms while it's down, then the rest as it lifts.
+            val at = place
+            val stroke = SketchLive.nextStroke()
+            val cursor = SketchLive.Cursor()
+            fun flush() {
+                cursor.next(live.toList())?.let { ink?.invoke(at, stroke, TicTacToeInk.inkNumbers(it)) }
             }
+            val sender = scope.launch {
+                while (isActive) {
+                    delay(SketchLive.INK_EVERY_MS)
+                    flush()
+                }
+            }
+            try {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    change.historical.forEach { live.add(Sketching.normalize(it.position, size.width.toFloat(), size.height.toFloat())) }
+                    live.add(Sketching.normalize(change.position, size.width.toFloat(), size.height.toFloat()))
+                    change.consume()
+                    if (!change.pressed) break
+                }
+            } finally {
+                sender.cancel()
+            }
+            flush()
             val points = live.toList()
             live.clear()
             send?.invoke(Sketching.encode(points, Sketching.PEN_WIDTH))
@@ -244,9 +311,16 @@ private fun DrawingCanvas(strokes: List<DrawStroke>, pen: Color, modifier: Modif
         Modifier.widthIn(max = maxSide).fillMaxWidth().aspectRatio(1f).clip(Shapes.Well).background(colors.sticker).border(2.dp, colors.rule2, Shapes.Well).then(input),
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            strokes.forEachIndexed { i, stroke ->
-                val progress = if (arriving && i == strokes.lastIndex) drawing.value else 1f
+            drawn.forEachIndexed { i, stroke ->
+                val progress = if (arriving && i == drawn.lastIndex) drawing.value else 1f
                 drawStroke(stroke.points.map { p -> Offset(p.getOrElse(0) { 0.0 }.toFloat(), p.getOrElse(1) { 0.0 }.toFloat()) }, stroke.width.toFloat(), pen, progress)
+            }
+            // The partner's strokes still being drawn, on top; read here, so only the canvas redraws as ink arrives.
+            watch?.let { w ->
+                val at = frameMs.takeIf { it > 0L } ?: w.sketch.clock()
+                SketchLive.live(w.sketch.ink, w.sessionId, w.drawer, strokes, at, smooth = !still).forEach { line ->
+                    drawStroke(line.points, Sketching.PEN_WIDTH.toFloat(), pen.copy(alpha = pen.alpha * line.alpha))
+                }
             }
             if (live.isNotEmpty()) drawStroke(live.toList(), Sketching.PEN_WIDTH.toFloat(), pen)
         }
