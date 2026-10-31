@@ -125,7 +125,7 @@ fun TodayTab(
         }
         // Games sit one tap from the first screen, not three taps down in Us.
         StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
-            CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
+            CardRow(tr("Play together"), subtitle = tr("Heart to heart, Spot the difference, trivia and more"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
         }
     }
 }

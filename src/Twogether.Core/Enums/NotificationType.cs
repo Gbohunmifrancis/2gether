@@ -21,5 +21,7 @@ public enum NotificationType
     /// <summary>To the person with photos waiting on their phone; at most once a day.</summary>
     AlbumSyncReminder,
     /// <summary>To the partner: the person whose alarm is ringing asks to be let off today.</summary>
-    ExerciseCallOffAsked
+    ExerciseCallOffAsked,
+    /// <summary>To the partner whose turn it now is in a turn-by-turn game, when they are not in the app; not again until read.</summary>
+    GameTurn
 }

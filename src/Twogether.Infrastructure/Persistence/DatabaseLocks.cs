@@ -9,7 +9,9 @@ public enum LockScope
     /// <summary>A couple's album quota: check what is used, then reserve.</summary>
     AlbumQuota = 1,
     /// <summary>A person's daily photo scans: count, then record the scan.</summary>
-    FoodScans = 2
+    FoodScans = 2,
+    /// <summary>A couple's one open game: check there is none, then invite.</summary>
+    GameInvite = 3
 }
 
 /// <summary>

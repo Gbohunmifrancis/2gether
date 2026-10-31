@@ -1,6 +1,7 @@
 # Games: backend contract
 
-A couple has at most one open game. One partner invites (`POST api/game/sessions {gameType, letter?}`), the other
+A couple has at most one open game (two invites at the same moment open one: the second gets `409
+game.active_session`, and the app reloads to show the first). One partner invites (`POST api/game/sessions {gameType, letter?}`), the other
 accepts (`POST .../{id}/accept`), a shared five-second countdown runs, then moves go to
 `POST .../{id}/actions {expectedStateVersion, action, value?, index?}`. Either partner can end a game, or decline or
 cancel an invite, with `POST .../{id}/abandon`. `GET api/game/sessions` returns the couple's last 30 games, newest
@@ -12,7 +13,14 @@ session. `stateJson` is a JSON string of the public state (nothing hidden from t
 `stateVersion` goes up by one on every change, and a move against an older version is `409 game.version_conflict`:
 reload and try again (except in the games whose moves may cross, Tic-tac-toe and Spot the difference: there a move is
 judged against the board as it is when it arrives, and `409` only comes from two writes at the same instant). `GameInvitation`,
-`GameCountdown` and `GameEnded` say "refetch". The game hub (`/hubs/game`) is not needed: REST plus the couple hub
+`GameCountdown` and `GameEnded` say "refetch". An accept or an end that crosses another change is `409` too
+(`game.not_waiting`, `game.version_conflict`), never an error.
+
+Pushes: an invite tells the partner; an invite taken back sends nothing (it just leaves their screen); a declined
+invite tells whoever sent it ("Not right now"); a game ended part way tells the partner. In a game played turn by turn
+with no clock (Same answer, Guess my answer, Memory match, Truth or dare, Connect four, Snakes and ladders), the turn
+passing to a partner who isn't in the app (no couple hub connection) sends one "Your turn" (`gameTurn`), and no
+other until they've read it or six hours have passed. Every game push opens the games screen. The game hub (`/hubs/game`) is not needed: REST plus the couple hub
 covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 
 ## Clocks
@@ -45,7 +53,8 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 - **Would you rather**: 10 rounds, both at once (`pick`, `index` 0 for `a`, 1 for `b`). `picked` says who has picked
   and `myPick` is your own; both picks show in `last` once both are in. Matching picks give each partner a point.
 - **Memory match**: 12 cards, 6 pairs. A matching pair scores and the same player goes again; a miss passes the turn.
-  After a miss, `lastPair` shows both cards (index and value) to both players until the next flip.
+  After either, `lastPair` shows both cards (index and value) to both players until the next flip: a match is
+  celebrated on both phones, a miss stays face up.
 - **I call on**: 3 rounds of Name, Place, Thing and Food starting with a letter. The inviter may choose the first
   round's letter (`letter`); later rounds draw at random. Answers a checker can't confirm go to the partner to judge
   (`vet`). A unique answer scores 2, a shared one 1 each. Categories travel as English keys (`Name`, `Place`, `Thing`,
@@ -101,7 +110,9 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
   twice, each with its own seed, so both get the same shape, flight or target. Duels always play each game at its
   first level, so two phones at different practice levels play the same round. An app older than a kind can't play
   that round (it shows it but can't open it), so a new kind goes out in the app before the server draws it. Both play at once, in any order, on their own time (no clock). The phone scores a round 0–100 and sends
-  `score` (`index` the round 0–4, `value` `{"score": n}`, a whole number; each round once). Each round in `rounds`
+  `score` (`index` the round 0–4, `value` `{"score": n}`, a whole number; each round once). Scores may cross in flight
+  (`MovesMayCross`): each is one partner's own round, so a stale `expectedStateVersion` is fine. The score counts the
+  moment it's made: leaving the round while its score counts up still sends it. Each round in `rounds`
   shows `kind`, `seed`, `mine`, and `played` (the partner has played it); the partner's score (`partner`), the
   round's `winner` and `tie` show only once you've played that round too. A round goes to the higher score, a tie is a
   heart each (`hearts`, counted over rounds both have played). The duel goes to whoever has more hearts. Once both

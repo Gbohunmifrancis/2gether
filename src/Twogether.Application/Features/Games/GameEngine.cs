@@ -224,6 +224,9 @@ public sealed class GameEngine : IGameEngine
         {
             var first = state.Cards[state.Revealed[0]];
             var second = state.Cards[state.Revealed[1]];
+            // Both players saw both cards turn over: the pair names them until the next flip, so both phones know which
+            // two to celebrate (a match) or to keep face up (a miss).
+            state.LastPair = [new MemoryFlip(state.Revealed[0], first.Value), new MemoryFlip(state.Revealed[1], second.Value)];
             if (first.Value == second.Value)
             {
                 first.Matched = true;
@@ -234,8 +237,6 @@ public sealed class GameEngine : IGameEngine
             else
             {
                 state.LastResult = "different";
-                // Both players saw both cards turn over: keep the pair visible until the next flip.
-                state.LastPair = [new MemoryFlip(state.Revealed[0], first.Value), new MemoryFlip(state.Revealed[1], second.Value)];
                 state.TurnIndex = (state.TurnIndex + 1) % state.Players.Count;
             }
             state.Revealed.Clear();

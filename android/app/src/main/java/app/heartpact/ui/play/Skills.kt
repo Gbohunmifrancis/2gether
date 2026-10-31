@@ -91,13 +91,14 @@ data class SkillResult(val kind: SkillKind, val score: Int, val note: String)
 /**
  * One round of [kind], from first touch to the score: the instruction, the play, then the score revealed (counted up,
  * circled, stamped) with its note. [seed] picks the shape or target, so both partners in a duel get the same round.
- * [onDone] gets the result once the reveal has finished; [onAgain] (practice) offers a new round.
+ * [onDone] gets the result once the reveal has finished; [onAgain] (practice) offers a new round. [onScored] gets it the moment
+ * it's scored, before the reveal, so a duel keeps the score even if the round is left while it plays out.
  * Fills the space it's given and draws its own dotted page.
  */
 @Composable
-fun SkillRound(kind: SkillKind, seed: Long, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null) {
+fun SkillRound(kind: SkillKind, seed: Long, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null, onScored: ((SkillResult) -> Unit)? = null) {
     val play = remember(kind, seed) { newPlay(kind, seed) }
-    SkillRoundFrame(play, onDone, modifier, onAgain)
+    SkillRoundFrame(play, onDone, modifier, onAgain, onScored = onScored)
 }
 
 /** The game's picture on its picker blob: a simple line icon in [tint]. */

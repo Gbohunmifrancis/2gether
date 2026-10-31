@@ -12,7 +12,7 @@ public static class NotificationRouting
         NotificationType.CoupleConnected or NotificationType.Breakup => NotificationCategory.Couple,
         NotificationType.ExerciseDue => NotificationCategory.Alarm,
         NotificationType.Message => NotificationCategory.Messages,
-        NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.GameEnded => NotificationCategory.Games,
+        NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.GameEnded or NotificationType.GameTurn => NotificationCategory.Games,
         NotificationType.ExerciseCompleted or NotificationType.ExerciseMissed or NotificationType.ExerciseCancelled or NotificationType.ExerciseGoalChanged
             or NotificationType.ExerciseCallOffAsked => NotificationCategory.Exercise,
         NotificationType.CycleUpdated => NotificationCategory.Cycle,

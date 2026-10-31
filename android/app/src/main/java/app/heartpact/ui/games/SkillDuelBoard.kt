@@ -207,14 +207,18 @@ internal fun SkillDuelBoard(s: GameSession, me: String, partnerName: String, bus
     val kind = round?.skill()
     if (round != null && kind != null) {
         val index = round.index
-        Dialog(onDismissRequest = { playing = null }, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
+        // A score counts the moment it's made: closing the round while its score is still counting up sends it all the
+        // same, so a round can't be left and played again for a better one.
+        var made by remember(s.id, index) { mutableStateOf<Int?>(null) }
+        fun close() {
+            playing = null
+            made?.let { if (sending[index] == null) send(index, it, 1) }
+        }
+        Dialog(onDismissRequest = ::close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
             // The round draws its own page; the host (here) keeps it clear of the status and navigation bars.
             Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding()) {
-                TopBar(tr("Round {round} of {rounds} · {game}", "round" to index + 1, "rounds" to d.totalRounds, "game" to kind.title), { playing = null })
-                SkillRound(kind, round.seed, onDone = { result ->
-                    playing = null
-                    send(index, result.score.coerceIn(0, 100), 1)
-                }, Modifier.weight(1f))
+                TopBar(tr("Round {round} of {rounds} · {game}", "round" to index + 1, "rounds" to d.totalRounds, "game" to kind.title), ::close)
+                SkillRound(kind, round.seed, onDone = { close() }, Modifier.weight(1f), onScored = { made = it.score.coerceIn(0, 100) })
             }
         }
     }

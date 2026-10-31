@@ -13,7 +13,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
+import app.heartpact.data.ServerClock
 import app.heartpact.data.utc
 import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
@@ -63,11 +67,12 @@ data class GameActions(
 )
 
 /**
- * Play together: pick a game (or practice a Heart skill), accept one, play it, see how it went.
+ * Play together: pick a game (or practice a Heart skill), accept one, play it, see how it went. [now] is the server's
+ * clock as the phone reckons it (ServerClock), so countdowns to server deadlines run right on a phone set wrong.
  * [bests] keeps Heart skills' best practice scores; without one, none are shown.
  */
 @Composable
-fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }, bests: SkillBests = rememberSkillBests(), myName: String = "") {
+fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { ServerClock.now() }, bests: SkillBests = rememberSkillBests(), myName: String = "") {
     // A Heart skill being practiced opens over the hub, full screen; back comes home to the hub.
     var practicing by rememberSaveable { mutableStateOf<SkillKind?>(null) }
     practicing?.let { kind ->
@@ -95,13 +100,43 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
                 active == null -> GamesHub(ui, me, partnerName, moves, bests) { practicing = it }
                 active.status == GameStatus.Waiting -> Waiting(active, me, partnerName, ui.busy, moves)
                 else -> {
-                    // A finished game leads with its result; the final board stays under it.
-                    if (active.status == GameStatus.Completed) GameResultCard(active, me, partnerName)
+                    // A finished game leads with its result and what next; the final board stays under it. A game that
+                    // shows its own result (Heart to heart, Snakes and ladders) keeps what next under its board.
+                    val done = active.status == GameStatus.Completed
+                    val card = done && GamePlay.score(active, me) != null
+                    if (card) {
+                        GameResultCard(active, me, partnerName)
+                        Finished(active, ui.busy, moves, Modifier.padding(bottom = 22.dp))
+                    }
                     Playing(active, me, partnerName, ui.busy, moves, now, ui.pending, ui, myName)
+                    if (done && !card) Finished(active, ui.busy, moves, Modifier.padding(top = 18.dp))
                 }
             }
         }
     }
+}
+
+/** After a game: the same again (an invite your partner accepts as usual), or back to the hub. */
+@Composable
+private fun Finished(s: GameSession, busy: Boolean, actions: GameActions, modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        if (s.gameType != GameType.Unknown) HeartButton(tr("Play again"), { actions.onInvite(s.gameType, null) }, Modifier.widthIn(max = 420.dp), busy = busy)
+        HeartButton(tr("Back to games"), { actions.onClose(s.id) }, Modifier.padding(top = 6.dp).widthIn(max = 420.dp), kind = ButtonKind.Text)
+    }
+}
+
+/** Ending a game ends it for both, so it asks first. */
+@Composable
+private fun EndGame(s: GameSession, partnerName: String, actions: GameActions) {
+    var asking by rememberSaveable(s.id) { mutableStateOf(false) }
+    HeartButton(tr("End this game"), { asking = true }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
+    if (asking) AlertDialog(
+        onDismissRequest = { asking = false },
+        title = { Text(tr("End this game?")) },
+        text = { Text(tr("It ends for {partner} too, and the scores so far aren't kept.", "partner" to partnerName)) },
+        confirmButton = { TextButton(onClick = { asking = false; actions.onAbandon(s.id) }) { Text(tr("End it")) } },
+        dismissButton = { TextButton(onClick = { asking = false }) { Text(tr("Keep playing")) } },
+    )
 }
 
 @Composable
@@ -140,6 +175,8 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
     val countdown = secondsUntil(s.countdownEndsAtUtc, now)
     if (s.status == GameStatus.InProgress && countdown > 0) {
         Countdown(countdown)
+        // Changed your mind in the five seconds: a way out, as at every other moment.
+        EndGame(s, partnerName, actions)
         return
     }
     when (s.gameType) {
@@ -160,6 +197,5 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.Unknown -> NoteCard(tr("This game needs a newer Heartpact. Update the app to play it."))
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
-    if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)
-    if (s.status == GameStatus.Completed) HeartButton(tr("Back to games"), { actions.onClose(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Tonal)
+    if (s.status == GameStatus.InProgress) EndGame(s, partnerName, actions)
 }

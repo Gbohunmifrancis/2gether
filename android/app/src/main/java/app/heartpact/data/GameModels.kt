@@ -29,7 +29,8 @@ data class GameSession(
     val coupleId: String = "",
     /** A type this app doesn't know reads as [GameType.Unknown] (coerced to this default). */
     val gameType: GameType = GameType.Unknown,
-    val status: GameStatus,
+    /** A status this app doesn't know (a newer server's) reads as ended, so the list still loads. */
+    val status: GameStatus = GameStatus.Abandoned,
     val startedAtUtc: String? = null,
     val endedAtUtc: String? = null,
     val currentTurnUserId: String? = null,
