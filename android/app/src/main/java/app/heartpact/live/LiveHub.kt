@@ -58,6 +58,8 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
     fun updateLocation(latitude: Double, longitude: Double, accuracy: Double, fixedAtMs: Long = System.currentTimeMillis()) =
         send("UpdateLocationAt", latitude, longitude, accuracy, fixedAtMs)
     fun reportExerciseProgress(occurrenceId: String, count: Int, confidence: Double) = send("ReportExerciseProgress", occurrenceId, count, confidence)
+    /** Tic-tac-toe's live ink for the partner: a square (-1 clears), a stroke number, and x,y pairs as fractions of the square. */
+    fun ink(sessionId: String, cell: Int, stroke: Int, points: FloatArray) = send("Ink", sessionId, cell, stroke, points)
 
     private fun send(method: String, vararg args: Any) = scope.launch {
         ensure()
@@ -127,7 +129,7 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
             "LocationUpdated", "LocationStopped", "LocationSharingChanged",
             "FoodDayUpdated", "DailyQuestionAnswered", "PregnancyChanged", "MemoriesChanged",
             "CoupleEnded", "AccountDeleted", "NotificationCreated",
-            "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded",
+            "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded", "GameInk",
         )
 
         /** Hub names to the app's event names: "ExerciseCompleted" becomes "exerciseCompleted", as pushes use. */

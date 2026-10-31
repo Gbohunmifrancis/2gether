@@ -58,7 +58,7 @@ import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.delay
 
 /*
- * Shared by tic-tac-toe and connect four: a short match on a grid, each partner playing their own half of the heart
+ * Connect four's frame (tic-tac-toe borrows its pips, win line and pieces): a short match on a grid, each partner playing their own half of the heart
  * (the left partner indigo, the right periwinkle). After a game the finished board stays up with its winning line;
  * the next game's starter taps "Start game" to clear it on their phone, and their first move starts it for both.
  */
@@ -156,7 +156,7 @@ internal fun GridMatchFrame(s: GameSession, me: String, partnerName: String, bus
 
 /** One game of the match: the winner's half, a dashed heart for a draw, a dot for a game still to come. */
 @Composable
-private fun GamePip(winner: String?, played: Boolean, number: Int, me: String, partnerName: String) {
+internal fun GamePip(winner: String?, played: Boolean, number: Int, me: String, partnerName: String) {
     val colors = Heartpact.colors
     val label = when {
         !played -> null

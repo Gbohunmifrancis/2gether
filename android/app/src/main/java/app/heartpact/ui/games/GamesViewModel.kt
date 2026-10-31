@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -31,6 +32,10 @@ data class GamesUi(
     val region: String? = null,
     /** Finished games the person has closed, so the picker shows again. */
     val closed: Set<String> = emptySet(),
+    /** Tic-tac-toe: my marks in flight, the last "Too slow!", my pen refilling (TicTacToeClaims). */
+    val ttt: TicTacToeUi = TicTacToeUi(),
+    /** Tic-tac-toe: the partner's stroke as they draw it, relayed by the couple hub. */
+    val ink: LiveInk = LiveInk(),
 ) {
     /** The couple's one open game, if any. */
     val active: GameSession? get() = sessions.firstOrNull { it.open }
@@ -52,6 +57,10 @@ data class GamesUi(
 
 private val KEEP_FINISHED: Duration = Duration.ofMinutes(15)
 
+/** The couple hub's `GameInk`: the partner's live stroke on a tic-tac-toe square ([cell] -1 clears it). */
+@Serializable
+private data class GameInkEvent(val sessionId: String, val userId: String = "", val cell: Int, val stroke: Int = 0, val points: List<Float> = emptyList())
+
 private fun <T> ApiResult<T>.note(): String? = when (this) {
     is ApiResult.Ok -> null
     ApiResult.Offline -> OFFLINE_MESSAGE
@@ -71,6 +80,8 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
                     "GameStarted", "GameStateChanged", "GameCompleted" ->
                         runCatching { app.json.decodeFromString(GameSession.serializer(), event.json) }.getOrNull()?.let(::upsert)
                     "GameInvitation", "GameEnded", "GameCountdown" -> refresh()
+                    "GameInk" -> runCatching { app.json.decodeFromString(GameInkEvent.serializer(), event.json) }.getOrNull()
+                        ?.let { _ui.value.ink.receive(it.sessionId, it.cell, it.stroke, it.points, System.currentTimeMillis()) }
                 }
             }
         }
@@ -95,9 +106,18 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     fun accept(id: String) = call { app.games.accept(id) }
     fun abandon(id: String) = call { app.games.abandon(id) }
 
+    /** Tic-tac-toe: both mark at once, so each mark goes at once and shows meanwhile. */
+    private val marks = TicTacToeClaims(viewModelScope, _ui,
+        send = { s, action, value, index -> app.games.act(s.id, s.stateVersion, action, value, index) },
+        load = { app.games.session(it) })
+
+    /** Tic-tac-toe: the stroke under my finger, for my partner to watch live (dropped when the hub isn't connected). */
+    fun ink(session: GameSession, cell: Int, stroke: Int, points: FloatArray) = app.live.ink(session.id, cell, stroke, points)
+
     /** A move at the version on screen; if the partner moved first, reload and let the person try again. */
     fun act(session: GameSession, action: String, value: String? = null, index: Int? = null) {
         if (session.gameType == GameType.Handwriting) return moves.add(session, action, value)
+        if (session.gameType == GameType.TicTacToe) return marks.act(session, action, value, index)
         _ui.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             val result = app.games.act(session.id, session.stateVersion, action, value, index)

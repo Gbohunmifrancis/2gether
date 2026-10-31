@@ -194,7 +194,7 @@ data class WouldYouRatherState(
 )
 
 /**
- * Tic-tac-toe and connect four: a short match of games on a grid. [cells] go row by row from the top and hold the
+ * Connect four (and tic-tac-toe's scores, which read the same): a short match of games on a grid. [cells] go row by row from the top and hold the
  * player id that owns each one, or null. [phase] is "playing", "gameOver" (the finished board, with its [line], until
  * the next starter moves) or "matchOver". [results] holds each finished game's winner, null for a draw.
  */
@@ -215,6 +215,37 @@ data class GridMatchState(
     val results: List<String?> = emptyList(),
     val winnerUserId: String? = null,
 )
+
+/**
+ * Tic-tac-toe, played at once (docs/games.md): the grid match's fields, plus each square's hand-drawn mark ([marks],
+ * null for an empty square or one placed before marks were drawn), when the next game starts while a finished board
+ * is up ([nextGameAtUtc]), and how long a pen takes to refill after its own mark ([cooldownMs]).
+ */
+@Serializable
+data class TicTacToeState(
+    val players: List<String> = emptyList(),
+    val cells: List<String?> = emptyList(),
+    val game: Int = 0,
+    val totalGames: Int = 5,
+    val winsNeeded: Int = 3,
+    val phase: String = "playing",
+    val lastMove: Int? = null,
+    val line: List<Int>? = null,
+    val scores: Map<String, Int> = emptyMap(),
+    val draws: Int = 0,
+    val results: List<String?> = emptyList(),
+    val winnerUserId: String? = null,
+    val marks: List<TicTacToeMark?> = emptyList(),
+    val nextGameAtUtc: String? = null,
+    val cooldownMs: Int = 650,
+)
+
+/** A hand-drawn mark: up to three strokes, each point `[x, y]` as fractions of its square. */
+@Serializable
+data class TicTacToeMark(val strokes: List<TicTacToeStroke> = emptyList())
+
+@Serializable
+data class TicTacToeStroke(val points: List<List<Double>> = emptyList())
 
 /** Draw and guess (`handwriting` on the wire): one stroke, coordinates as fractions of the canvas (0 to 1). */
 @Serializable

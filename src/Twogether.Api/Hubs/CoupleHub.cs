@@ -15,7 +15,7 @@ using Twogether.Shared.Localization;
 namespace Twogether.Api.Hubs;
 
 [Authorize]
-public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections, LocationSharingStopper locationStopper, LocationFixThrottle fixThrottle) : Hub
+public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections, LocationSharingStopper locationStopper, LocationFixThrottle fixThrottle, GameInkGate inkGate) : Hub
 {
     public static string GroupName(Guid coupleId) => $"couple-{coupleId:N}";
     public static string UserGroupName(Guid userId) => $"user-{userId:N}";
@@ -180,6 +180,37 @@ public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser
         liveState.RecordDraft(sessionId, userId, round, answersJson);
         var filled = answers.Values.Count(answer => !string.IsNullOrWhiteSpace(answer));
         await Clients.OthersInGroup(GroupName(coupleId)).SendAsync("GameProgress", new GameProgressDto(sessionId, userId, round, filled, answers.Count), Context.ConnectionAborted);
+    }
+
+    /// <summary>
+    /// Live ink in real-time tic-tac-toe (docs/games.md): the stroke the caller is drawing on <paramref name="cell"/>
+    /// (-1 to clear it), as points that are fractions of the square, relayed to their partner only (<c>GameInk</c>).
+    /// Never stored. Relayed only for the caller's own couple's game in play, after its countdown; a malformed message,
+    /// one over the rate, or one for any other game is dropped. Returns whether it was relayed.
+    /// </summary>
+    public async Task<bool> Ink(Guid sessionId, int cell, int stroke, float[] points)
+    {
+        if (!currentUser.CoupleId.HasValue || !currentUser.UserId.HasValue) return false;
+        if (!GameInkGate.IsValid(cell, stroke, points)) return false;
+        var coupleId = currentUser.CoupleId.Value;
+        var userId = currentUser.UserId.Value;
+        var now = clock.UtcNow;
+        if (!inkGate.TryTake(userId, now)) return false;
+        var partnerId = inkGate.Known(userId, sessionId, now);
+        if (partnerId is null)
+        {
+            var game = await db.GameSessions.AsNoTracking()
+                .Where(session => session.Id == sessionId && session.CoupleId == coupleId && session.Status == GameSessionStatus.InProgress
+                    && (session.CountdownEndsAtUtc == null || session.CountdownEndsAtUtc <= now))
+                .Select(session => (GameType?)session.GameType)
+                .SingleOrDefaultAsync(Context.ConnectionAborted);
+            if (game is not { } type || !GameInkGate.Games.Contains(type)) return false;
+            partnerId = await PartnerId(coupleId, userId);
+            if (partnerId is null) return false;
+            inkGate.Allow(userId, sessionId, partnerId.Value, now);
+        }
+        await Clients.Group(UserGroupName(partnerId.Value)).SendAsync("GameInk", new GameInkDto(sessionId, userId, cell, stroke, points), Context.ConnectionAborted);
+        return true;
     }
 
     /// <summary>
