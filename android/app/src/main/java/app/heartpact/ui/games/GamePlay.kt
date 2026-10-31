@@ -36,6 +36,26 @@ object GamePlay {
     /** The session's content region from its setup: "ng" for Nigerian couples, else "global". */
     fun region(s: GameSession): String = runCatching { json.parseToJsonElement(s.setupJson).jsonObject["region"]?.jsonPrimitive?.content }.getOrNull() ?: "global"
 
+    /**
+     * I call on: whether an answer sheet or a verdict that crossed the partner's move ([before] is the board it was
+     * made on, [after] the board now) still means something and should go again: the same round, answers still being
+     * typed, or that answer still waiting for this verdict.
+     */
+    fun iCallOnStillWanted(before: GameSession, after: GameSession, action: String, value: String?): Boolean {
+        if (after.status != GameStatus.InProgress) return false
+        val was = iCallOn(before)
+        val now = iCallOn(after)
+        if (was.round != now.round || was.letter != now.letter) return false
+        return when (action) {
+            "submit" -> now.phase == "answering"
+            "vet" -> {
+                val verdict = value?.let { runCatching { json.decodeFromString(app.heartpact.data.VetVerdict.serializer(), it) }.getOrNull() } ?: return false
+                now.phase == "vetting" && now.pendingVetting.any { it.player == verdict.player && it.category == verdict.category && it.allowed == null }
+            }
+            else -> false
+        }
+    }
+
     /** The games the app offers (docs/games.md). */
     val offered = listOf(GameType.SkillDuel, GameType.SpotTheDifference, GameType.SnakesAndLadders, GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
         GameType.TruthOrDare, GameType.WordDash, GameType.Handwriting, GameType.TicTacToe, GameType.ConnectFour)

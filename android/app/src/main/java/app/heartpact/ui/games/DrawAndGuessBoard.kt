@@ -1,7 +1,20 @@
 package app.heartpact.ui.games
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -105,25 +118,27 @@ internal fun DrawAndGuessBoard(s: GameSession, me: String, partnerName: String, 
                 Text(tr("Only you can see it. No letters or numbers!"), style = Heartpact.type.small, color = colors.ink3)
             }
         }
-        DrawingCanvas(strokes, pen, Modifier.padding(top = 12.dp), onStroke = { actions.onAct(s, "stroke", it, null) })
+        DrawingCanvas(strokes, pen, Modifier.padding(top = 12.dp), maxSide = canvasSide(reserve = 330.dp), onStroke = { actions.onAct(s, "stroke", it, null) })
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            HeartButton(tr("Undo"), { actions.onAct(s, "undo", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 44.dp, enabled = strokes.isNotEmpty())
-            HeartButton(tr("Clear"), { actions.onAct(s, "clear", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 44.dp, enabled = strokes.isNotEmpty())
-            HeartButton(tr("Pass"), { actions.onAct(s, "pass", null, null) }, Modifier.weight(1f), kind = ButtonKind.Outline, height = 44.dp)
+            HeartButton(tr("Undo"), { actions.onAct(s, "undo", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = strokes.isNotEmpty())
+            HeartButton(tr("Clear"), { actions.onAct(s, "clear", null, null) }, Modifier.weight(1f), kind = ButtonKind.Tonal, height = 48.dp, enabled = strokes.isNotEmpty())
         }
         Text(trn(d.guessesLeft, "{partner} has {count} guess left", "{partner} has {count} guesses left", "partner" to partnerName),
-            style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp))
+            style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 12.dp).semantics { liveRegion = LiveRegionMode.Polite })
         WrongGuesses(d.wrongGuesses)
+        // Passing ends the round with no hearts: kept apart from Undo and Clear so it isn't hit by mistake.
+        HeartButton(tr("Pass on this word"), { actions.onAct(s, "pass", null, null) }, Modifier.padding(top = 6.dp), kind = ButtonKind.Text, height = 48.dp)
     } else {
         Text(tr("What is {partner} drawing?", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
-        Box(Modifier.padding(top = 10.dp)) {
-            DrawingCanvas(strokes, pen, description = tr("{partner}'s drawing", "partner" to partnerName))
+        Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.Center) {
+            // Smaller while the keyboard is up, so the drawing stays in view as the guess is typed.
+            DrawingCanvas(strokes, pen, maxSide = canvasSide(reserve = 320.dp), description = tr("{partner}'s drawing", "partner" to partnerName))
             if (strokes.isEmpty()) Text(tr("{partner} hasn't started drawing yet", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink3,
                 textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.Center).padding(24.dp))
         }
         Text(trn(d.guessesLeft, "{count} guess left", "{count} guesses left"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
         WrongGuesses(d.wrongGuesses)
-        var guess by remember(d.round) { mutableStateOf("") }
+        var guess by rememberSaveable(s.id, d.round) { mutableStateOf("") }
         val sending = mine.any { it.action == "guess" }
         val send = { if (guess.isNotBlank() && !sending) { actions.onAct(s, "guess", guess.trim(), null); guess = "" } }
         HeartField(tr("Your guess"), guess, { guess = it.take(60) }, Modifier.padding(top = 12.dp),
@@ -187,9 +202,22 @@ private fun penColor(d: DrawAndGuessState, drawer: String?): Color =
  * over, simplified and encoded, when the finger lifts.
  */
 @Composable
-private fun DrawingCanvas(strokes: List<DrawStroke>, pen: Color, modifier: Modifier = Modifier, description: String = tr("Drawing canvas"), onStroke: ((String) -> Unit)? = null) {
+private fun DrawingCanvas(strokes: List<DrawStroke>, pen: Color, modifier: Modifier = Modifier, maxSide: Dp = Dp.Unspecified, description: String = tr("Drawing canvas"), onStroke: ((String) -> Unit)? = null) {
     val colors = Heartpact.colors
     val live = remember { mutableStateListOf<Offset>() }
+    // Watching: a stroke that arrives is drawn on, pen-speed, rather than popping in whole. [shown] strokes are done.
+    val still = motionOff()
+    var shown by remember { mutableIntStateOf(strokes.size) }
+    val drawing = remember { Animatable(0f) }
+    val arriving = onStroke == null && !still && strokes.size == shown + 1
+    LaunchedEffect(strokes.size) {
+        if (onStroke == null && !still && strokes.size == shown + 1) {
+            drawing.snapTo(0f)
+            drawing.animateTo(1f, tween(Sketching.drawOnMs(strokes.last()), easing = LinearEasing))
+        }
+        shown = strokes.size
+        drawing.snapTo(0f)
+    }
     // The gesture handler outlives recompositions: always hand the stroke to the latest callback.
     val send by rememberUpdatedState(onStroke)
     var input = Modifier.semantics { contentDescription = description }
@@ -212,22 +240,39 @@ private fun DrawingCanvas(strokes: List<DrawStroke>, pen: Color, modifier: Modif
             send?.invoke(Sketching.encode(points, Sketching.PEN_WIDTH))
         }
     }
-    Box(
-        modifier.fillMaxWidth().aspectRatio(1f).clip(Shapes.Well).background(colors.sticker).border(2.dp, colors.rule2, Shapes.Well).then(input),
+    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) { Box(
+        Modifier.widthIn(max = maxSide).fillMaxWidth().aspectRatio(1f).clip(Shapes.Well).background(colors.sticker).border(2.dp, colors.rule2, Shapes.Well).then(input),
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            strokes.forEach { drawStroke(it.points.map { p -> Offset(p.getOrElse(0) { 0.0 }.toFloat(), p.getOrElse(1) { 0.0 }.toFloat()) }, it.width.toFloat(), pen) }
+            strokes.forEachIndexed { i, stroke ->
+                val progress = if (arriving && i == strokes.lastIndex) drawing.value else 1f
+                drawStroke(stroke.points.map { p -> Offset(p.getOrElse(0) { 0.0 }.toFloat(), p.getOrElse(1) { 0.0 }.toFloat()) }, stroke.width.toFloat(), pen, progress)
+            }
             if (live.isNotEmpty()) drawStroke(live.toList(), Sketching.PEN_WIDTH.toFloat(), pen)
         }
-    }
+    } }
+}
+
+/**
+ * The longest side the canvas may have: the window's height less [reserve] for what must stay in view with it (the
+ * word, the buttons, the guess field) and less the keyboard while it's up, so on a phone held sideways or with the
+ * keyboard open the whole drawing still fits on screen. Never smaller than a usable 180 dp.
+ */
+@Composable
+private fun canvasSide(reserve: Dp): Dp {
+    val density = LocalDensity.current
+    val window = with(density) { LocalWindowInfo.current.containerSize.height.toDp() }
+    val keyboard = with(density) { WindowInsets.ime.getBottom(density).toDp() }
+    if (window <= 0.dp) return Dp.Unspecified
+    return (window - keyboard - reserve).coerceAtLeast(180.dp)
 }
 
 /**
  * One stroke, smoothed: a curve through every point (Catmull-Rom tangents, kept short so long edges don't bulge, and
  * none at sharp turns so corners stay corners), round ends; a tap is a dot.
  */
-private fun DrawScope.drawStroke(points: List<Offset>, width: Float, color: Color) {
-    if (points.isEmpty()) return
+private fun DrawScope.drawStroke(points: List<Offset>, width: Float, color: Color, progress: Float = 1f) {
+    if (points.isEmpty() || progress <= 0f) return
     val px = (width * size.width).coerceAtLeast(1f)
     val scaled = points.map { Offset(it.x * size.width, it.y * size.height) }
     if (scaled.size == 1 || scaled.all { (it - scaled[0]).getDistance() < 0.5f }) {
@@ -246,7 +291,11 @@ private fun DrawScope.drawStroke(points: List<Offset>, width: Float, color: Colo
             cubicTo(c1.x, c1.y, c2.x, c2.y, p2.x, p2.y)
         }
     }
-    drawPath(path, color, style = Stroke(px, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    val shown = if (progress >= 1f) path else Path().also { part ->
+        val measure = PathMeasure().apply { setPath(path, false) }
+        measure.getSegment(0f, measure.length * progress, part, true)
+    }
+    drawPath(shown, color, style = Stroke(px, cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
 /** Catmull-Rom's tangent at point [i], or none at a sharp turn so a corner stays a corner. */
@@ -295,6 +344,12 @@ object Sketching {
         val simple = simplify(points)
         val stroke = DrawStroke(simple.map { listOf(round3(it.x.toDouble()), round3(it.y.toDouble())) }, width)
         return json.encodeToString(DrawStroke.serializer(), stroke)
+    }
+
+    /** How long a stroke takes to draw on for the partner watching: about a second across the canvas, quick for a dot. */
+    fun drawOnMs(stroke: DrawStroke): Int {
+        val length = stroke.points.zipWithNext { a, b -> hypot(b.getOrElse(0) { 0.0 } - a.getOrElse(0) { 0.0 }, b.getOrElse(1) { 0.0 } - a.getOrElse(1) { 0.0 }) }.sum()
+        return (length * 900).toInt().coerceIn(140, 750)
     }
 
     fun decode(value: String?): DrawStroke? = value?.let { runCatching { json.decodeFromString(DrawStroke.serializer(), it) }.getOrNull() }

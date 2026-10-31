@@ -36,6 +36,8 @@ data class GamesUi(
     val ttt: TicTacToeUi = TicTacToeUi(),
     /** Tic-tac-toe: the partner's stroke as they draw it, relayed by the couple hub. */
     val ink: LiveInk = LiveInk(),
+    /** I call on: how many categories the partner has filled so far, by session (the couple hub's `GameProgress`). */
+    val progress: Map<String, PartnerProgress> = emptyMap(),
 ) {
     /** The couple's one open game, if any. */
     val active: GameSession? get() = sessions.firstOrNull { it.open }
@@ -56,6 +58,10 @@ data class GamesUi(
 }
 
 private val KEEP_FINISHED: Duration = Duration.ofMinutes(15)
+
+/** I call on: the partner has filled [filled] of [total] categories in [round] (the couple hub's `GameProgress`). */
+@Serializable
+data class PartnerProgress(val sessionId: String = "", val userId: String = "", val round: Int = 0, val filled: Int = 0, val total: Int = 0)
 
 /** The couple hub's `GameInk`: the partner's live stroke on a tic-tac-toe square ([cell] -1 clears it). */
 @Serializable
@@ -80,6 +86,8 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
                     "GameStarted", "GameStateChanged", "GameCompleted" ->
                         runCatching { app.json.decodeFromString(GameSession.serializer(), event.json) }.getOrNull()?.let(::upsert)
                     "GameInvitation", "GameEnded", "GameCountdown" -> refresh()
+                    "GameProgress" -> runCatching { app.json.decodeFromString(PartnerProgress.serializer(), event.json) }.getOrNull()
+                        ?.let { p -> _ui.update { it.copy(progress = it.progress + (p.sessionId to p)) } }
                     "GameInk" -> runCatching { app.json.decodeFromString(GameInkEvent.serializer(), event.json) }.getOrNull()
                         ?.let { _ui.value.ink.receive(it.sessionId, it.cell, it.stroke, it.points, System.currentTimeMillis()) }
                 }
@@ -119,21 +127,40 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     /** Tic-tac-toe: the stroke under my finger, for my partner to watch live (dropped when the hub isn't connected). */
     fun ink(session: GameSession, cell: Int, stroke: Int, points: FloatArray) = app.live.ink(session.id, cell, stroke, points)
 
-    /** A move at the version on screen; if the partner moved first, reload and let the person try again. */
+    /** I call on: what's typed so far, so it still counts if the clock runs out before it's sent. */
+    fun draft(session: GameSession, round: Int, answersJson: String) = app.live.draft(session.id, round, answersJson)
+
+    /**
+     * A move at the version on screen; if the partner moved first, reload and let the person try again. I call on's
+     * answers and verdicts cross the partner's all the time (both judge at once), so those go again on the new version
+     * while they still mean something (GamePlay.iCallOnStillWanted) instead of quietly vanishing.
+     */
     fun act(session: GameSession, action: String, value: String? = null, index: Int? = null) {
         if (session.gameType == GameType.Handwriting) return moves.add(session, action, value)
         if (session.gameType == GameType.TicTacToe) return marks.act(session, action, value, index)
         if (session.gameType == GameType.SpotTheDifference && action == "spot" && index != null) return spots.spot(session, index)
         _ui.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
-            val result = app.games.act(session.id, session.stateVersion, action, value, index)
-            when (result) {
-                is ApiResult.Ok -> { upsert(result.value); _ui.update { it.copy(busy = false) } }
-                is ApiResult.Failure -> {
-                    _ui.update { it.copy(busy = false, note = if (result.code == "game.version_conflict") null else result.message) }
-                    (app.games.session(session.id) as? ApiResult.Ok)?.value?.let(::upsert)
+            var on = session
+            var tries = 0
+            while (true) {
+                val result = app.games.act(on.id, on.stateVersion, action, value, index)
+                if (result is ApiResult.Failure) {
+                    val conflict = result.code == "game.version_conflict"
+                    val latest = (app.games.session(session.id) as? ApiResult.Ok)?.value?.also(::upsert)
+                    if (conflict && latest != null && tries < RETRIES && session.gameType == GameType.ICallOn && GamePlay.iCallOnStillWanted(session, latest, action, value)) {
+                        tries++
+                        on = latest
+                        continue
+                    }
+                    _ui.update { it.copy(busy = false, note = if (conflict) null else result.message) }
+                } else if (result is ApiResult.Ok) {
+                    upsert(result.value)
+                    _ui.update { it.copy(busy = false) }
+                } else {
+                    _ui.update { it.copy(busy = false, note = OFFLINE_MESSAGE) }
                 }
-                ApiResult.Offline -> _ui.update { it.copy(busy = false, note = OFFLINE_MESSAGE) }
+                break
             }
         }
     }
@@ -152,6 +179,9 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     companion object {
+        /** How many times an I call on answer or verdict is sent again after crossing the partner's move. */
+        private const val RETRIES = 3
+
         /** The ICallOn letter the inviter chose, if any. */
         fun chosenLetter(session: GameSession, json: kotlinx.serialization.json.Json): String? =
             runCatching { json.parseToJsonElement(session.setupJson).jsonObject["letter"]?.jsonPrimitive?.content }.getOrNull()

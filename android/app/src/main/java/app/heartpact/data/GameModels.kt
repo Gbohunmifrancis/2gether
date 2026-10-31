@@ -111,7 +111,14 @@ data class ICallOnState(
 data class VetVerdict(val player: String, val category: String, val allow: Boolean)
 
 @Serializable
-data class TruthOrDareOutcome(val chooser: String, val choice: String, val prompt: String = "", val result: String = "done")
+data class TruthOrDareOutcome(
+    val chooser: String,
+    val choice: String,
+    val prompt: String = "",
+    val result: String = "done",
+    /** The chooser passed on the prompt themselves (result "skipped"). */
+    val passed: Boolean = false,
+)
 
 @Serializable
 data class TruthOrDareState(
@@ -126,6 +133,8 @@ data class TruthOrDareState(
     /** "truth" or "dare" once chosen. */
     val choice: String? = null,
     val prompt: String? = null,
+    /** The chooser has swapped this turn's prompt (once a turn). */
+    val swapped: Boolean = false,
     val last: TruthOrDareOutcome? = null,
 )
 

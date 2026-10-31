@@ -30,7 +30,7 @@ public static class GameWordChecks
             return await validator.ValidateAsync(stateJson, value, cancellationToken);
         // Word dash: null when the dictionary can't be reached, and the word stands.
         if (gameType == GameType.WordDash && action.Equals("play", StringComparison.OrdinalIgnoreCase))
-            return new Dictionary<string, bool?> { [WordDashRules.WordKey] = await validator.IsWordAsync(value, cancellationToken) };
+            return new Dictionary<string, bool?> { [WordDashRules.WordKey] = await validator.IsWordAsync(WordDashRules.Normalize(value), cancellationToken) };
         return null;
     }
 }

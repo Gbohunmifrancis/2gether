@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Controllers;
 using Twogether.Api.Hubs;
+using Twogether.Api.Presence;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Admin.Ops;
@@ -16,7 +17,8 @@ public sealed class GameTimeoutWorker(
     IGameEngine engine,
     IDateTimeProvider clock,
     ILogger<GameTimeoutWorker> logger,
-    WorkerHeartbeats? heartbeats = null) : BackgroundService
+    WorkerHeartbeats? heartbeats = null,
+    GameLiveState? liveState = null) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
     public const string HeartbeatName = "gameTimeouts";
@@ -73,7 +75,7 @@ public sealed class GameTimeoutWorker(
             .Take(100)
             .ToListAsync(cancellationToken);
         if (stale.Count == 0) return;
-        foreach (var session in stale) session.Abandon(now);
+        foreach (var session in stale) { session.Abandon(now); liveState?.ClearSession(session.Id); }
         await db.SaveChangesAsync(cancellationToken);
         foreach (var session in stale)
         {
@@ -100,8 +102,10 @@ public sealed class GameTimeoutWorker(
 
         foreach (var session in sessions)
         {
-            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now);
-            if (next.Completed) session.Complete(next.StateJson, now);
+            // I call on: what each partner had typed when the clock ran out still counts.
+            var drafts = GameController.LateAnswers(liveState, session, Guid.Empty, null, null);
+            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now, coSubmissions: drafts);
+            if (next.Completed) { session.Complete(next.StateJson, now); liveState?.ClearSession(session.Id); }
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, now);
         }
         await db.SaveChangesAsync(cancellationToken);
