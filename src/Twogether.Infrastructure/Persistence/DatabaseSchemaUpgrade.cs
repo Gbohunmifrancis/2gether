@@ -508,5 +508,17 @@ public static class DatabaseSchemaUpgrade
             CONSTRAINT "PK_account_deletions" PRIMARY KEY ("Id")
         );
         CREATE INDEX IF NOT EXISTS "IX_account_deletions_CreatedAtUtc" ON account_deletions ("CreatedAtUtc");
+
+        -- Profile pictures live in the user's row. The version goes up on every change (also on removal) and is the ETag.
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "AvatarBytes" bytea NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "AvatarVersion" bigint NOT NULL DEFAULT 0;
+
+        -- Server-wide settings an admin can change without a deploy (feature flags). No rows means every flag is off.
+        CREATE TABLE IF NOT EXISTS app_settings (
+            "Key" character varying(64) NOT NULL,
+            "Value" character varying(1000) NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_app_settings" PRIMARY KEY ("Key")
+        );
         """;
 }

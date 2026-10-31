@@ -194,6 +194,11 @@ export interface Feature {
   detail: string;
 }
 
+/** Switches that change every app without a release (GET and PUT /api/admin/features). */
+export interface Features {
+  christmas: boolean;
+}
+
 export interface SystemStatus {
   nowUtc: string;
   features: Feature[];

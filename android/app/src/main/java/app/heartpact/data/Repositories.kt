@@ -1,5 +1,8 @@
 package app.heartpact.data
 
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MediaType.Companion.toMediaType
+import androidx.compose.ui.graphics.asImageBitmap
 import app.heartpact.exercise.ExerciseChecks
 import kotlinx.serialization.json.Json
 
@@ -20,8 +23,12 @@ class AuthRepository(private val api: HeartpactApi, private val session: Session
         apiCall(json) { api.googleSignIn(request) }.alsoOk { session.save(it.accessToken, it.user) }
 
     /** Changes the country and/or gender; the rest of the profile goes back as it is. */
-    suspend fun updateProfile(user: AuthUser, countryCode: String? = null, gender: Gender? = null): ApiResult<AuthResponse> =
-        apiCall(json) { api.updateProfile(UpdateProfileRequest(user.displayName, user.avatarUrl, user.mapColor, countryCode, gender)) }.alsoOk { session.save(it.accessToken, it.user) }
+    suspend fun updateProfile(user: AuthUser, countryCode: String? = null, gender: Gender? = null, displayName: String? = null): ApiResult<AuthResponse> =
+        apiCall(json) { api.updateProfile(UpdateProfileRequest(displayName ?: user.displayName, user.avatarUrl, user.mapColor, countryCode, gender)) }.alsoOk { session.save(it.accessToken, it.user) }
+
+    /** Reads the account again (a new picture changes its version) and keeps it in the stored session. */
+    suspend fun refreshMe(): ApiResult<AuthUser> =
+        apiCall(json) { api.me() }.alsoOk { user -> session.load()?.token?.let { session.save(it, user) } }
 
     suspend fun signOut() = session.clear()
 }
@@ -131,4 +138,39 @@ class GameRepository(private val api: HeartpactApi, private val json: Json) {
 class PlusRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun entitlement(): ApiResult<Entitlement> = apiCall(json) { api.entitlement() }
     suspend fun verify(productId: String, purchaseToken: String): ApiResult<Entitlement> = apiCall(json) { api.verifyPurchase(VerifyPurchaseRequest(productId, purchaseToken)) }
+}
+
+/**
+ * Profile pictures. The server keeps one small picture per person and a version that changes with it, so a picture is
+ * cached (in memory, then on disk) under "user:version" and never fetched twice.
+ */
+class AvatarRepository(private val api: HeartpactApi, private val json: Json, private val cacheDir: java.io.File) {
+    private val memory = object : android.util.LruCache<String, androidx.compose.ui.graphics.ImageBitmap>(24) {}
+    /** Bumped on every change so pictures on screen reload. */
+    private val _changes = kotlinx.coroutines.flow.MutableStateFlow(0)
+    val changes: kotlinx.coroutines.flow.StateFlow<Int> = _changes
+
+    suspend fun load(userId: String, version: Long): androidx.compose.ui.graphics.ImageBitmap? {
+        if (version <= 0) return null
+        val key = "$userId-$version"
+        memory.get(key)?.let { return it }
+        val file = java.io.File(cacheDir, "avatars/$key.img")
+        val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            if (file.exists()) file.readBytes() else {
+                val response = try { api.avatar(userId) } catch (_: java.io.IOException) { return@withContext null }
+                if (!response.isSuccessful) return@withContext null
+                response.body()?.bytes()?.also { file.apply { parentFile?.mkdirs() }.writeBytes(it) }
+            }
+        } ?: return null
+        val bitmap = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+        } ?: return null
+        memory.put(key, bitmap)
+        return bitmap
+    }
+
+    suspend fun upload(jpeg: ByteArray): ApiResult<Unit> =
+        apiCall(json) { api.putAvatar(jpeg.toRequestBody("image/jpeg".toMediaType())) }.also { if (it is ApiResult.Ok) _changes.value++ }
+
+    suspend fun remove(): ApiResult<Unit> = apiCall(json) { api.deleteAvatar() }.also { if (it is ApiResult.Ok) _changes.value++ }
 }

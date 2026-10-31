@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -28,8 +29,8 @@ object Shapes {
 }
 
 @Composable
-fun HeartpactTheme(night: Boolean = isSystemInDarkTheme(), actor: Side = Side.Left, content: @Composable () -> Unit) {
-    val colors = if (night) NightColors else DayColors
+fun HeartpactTheme(night: Boolean = isSystemInDarkTheme(), actor: Side = Side.Left, christmas: Boolean = Season.christmas, content: @Composable () -> Unit) {
+    val colors = if (christmas) { if (night) NightChristmas else DayChristmas } else { if (night) NightColors else DayColors }
     // Material components read their own scheme; keep it in step so anything stock still fits.
     val scheme = if (night) {
         darkColorScheme(primary = colors.left.action, onPrimary = colors.onAction, background = colors.page, surface = colors.sticker, onSurface = colors.ink, error = colors.error)
@@ -41,6 +42,11 @@ fun HeartpactTheme(night: Boolean = isSystemInDarkTheme(), actor: Side = Side.Le
         LocalHeartpactType provides HeartpactType().forLanguage(java.util.Locale.getDefault().language),
         LocalActor provides actor,
     ) {
-        MaterialTheme(colorScheme = scheme, content = content)
+        MaterialTheme(colorScheme = scheme) {
+            if (christmas) androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize()) {
+                content()
+                Snowfall()
+            } else content()
+        }
     }
 }

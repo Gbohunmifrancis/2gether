@@ -51,3 +51,12 @@ stalkerware policies require of a two-person app.
 - Events: `LocationUpdated` (`LocationDto`), `LocationStopped` (user id to remove from the map), and
   `LocationSharingChanged` (`LocationSharingStateDto`) for the indicator. The first two keep the names the
   existing frontend already handles.
+
+## The Android map
+
+No server change: the map only draws what `GET api/location` and the hub events already deliver, under the same rules.
+
+- **MapLibre Native on OpenFreeMap** (`https://tiles.openfreemap.org/styles/liberty`, no API key). The style is restyled at runtime in `ui/map/MapStyler.kt`: pastel by day, navy with glowing roads at night (`Heartpact.colors.isNight`), no points of interest, 3D buildings from `render_height`, camera pitched 55 degrees with a slow sway when untouched. If the style cannot load (no network and nothing cached, or 15 s without it), the screen falls back to the drawn map of the two of you.
+- **Both of you are shown only while sharing is mutual**, exactly as `GET api/location` returns them: a stopped or paused share removes the markers (`LocationStopped`, the cleared `points`). Each marker is the profile picture in a ring of that person's side colour, a name pill, and for your partner how old the fix is ("now", "2 min ago"). A halo pulses while the fix is under 5 minutes old. Markers glide between fixes over 800 ms.
+- **Controls**: fly-in to both of you on open, "show both of us" and "center on me", tap a marker to fly to that person. Pause (1 hour, until tomorrow), resume and stop are in the sheet, unchanged.
+- OpenFreeMap and OpenStreetMap contributors must stay credited: the map keeps MapLibre's attribution button on.

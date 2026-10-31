@@ -34,7 +34,7 @@ again at their next sign-in. Nobody can reset their own.
 ### A fresh code for destructive actions
 
 Disabling or deleting an account, refunding, revoking or stopping a subscription, giving a couple Plus, resetting
-another admin's authenticator and marking an account internal also need a **fresh authenticator code**, sent as the
+another admin's authenticator, marking an account internal and switching a feature (Features page) also need a **fresh authenticator code**, sent as the
 `X-Admin-Code` header. It is checked like a sign-in code: it works once (the same "last used step" as sign-in, so the
 code you just signed in with doesn't count again), and it is used up before the action runs, so a copied session token
 alone can't do any of these. Without a code the API answers `403 admin.step_up_required`; with a wrong or used one,
@@ -66,6 +66,7 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | Payments | Every Play subscription: sync with Google, stop renewal, refund the latest payment, or revoke (refund and end now). Complimentary Plus grants, with end |
 | Audit log | Every admin sign-in (and failure) and action, who, when, on what, from which IP. Kept two years (`AdminAuditSweepWorker`, daily), as the privacy policy says |
 | Health | Probes (database, storage, push, email, food scans) with latency; background workers as beating hearts that go still when late and red when failing; queues; album storage; food scan cost; an honest list of what nothing monitors |
+| Features | Switches that change every app without a release. Today: **Christmas theme**, which turns the festive look on for every app (within about a minute). See `docs/feature-flags.md` |
 | System | Which services are configured, push and clean-up queues, list prices, and the admins |
 
 Analytics windows are 7, 30, 90 or 365 days; filters, pages and windows are in the URL, so a view can be shared.
@@ -86,7 +87,7 @@ Server-Sent Events stream read with `fetch` (so it carries the bearer token); it
 browser): a two-note chime when a couple links, a tick for a dare done, a warm "ka-ching" for Plus, a low tone for alerts.
 
 **Fresh codes for destructive actions.** Disabling, deleting, refunds, revocations, stopping renewal, giving Plus,
-resetting another admin's authenticator and marking internal ask for a fresh authenticator code (a padlock dialog); the
+resetting another admin's authenticator, marking internal and switching a feature ask for a fresh authenticator code (a padlock dialog); the
 dashboard sends it as `X-Admin-Code` and retries. A deployed dashboard on another origin needs the API's CORS to allow
 that header.
 

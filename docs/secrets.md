@@ -12,7 +12,6 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `FIREBASE_APP_ID` | push | Project settings → Your apps → the Android app (`app.heartpact`): App ID, `1:…:android:…` |
 | `FIREBASE_API_KEY` | push | Project settings → the Android app: Web API key (also `current_key` in `google-services.json`) |
 | `FIREBASE_SENDER_ID` | push | Project settings → Cloud Messaging: Sender ID (`project_number`) |
-| `MAPS_API_KEY` | the location map | Google Cloud console → APIs & Services → Credentials: an API key with "Maps SDK for Android" enabled, restricted to the app's package and signing certificate. Without it the app draws its own map of the two of you |
 | `GOOGLE_WEB_CLIENT_ID` | "Continue with Google" | Google Cloud console → APIs & Services → Credentials: the **Web application** OAuth client id (`…apps.googleusercontent.com`). Also create an **Android** OAuth client for package `app.heartpact` with your signing certificate's SHA-1, or Google refuses the sign-in. Without it the button is hidden |
 | `PLAY_INTEGRITY_PROJECT_NUMBER` | proving a finished dare came from the genuine app | the **number** of the Google Cloud project linked in Play Console → App integrity. Without it no token is sent. See `docs/exercise-checks.md` |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
@@ -38,6 +37,7 @@ Google Play happen in `.github/workflows/deploy.yml` (see `docs/deploy.md`).
 | `Frontend__Origin` | the web app and admin dashboard | CORS, comma-separated: include the dashboard's origin |
 | `Push__Provider` = `fcm`, `Push__FcmProjectId`, `Push__FcmCredentialsJson` | push | the service account JSON itself (Firebase → Project settings → Service accounts → Generate new private key) |
 | `Media__ServiceUrl`, `Media__Bucket`, `Media__AccessKey`, `Media__SecretKey`, `Media__Region` | shared album | any S3-compatible store: Cloudflare R2 (`Region=auto`), AWS S3, MinIO |
+| `Email__Provider` = `resend`, `Email__ApiKey`, `Email__From` (`Email__FromName` optional) | password reset codes | Resend (resend.com). `Email__From` must be an address on a domain you've verified in Resend. |
 | `Email__Provider` = `smtp`, `Email__Host`, `Email__Port` (587), `Email__User`, `Email__Password`, `Email__From` (`Email__FromName`, `Email__StartTls` optional) | password reset codes | any SMTP service: Amazon SES, Postmark, Mailgun, Resend, SendGrid, Google Workspace. `Email__StartTls=false` for implicit TLS on 465. Without it "Forgot password?" says reset isn't set up |
 | `Auth__GoogleClientIds` | Google sign-in | the same web client id as `GOOGLE_WEB_CLIENT_ID` (comma-separate several). Without it the server answers 503 to Google sign-in |
 | `Food__AnthropicApiKey` (or `ANTHROPIC_API_KEY`) | food photo estimates | without it the app logs meals by hand |

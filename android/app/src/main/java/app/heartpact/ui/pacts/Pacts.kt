@@ -1,5 +1,6 @@
 package app.heartpact.ui.pacts
 
+import app.heartpact.ui.components.heroHeight
 import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -107,22 +108,23 @@ fun PactsTab(ui: PactsUi, partnerName: String, onStop: (String) -> Unit, onNewDa
             Text(tr("Pacts"), style = Heartpact.type.headline, color = colors.ink)
             Text(trn(ui.view?.hearts ?: 0, "Your sticker page · {count} heart in 30 days", "Your sticker page · {count} hearts in 30 days"), style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
-    }, second = null, wide = true) {
+    }, second = null, wide = true, bottom = {
+        HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
+    }) {
         Segmented(listOf(tr("Dares for you"), tr("Dares you set")), if (forMe) 0 else 1) { forMe = it == 0 }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
         val cards = ui.view?.let { if (forMe) it.forMe else it.bySet }
         if (cards != null && cards.isEmpty()) {
             StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
-                Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Character(if (forMe) Who.Both else Who.Right, Pose.Stand, 96.dp)
+                Column(Modifier.fillMaxWidth().heroHeight().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Character(if (forMe) Who.Both else Who.Right, Pose.Stand, 120.dp)
                     Text(if (forMe) tr("No dares for you yet") else tr("You haven't dared {partner} yet", "partner" to partnerName), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
-                    Text(if (forMe) tr("When {partner} sets one, it shows up here with every heart you keep.", "partner" to partnerName) else tr("Set one and your half goes on first."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                    Text(if (forMe) tr("When {partner} sets one, it shows up here with every heart you keep.", "partner" to partnerName) else tr("Set one and your half goes on first."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         }
         CardColumns(cards.orEmpty(), most = 2) { card -> PactCardView(card, partnerName, forMe, onStopRequest = { stopping = card }) }
         Legend()
-        HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
     }
     stopping?.let { card ->
         AlertDialog(

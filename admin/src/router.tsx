@@ -15,6 +15,7 @@ import { UsersPage } from "./pages/Users";
 import { AlertsPage } from "./pages/Alerts";
 import { CouplesPage } from "./pages/Couples";
 import { DaresPage } from "./pages/Dares";
+import { FeaturesPage } from "./pages/Features";
 import { FunnelPage } from "./pages/Funnel";
 import { GamesPage } from "./pages/Games";
 import { GrowthPage } from "./pages/Growth";
@@ -63,6 +64,7 @@ const usersRoute = createRoute({ getParentRoute: () => appRoute, path: "/users",
 const userRoute = createRoute({ getParentRoute: () => appRoute, path: "/users/$userId", component: UserPage });
 const paymentsRoute = createRoute({ getParentRoute: () => appRoute, path: "/payments", validateSearch: paymentsSearch, component: PaymentsPage });
 const auditRoute = createRoute({ getParentRoute: () => appRoute, path: "/audit", validateSearch: auditSearch, component: AuditPage });
+const featuresRoute = createRoute({ getParentRoute: () => appRoute, path: "/features", component: FeaturesPage });
 const systemRoute = createRoute({ getParentRoute: () => appRoute, path: "/system", component: SystemPage });
 const liveRoute = createRoute({ getParentRoute: () => appRoute, path: "/live", component: LivePage });
 const alertsRoute = createRoute({ getParentRoute: () => appRoute, path: "/alerts", component: AlertsPage });
@@ -97,6 +99,7 @@ const routeTree = rootRoute.addChildren([
     paymentsRoute,
     auditRoute,
     healthRoute,
+    featuresRoute,
     systemRoute,
   ]),
 ]);

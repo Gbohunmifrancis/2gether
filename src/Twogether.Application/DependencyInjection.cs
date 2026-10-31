@@ -19,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<IEntitlementService, EntitlementService>();
         services.AddScoped<GooglePlaySubscriptionSync>();
         services.AddScoped<AccountExportService>();
+        services.AddScoped<AvatarService>();
+        services.AddScoped<Twogether.Application.Features.Config.FeatureFlagService>();
         services.AddScoped<Twogether.Application.Features.Admin.AdminAnalytics>();
         services.AddScoped<Twogether.Application.Features.Admin.Insights.AdminInsights>();
         return services;

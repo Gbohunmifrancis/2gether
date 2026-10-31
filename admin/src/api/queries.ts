@@ -7,6 +7,7 @@ import type {
   AuditRow,
   DareInsights,
   Engagement,
+  Features,
   Funnel,
   GameInsights,
   Grant,
@@ -87,6 +88,7 @@ export const queries = {
 
   system: () => queryOptions({ queryKey: ["system"], queryFn: () => api<SystemStatus>("/api/admin/system"), refetchInterval: 60_000 }),
   admins: () => queryOptions({ queryKey: ["admins"], queryFn: () => api<AdminRow[]>("/api/admin/admins") }),
+  features: () => queryOptions({ queryKey: ["features"], queryFn: () => api<Features>("/api/admin/features") }),
 };
 
 const post = <T = void>(path: string, body: unknown = {}) => api<T>(path, { method: "POST", body });
@@ -109,4 +111,7 @@ export const actions = {
   setInternal: (id: string, internal: boolean, reason: string) => post(`/api/admin/users/${id}/internal`, { internal, reason }),
 
   resetAuthenticator: (userId: string) => post(`/api/admin/admins/${userId}/reset-authenticator`),
+
+  /** Needs a fresh authenticator code (the step-up dialog asks). Answers the new state. */
+  setFeatures: (features: Features) => api<Features>("/api/admin/features", { method: "PUT", body: features }),
 };

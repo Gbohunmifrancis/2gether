@@ -2,6 +2,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Twogether.Application.Features.Auth;
 
 namespace Twogether.Infrastructure.Auth;
@@ -28,6 +30,34 @@ public sealed class SmtpEmailSender(EmailSettings settings, ILogger<SmtpEmailSen
         await client.DisconnectAsync(true, cancellationToken);
         logger.LogInformation("Sent {Subject} email.", message.Subject.Split(':')[0]);
     }
+}
+
+/// <summary>Resend's HTTP API (resend.com): no SMTP connection to keep open, and a failure says why.</summary>
+public sealed class ResendEmailSender(EmailSettings settings, ILogger<ResendEmailSender> logger) : IEmailSender, IDisposable
+{
+    private readonly HttpClient http = new() { BaseAddress = new Uri("https://api.resend.com/"), Timeout = TimeSpan.FromSeconds(20) };
+
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(settings.ApiKey) && !string.IsNullOrWhiteSpace(settings.From);
+
+    public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
+    {
+        if (!IsConfigured) throw new InvalidOperationException("Resend is not configured; check IsConfigured before sending.");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "emails")
+        {
+            Content = JsonContent.Create(new { from = $"{settings.FromName} <{settings.From}>", to = new[] { message.To }, subject = message.Subject, text = message.TextBody }),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
+        using var response = await http.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            // Resend's body names the problem (an unverified domain, a bad key); it never contains our message.
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"Resend rejected the email ({(int)response.StatusCode}): {body}");
+        }
+        logger.LogInformation("Sent {Subject} email.", message.Subject.Split(':')[0]);
+    }
+
+    public void Dispose() => http.Dispose();
 }
 
 /// <summary>Development: writes the message to the log instead of sending it.</summary>

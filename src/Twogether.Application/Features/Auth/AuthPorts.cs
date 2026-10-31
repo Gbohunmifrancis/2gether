@@ -21,6 +21,8 @@ public sealed class EmailSettings
     public int Port { get; init; } = 587;
     public string? User { get; init; }
     public string? Password { get; init; }
+    /// <summary>Resend's API key (Email:Provider=resend). <see cref="From"/> must be on a domain verified in Resend.</summary>
+    public string? ApiKey { get; init; }
     public string? From { get; init; }
     public string FromName { get; init; } = "Heartpact";
     /// <summary>STARTTLS on 587 (the default); false means implicit TLS, as on port 465.</summary>

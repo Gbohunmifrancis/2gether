@@ -49,4 +49,37 @@ public sealed class PipelineTests(PipelineTests.Host host) : IClassFixture<Pipel
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("PUT", "/api/account/avatar")]
+    [InlineData("DELETE", "/api/account/avatar")]
+    [InlineData("GET", "/api/users/3f2b8c1e-6b7a-4c1d-9a55-0d7b8f4e1a11/avatar")]
+    public async Task Profile_picture_endpoints_need_a_signed_in_user(string method, string path)
+    {
+        var response = await host.CreateClient().SendAsync(new HttpRequestMessage(new HttpMethod(method), path));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("PUT")]
+    public async Task Admin_features_need_an_admin_session(string method)
+    {
+        var request = new HttpRequestMessage(new HttpMethod(method), "/api/admin/features") { Content = JsonContent.Create(new { christmas = true }) };
+
+        var response = await host.CreateClient().SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_public_config_needs_no_sign_in()
+    {
+        // No database behind this host, so the read itself fails; what matters is that the request got past authentication.
+        var response = await host.CreateClient().GetAsync("/api/config");
+
+        Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }

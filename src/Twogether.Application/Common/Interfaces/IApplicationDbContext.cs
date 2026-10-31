@@ -36,5 +36,6 @@ public interface IApplicationDbContext
     DbSet<StoreSubscription> StoreSubscriptions { get; }
     DbSet<NotificationPreference> NotificationPreferences { get; }
     DbSet<AlbumSyncState> AlbumSyncStates { get; }
+    DbSet<AppSetting> AppSettings { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

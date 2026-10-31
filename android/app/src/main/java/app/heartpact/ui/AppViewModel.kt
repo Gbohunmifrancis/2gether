@@ -104,6 +104,8 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
             app.albumQueue.clear()
             return Destination.Welcome
         }
+        // The account may have changed elsewhere (a new picture from another phone): keep the stored copy current.
+        viewModelScope.launch { app.auth.refreshMe() }
         // Re-register on every start: tokens rotate, and the server keeps only the newest installs.
         viewModelScope.launch { Push.register(app) }
         // The hub joins the couple's group on connect: reconnect now that sign-in or linking changed it.

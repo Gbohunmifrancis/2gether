@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: twogether
       POSTGRES_USER: twogether
-      POSTGRES_PASSWORD: twogether_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-twogether_dev}
     ports:
       - "5432:5432"
     volumes:
@@ -14,6 +14,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      # The database by parts (the API also reads Railway's PG* variables), with the password from the environment.
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: twogether
+      PGUSER: twogether
+      PGPASSWORD: ${POSTGRES_PASSWORD:-twogether_dev}
+      Database__EnsureCreated: "true"
+      Frontend__Origin: http://localhost:3000
+      RateLimits__Enabled: "false"
+    ports:
+      - "5135:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   twogether-postgres:

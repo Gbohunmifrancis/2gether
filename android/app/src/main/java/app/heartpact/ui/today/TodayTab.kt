@@ -1,5 +1,8 @@
 package app.heartpact.ui.today
 
+import app.heartpact.ui.us.Chevron
+import app.heartpact.ui.graphics.Icon3D
+import app.heartpact.ui.components.heroHeight
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -72,6 +75,7 @@ fun TodayTab(
     onKeep: (String) -> Unit,
     onNewDare: () -> Unit,
     now: Instant = Instant.now(),
+    onGames: () -> Unit = {},
     onExactAlarmsAsked: () -> Unit = {},
 ) {
     val colors = Heartpact.colors
@@ -103,6 +107,7 @@ fun TodayTab(
                 }
             }
         }
+    }, bottom = {
         HeartButton(tr("New dare for {partner}", "partner" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)
     }) {
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp)) }
@@ -111,12 +116,16 @@ fun TodayTab(
         when {
             view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera, onDoItNow)
             view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
-                Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Character(Who.Both, Pose.Wave, 100.dp)
+                Column(Modifier.fillMaxWidth().heroHeight().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Character(Who.Both, Pose.Wave, 120.dp)
                     Text(tr("No dare for you yet"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 10.dp))
-                    Text(tr("When {partner} sets you one, their half of the heart lands here first.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp))
+                    Text(tr("When {partner} sets you one, their half of the heart lands here first.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
+        }
+        // Games sit one tap from the first screen, not three taps down in Us.
+        StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
+            CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
         }
     }
 }

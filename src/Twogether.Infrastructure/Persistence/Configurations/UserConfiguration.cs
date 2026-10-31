@@ -16,6 +16,10 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.GoogleId).HasMaxLength(128);
         builder.Property(user => user.DisplayName).HasMaxLength(100).IsRequired();
         builder.Property(user => user.AvatarUrl).HasMaxLength(500);
+        // The picture lives in the row (bytea) so there is no object storage to run. Never loaded for the couple's
+        // member list or the token check: those project the columns they need.
+        builder.Property(user => user.AvatarBytes);
+        builder.Property(user => user.AvatarVersion).HasDefaultValue(0L).IsRequired();
         builder.Property(user => user.DisabledReason).HasMaxLength(500);
         builder.Property(user => user.MapColor).HasMaxLength(20).HasDefaultValue("#f45c91").IsRequired();
         builder.Property(user => user.CycleOwner).HasDefaultValue(false).IsRequired();

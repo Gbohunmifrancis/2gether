@@ -85,7 +85,8 @@ class AlbumQueue(private val root: File) {
         val next = change(_photos.value)
         val temp = File(root, "index.json.tmp")
         temp.writeText(json.encodeToString(serializer, next))
-        temp.renameTo(index)
+        // Replace in one step; File.renameTo silently fails where the target exists on some file systems.
+        java.nio.file.Files.move(temp.toPath(), index.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
         _photos.value = next
     }
 

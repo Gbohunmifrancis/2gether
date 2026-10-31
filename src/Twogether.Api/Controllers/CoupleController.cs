@@ -36,7 +36,9 @@ public sealed class CoupleController(
         if (!currentUser.CoupleId.HasValue) return NotFound();
         var couple = await db.Couples.AsNoTracking().SingleOrDefaultAsync(item => item.Id == currentUser.CoupleId.Value, cancellationToken);
         if (couple is null) return NotFound();
-        var users = await db.Users.AsNoTracking().Where(user => user.CoupleId == couple.Id).Select(user => new CoupleMemberDto(user.Id, user.DisplayName, user.AvatarUrl, user.Id == couple.UserAId ? CoupleSide.Left : CoupleSide.Right))
+        var users = await db.Users.AsNoTracking().Where(user => user.CoupleId == couple.Id).Select(user => new CoupleMemberDto(user.Id, user.DisplayName, user.AvatarUrl, user.Id == couple.UserAId ? CoupleSide.Left : CoupleSide.Right,
+                // Spelled out so the picture itself is not read from the row.
+                user.AvatarBytes == null ? 0L : user.AvatarVersion))
             .ToListAsync(cancellationToken);
         users = users.OrderBy(member => member.Side).ToList();
         return Ok(new CoupleDto(couple.Id, couple.Status, couple.LinkedAtUtc, users));
@@ -144,7 +146,7 @@ public sealed class CoupleController(
         await hub.Clients.Group(CoupleHub.UserGroupName(invite.InviterUserId)).SendAsync("NotificationCreated", NotificationController.ToDto(connected), cancellationToken);
         var accessToken = tokenService.CreateAccessToken(user.Id, couple.Id, user.Email, user.DisplayName, clock.UtcNow);
         return Ok(new AuthResponse(accessToken, new AuthUserDto(user.Id, user.Email, user.DisplayName, couple.Id, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender,
-            user.CountryCode, Twogether.Core.Users.ContentRegions.For(user.CountryCode))));
+            user.CountryCode, Twogether.Core.Users.ContentRegions.For(user.CountryCode), user.PublicAvatarVersion)));
     }
 
     /// <summary>
@@ -246,6 +248,7 @@ public sealed record CoupleDto(Guid Id, CoupleStatus Status, DateTime? LinkedAtU
 /// Side fixes each partner's half of the heart on every phone: the person who started the couple
 /// is the left (indigo) half, the partner who joined is the right (periwinkle) half.
 /// </summary>
-public sealed record CoupleMemberDto(Guid UserId, string DisplayName, string? AvatarUrl, CoupleSide Side);
+/// <remarks><c>AvatarVersion</c> is 0 without a profile picture, else the version of <c>GET api/users/{userId}/avatar</c> to ask for.</remarks>
+public sealed record CoupleMemberDto(Guid UserId, string DisplayName, string? AvatarUrl, CoupleSide Side, long AvatarVersion = 0);
 
 public enum CoupleSide { Left, Right }

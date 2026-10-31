@@ -1,5 +1,9 @@
 package app.heartpact.screens
 
+import app.heartpact.ui.theme.ThemeMode
+import app.heartpact.ui.us.ProfileScreen
+import app.heartpact.ui.theme.Side
+import app.heartpact.ui.components.Face
 import app.heartpact.data.DailyAnswer
 import app.heartpact.data.DailyQuestion
 import app.heartpact.data.Gender
@@ -32,12 +36,13 @@ class UsShotsTest {
     @Test fun us() {
         shot("us") {
             HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
-                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {}, country = "NG", onCountry = {}, gender = Gender.Female, onGender = {})
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), Face("maya", "Maya", 0, Side.Left), Face("theo", "Theo", 0, Side.Right), "together since 2 March", {}, {}, {})
             })
         }
-        shot("us-no-country") {
+        shot("profile") {
             HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
-                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "together since 2 March", {}, {}, {}, {}, {}, {}, onCountry = {})
+                ProfileScreen(UsUi(preferences = NotificationPreferences(quietHoursEnabled = true)), Face("maya", "Maya", 0, Side.Left), null, Gender.Female, "Theo", ThemeMode.System,
+                    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
             })
         }
     }

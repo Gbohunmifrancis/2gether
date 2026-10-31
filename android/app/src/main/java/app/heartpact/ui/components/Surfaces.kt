@@ -1,5 +1,7 @@
 package app.heartpact.ui.components
 
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,9 +49,31 @@ fun StickerCard(modifier: Modifier = Modifier, shape: Shape = Shapes.Card, lift:
         modifier
             .shadow(lift, shape, ambientColor = colors.left.art.copy(alpha = 0.5f), spotColor = colors.left.art.copy(alpha = 0.55f))
             .clip(shape)
-            .background(colors.sticker),
+            .background(colors.sticker)
+            .then(if (app.heartpact.ui.theme.Season.christmas) Modifier.snowCap() else Modifier),
         content = content,
     )
+}
+
+/** At Christmas a soft cap of snow sits along a card's top edge, in lumps, with a faint shadow under it. */
+private fun Modifier.snowCap(): Modifier = drawWithContent {
+    drawContent()
+    val h = 7.dp.toPx()
+    val cap = androidx.compose.ui.graphics.Path().apply {
+        moveTo(0f, 0f)
+        lineTo(size.width, 0f)
+        lineTo(size.width, h * 0.8f)
+        val lumps = (size.width / 46.dp.toPx()).toInt().coerceAtLeast(3)
+        val step = size.width / lumps
+        for (i in lumps downTo 1) {
+            val x0 = i * step
+            val dip = if (i % 2 == 0) h * 1.35f else h * 0.9f
+            quadraticTo(x0 - step / 2, dip + h * 0.6f, x0 - step, h * 0.8f)
+        }
+        close()
+    }
+    translate(0f, 1.5.dp.toPx()) { drawPath(cap, androidx.compose.ui.graphics.Color(0x1A3A4A5A)) }
+    drawPath(cap, androidx.compose.ui.graphics.Color.White)
 }
 
 /** A list row inside a card. Rows after the first get a dashed perforation, like a page meant to be torn. */
