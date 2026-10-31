@@ -312,8 +312,11 @@ class SkillShotsTest {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SkillKind.entries.forEach { SkillIcon(it, Heartpact.colors.ink, 24.dp) }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SkillKind.entries.forEach { SkillIcon(it, BlobColour.Rose.ink, 52.dp) }
+                // Big icons, five to a row so all of them fit on a phone.
+                SkillKind.entries.chunked(5).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        row.forEach { SkillIcon(it, BlobColour.Rose.ink, 52.dp) }
+                    }
                 }
             }
         }

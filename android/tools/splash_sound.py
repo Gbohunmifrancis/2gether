@@ -4,16 +4,18 @@ Short and soft: nothing while the halves walk in, then, as they meet (SplashTime
 notes a sixth apart, one per half, and as the mark forms a quiet pad that breathes out by the blink. About a second
 and a half you actually hear, peaking well under full volume, with no clicks, thumps or bright overtones.
 
-    python android/tools/splash_sound.py    # writes app/src/main/res/raw/splash_love.wav (needs numpy only)
+    python android/tools/splash_sound.py    # writes app/src/main/res/raw/splash_love.ogg (needs numpy and ffmpeg)
 """
 import pathlib
+import subprocess
+import tempfile
 import wave
 
 import numpy as np
 
 RATE = 44100
 LENGTH_S = 3.0
-OUT = pathlib.Path(__file__).resolve().parent.parent / "app/src/main/res/raw/splash_love.wav"
+OUT = pathlib.Path(__file__).resolve().parent.parent / "app/src/main/res/raw/splash_love.ogg"
 
 track = np.zeros(int(RATE * LENGTH_S))
 
@@ -73,9 +75,13 @@ track[-at(300):] *= np.linspace(1, 0, at(300))
 track *= 0.5 / np.max(np.abs(track))
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
-with wave.open(str(OUT), "wb") as out:
-    out.setnchannels(1)
-    out.setsampwidth(2)
-    out.setframerate(RATE)
-    out.writeframes((track * 32767).astype("<i2").tobytes())
+# Written as a WAV, then encoded to Ogg Vorbis at high quality: the same sound at a tenth of the size.
+with tempfile.TemporaryDirectory() as tmp:
+    wav = pathlib.Path(tmp) / "splash_love.wav"
+    with wave.open(str(wav), "wb") as out:
+        out.setnchannels(1)
+        out.setsampwidth(2)
+        out.setframerate(RATE)
+        out.writeframes((track * 32767).astype("<i2").tobytes())
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-c:a", "libvorbis", "-q:a", "6", str(OUT)], check=True)
 print(f"wrote {OUT} ({OUT.stat().st_size // 1024} KB)")

@@ -58,6 +58,25 @@ class SpotScenesTest {
         }
     }
 
+    @Test fun a_missing_prop_and_an_added_one_are_never_side_by_side() = everyScene { scene ->
+        val missing = scene.spots.filter { it.kind == DiffKind.Missing }
+        val extra = scene.spots.filter { it.kind == DiffKind.Extra }
+        for (m in missing) for (e in extra) {
+            assertTrue("${scene.kind} ${scene.seed}: a missing and an added prop read as one that moved", dist(m.x, m.y, e.x, e.y) >= m.r + e.r + 30f)
+        }
+    }
+
+    @Test fun lit_windows_keep_room_for_their_glow() = everyScene { scene ->
+        for (picture in listOf(scene.original, scene.changed)) {
+            val windows = picture.filter { it.kind.name == "Window" }
+            for (a in windows) for (b in windows) if (a.id < b.id) {
+                val apartX = kotlin.math.abs(a.x - b.x) >= a.halfW + b.halfW + 10f
+                val apartY = kotlin.math.abs(a.y - b.y) >= a.halfH + b.halfH + 10f
+                assertTrue("${scene.kind} ${scene.seed}: two windows' glows touch", apartX || apartY)
+            }
+        }
+    }
+
     @Test fun props_never_overlap_and_stay_on_the_page() = everyScene { scene ->
         listOf(scene.original, scene.changed).forEach { props ->
             props.forEach { p ->

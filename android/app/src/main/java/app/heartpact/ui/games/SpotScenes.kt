@@ -151,6 +151,10 @@ internal object SpotScenes {
     const val MIN_RADIUS = 15f
     private const val EDGE = 3f
     private const val GAP = 3f
+    /** Extra room between two lit windows, for their glow. */
+    private const val WINDOW_GLOW = 7f
+    /** Extra room between a missing prop and an added one, so the pair never reads as one prop that moved. */
+    private const val APART = 30f
     /** Every zone's sizes, a touch larger than written: big, friendly stickers read better on a phone. */
     private const val GROW = 1.15f
 
@@ -240,7 +244,7 @@ internal object SpotScenes {
                 val roofTop = if (h.roof == 0) h.top else h.top - h.w * 0.32f
                 if (h.roof == 0) add(Zone(h.x + 6f, h.top, h.x + h.w - 6f, h.top, listOf(PropKind.Cat, PropKind.Plant, PropKind.Bird), 0..1, 14f..17f, sit = true))
                 else add(Zone(h.x + h.w / 2f - 12f, roofTop - 24f, h.x + h.w / 2f + 12f, roofTop - 2f, listOf(PropKind.Bird, PropKind.Star), 0..1, 12f..14f))
-                add(Zone(h.x + 8f, h.top + 8f, h.x + h.w - 8f, 194f, listOf(PropKind.Window), 1..3, 14f..18f))
+                add(Zone(h.x + 12f, h.top + 10f, h.x + h.w - 12f, 192f, listOf(PropKind.Window), 1..3, 14f..18f))
             }
         }
         SceneKind.Cafe -> listOf(
@@ -311,8 +315,11 @@ internal object SpotScenes {
         return others.none { o -> o.id != except && o.id != p.id && overlaps(p, o) }
     }
 
-    private fun overlaps(a: Prop, b: Prop): Boolean =
-        (a.x - b.x).let { it * it } < (a.halfW + b.halfW + GAP).let { it * it } && (a.y - b.y).let { it * it } < (a.halfH + b.halfH + GAP).let { it * it }
+    private fun overlaps(a: Prop, b: Prop): Boolean {
+        // Two lit windows keep room for their glow, so one never touches the other.
+        val gap = if (a.kind == PropKind.Window && b.kind == PropKind.Window) GAP + WINDOW_GLOW else GAP
+        return (a.x - b.x).let { it * it } < (a.halfW + b.halfW + gap).let { it * it } && (a.y - b.y).let { it * it } < (a.halfH + b.halfH + gap).let { it * it }
+    }
 
     /** The circle round a prop where it was ([a]) and where it is ([b]): both fit inside. */
     private fun ring(a: Prop, b: Prop): Triple<Float, Float, Float> {
@@ -352,7 +359,12 @@ internal object SpotScenes {
         val order = props.shuffled(random)
         var nextId = props.size
 
-        fun clearOfSpots(x: Float, y: Float, r: Float) = spots.none { s -> d2(s.x, s.y, x, y) < (s.r + r + 2f) * (s.r + r + 2f) }
+        fun clearOfSpots(x: Float, y: Float, r: Float, diff: DiffKind? = null) = spots.none { s ->
+            // A missing prop and an added one side by side would look like one prop that moved: keep them apart.
+            val pair = (diff == DiffKind.Extra && s.kind == DiffKind.Missing) || (diff == DiffKind.Missing && s.kind == DiffKind.Extra)
+            val room = s.r + r + 2f + if (pair) APART else 0f
+            d2(s.x, s.y, x, y) < room * room
+        }
         fun everything() = changed + props.filter { p -> changed.none { it.id == p.id } }
 
         fun tryKind(diff: DiffKind): Boolean {
@@ -362,7 +374,7 @@ internal object SpotScenes {
                     val prop = draw(zone, random, nextId) ?: return@repeat
                     if (prop.size < 14f) return@repeat
                     val r = max(MIN_RADIUS, prop.reach + 2f)
-                    if (fits(prop, everything()) && (prop.kind !in onlyOne || everything().none { it.kind == prop.kind }) && clearOfSpots(prop.x, prop.y, r)) {
+                    if (fits(prop, everything()) && (prop.kind !in onlyOne || everything().none { it.kind == prop.kind }) && clearOfSpots(prop.x, prop.y, r, diff)) {
                         nextId++
                         changed += prop
                         spots += Spot(spots.size, diff, prop.x, prop.y, r)
@@ -403,7 +415,7 @@ internal object SpotScenes {
                     DiffKind.Extra -> null
                 } ?: continue
                 val (cx, cy, r) = ring(p, next)
-                if (!clearOfSpots(cx, cy, r)) continue
+                if (!clearOfSpots(cx, cy, r, diff)) continue
                 used += p.id
                 val at = changed.indexOfFirst { it.id == p.id }
                 if (diff == DiffKind.Missing) changed.removeAt(at) else changed[at] = next
