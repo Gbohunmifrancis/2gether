@@ -294,6 +294,19 @@ public sealed class GoogleBillingChoiceTests : IDisposable
     }
 
     [Fact]
+    public async Task An_in_app_card_checkout_needs_the_token_from_Googles_choice_screen()
+    {
+        await using (var db = database.CreateContext()) await TestCouple.AddAsync(db);
+        var couple = await CoupleInFranceAsync();
+
+        var result = (ObjectResult)await CheckoutAsync(couple, from: "app", token: null);
+
+        Assert.Equal(400, result.StatusCode);
+        await using var check = database.CreateContext();
+        Assert.Empty(await check.GoogleExternalTransactions.ToListAsync());
+    }
+
+    [Fact]
     public async Task A_web_purchase_reports_nothing()
     {
         await using (var db = database.CreateContext()) await TestCouple.AddAsync(db);

@@ -46,8 +46,6 @@ public sealed class BachsBillingController(
             logger.LogInformation("Card checkout for user {UserId} refused: {Code}.", userId, result.Error.Code);
             return Answer(result.Error);
         }
-        if (string.Equals(request.From?.Trim(), "app", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(request.ExternalTransactionToken))
-            logger.LogWarning("In-app card checkout for user {UserId} came without Google's external transaction token; it can't be reported to Google.", userId);
         return Ok(result.Value);
     }
 

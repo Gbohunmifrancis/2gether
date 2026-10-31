@@ -88,7 +88,7 @@ Errors (`{ code, message }`, messages translated):
 |---|---|---|
 | 503 | `billing.bachs_unavailable` | Bachs isn't configured (key, webhook secret and both product ids) |
 | 400 | `billing.unknown_plan` | plan other than `monthly` or `yearly` |
-| 400 | `billing.invalid_from` | `from` other than `web` or `app`, or a token without `from: "app"`, or a token over 2048 characters |
+| 400 | `billing.invalid_from` | `from` other than `web` or `app`, a token without `from: "app"`, `from: "app"` without the token from Google's choice screen (it could not be reported), or a token over 2048 characters |
 | 409 | `billing.already_plus` | the caller already has Plus: their own or their partner's subscription (either store), or a complimentary grant |
 | 403 | `billing.card_in_app_unavailable` | `from: "app"` while the entitlement's `cardInApp` is false |
 | 404 | `billing.no_bachs_customer` | portal: the caller has never had a card subscription |

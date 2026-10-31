@@ -512,7 +512,7 @@ public sealed class BachsBillingTests : IDisposable
         var couple = await CoupleAsync();
         await using var db = database.CreateContext();
 
-        var result = await Controller(db, couple.MayaId, couple.CoupleId).Checkout(new BachsCheckoutStart("monthly", "app"), default);
+        var result = await Controller(db, couple.MayaId, couple.CoupleId).Checkout(new BachsCheckoutStart("monthly", "app", "token-from-google"), default);
 
         Assert.Equal((403, "billing.card_in_app_unavailable"), (StatusOf(result), CodeOf(result)));
         Assert.Empty(bachs.Checkouts);

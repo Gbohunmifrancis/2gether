@@ -43,7 +43,9 @@ public sealed class BachsCheckoutService(
         if (productId is null) return Error.Validation(UnknownPlan, Loc.T("Choose the monthly or the yearly plan."));
         var from = string.IsNullOrWhiteSpace(request.From) ? "web" : request.From.Trim().ToLowerInvariant();
         var token = string.IsNullOrWhiteSpace(request.ExternalTransactionToken) ? null : request.ExternalTransactionToken.Trim();
-        if (from is not ("web" or "app") || (token is not null && from != "app"))
+        // An in-app card checkout only ever starts from Google's choice screen, whose token Google needs reported:
+        // without it the sale couldn't be reported, so it isn't started.
+        if (from is not ("web" or "app") || (token is not null && from != "app") || (from == "app" && token is null))
             return Error.Validation(InvalidFrom, Loc.T("This checkout can't be started from here."));
         if (token is { Length: > GoogleExternalTransaction.MaxTokenLength })
             return Error.Validation(InvalidFrom, Loc.T("This checkout can't be started from here."));
