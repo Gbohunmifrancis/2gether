@@ -460,7 +460,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         onInvite = { type, letter -> model.invite(type, letter) }, onAccept = { model.accept(it) }, onAbandon = { model.abandon(it) },
                         onAct = { s, action, value, index -> model.act(s, action, value, index) }, onBack = { nav.popBackStack() },
                         onClose = { model.close(it) }, onInk = { s, cell, stroke, points -> model.ink(s, cell, stroke, points) },
-                    ))
+                    ), myName = session?.user?.displayName.orEmpty())
                 }
                 composable(Routes.MAP) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()

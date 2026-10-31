@@ -64,7 +64,7 @@ data class GameActions(
  * [bests] keeps Heart skills' best practice scores; without one, none are shown.
  */
 @Composable
-fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }, bests: SkillBests = rememberSkillBests()) {
+fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { Instant.now() }, bests: SkillBests = rememberSkillBests(), myName: String = "") {
     // A Heart skill being practiced opens over the hub, full screen; back comes home to the hub.
     var practicing by rememberSaveable { mutableStateOf<SkillKind?>(null) }
     practicing?.let { kind ->
@@ -93,7 +93,7 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
                 else -> {
                     // A finished game leads with its result; the final board stays under it.
                     if (active.status == GameStatus.Completed) GameResultCard(active, me, partnerName)
-                    Playing(active, me, partnerName, ui.busy, moves, now, ui.pending, ui)
+                    Playing(active, me, partnerName, ui.busy, moves, now, ui.pending, ui, myName)
                 }
             }
         }
@@ -132,7 +132,7 @@ internal fun secondsUntil(iso: String?, now: () -> Instant): Long {
 }
 
 @Composable
-private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant, pending: List<PendingMove> = emptyList(), ui: GamesUi = GamesUi()) {
+private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant, pending: List<PendingMove> = emptyList(), ui: GamesUi = GamesUi(), myName: String = "") {
     val countdown = secondsUntil(s.countdownEndsAtUtc, now)
     if (s.status == GameStatus.InProgress && countdown > 0) {
         Countdown(countdown)
@@ -150,6 +150,9 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
         GameType.SkillDuel -> SkillDuelBoard(s, me, partnerName, busy, actions)
+        GameType.SpotTheDifference -> SpotTheDifferenceBoard(s, me, myName, partnerName, actions, now)
+        // A game from a newer server: say so, and leave "End this game" under it.
+        GameType.Unknown -> NoteCard(tr("This game needs a newer Heartpact. Update the app to play it."))
         else -> QuizBoard(s, me, partnerName, busy, actions)
     }
     if (s.status == GameStatus.InProgress) HeartButton(tr("End this game"), { actions.onAbandon(s.id) }, Modifier.padding(top = 18.dp), kind = ButtonKind.Text)

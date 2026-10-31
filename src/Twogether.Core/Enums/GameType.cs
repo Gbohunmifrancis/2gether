@@ -13,5 +13,6 @@ public enum GameType
     TicTacToe,
     ConnectFour,
     Trivia,
-    SkillDuel
+    SkillDuel,
+    SpotTheDifference
 }

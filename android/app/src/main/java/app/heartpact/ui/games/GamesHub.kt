@@ -263,7 +263,8 @@ private fun <T> BlobGrid(
         val cell = (maxWidth - gap * (columns - 1)) / columns
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.chunked(columns).forEachIndexed { r, row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                // A short last row sits in the middle.
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally)) {
                     row.forEachIndexed { c, item ->
                         val index = items.indexOf(item)
                         PickBlob(label(item), colour(item), index * 7 + 3, item == picked, startAt + r * columns + c, breath, { onPick(item) }, Modifier.width(cell)) { tint, size ->

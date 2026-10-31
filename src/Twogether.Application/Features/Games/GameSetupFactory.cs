@@ -70,6 +70,7 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
         // The words to draw are the drawer's secret: they stay in the setup on the server (GameRegion.PublicSetup).
         GameType.Handwriting => JsonSerializer.Serialize(new { region, words = Content.DrawAndGuessWords.Pick(region, DrawAndGuessRules.Rounds) }),
         GameType.SkillDuel => SkillDuelRules.CreateSetup(region),
+        GameType.SpotTheDifference => SpotTheDifferenceRules.CreateSetup(region),
         GameType.Trivia => JsonSerializer.Serialize(new { region, trivia = await TriviaRules.QuestionsFor(region, questions, cancellationToken) }),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };

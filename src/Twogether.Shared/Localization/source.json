@@ -644,7 +644,7 @@
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/GameController.cs:114",
-   "Twogether.Api/Controllers/GameController.cs:127"
+   "Twogether.Api/Controllers/GameController.cs:128"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"game.invalid_action\", Loc.T(\"That action is not available.\")));"
  },
@@ -665,17 +665,18 @@
  "The game state changed. The latest board has been loaded.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:120"
+   "Twogether.Api/Controllers/GameController.cs:121"
   ],
   "code": "return Conflict(new ApiError(\"game.version_conflict\", Loc.T(\"The game state changed. The latest board has been loaded.\")));"
  },
  "This game session is corrupted. End it and start a new game.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:136",
+   "Twogether.Api/Controllers/GameController.cs:137",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:143",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:118",
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:248",
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:249",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:192",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:110"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"game.invalid_state\", Loc.T(\"This game session is corrupted. End it and start a new game.\")));"
@@ -683,119 +684,126 @@
  "Your partner just updated the game. The latest board has been loaded.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:148"
+   "Twogether.Api/Controllers/GameController.cs:149"
   ],
   "code": "return Conflict(new ApiError(\"game.version_conflict\", Loc.T(\"Your partner just updated the game. The latest board has been loaded.\")));"
  },
  "This game has already ended.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:160"
+   "Twogether.Api/Controllers/GameController.cs:161"
   ],
   "code": "if (!session.IsOpen) return Conflict(new ApiError(\"game.already_ended\", Loc.T(\"This game has already ended.\")));"
  },
  "Game ended": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:168"
+   "Twogether.Api/Controllers/GameController.cs:169"
   ],
   "code": "notification = Notification.Create(partnerId.Value, session.CoupleId, NotificationType.GameEnded, Loc.T(\"Game ended\"),"
  },
  "{name} ended your game.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:169"
+   "Twogether.Api/Controllers/GameController.cs:170"
   ],
   "code": "Loc.T(\"{name} ended your game.\", (\"name\", endedBy.DisplayName)), JsonSerializer.Serialize(new { sessionId = session.Id }), clock.UtcNow);"
  },
  "{name} invited you to play Same answer.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:195"
+   "Twogether.Api/Controllers/GameController.cs:196"
   ],
   "code": "GameType.CoupleQuiz => Loc.T(\"{name} invited you to play Same answer.\", (\"name\", name)),"
  },
  "{name} invited you to play Memory match.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:196"
+   "Twogether.Api/Controllers/GameController.cs:197"
   ],
   "code": "GameType.MemoryMatch => Loc.T(\"{name} invited you to play Memory match.\", (\"name\", name)),"
  },
  "{name} invited you to play I call on.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:197"
+   "Twogether.Api/Controllers/GameController.cs:198"
   ],
   "code": "GameType.ICallOn => Loc.T(\"{name} invited you to play I call on.\", (\"name\", name)),"
  },
  "{name} invited you to play Guess my answer.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:198"
+   "Twogether.Api/Controllers/GameController.cs:199"
   ],
   "code": "GameType.GuessMyAnswer => Loc.T(\"{name} invited you to play Guess my answer.\", (\"name\", name)),"
  },
  "{name} invited you to play Word dash.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:199"
+   "Twogether.Api/Controllers/GameController.cs:200"
   ],
   "code": "GameType.WordDash => Loc.T(\"{name} invited you to play Word dash.\", (\"name\", name)),"
  },
  "{name} invited you to play Draw and guess.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:200"
+   "Twogether.Api/Controllers/GameController.cs:201"
   ],
   "code": "GameType.Handwriting => Loc.T(\"{name} invited you to play Draw and guess.\", (\"name\", name)),"
  },
  "{name} invited you to play Truth or dare.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:201"
+   "Twogether.Api/Controllers/GameController.cs:202"
   ],
   "code": "GameType.TruthOrDare => Loc.T(\"{name} invited you to play Truth or dare.\", (\"name\", name)),"
  },
  "{name} invited you to play Would you rather.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:202"
+   "Twogether.Api/Controllers/GameController.cs:203"
   ],
   "code": "GameType.WouldYouRather => Loc.T(\"{name} invited you to play Would you rather.\", (\"name\", name)),"
  },
  "{name} invited you to play Tic-tac-toe.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:203"
+   "Twogether.Api/Controllers/GameController.cs:204"
   ],
   "code": "GameType.TicTacToe => Loc.T(\"{name} invited you to play Tic-tac-toe.\", (\"name\", name)),"
  },
  "{name} invited you to play Connect four.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:204"
+   "Twogether.Api/Controllers/GameController.cs:205"
   ],
   "code": "GameType.ConnectFour => Loc.T(\"{name} invited you to play Connect four.\", (\"name\", name)),"
  },
  "{name} invited you to play Trivia.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:205"
+   "Twogether.Api/Controllers/GameController.cs:206"
   ],
   "code": "GameType.Trivia => Loc.T(\"{name} invited you to play Trivia.\", (\"name\", name)),"
  },
  "{name} invited you to play Heart to heart.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:206"
+   "Twogether.Api/Controllers/GameController.cs:207"
   ],
   "code": "GameType.SkillDuel => Loc.T(\"{name} invited you to play Heart to heart.\", (\"name\", name)),"
+ },
+ "{name} invited you to play Spot the difference.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:208"
+  ],
+  "code": "GameType.SpotTheDifference => Loc.T(\"{name} invited you to play Spot the difference.\", (\"name\", name)),"
  },
  "{name} invited you to a game.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/GameController.cs:207"
+   "Twogether.Api/Controllers/GameController.cs:209"
   ],
   "code": "_ => Loc.T(\"{name} invited you to a game.\", (\"name\", name)),"
  },
@@ -6669,7 +6677,8 @@
   "uses": [
    "Twogether.Application/Features/Games/DrawAndGuessRules.cs:55",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:46",
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:66",
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:67",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:73",
    "Twogether.Application/Features/Games/TriviaRules.cs:49",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:48"
   ],
@@ -6681,7 +6690,8 @@
    "Twogether.Application/Features/Games/DrawAndGuessRules.cs:56",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:45",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:51",
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:64",
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:65",
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:69",
    "Twogether.Application/Features/Games/TriviaRules.cs:48",
    "Twogether.Application/Features/Games/TruthOrDareRules.cs:43",
    "Twogether.Application/Features/Games/WordDashRules.cs:54",
@@ -6764,21 +6774,23 @@
  "That move isn't part of this game.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/GridMatchRules.cs:57"
+   "Twogether.Application/Features/Games/GridMatchRules.cs:58",
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:100"
   ],
   "code": "throw new InvalidOperationException(Loc.T(\"That move isn't part of this game.\"));"
  },
  "This match is over.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/GridMatchRules.cs:59"
+   "Twogether.Application/Features/Games/GridMatchRules.cs:60",
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:85"
   ],
   "code": "if (state.Phase == MatchOverPhase) throw new InvalidOperationException(Loc.T(\"This match is over.\"));"
  },
  "It's not your turn yet.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/GridMatchRules.cs:60"
+   "Twogether.Application/Features/Games/GridMatchRules.cs:61"
   ],
   "code": "if (state.Players[state.TurnIndex] != move.Actor) throw new InvalidOperationException(Loc.T(\"It's not your turn yet.\"));"
  },
@@ -6844,44 +6856,131 @@
  "Heart to heart expects a score.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:62"
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:63"
   ],
   "code": "throw new InvalidOperationException(Loc.T(\"Heart to heart expects a score.\"));"
  },
  "Pick one of the five rounds.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:68"
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:69"
   ],
   "code": "throw new InvalidOperationException(Loc.T(\"Pick one of the five rounds.\"));"
  },
  "A score is a whole number from 0 to 100.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:69"
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:70"
   ],
   "code": "var score = ParseScore(move.Value) ?? throw new InvalidOperationException(Loc.T(\"A score is a whole number from 0 to 100.\"));"
  },
  "You already played this round.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/SkillDuelRules.cs:70"
+   "Twogether.Application/Features/Games/SkillDuelRules.cs:71"
   ],
   "code": "if (mine[round] is not null) throw new InvalidOperationException(Loc.T(\"You already played this round.\"));"
+ },
+ "Spot the difference expects a spot.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:72"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Spot the difference expects a spot.\"));"
+ },
+ "The next picture is on its way.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:74"
+  ],
+  "code": "if (state.Phase == BetweenPhase) throw new InvalidOperationException(Loc.T(\"The next picture is on its way.\"));"
+ },
+ "That isn't one of the differences.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:76"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"That isn't one of the differences.\"));"
+ },
+ "You already spotted that one.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
+  ],
+  "code": "throw new InvalidOperationException(found.By == move.Actor ? Loc.T(\"You already spotted that one.\") : Loc.T(\"Your partner spotted that one first.\"));"
+ },
+ "Your partner spotted that one first.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:79"
+  ],
+  "code": "throw new InvalidOperationException(found.By == move.Actor ? Loc.T(\"You already spotted that one.\") : Loc.T(\"Your partner spotted that one first.\"));"
+ },
+ "Not so fast: one spot at a time.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:81"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Not so fast: one spot at a time.\"));"
+ },
+ "You're not playing this game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:88"
+  ],
+  "code": "if (!state.Players.Contains(move.Actor)) throw new InvalidOperationException(Loc.T(\"You're not playing this game.\"));"
+ },
+ "That game is over.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:140",
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:148",
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:180"
+  ],
+  "code": "if (game is { } made && made != state.Game + 1) throw new InvalidOperationException(Loc.T(\"That game is over.\"));"
+ },
+ "Get ready, the next game is about to start.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:142"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Get ready, the next game is about to start.\"));"
  },
  "Pick a square on the board.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/TicTacToeRules.cs:19"
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:149"
   ],
   "code": "if (index is not { } cell || cell < 0 || cell >= state.Cells.Count) throw new InvalidOperationException(Loc.T(\"Pick a square on the board.\"));"
+ },
+ "Your ink is still drying.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:151"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Your ink is still drying.\"));"
  },
  "That square is taken.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Games/TicTacToeRules.cs:20"
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:152"
   ],
   "code": "if (state.Cells[cell] is not null) throw new InvalidOperationException(Loc.T(\"That square is taken.\"));"
+ },
+ "That mark's ink is already dry.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:184",
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:186"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"That mark's ink is already dry.\"));"
+ },
+ "That mark couldn't be drawn. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/TicTacToeRules.cs:301"
+  ],
+  "code": "private static InvalidOperationException Invalid() => new(Loc.T(\"That mark couldn't be drawn. Try again.\"));"
  },
  "You already answered this one. Wait for your partner.": {
   "plural": false,

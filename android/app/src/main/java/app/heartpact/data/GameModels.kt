@@ -12,6 +12,10 @@ enum class GameType {
     @SerialName("wouldYouRather") WouldYouRather, @SerialName("ticTacToe") TicTacToe, @SerialName("connectFour") ConnectFour, @SerialName("trivia") Trivia,
     /** Heart to heart: the same skill rounds for both, scores side by side (ui/play). */
     @SerialName("skillDuel") SkillDuel,
+    /** Spot the difference: the same pictures for both, at the same time; most spots wins. */
+    @SerialName("spotTheDifference") SpotTheDifference,
+    /** A game this version of the app doesn't know (a newer server's): listed and endable, never played, so nothing breaks. */
+    @SerialName("unknown") Unknown,
 }
 
 @Serializable
@@ -21,7 +25,8 @@ enum class GameStatus { @SerialName("waitingForPartner") Waiting, @SerialName("i
 data class GameSession(
     val id: String,
     val coupleId: String = "",
-    val gameType: GameType,
+    /** A type this app doesn't know reads as [GameType.Unknown] (coerced to this default). */
+    val gameType: GameType = GameType.Unknown,
     val status: GameStatus,
     val startedAtUtc: String? = null,
     val endedAtUtc: String? = null,
@@ -348,6 +353,37 @@ data class SkillDuelState(
     val pointMargin: Int? = null,
 ) {
     val finished: Boolean get() = totals != null
+}
+
+/** Spot the difference: one difference found, and by whom. */
+@Serializable
+data class SpotFind(val index: Int = 0, val by: String = "")
+
+/** One picture of a Spot the difference game: its kind and seed (the phone draws it), who found what, and whether time ran out. */
+@Serializable
+data class SpotPicture(val index: Int = 0, val kind: String = "", val seed: Int = 0, val found: List<SpotFind> = emptyList(), val timedOut: Boolean = false)
+
+@Serializable
+data class SpotTheDifferenceState(
+    val players: List<String> = emptyList(),
+    /** "spotting", "between" (a short beat before the next picture) or "completed". */
+    val phase: String = "spotting",
+    val scene: Int = 0,
+    val totalScenes: Int = 3,
+    val differences: Int = 7,
+    val sceneSeconds: Int = 90,
+    val beatSeconds: Int = 3,
+    val kind: String? = null,
+    val seed: Int = 0,
+    val found: List<SpotFind> = emptyList(),
+    /** The pictures so far, the one in play last. */
+    val scenes: List<SpotPicture> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    /** More spots wins; null for a tie and until the end. */
+    val winner: String? = null,
+    val tie: Boolean = false,
+) {
+    val finished: Boolean get() = phase == "completed"
 }
 
 /** Whose versions of the games the couple plays: "ng" for Nigerian couples (Naija content), else "global". */
