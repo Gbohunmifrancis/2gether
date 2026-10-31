@@ -151,7 +151,10 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         var partnerId = couple.UserAId == user.Id ? couple.UserBId : couple.UserAId;
         if (partnerId is not { } linkedPartnerId) return (null, null, ringing);
 
-        var partner = await db.Users.SingleAsync(item => item.Id == linkedPartnerId, cancellationToken);
+        // The partner may have deleted their own account at the same moment and be gone already: then there is no one
+        // left to unlink or tell.
+        var partner = await db.Users.SingleOrDefaultAsync(item => item.Id == linkedPartnerId, cancellationToken);
+        if (partner is null) return (null, null, ringing);
         partner.SetCouple(null, now);
         await CycleSharing.StopSharingAsync(db, [linkedPartnerId], now, cancellationToken);
         using var _ = Loc.Use(partner.Language);
