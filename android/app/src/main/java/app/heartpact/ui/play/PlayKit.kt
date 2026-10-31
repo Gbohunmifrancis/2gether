@@ -80,6 +80,7 @@ enum class BlobColour(val fill: Color, val ink: Color) {
     Lime(Color(0xFFDDEFAE), Color(0xFF5B7414)),
     Teal(Color(0xFFB5E6E3), Color(0xFF1C7470)),
     Indigo(Color(0xFFD5D8F6), Color(0xFF1F2557)),
+    Orchid(Color(0xFFF3C4E6), Color(0xFF8E2A78)),
 }
 
 /** An organic, hand-cut circle: the radius wanders by [wobble] (0 to 1) in a shape [seed] picks. Unit size 1 by 1. */

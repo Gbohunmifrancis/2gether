@@ -105,6 +105,51 @@ internal fun DrawScope.skillIcon(kind: SkillKind, tint: Color) {
                 translate(p(12f, 5.4f).x, p(12f, 5.4f).y) { drawPath(unitHeart(8.4f * u), tint) }
                 drawArc(tint.copy(alpha = tint.alpha * 0.45f), 200f, 70f, false, p(7.4f, 10f), Size(9.2f * u, 9.2f * u), style = Stroke(1.2f * u, cap = StrokeCap.Round))
             }
+            SkillKind.CupidsAim -> {
+                // A heart with an arrow through it, corner to corner.
+                translate(p(12f, 12.6f).x, p(12f, 12.6f).y) { drawPath(unitHeart(15f * u), tint, style = line) }
+                drawLine(tint, p(3.2f, 20.8f), p(20f, 4f), line.width, cap = StrokeCap.Round)
+                drawLine(tint, p(20.6f, 3.4f), p(16.4f, 3.8f), line.width, cap = StrokeCap.Round)
+                drawLine(tint, p(20.6f, 3.4f), p(20.2f, 7.6f), line.width, cap = StrokeCap.Round)
+                drawLine(tint, p(4.6f, 19.4f), p(1.8f, 19.2f), line.width, cap = StrokeCap.Round)
+                drawLine(tint, p(4.6f, 19.4f), p(4.8f, 22.2f), line.width, cap = StrokeCap.Round)
+            }
+            SkillKind.SlowKiss -> {
+                // Lips, and little hearts floating up from the kiss.
+                translate(p(12f, 17.4f).x, p(12f, 17.4f).y) { drawPath(lipsPath(15f * u), tint) }
+                translate(p(9f, 9.4f).x, p(9f, 9.4f).y) { drawPath(unitHeart(6.4f * u), tint) }
+                translate(p(15.6f, 4.6f).x, p(15.6f, 4.6f).y) { drawPath(unitHeart(4.6f * u), tint, style = Stroke(1.4f * u, join = StrokeJoin.Round)) }
+            }
+            SkillKind.DrawAHeart -> {
+                // A heart being drawn in one line, the rest still to come, and the pencil drawing it.
+                val drawn = Path().apply {
+                    moveTo(9.6f * u, 6.6f * u)
+                    cubicTo(6.8f * u, 2.8f * u, 2.2f * u, 3.8f * u, 1.8f * u, 7.6f * u)
+                    cubicTo(1.4f * u, 11.4f * u, 5.4f * u, 15f * u, 9.6f * u, 19f * u)
+                    lineTo(14.2f * u, 14.4f * u)
+                }
+                drawPath(drawn, tint, style = line)
+                val toCome = Path().apply {
+                    moveTo(9.6f * u, 6.6f * u)
+                    cubicTo(12.4f * u, 2.8f * u, 17f * u, 3.8f * u, 17.4f * u, 7.6f * u)
+                    cubicTo(17.7f * u, 10.4f * u, 16.3f * u, 12.3f * u, 14.2f * u, 14.4f * u)
+                }
+                drawPath(toCome, tint.copy(alpha = tint.alpha * 0.4f), style = thin)
+                // The pencil, leaning down to the right from the end of the line.
+                val tip = Offset(14.4f, 14.6f)
+                val along = Offset(0.7071f, 0.7071f)
+                val across = Offset(-0.7071f, 0.7071f) * 1.6f
+                val base = tip + along * 2.6f
+                val end = tip + along * 9f
+                val pencil = Path().apply {
+                    listOf(tip, base + across, end + across, end - across, base - across).forEachIndexed { i, q ->
+                        if (i == 0) moveTo(q.x * u, q.y * u) else lineTo(q.x * u, q.y * u)
+                    }
+                    close()
+                }
+                drawPath(pencil, tint, style = Stroke(1.5f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                drawLine(tint, p((base + across).x, (base + across).y), p((base - across).x, (base - across).y), 1.5f * u, cap = StrokeCap.Round)
+            }
         }
     }
 }

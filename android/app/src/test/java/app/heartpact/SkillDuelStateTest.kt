@@ -45,7 +45,7 @@ class SkillDuelStateTest {
 
     @Test fun `every kind the server draws is one the app knows`() {
         val names = SkillKind.entries.map { it.name }.toSet()
-        listOf("FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing").forEach { assertTrue(it, it in names) }
+        listOf("FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing", "CupidsAim", "SlowKiss", "DrawAHeart").forEach { assertTrue(it, it in names) }
     }
 
     @Test fun `a broken or empty state reads as an empty duel`() {

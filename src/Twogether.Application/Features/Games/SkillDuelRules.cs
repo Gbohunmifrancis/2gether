@@ -19,7 +19,8 @@ public sealed class SkillDuelRules : IGameRules
     private const string CompletedPhase = "completed";
 
     /// <summary>The skill games, by the app's <c>SkillKind</c> names (ui/play/Skills.kt): they travel as is.</summary>
-    public static readonly IReadOnlyList<string> Kinds = ["FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing"];
+    public static readonly IReadOnlyList<string> Kinds =
+        ["FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing", "CupidsAim", "SlowKiss", "DrawAHeart"];
 
     private static readonly JsonSerializerOptions SetupJson = new(JsonSerializerDefaults.Web);
     private static readonly JsonSerializerOptions PublicJson = new(JsonSerializerDefaults.Web);
@@ -36,7 +37,7 @@ public sealed class SkillDuelRules : IGameRules
     }
 
     /// <summary>
-    /// Five rounds from a seed: five of the six kinds in a shuffled order (so none comes twice, let alone twice in a
+    /// Five rounds from a seed: five of the kinds in a shuffled order (so none comes twice, let alone twice in a
     /// row), each with its own seed for the shape or target.
     /// </summary>
     public static List<Round> Plan(int seed)

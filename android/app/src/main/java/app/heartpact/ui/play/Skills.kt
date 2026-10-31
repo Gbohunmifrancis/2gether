@@ -38,6 +38,12 @@ enum class SkillKind(val colour: BlobColour) {
     KissTheCenter(BlobColour.Butter),
     /** Draw a ring in one stroke. Score: round, closed, even. */
     PromiseRing(BlobColour.Lilac),
+    /** A heart floats across the page; loose Cupid's arrow from below to go right through its centre. Score: how close. */
+    CupidsAim(BlobColour.Teal),
+    /** Press and hold the lips for the time shown; the timer fades out. Score: how close to the time. */
+    SlowKiss(BlobColour.Orchid),
+    /** Draw a heart in one stroke. Score: how heart-shaped (both lobes, the point, closed, steady). */
+    DrawAHeart(BlobColour.Lime),
     ;
 
     val title: String get() = when (this) {
@@ -47,6 +53,9 @@ enum class SkillKind(val colour: BlobColour) {
         Heartbeat -> tr("Heartbeat")
         KissTheCenter -> tr("Kiss the center")
         PromiseRing -> tr("Promise ring")
+        CupidsAim -> tr("Cupid's aim")
+        SlowKiss -> tr("Slow kiss")
+        DrawAHeart -> tr("Draw a heart")
     }
 
     /** One line under the title in the picker. */
@@ -57,6 +66,9 @@ enum class SkillKind(val colour: BlobColour) {
         Heartbeat -> tr("Feel the beat. Tap when it would land.")
         KissTheCenter -> tr("Drop the kiss dead center.")
         PromiseRing -> tr("One stroke. As round as your promise.")
+        CupidsAim -> tr("One arrow. Right through the heart.")
+        SlowKiss -> tr("Hold the kiss. Let go right on time.")
+        DrawAHeart -> tr("One stroke. The truest heart you can.")
     }
 
     /** What to do, at the top of a round. */
@@ -67,6 +79,9 @@ enum class SkillKind(val colour: BlobColour) {
         Heartbeat -> tr("Count the beats. When it goes quiet, keep counting in your head.")
         KissTheCenter -> tr("Tap the exact middle of the shape.")
         PromiseRing -> tr("Draw the shape in one stroke, as true as you can.")
+        CupidsAim -> tr("Loose the arrow so it flies through the heart's center.")
+        SlowKiss -> tr("Hold the lips for the time shown, then let go.")
+        DrawAHeart -> tr("Draw a heart in one stroke, as true as you can.")
     }
 }
 
