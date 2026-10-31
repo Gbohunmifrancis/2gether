@@ -23,8 +23,8 @@ public sealed class GuessMyAnswerRules : IGameRules
     public GameType Type => GameType.GuessMyAnswer;
 
     /// <summary>The setup for a new game: its region and its eight questions, fixed once the game is invited.</summary>
-    public static string CreateSetup(string region)
-        => JsonSerializer.Serialize(new { region, questions = GuessMyAnswerBank.Pick(region, Rounds) }, SetupJson);
+    public static string CreateSetup(string region, IEnumerable<string>? recentSetups = null)
+        => JsonSerializer.Serialize(new { region, questions = GuessMyAnswerBank.Pick(region, Rounds, FreshPick.Seen(recentSetups, "questions", "text")) }, SetupJson);
 
     public GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson)
     {
@@ -65,6 +65,7 @@ public sealed class GuessMyAnswerRules : IGameRules
             var right = guess == answer;
             if (right) state.Scores[move.Actor] = state.Scores.GetValueOrDefault(move.Actor) + 1;
             state.Last = new Reveal { Round = state.Round, Subject = Subject(state), Guesser = move.Actor, Text = question.Text, Choices = question.Choices, Answer = answer, Guess = guess, Right = right };
+            state.History.Add(state.Last);
             state.Round++;
             state.Answer = null;
             var completed = state.Round >= state.Deck.Count;
@@ -95,19 +96,23 @@ public sealed class GuessMyAnswerRules : IGameRules
             choices = question?.Choices.Select(choice => Show(state, choice)) ?? [],
             answered = state.Phase == GuessingPhase,
             answer,
-            last = state.Last is { } last ? new
-            {
-                last.Round,
-                last.Subject,
-                last.Guesser,
-                question = Show(state, last.Text),
-                choices = last.Choices.Select(choice => Show(state, choice)),
-                last.Answer,
-                last.Guess,
-                last.Right
-            } : null
+            last = state.Last is { } last ? View(state, last) : null,
+            // Every round played so far, both sides shown: the game's recap once it's over.
+            history = state.History.Select(played => View(state, played)),
         }, PublicJson);
     }
+
+    private static object View(State state, Reveal played) => new
+    {
+        played.Round,
+        played.Subject,
+        played.Guesser,
+        question = Show(state, played.Text),
+        choices = played.Choices.Select(choice => Show(state, choice)),
+        played.Answer,
+        played.Guess,
+        played.Right
+    };
 
     public GameScoreSummary Summarise(string stateJson)
     {
@@ -162,6 +167,8 @@ public sealed class GuessMyAnswerRules : IGameRules
         /// <summary>The subject's answer this round: secret from the guesser until the guess is in.</summary>
         public int? Answer { get; set; }
         public Reveal? Last { get; set; }
+        /// <summary>Every round played, answer and guess (empty in games from before it was kept).</summary>
+        public List<Reveal> History { get; set; } = [];
     }
 
     private sealed class RoundQuestion

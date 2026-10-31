@@ -36,21 +36,101 @@ public sealed class SameAnswerRulesTests
     }
 
     [Fact]
-    public void Turns_alternate_and_answers_stay_hidden_from_everyone()
+    public void Both_answer_at_once_and_an_answer_is_only_its_writers_until_both_are_in()
     {
         var started = Start();
-        Assert.Throws<InvalidOperationException>(() => Answer(started, theo, "Lagos"));
+        Assert.True(engine.AnyoneMayAct(GameType.CoupleQuiz));
         Assert.Throws<InvalidOperationException>(() => Answer(started, maya, "  "));
-        var one = Answer(started, maya, "Paris");
-        Assert.Equal(theo, one.CurrentTurnUserId);
-        Assert.Throws<InvalidOperationException>(() => Answer(one, maya, "Rome"));
+        Assert.Throws<InvalidOperationException>(() => Answer(started, Guid.NewGuid(), "Paris"));
+        Assert.Throws<InvalidOperationException>(() => Answer(started, maya, new string('x', SameAnswerRules.MaxAnswerLength + 1)));
+        // Theo goes first: nobody has to wait their turn.
+        var one = Answer(started, theo, "Paris");
+        Assert.Equal(maya, one.CurrentTurnUserId);
+        Assert.Throws<InvalidOperationException>(() => Answer(one, theo, "Rome"));
 
-        foreach (Guid? viewer in new Guid?[] { maya, theo, null })
+        Assert.Equal("Paris", View(one, theo).GetProperty("mine").GetString());
+        foreach (Guid? viewer in new Guid?[] { maya, null })
         {
             var json = engine.ToPublicState(GameType.CoupleQuiz, one.StateJson, viewer);
             Assert.DoesNotContain("Paris", json, StringComparison.Ordinal);
-            Assert.Equal(1, JsonDocument.Parse(json).RootElement.GetProperty("answerCount").GetInt32());
+            var view = JsonDocument.Parse(json).RootElement;
+            Assert.Equal(1, view.GetProperty("answerCount").GetInt32());
+            Assert.Equal(theo, view.GetProperty("answered")[0].GetGuid());
+            Assert.Equal(JsonValueKind.Null, view.GetProperty("mine").ValueKind);
         }
+    }
+
+    [Fact]
+    public void Once_both_are_in_both_answers_show_to_both()
+    {
+        var started = Start();
+        var prompt = View(started, maya).GetProperty("prompt").GetString();
+        var both = Answer(Answer(started, maya, "Paris"), theo, "Rome");
+        foreach (var viewer in new[] { maya, theo })
+        {
+            var last = View(both, viewer).GetProperty("last");
+            Assert.Equal(0, last.GetProperty("round").GetInt32());
+            Assert.Equal(prompt, last.GetProperty("prompt").GetString());
+            Assert.Equal("Paris", last.GetProperty("answers").GetProperty(maya.ToString()).GetString());
+            Assert.Equal("Rome", last.GetProperty("answers").GetProperty(theo.ToString()).GetString());
+            Assert.False(last.GetProperty("match").GetBoolean());
+            Assert.Equal(JsonValueKind.Null, View(both, viewer).GetProperty("mine").ValueKind);
+        }
+    }
+
+    [Theory]
+    [InlineData("Paris", " paris ", true)]
+    [InlineData("The beach", "beach!", true)]
+    [InlineData("Café", "cafe", true)]
+    [InlineData("Rock & roll", "rock and roll", true)]
+    [InlineData("Ice cream", "icecream", true)]
+    [InlineData("chocolate", "chocolat", true)]
+    [InlineData("Our first flat", "first flat", true)]
+    [InlineData("la playa", "Playa", true)]
+    [InlineData("❤️", "❤️", true)]
+    [InlineData("Paris", "Rome", false)]
+    [InlineData("cat", "car", false)]
+    [InlineData("pizza", "pasta", false)]
+    [InlineData("The", "the", true)]
+    [InlineData("❤️", "😂", false)]
+    [InlineData("दिल", "दल", false)]
+    public void Answers_that_say_the_same_thing_match(string first, string second, bool same)
+        => Assert.Equal(same, SameAnswerRules.Same(first, second));
+
+    [Fact]
+    public void A_who_prompt_is_answered_by_picking_one_of_you()
+    {
+        var setup = JsonSerializer.Serialize(new { region = "global", prompts = new[] { "Who wakes up first?", "Who is the better cook?", "What's our song?" } });
+        var started = engine.Start(GameType.CoupleQuiz, [maya, theo], now, setup);
+        Assert.Equal("who", View(started, maya).GetProperty("kind").GetString());
+        Assert.Throws<InvalidOperationException>(() => Answer(started, maya, Guid.NewGuid().ToString()));
+
+        // Both say Maya wakes up first: Maya picks herself, Theo picks Maya. That's a match.
+        var first = Answer(Answer(started, maya, maya.ToString()), theo, maya.ToString().ToUpperInvariant());
+        var last = View(first, theo).GetProperty("last");
+        Assert.True(last.GetProperty("match").GetBoolean());
+        Assert.Equal("who", last.GetProperty("kind").GetString());
+        Assert.Equal(maya.ToString(), last.GetProperty("answers").GetProperty(theo.ToString()).GetString());
+
+        // Each says "me": that's not the same answer.
+        var second = Answer(Answer(first, maya, maya.ToString()), theo, theo.ToString());
+        Assert.False(View(second, maya).GetProperty("last").GetProperty("match").GetBoolean());
+        Assert.Equal("text", View(second, maya).GetProperty("kind").GetString());
+        Assert.Equal(1, View(second, maya).GetProperty("scores").GetProperty(maya.ToString()).GetInt32());
+    }
+
+    [Fact]
+    public void Every_who_prompt_in_the_banks_is_about_the_two_of_you_and_none_asks_about_you_alone()
+    {
+        foreach (var prompt in SameAnswerBank.Global.Concat(SameAnswerBank.Nigerian))
+        {
+            Assert.Equal(prompt.StartsWith("Who ", StringComparison.Ordinal), SameAnswerBank.IsWho(prompt));
+            // "you" alone makes each partner answer about themselves: never the same answer.
+            Assert.DoesNotMatch(@"\b[Yy]ou(r)?\b", prompt.Replace("I love you", "", StringComparison.Ordinal));
+        }
+        Assert.False(SameAnswerBank.IsWho("Who painted the Mona Lisa?"));
+        Assert.Equal(SameAnswerBank.Global.Count, SameAnswerBank.Global.Distinct().Count());
+        Assert.Equal(SameAnswerBank.Nigerian.Count, SameAnswerBank.Nigerian.Distinct().Count());
     }
 
     [Fact]
@@ -62,11 +142,14 @@ public sealed class SameAnswerRulesTests
             Assert.False(state.Completed);
             var first = round % 2 == 0 ? maya : theo;
             var second = first == maya ? theo : maya;
-            Assert.Equal(first, state.CurrentTurnUserId);
             state = Answer(state, first, "Paris");
             state = Answer(state, second, round < 6 ? " paris " : "Rome");
             if (!state.Completed) Assert.Equal(round < 6 ? "match" : "different", View(state, maya).GetProperty("lastResult").GetString());
         }
+        var history = View(state, maya).GetProperty("history");
+        Assert.Equal(10, history.GetArrayLength());
+        Assert.Equal(6, history.EnumerateArray().Count(played => played.GetProperty("match").GetBoolean()));
+        Assert.Equal(JsonValueKind.Null, View(state, maya).GetProperty("prompt").ValueKind);
 
         Assert.True(state.Completed);
         Assert.Null(state.CurrentTurnUserId);
@@ -111,10 +194,28 @@ public sealed class SameAnswerRulesTests
         Assert.Equal(1, view.GetProperty("answerCount").GetInt32());
         Assert.Equal(4, view.GetProperty("totalRounds").GetInt32());
 
+        Assert.Equal(0, view.GetProperty("history").GetArrayLength());
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.CoupleQuiz, old, maya, "answer", "Venus", null, now));
+
         var next = engine.Apply(GameType.CoupleQuiz, old, theo, "answer", "mercury", null, now);
         var after = JsonDocument.Parse(engine.ToPublicState(GameType.CoupleQuiz, next.StateJson, maya)).RootElement;
         Assert.Equal("Q4", after.GetProperty("prompt").GetString());
         Assert.Equal(3, after.GetProperty("scores").GetProperty(maya.ToString()).GetInt32());
+        Assert.Equal("Mercury", after.GetProperty("last").GetProperty("answers").GetProperty(maya.ToString()).GetString());
+        // An old trivia question that starts with "Who" is still answered in words.
+        Assert.Equal("text", after.GetProperty("last").GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public void A_new_game_draws_prompts_the_couple_did_not_just_play()
+    {
+        var recent = Enumerable.Range(0, 3).Select(_ => SameAnswerRules.CreateSetup(GameRegion.Global)).ToList();
+        var seen = recent.SelectMany(setup => JsonDocument.Parse(setup).RootElement.GetProperty("prompts").EnumerateArray().Select(prompt => prompt.GetString()!)).ToHashSet();
+        var fresh = JsonDocument.Parse(SameAnswerRules.CreateSetup(GameRegion.Global, recent)).RootElement.GetProperty("prompts").EnumerateArray().Select(prompt => prompt.GetString()!).ToList();
+        Assert.Equal(10, fresh.Distinct().Count());
+        // The bank has more than 30 prompts beyond the 30 just seen... minus overlaps, so at least min(10, unseen) are new.
+        var unseen = SameAnswerBank.Global.Count - seen.Count;
+        Assert.Equal(Math.Min(10, unseen), fresh.Count(prompt => !seen.Contains(prompt)));
     }
 
     [Fact]

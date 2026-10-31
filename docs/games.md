@@ -10,7 +10,8 @@ game list also links to After Round 1 on Google Play. A game that finished in th
 Every response and the couple hub's `GameStarted`, `GameStateChanged` and `GameCompleted` events carry the whole
 session. `stateJson` is a JSON string of the public state (nothing hidden from the other player leaks into it);
 `stateVersion` goes up by one on every change, and a move against an older version is `409 game.version_conflict`:
-reload and try again (except in a game whose moves may cross, Tic-tac-toe: there a move is judged against the board
+reload and try again (the app does that by itself for a pick in Same answer, Would you rather and Trivia that still
+stands on the new version) (except in a game whose moves may cross, Tic-tac-toe: there a move is judged against the board
 as it is when it arrives, and `409` only comes from two writes at the same instant). `GameInvitation`,
 `GameCountdown` and `GameEnded` say "refetch". The game hub (`/hubs/game`) is not needed: REST plus the couple hub
 covers everything, including Tic-tac-toe's live ink (`Ink`, below).
@@ -22,7 +23,7 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 - **Spot the difference** gives each picture 90 seconds, then a 3-second beat before the next picture; the timeout
   worker plays both.
 - **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match**, **Heart to heart** and **Snakes
-  and ladders** are turn by turn and have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
+  and ladders** have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
 - **Tic-tac-toe** has no turns and no move clock. Two timers are the server's, both on its own clock (the time a
   move arrives, never the phone's): each pen's cooldown, and the 1.5-second beat between games, which is the
   session's `deadlineUtc` while a finished board is up (the timeout worker then starts the next game).
@@ -32,14 +33,28 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 ## The games
 
 - **Same answer**: 10 prompts about the two of you ("What's our song?"), drawn from its own bank when the game is
-  invited (`SameAnswerBank`). Whoever's turn it is answers; when both have, matching answers (trimmed, any case)
-  give each partner a point. Cooperative: the score is how many you matched. Games started with trivia prompts
-  before the bank existed carry on with them.
+  invited (`SameAnswerBank`; every prompt is about "us", never "you" alone). Both answer at once (`answer`,
+  `value` the words, up to 200 characters), once each. A prompt starting "Who" (`kind` `who`, else `text`) is
+  answered by picking one of you: `value` is that partner's user id (an older app's words still count). Until both are
+  in, each sees only who has answered (`answered`) and their own answer (`mine`); then `last` shows the prompt and
+  both answers (`answers`, by player) to both. Answers match when they say the same thing: any case, accents,
+  punctuation, spacing or a leading article ("the", "our", "la"...), or one letter apart in words of five letters or
+  more (`SameAnswerRules.Same`). A match is a point each. Cooperative: the score is how many you matched. Games
+  started with trivia prompts before the bank existed carry on with them.
 - **Guess my answer**: 8 rounds; the subject alternates, the first player first. The subject answers a question about
   themselves (`answer`, `index` 0–3), then the other guesses (`guess`, `index`). The answer is the subject's secret
   until the guess is in; `last` then shows both to both. A right guess is a point for the guesser.
 - **Would you rather**: 10 rounds, both at once (`pick`, `index` 0 for `a`, 1 for `b`). `picked` says who has picked
   and `myPick` is your own; both picks show in `last` once both are in. Matching picks give each partner a point.
+- **Trivia**: 10 questions, both at once (`answer`, `index` 0-3). `answered` says who is in and `myAnswer` is your
+  own; once both are, `reveal` shows the right answer and both picks. Global couples who both read English get Open
+  Trivia DB (easy and medium only), topped up from the built-in bank; if either partner reads another language they
+  get the built-in bank (`GlobalTrivia`, `Loc.N`), so each reads it in their own language. Nigerian couples get Naija trivia.
+- **Recaps**: Same answer, Guess my answer, Would you rather and Trivia also keep `history`, every round played so
+  far as `last`/`reveal` shows it, for the round-by-round recap under a finished game. Nothing in it is secret: a
+  round enters it only once both are in. Games from before it was kept have an empty one.
+- **Fresh content**: when one of those four is invited, the setup avoids the prompts and questions of the couple's
+  last three games of the same kind while the bank has others (`FreshPick`), and never repeats one within a game.
 - **Memory match**: 12 cards, 6 pairs. A matching pair scores and the same player goes again; a miss passes the turn.
   After a miss, `lastPair` shows both cards (index and value) to both players until the next flip.
 - **I call on**: 3 rounds of Name, Place, Thing and Food starting with a letter. The inviter may choose the first
@@ -182,7 +197,7 @@ ethnic groups; no politics, religion or tribal jokes.
 
 | Game (`GameType`) | Who moves | What happens | Score |
 |---|---|---|---|
-| Same answer (`coupleQuiz`) | in turn, no clock | Both answer the same question about the two of them; answers are compared. | a heart each per match |
+| Same answer (`coupleQuiz`) | both at once, no clock | Both answer the same question about the two of them, in a word or two or by picking one of you; both answers show, then the next. | a heart each per match |
 | Guess my answer (`guessMyAnswer`) | in turn, no clock | One answers a question about themselves from four choices, the other guesses. Swap each round. | the guesser, per right guess |
 | Would you rather (`wouldYouRather`) | both at once | Both pick A or B; picks are revealed together. | a heart each per match |
 | Trivia (`trivia`) | both at once | Ten multiple-choice questions; both answer, then the right answer shows. Global: Open Trivia DB. Nigeria: Naija trivia. | a point per right answer |

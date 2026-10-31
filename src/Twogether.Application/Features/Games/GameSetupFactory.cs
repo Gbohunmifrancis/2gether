@@ -50,29 +50,45 @@ public static class GameRegion
 
 public interface IGameSetupFactory
 {
-    /// <summary>The setup a new game starts from: its region, plus anything fetched or chosen up front.</summary>
-    Task<string> CreateAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken);
+    /// <summary>
+    /// The setup a new game starts from: its region, plus anything fetched or chosen up front. <paramref name="context"/>
+    /// says what else the setup may use: the partners' languages and the couple's last few setups of this game.
+    /// </summary>
+    Task<string> CreateAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken, GameSetupContext? context = null);
+}
+
+/// <summary>
+/// What a setup may take into account beyond the region: both partners' languages (Trivia only fetches English
+/// questions when both read English) and the couple's last few setups of the same game, newest first, so a new game
+/// draws content they haven't just seen.
+/// </summary>
+public sealed record GameSetupContext(IReadOnlyCollection<string> Languages, IReadOnlyList<string> RecentSetups)
+{
+    public static GameSetupContext None { get; } = new([], []);
+
+    /// <summary>Both partners read English (or their languages aren't known).</summary>
+    public bool AllEnglish => Languages.All(language => string.IsNullOrWhiteSpace(language) || language.StartsWith("en", StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>One case per game that needs more than its region; the rest get just the region.</summary>
 public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSetupFactory
 {
-    public async Task<string> CreateAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken) => gameType switch
+    public async Task<string> CreateAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken, GameSetupContext? context = null) => gameType switch
     {
         GameType.ICallOn => JsonSerializer.Serialize(new { region, letter = letter?.ToUpperInvariant() }),
         GameType.MemoryMatch => JsonSerializer.Serialize(new { region }),
         GameType.TruthOrDare => JsonSerializer.Serialize(new { region }),
         GameType.WordDash => JsonSerializer.Serialize(new { region }),
-        GameType.CoupleQuiz => SameAnswerRules.CreateSetup(region),
-        GameType.GuessMyAnswer => GuessMyAnswerRules.CreateSetup(region),
-        GameType.WouldYouRather => WouldYouRatherRules.CreateSetup(region),
+        GameType.CoupleQuiz => SameAnswerRules.CreateSetup(region, context?.RecentSetups),
+        GameType.GuessMyAnswer => GuessMyAnswerRules.CreateSetup(region, context?.RecentSetups),
+        GameType.WouldYouRather => WouldYouRatherRules.CreateSetup(region, context?.RecentSetups),
         GameType.TicTacToe or GameType.ConnectFour => JsonSerializer.Serialize(new { region }),
         // The words to draw are the drawer's secret: they stay in the setup on the server (GameRegion.PublicSetup).
         GameType.Handwriting => JsonSerializer.Serialize(new { region, words = Content.DrawAndGuessWords.Pick(region, DrawAndGuessRules.Rounds) }),
         GameType.SkillDuel => SkillDuelRules.CreateSetup(region),
         GameType.SpotTheDifference => SpotTheDifferenceRules.CreateSetup(region),
         GameType.SnakesAndLadders => SnakesAndLaddersRules.CreateSetup(region),
-        GameType.Trivia => JsonSerializer.Serialize(new { region, trivia = await TriviaRules.QuestionsFor(region, questions, cancellationToken) }),
+        GameType.Trivia => JsonSerializer.Serialize(new { region, trivia = await TriviaRules.QuestionsFor(region, questions, cancellationToken, context) }),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };
 }

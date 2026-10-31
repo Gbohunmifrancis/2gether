@@ -140,9 +140,12 @@ internal fun Couple(size: Dp, mine: Reaction, theirs: Reaction, modifier: Modifi
     val left = if (leftIsMe) mine else theirs
     val right = if (leftIsMe) theirs else mine
     // Each half fills one side of its own canvas, so the canvases overlap most of the way to bring the halves together.
-    Row(modifier, verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(-size * 0.8f)) {
-        PlayCharacter(Who.Left, left, size, key = key ?: left)
-        PlayCharacter(Who.Right, right, size, key = key ?: right)
+    // The heart reads left to right in every language: right to left, the halves would swap and hide each other.
+    androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
+        Row(modifier, verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(-size * 0.8f)) {
+            PlayCharacter(Who.Left, left, size, key = key ?: left)
+            PlayCharacter(Who.Right, right, size, key = key ?: right)
+        }
     }
 }
 

@@ -454,7 +454,11 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val partner = couple?.members?.firstOrNull { it.userId != me }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: GamesViewModel = viewModel(factory = viewModelFactory { initializer { GamesViewModel(application) } })
-                    LaunchedEffect(Unit) { model.refresh() }
+                    // Back from the background: the partner may have moved meanwhile.
+                    LifecycleResumeEffect(Unit) {
+                        model.refresh()
+                        onPauseOrDispose { }
+                    }
                     val state by model.ui.collectAsStateWithLifecycle()
                     GamesScreen(state, me, partner, GameActions(
                         onInvite = { type, letter -> model.invite(type, letter) }, onAccept = { model.accept(it) }, onAbandon = { model.abandon(it) },

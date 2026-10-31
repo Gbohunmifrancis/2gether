@@ -25,7 +25,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,11 +58,16 @@ internal fun WouldYouRatherBoard(s: GameSession, me: String, partnerName: String
     val finished = s.status == GameStatus.Completed
     if (!finished) TogetherScore(w.scores[me] ?: 0, tr("Round {round} of {rounds}", "round" to minOf(w.round + 1, w.totalRounds), "rounds" to w.totalRounds),
         if (s.status == GameStatus.InProgress) waitingOn(w.players, me, w.picked) else Turn.None)
+    if (finished) {
+        // The result card above has the total; under it, every round and both picks (or just the last, in an older game).
+        if (w.history.isNotEmpty()) RecapCard(w.history.map { ratherRecapRow(it, me, partnerName) })
+        else w.last?.let { RatherRevealCard(it, me, partnerName, Modifier.padding(top = 12.dp)) }
+        return
+    }
     w.last?.let { RatherRevealCard(it, me, partnerName, Modifier.padding(top = 12.dp)) }
 
     val a = w.a
     val b = w.b
-    if (finished) return
     if (a == null || b == null) {
         Text(tr("You matched {matched} of {rounds}", "matched" to (w.scores[me] ?: 0), "rounds" to w.totalRounds), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
         return
@@ -75,7 +84,8 @@ internal fun WouldYouRatherBoard(s: GameSession, me: String, partnerName: String
     }
     DealIn(w.round to 1, delayMs = 90) { RatherOption(b, selected = w.myPick == 1, faded = w.myPick == 0, enabled = canPick) { actions.onAct(s, "pick", null, 1) } }
     when {
-        w.myPick != null -> Text(tr("Picked. Waiting for {partner}…", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 18.dp))
+        w.myPick != null -> Text(tr("Picked. Waiting for {partner}…", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2,
+            modifier = Modifier.padding(top = 18.dp).semantics { liveRegion = LiveRegionMode.Polite })
         partnerPicked -> NoteCard(tr("{partner} has picked. Your turn!", "partner" to partnerName), Modifier.padding(top = 16.dp))
         else -> Text(tr("Pick one. You'll see {partner}'s pick once you've both chosen.", "partner" to partnerName), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 16.dp))
     }
@@ -91,7 +101,7 @@ private fun RatherOption(text: String, selected: Boolean, faded: Boolean, enable
     if (!faded) m = m.shadow(8.dp, shape, ambientColor = colors.left.art.copy(alpha = 0.5f), spotColor = colors.left.art.copy(alpha = 0.55f))
     m = m.clip(shape).background(if (selected) actor.soft else colors.sticker)
     if (selected) m = m.border(2.dp, actor.action, shape)
-    m = m.alpha(if (faded) 0.55f else 1f).clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+    m = m.alpha(if (faded) 0.55f else 1f).clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick).semantics { this.selected = selected }
     Box(m.padding(horizontal = 22.dp, vertical = 18.dp), contentAlignment = Alignment.Center) {
         Text(text, style = Heartpact.type.title.copy(fontSize = 21.sp, lineHeight = 26.sp), color = if (selected) actor.onSoft else colors.ink, textAlign = TextAlign.Center)
         if (selected) {
@@ -110,8 +120,8 @@ private fun RatherRevealCard(last: RatherReveal, me: String, partnerName: String
     val mine = last.picks[me]
     val theirs = last.picks.entries.firstOrNull { it.key != me }?.value
     RoundReveal(last.round, if (last.match) tr("Match!") else null, hearts = last.match, modifier) {
-        StickerCard(Modifier.fillMaxWidth()) {
-            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        StickerCard(Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite }) {
+            Row(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp, top = if (last.match) 30.dp else 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.size(40.dp).clip(CircleShape).background(if (last.match) Heartpact.actor.soft else colors.sticker2), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.Favorite, null, Modifier.size(22.dp), tint = if (last.match) Heartpact.actor.onSoft else colors.ink4)
                 }
@@ -126,4 +136,16 @@ private fun RatherRevealCard(last: RatherReveal, me: String, partnerName: String
             }
         }
     }
+}
+
+/** A Would you rather round in the recap: the two choices, and what each of you picked. */
+@Composable
+private fun ratherRecapRow(played: RatherReveal, me: String, partnerName: String): RecapRow {
+    val option = { pick: Int? -> if (pick == 1) played.b else played.a }
+    val mine = played.picks[me]
+    val theirs = played.picks.entries.firstOrNull { it.key != me }?.value
+    val lines = if (played.match) listOf(tr("You both picked: {choice}", "choice" to option(mine)))
+        else listOf(tr("You: {answer}", "answer" to option(mine)), tr("{partner}: {answer}", "partner" to partnerName, "answer" to option(theirs)))
+    // The two choices as they were on their cards, side by side: no sentence to glue them into.
+    return RecapRow("${played.a}  /  ${played.b}", lines, played.match)
 }

@@ -51,6 +51,11 @@ data class CreateGameRequest(val gameType: GameType, val letter: String? = null)
 @Serializable
 data class GameActionRequest(val expectedStateVersion: Long, val action: String, val value: String? = null, val index: Int? = null)
 
+/**
+ * Same answer's state. [kind] is "who" for a prompt answered by picking one of you two (the answer is that partner's
+ * id), else "text". [mine] is my own answer this round, [answered] who has answered; both answers show in [last] once
+ * both are in, and every round played in [history].
+ */
 @Serializable
 data class QuizState(
     val players: List<String> = emptyList(),
@@ -59,8 +64,23 @@ data class QuizState(
     val totalRounds: Int = 0,
     val turnIndex: Int = 0,
     val prompt: String = "",
+    val kind: String? = null,
     val answerCount: Int = 0,
+    val answered: List<String> = emptyList(),
+    val mine: String? = null,
     val lastResult: String? = null,
+    val last: QuizReveal? = null,
+    val history: List<QuizReveal> = emptyList(),
+)
+
+/** A Same answer round once both are in: the prompt and each partner's answer (a partner's id for a "who" prompt). */
+@Serializable
+data class QuizReveal(
+    val round: Int = 0,
+    val prompt: String = "",
+    val kind: String = "text",
+    val answers: Map<String, String> = emptyMap(),
+    val match: Boolean = false,
 )
 
 @Serializable
@@ -180,6 +200,8 @@ data class GuessMyAnswerState(
     /** The subject's own answer while their partner guesses; null for the guesser. */
     val answer: Int? = null,
     val last: GuessReveal? = null,
+    /** Every round played so far, for the recap at the end. */
+    val history: List<GuessReveal> = emptyList(),
 )
 
 /** Would you rather's last round: both picks (0 for a, 1 for b), shown once both are in. */
@@ -198,6 +220,8 @@ data class WouldYouRatherState(
     val picked: List<String> = emptyList(),
     val myPick: Int? = null,
     val last: RatherReveal? = null,
+    /** Every round played so far, for the recap at the end. */
+    val history: List<RatherReveal> = emptyList(),
 )
 
 /**
@@ -309,6 +333,8 @@ data class TriviaState(
     val answered: List<String> = emptyList(),
     val myAnswer: Int? = null,
     val reveal: TriviaReveal? = null,
+    /** Every question both answered so far, for the recap at the end. */
+    val history: List<TriviaReveal> = emptyList(),
     val completed: Boolean = false,
 )
 
