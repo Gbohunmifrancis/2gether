@@ -181,6 +181,8 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .plan ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 8px; max-width: 420px; }
 .plan.free ul { color: var(--ink-2); }
 .plans-note { text-align: center; padding: 22px 24px 0; margin: 0; font-size: 15px; color: var(--ink-2); }
+.plans-web { text-align: center; padding: 10px 24px 0; margin: 0; font-size: 17px; color: var(--ink-2); }
+.plans-web a { font-weight: 800; }
 
 /* ---------- FAQ ---------- */
 .faq { padding: 100px 0; }
@@ -238,6 +240,46 @@ h2.display { margin: 0; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; }
 .status.error { color: #B3261E; }
 .status.done { color: var(--navy); }
 .status[hidden] { display: none; }
+
+/* ---------- Heartpact Plus on the web (plus/, plus/thanks/) ---------- */
+.plus-page [hidden] { display: none !important; }
+.plus-page .plus-perks { margin: 18px 0 0; padding-inline-start: 22px; }
+.plus-page .hint { font-size: 15px; }
+.plus-page .status { margin-top: 18px; background: var(--wash); }
+.form.signin button, .button { font: inherit; font-weight: 700; min-height: 52px; padding: 0 26px; border: 0; border-radius: 26px; background: var(--navy); color: #FFFFFF; cursor: pointer; }
+.button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.button:hover { color: #FFFFFF; background: var(--peri-ink); }
+.button[disabled] { opacity: 0.6; cursor: progress; }
+.google { margin-top: 16px; padding: 24px 28px; border-radius: 24px; border: 2px solid var(--wash); }
+.google h3 { margin: 0 0 4px; }
+.google p { margin: 0 0 14px; }
+.google-button { min-height: 44px; max-width: 320px; }
+.signed-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 28px; padding: 14px 18px; border-radius: 16px; background: var(--wash); }
+.signed-in p { margin: 0; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+.link-button { font: inherit; font-weight: 700; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--navy); text-decoration: underline; cursor: pointer; }
+.plus-on { margin-top: 24px; padding: 28px; border-radius: 24px; background: var(--peri); color: var(--ink); }
+.plus-on h2 { margin-top: 0; }
+.plus-on p { color: var(--ink); }
+.plus-on .button { margin-top: 6px; }
+.plus-on a:not(.button) { color: var(--ink); }
+html.christmas .plus-on, html.christmas .plus-on p, html.christmas .plus-on a:not(.button) { color: #FFFFFF; }
+html.christmas .plus-on .button { background: #FFFFFF; color: var(--ink); }
+.buy-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-top: 18px; }
+.buy-plan { display: flex; flex-direction: column; padding: 26px; border-radius: 24px; background: var(--tint); }
+.buy-plan.best { background: var(--peri); }
+html.christmas .buy-plan.best, html.christmas .buy-plan.best p { color: #FFFFFF; }
+.doc .buy-plan h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -0.02em; }
+.buy-plan .trial { margin: 6px 0 0; font-weight: 800; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); }
+.buy-plan .price { margin: 12px 0 4px; font-family: var(--display); font-weight: 800; font-size: 48px; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
+.buy-plan .price small { font-size: 0.4em; letter-spacing: 0; margin-inline-start: 4px; }
+.buy-plan .per { margin: 0 0 18px; color: var(--ink); flex: 1; }
+.plus-page .plans-note { margin-top: 14px; padding: 0; text-align: start; font-size: 15px; }
+.activating { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding: 18px 20px; border-radius: 18px; background: var(--wash); }
+.activating p { margin: 0; color: var(--ink); font-weight: 700; font-size: 19px; }
+.spinner { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--ink-soft); border-top-color: var(--navy); }
+@media (prefers-reduced-motion: no-preference) { .spinner { animation: spin 0.9s linear infinite; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.plus-page .back { margin-top: 32px; }
 
 /* ---------- Phones and narrow screens ---------- */
 @media (max-width: 860px) {

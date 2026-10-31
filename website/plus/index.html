@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heartpact Plus</title>
+<meta name="description" content="Get Heartpact Plus for both of you, paying by card on the web.">
+<meta name="theme-color" content="#1F2557">
+<link rel="canonical" href="https://heartpact.me/plus/">
+<link rel="icon" href="/assets/app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/boot.js"></script>
+<script src="/assets/config.js"></script>
+<script src="/assets/festive.js"></script>
+<script src="/assets/account.js" defer></script>
+<script src="/assets/plus.js" defer></script>
+<!-- i18n:head (website/i18n/build.py) -->
+<link rel="alternate" hreflang="en" href="https://heartpact.me/plus/">
+<link rel="alternate" hreflang="fr" href="https://heartpact.me/fr/plus/">
+<link rel="alternate" hreflang="pt" href="https://heartpact.me/pt/plus/">
+<link rel="alternate" hreflang="es" href="https://heartpact.me/es/plus/">
+<link rel="alternate" hreflang="ar" href="https://heartpact.me/ar/plus/">
+<link rel="alternate" hreflang="hi" href="https://heartpact.me/hi/plus/">
+<link rel="alternate" hreflang="x-default" href="https://heartpact.me/plus/">
+<script type="application/json" id="strings">{}</script>
+<!-- /i18n:head -->
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="page-head">
+  <div class="wrap">
+    <a class="brand" href="/"><img class="app-icon" src="/assets/app-icon.svg" width="36" height="36" alt="">heartpact</a>
+    <a class="pill" href="https://play.google.com/store/apps/details?id=app.heartpact">Get the app</a>
+  </div>
+</header>
+
+<main id="main" class="doc plus-page">
+  <h1>Heartpact Plus</h1>
+  <p class="updated">One subscription covers both of you. Pay by card here, or with Google Play in the app.</p>
+  <ul class="plus-perks">
+    <li>Unlimited daily dares, several a day if you like</li>
+    <li>20 food scans a day</li>
+    <li>2 GB shared album</li>
+    <li>90 days of question history</li>
+    <li>One subscription switches it on for both phones</li>
+  </ul>
+
+  <noscript><p class="status error">This page needs JavaScript to sign you in. You can also get Plus in the app.</p></noscript>
+
+  <section id="signin" aria-labelledby="signin-title" hidden>
+    <h2 id="signin-title">Sign in</h2>
+    <p>Use the account you have in the app. Plus switches on for your partner too.</p>
+    <form id="signin-form" class="form signin" novalidate>
+      <label>Email
+        <input name="email" type="email" autocomplete="email" required>
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit">Sign in</button>
+    </form>
+    <div class="google">
+      <h3>Signed up with Google?</h3>
+      <p>Continue with the same Google account you use in the app.</p>
+      <div id="google-button" class="google-button"></div>
+    </div>
+    <p id="signin-status" class="status" role="status" tabindex="-1" hidden></p>
+    <p class="hint">No account yet? <a href="https://play.google.com/store/apps/details?id=app.heartpact">Get the app</a> and sign up there first, then come back.</p>
+  </section>
+
+  <section id="account" aria-labelledby="account-title" hidden>
+    <h2 id="account-title" class="visually-hidden">Your plan</h2>
+    <div class="signed-in">
+      <p id="signed-in-as"></p>
+      <button type="button" id="sign-out" class="link-button">Sign out</button>
+    </div>
+    <p id="loading" class="status" hidden>Checking your plan…</p>
+
+    <div id="plus-on" class="plus-on" hidden>
+      <h2>You have Plus</h2>
+      <p id="plus-covers"></p>
+      <p id="plus-renews"></p>
+      <div id="bachs-manage" hidden>
+        <p>You pay by card. Change your card, see your receipts or cancel in billing.</p>
+        <button type="button" class="button manage">Manage billing</button>
+      </div>
+      <p id="play-manage" hidden>Your subscription is managed in Google Play. <a href="https://play.google.com/store/account/subscriptions">Open your Google Play subscriptions</a>.</p>
+      <p id="partner-manages" hidden>Your partner manages the subscription from their account.</p>
+    </div>
+
+    <div id="choose" hidden>
+      <h2>Choose a plan</h2>
+      <p id="no-partner" hidden>You're not linked with a partner yet. Plus covers them too as soon as you link in the app.</p>
+      <div class="buy-plans">
+        <div class="buy-plan best">
+          <h3>Yearly</h3>
+          <p class="trial">7 days free</p>
+          <p class="price">$39.99<small>/yr</small></p>
+          <p class="per">About $3.33 a month. Free for 7 days, then $39.99 a year.</p>
+          <button type="button" class="button" data-plan="yearly">Start 7 days free</button>
+        </div>
+        <div class="buy-plan">
+          <h3>Monthly</h3>
+          <p class="trial">Pay as you go</p>
+          <p class="price">$7.99<small>/mo</small></p>
+          <p class="per">Billed every month.</p>
+          <button type="button" class="button" data-plan="monthly">Choose monthly</button>
+        </div>
+      </div>
+      <p class="plans-note">Prices in US dollars. Payment is handled securely by Bachs. Cancel any time from this page, under Manage billing.</p>
+    </div>
+
+    <div id="bachs-fix" class="plus-on" hidden>
+      <h2>Plus is paused</h2>
+      <p>Your last card payment didn't go through. Update your card in billing and Plus switches back on for both of you.</p>
+      <button type="button" class="button manage">Manage billing</button>
+    </div>
+
+    <div id="partner-pays" hidden>
+      <h2>Your partner has a subscription</h2>
+      <p>One subscription covers you both, so there's nothing to buy here. If Plus isn't on, ask your partner to check their payment.</p>
+    </div>
+
+    <div id="no-card" hidden>
+      <h2>Card payment isn't available yet</h2>
+      <p>You can get Plus in the app now, with Google Play: open Heartpact, go to <b>Us</b> and tap <b>Heartpact Plus</b>.</p>
+    </div>
+
+    <p id="plus-status" class="status" role="status" tabindex="-1" hidden></p>
+  </section>
+
+  <h2>Questions</h2>
+  <h3>Does my partner need to pay too?</h3>
+  <p>No. One subscription covers the couple, so the other phone gets Plus straight away.</p>
+  <h3>I already pay in Google Play</h3>
+  <p>Then you have Plus, and there's nothing to do here. Manage or cancel it in <a href="https://play.google.com/store/account/subscriptions">Google Play</a>.</p>
+  <h3>Something's not right?</h3>
+  <p>Email <a href="mailto:support@heartpact.me?subject=Heartpact%20Plus">support@heartpact.me</a> from the address on your account.</p>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>© 2026 Heartpact</p>
+    <nav aria-label="Legal">
+      <a href="/privacy/">Privacy policy</a>
+      <a href="/terms/">Terms of use</a>
+      <a href="/delete-account/">Delete your account</a>
+      <a href="mailto:support@heartpact.me">Contact</a>
+    </nav>
+    <!-- i18n:languages (website/i18n/build.py) -->
+    <nav class="languages" aria-label="Language">
+      <a href="/plus/" lang="en" hreflang="en" data-lang="en" aria-current="true">English</a>
+      <a href="/fr/plus/" lang="fr" hreflang="fr" data-lang="fr">Français</a>
+      <a href="/pt/plus/" lang="pt" hreflang="pt" data-lang="pt">Português</a>
+      <a href="/es/plus/" lang="es" hreflang="es" data-lang="es">Español</a>
+      <a href="/ar/plus/" lang="ar" hreflang="ar" data-lang="ar">العربية</a>
+      <a href="/hi/plus/" lang="hi" hreflang="hi" data-lang="hi">हिन्दी</a>
+    </nav>
+    <!-- /i18n:languages -->
+  </div>
+</footer>
+</body>
+</html>

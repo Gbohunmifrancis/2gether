@@ -294,6 +294,11 @@ jobs:
             if curl -fsS --max-time 10 "$CHECK_URL/assets/site.css" | cmp -s - website/assets/site.css; then
               headers=$(curl -sS -D - -o /dev/null "$CHECK_URL/privacy/")
               echo "$headers" | grep -iq "^content-security-policy:" || { echo "::error::$SITE_URL has no Content-Security-Policy (website/_headers)."; exit 1; }
+              # /plus/ swaps in a policy that allows Google sign-in; the site-wide one must not be served alongside it.
+              plus_csp=$(curl -sS -D - -o /dev/null "$CHECK_URL/plus/" | tr -d '\r' | grep -i "^content-security-policy:" || true)
+              if [ "$(echo "$plus_csp" | grep -c .)" != "1" ] || ! echo "$plus_csp" | grep -q "accounts.google.com/gsi/client" || echo "$plus_csp" | grep -q "script-src 'self';"; then
+                echo "::warning title=Plus page policy::$SITE_URL/plus/ should send one Content-Security-Policy allowing accounts.google.com/gsi (website/_headers). Got: $plus_csp"
+              fi
               # The deletion page signs in from the site's origin: the API must allow it in Frontend__Origin.
               allowed=$(curl -sS -D - -o /dev/null -X OPTIONS -H "Origin: $SITE_URL" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type" "${API_URL%/}/api/auth/login" | tr -d '\r' | grep -i "^access-control-allow-origin:" || true)
               [ -n "$allowed" ] || echo "::warning title=Deletion page can't reach the API::Add $SITE_URL to Frontend__Origin on the API. See docs/website.md."

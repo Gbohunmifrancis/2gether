@@ -11,6 +11,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -21,6 +23,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -388,7 +392,8 @@
  "$7.99<small>/mo</small>": {
   "kind": "text",
   "pages": [
-   "index.html"
+   "index.html",
+   "plus/index.html"
   ]
  },
  "or $39.99 a year (about $3.33 a month) · either of you can pay": {
@@ -400,31 +405,36 @@
  "Unlimited daily dares, several a day if you like": {
   "kind": "text",
   "pages": [
-   "index.html"
+   "index.html",
+   "plus/index.html"
   ]
  },
  "20 food scans a day": {
   "kind": "text",
   "pages": [
-   "index.html"
+   "index.html",
+   "plus/index.html"
   ]
  },
  "2 GB shared album": {
   "kind": "text",
   "pages": [
-   "index.html"
+   "index.html",
+   "plus/index.html"
   ]
  },
  "90 days of question history": {
   "kind": "text",
   "pages": [
-   "index.html"
+   "index.html",
+   "plus/index.html"
   ]
  },
  "One subscription switches it on for both phones": {
   "kind": "text",
   "pages": [
-   "index.html"
+   "index.html",
+   "plus/index.html"
   ]
  },
  "Prices in US dollars; Google Play shows your local price. The yearly plan starts with 7 days free. Cancel any time in Google Play.": {
@@ -433,10 +443,17 @@
    "index.html"
   ]
  },
- "Questions": {
+ "<a href=\"/plus/\">Get Plus on the web</a>, paying by card.": {
   "kind": "text",
   "pages": [
    "index.html"
+  ]
+ },
+ "Questions": {
+  "kind": "text",
+  "pages": [
+   "index.html",
+   "plus/index.html"
   ]
  },
  "Is the camera recording me?": {
@@ -523,6 +540,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -533,6 +552,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -543,6 +564,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -553,6 +576,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -594,6 +619,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -2673,13 +2700,15 @@
  "Email <input name=\"email\" type=\"email\" autocomplete=\"email\" required>": {
   "kind": "text",
   "pages": [
-   "delete-account/index.html"
+   "delete-account/index.html",
+   "plus/index.html"
   ]
  },
  "Password <input name=\"password\" type=\"password\" autocomplete=\"current-password\" required>": {
   "kind": "text",
   "pages": [
-   "delete-account/index.html"
+   "delete-account/index.html",
+   "plus/index.html"
   ]
  },
  "<input name=\"sure\" type=\"checkbox\"> I understand my account and everything in it will be deleted for good.": {
@@ -2760,6 +2789,336 @@
    "delete-account/index.html"
   ]
  },
+ "One subscription covers both of you. Pay by card here, or with Google Play in the app.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "This page needs JavaScript to sign you in. You can also get Plus in the app.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Sign in": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Use the account you have in the app. Plus switches on for your partner too.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Signed up with Google?": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Continue with the same Google account you use in the app.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "No account yet? <a href=\"https://play.google.com/store/apps/details?id=app.heartpact\">Get the app</a> and sign up there first, then come back.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Your plan": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Sign out": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Checking your plan…": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "You have Plus": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "You pay by card. Change your card, see your receipts or cancel in billing.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Manage billing": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Your subscription is managed in Google Play. <a href=\"https://play.google.com/store/account/subscriptions\">Open your Google Play subscriptions</a>.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Your partner manages the subscription from their account.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Choose a plan": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "You're not linked with a partner yet. Plus covers them too as soon as you link in the app.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Yearly": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "7 days free": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "$39.99<small>/yr</small>": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "About $3.33 a month. Free for 7 days, then $39.99 a year.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Start 7 days free": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Monthly": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Pay as you go": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Billed every month.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Choose monthly": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Prices in US dollars. Payment is handled securely by Bachs. Cancel any time from this page, under Manage billing.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Plus is paused": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Your last card payment didn't go through. Update your card in billing and Plus switches back on for both of you.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Your partner has a subscription": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "One subscription covers you both, so there's nothing to buy here. If Plus isn't on, ask your partner to check their payment.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Card payment isn't available yet": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "You can get Plus in the app now, with Google Play: open Heartpact, go to <b>Us</b> and tap <b>Heartpact Plus</b>.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Does my partner need to pay too?": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "No. One subscription covers the couple, so the other phone gets Plus straight away.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "I already pay in Google Play": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Then you have Plus, and there's nothing to do here. Manage or cancel it in <a href=\"https://play.google.com/store/account/subscriptions\">Google Play</a>.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Something's not right?": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Email <a href=\"mailto:support@heartpact.me?subject=Heartpact%20Plus\">support@heartpact.me</a> from the address on your account.": {
+  "kind": "text",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Get Heartpact Plus for both of you, paying by card on the web.": {
+  "kind": "attribute",
+  "pages": [
+   "plus/index.html"
+  ]
+ },
+ "Thank you · Heartpact Plus": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Thank you": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Activating your plan…": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "This usually takes a few seconds. You can keep this page open.": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Plus is on": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Plus is on for both of you. Open Heartpact on your phone.": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Open Heartpact": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Still waiting for your payment": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "This is taking longer than usual. If your payment went through, Plus switches on as soon as it's confirmed, and you don't need to pay again.": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Check again": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Still not on after a few minutes? Email <a href=\"mailto:support@heartpact.me?subject=Heartpact%20Plus\">support@heartpact.me</a> from the address on your account.": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Sign in to see your plan": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "We can't check your plan in this tab. <a href=\"/plus/\">Sign in again</a> to see it. If you've paid, Plus switches on by itself, so don't pay again.": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "<a href=\"/plus/\">Back to Heartpact Plus</a>": {
+  "kind": "text",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
+ "Switching on Heartpact Plus after paying by card.": {
+  "kind": "attribute",
+  "pages": [
+   "plus/thanks/index.html"
+  ]
+ },
  "Not found · Heartpact": {
   "kind": "text",
   "pages": [
@@ -2794,13 +3153,23 @@
  "Checking your account…": {
   "kind": "script",
   "pages": [
-   "assets/delete.js"
+   "assets/delete.js",
+   "assets/plus.js"
+  ]
+ },
+ "We couldn't reach Heartpact. Check your connection and try again.": {
+  "kind": "script",
+  "pages": [
+   "assets/delete.js",
+   "assets/plus-thanks.js",
+   "assets/plus.js"
   ]
  },
  "Too many attempts. Wait a few minutes and try again.": {
   "kind": "script",
   "pages": [
-   "assets/delete.js"
+   "assets/delete.js",
+   "assets/plus.js"
   ]
  },
  "Email or password is incorrect. If you signed up with Google, email support@heartpact.me from that address and we’ll delete it.": {
@@ -2824,13 +3193,158 @@
  "Something went wrong. Try again, or email support@heartpact.me.": {
   "kind": "script",
   "pages": [
-   "assets/delete.js"
+   "assets/delete.js",
+   "assets/plus.js"
   ]
  },
- "We couldn't reach Heartpact. Check your connection and try again.": {
+ "Your session has ended. Sign in again.": {
   "kind": "script",
   "pages": [
-   "assets/delete.js"
+   "assets/plus.js"
+  ]
+ },
+ "Enter your email and password.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Email or password is incorrect. Signed up with Google? Use the Google button below.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "There's no Heartpact account for this Google account yet. Sign up in the app first, then come back here.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "This email is linked to a different Google account. Use that one, or your email and password.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Google sign-in isn't available right now. Use your email and password, or try again later.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Google sign-in couldn't load. Check your connection, or use your email and password.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Signed in as {name}.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "It covers you and {partner}.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "It covers you both.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "{partner} pays for Plus. It covers you both.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Your partner pays for Plus. It covers you both.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Plus is on us until {date}. It covers you both.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Plus is on us. It covers you both.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "You both have Plus.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "The last payment didn't go through. Update the payment by {date} to keep Plus.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "The last payment didn't go through. Plus stays until {date} while it's fixed.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "It won't renew. Plus ends on {date}.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "It renews on {date}.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Opening secure checkout…": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Card payment isn't available right now. Try again later, or get Plus in the app with Google Play.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "That plan isn't on sale right now. Reload the page and try again.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "You already have Plus, so there's nothing to pay.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "Opening billing…": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
+  ]
+ },
+ "We couldn't find a card subscription on your account. If you pay with Google Play, manage it there.": {
+  "kind": "script",
+  "pages": [
+   "assets/plus.js"
   ]
  },
  "The workout screen counting squats, 9 of 15, with the pose drawn over the camera": {

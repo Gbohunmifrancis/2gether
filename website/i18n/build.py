@@ -23,7 +23,10 @@ import sys
 SITE = pathlib.Path(__file__).resolve().parent.parent
 HERE = SITE / "i18n"
 ORIGIN = "https://heartpact.me"
-PAGES = ["index.html", "privacy/index.html", "terms/index.html", "delete-account/index.html", "404.html"]
+PAGES = ["index.html", "privacy/index.html", "terms/index.html", "delete-account/index.html", "plus/index.html",
+         "plus/thanks/index.html", "404.html"]
+# Pages search engines shouldn't list (each also says noindex): not in the sitemap.
+UNLISTED = {"404.html", "plus/thanks/index.html"}
 LEGAL = {"privacy/index.html", "terms/index.html"}
 LANGUAGES = ["fr", "pt", "es", "ar", "hi"]
 NAMES = {"en": "English", "fr": "Français", "pt": "Português", "es": "Español", "ar": "العربية", "hi": "हिन्दी"}
@@ -31,7 +34,7 @@ RTL = {"ar"}
 # A translated legal page says the English one applies; {english} is its address.
 LEGAL_NOTE = ('This translation is for your convenience. If it differs from the <a href="{english}">English version</a>, '
               'the English version applies.')
-DO_NOT_TRANSLATE = {"heartpact", "© 2026 Heartpact"} | set(NAMES.values())
+DO_NOT_TRANSLATE = {"heartpact", "Heartpact Plus", "© 2026 Heartpact"} | set(NAMES.values())
 
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 INLINE = {"a", "abbr", "b", "br", "code", "em", "i", "img", "input", "kbd", "mark", "s", "small", "span", "strong", "sub",
@@ -240,7 +243,7 @@ def outputs():
         words = catalog(language)
         for page in PAGES:
             out[f"{language}/{page}"] = translate(page, language, words)
-    urls = [url(code, page) for page in PAGES if page != "404.html" for code in ["en"] + LANGUAGES]
+    urls = [url(code, page) for page in PAGES if page not in UNLISTED for code in ["en"] + LANGUAGES]
     out["sitemap.xml"] = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                           + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n")
     return out

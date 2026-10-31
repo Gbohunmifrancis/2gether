@@ -6,5 +6,15 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
   Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self' https://api.heartpact.me; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
+# Heartpact Plus signs in with Google Identity Services: Google's script, its button frame and its calls, on these
+# pages only. The rule above's policy is dropped here (!) and replaced, not added to, since two policies both apply.
+/plus/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' https://accounts.google.com/gsi/style; script-src 'self' https://accounts.google.com/gsi/client; font-src 'self'; connect-src 'self' https://api.heartpact.me https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+/:lang/plus/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' https://accounts.google.com/gsi/style; script-src 'self' https://accounts.google.com/gsi/client; font-src 'self'; connect-src 'self' https://api.heartpact.me https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
 /assets/*
   Cache-Control: public, max-age=86400
