@@ -11,6 +11,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Couple;
 using Twogether.Application.Features.Exercise;
+using Twogether.Application.Features.Games;
 using Twogether.Application.Features.Cycle;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
@@ -30,6 +31,9 @@ public sealed class CoupleController(
     InviteSettings inviteSettings,
     ILogger<CoupleController> logger) : ApiControllerBase
 {
+    /// <summary>Reads a game's scores for the history when the couple ending ends it (the rules hold no state).</summary>
+    private static readonly GameEngine Games = new();
+
     [HttpGet]
     public async Task<ActionResult<CoupleDto>> Get(CancellationToken cancellationToken)
     {
@@ -204,6 +208,8 @@ public sealed class CoupleController(
             await hub.Clients.Group(CoupleHub.UserGroupName(linkedPartnerId)).SendAsync("NotificationCreated", NotificationController.ToDto(notification), cancellationToken);
         }
         else await db.SaveChangesAsync(cancellationToken);
+        foreach (var session in endedGames)
+            await GameHistory.KeepAsync(db, Games, session, GameOutcome.Abandoned, clock.UtcNow, cancellationToken);
         foreach (var session in endedGames)
             await hub.Clients.Group(CoupleHub.GroupName(couple.Id)).SendAsync("GameEnded", new GameEndedDto(session.Id, actor.Id, actor.DisplayName, clock.UtcNow), cancellationToken);
         // The actor's other devices: they reconnect and lose the old couple's groups.

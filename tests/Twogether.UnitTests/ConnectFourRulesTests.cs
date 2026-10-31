@@ -15,10 +15,14 @@ public sealed class ConnectFourRulesTests
     private GameEngineResult Drop(GameEngineResult from, int player, int column)
         => engine.Apply(GameType.ConnectFour, from.StateJson, players[player], "drop", null, column, now);
 
-    /// <summary>Drops discs in turn, starting with whoever's turn it is.</summary>
+    /// <summary>The server's beat after a game: the timeout worker plays the timeout once the deadline has passed.</summary>
+    private GameEngineResult Beat(GameEngineResult from)
+        => from.DeadlineUtc is { } at ? engine.Apply(GameType.ConnectFour, from.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, at) : from;
+
+    /// <summary>Drops discs in turn, starting with whoever's turn it is (after the beat, when a finished board is up).</summary>
     private GameEngineResult Play(GameEngineResult from, params int[] columns)
     {
-        foreach (var column in columns) from = Drop(from, Array.IndexOf(players, from.CurrentTurnUserId!.Value), column);
+        foreach (var column in columns) from = Drop(Beat(from), Array.IndexOf(players, from.CurrentTurnUserId!.Value), column);
         return from;
     }
 
@@ -44,7 +48,9 @@ public sealed class ConnectFourRulesTests
         var state = State(start);
         Assert.Equal(players[0], start.CurrentTurnUserId);
         Assert.Null(start.DeadlineUtc);
-        Assert.False(engine.IsTimed(GameType.ConnectFour));
+        // Only the beat between games is timed: the turns have no clock (and so a "your turn" push).
+        Assert.True(engine.IsTimed(GameType.ConnectFour));
+        Assert.False(GameEngine.HasTurnClock(GameType.ConnectFour));
         Assert.Equal(7, state.GetProperty("columns").GetInt32());
         Assert.Equal(6, state.GetProperty("rows").GetInt32());
         Assert.Equal(42, state.GetProperty("cells").GetArrayLength());
@@ -133,17 +139,89 @@ public sealed class ConnectFourRulesTests
     }
 
     [Fact]
-    public void Players_take_turns_starting_each_game()
+    public void A_finished_game_stays_up_for_a_beat_then_the_server_starts_the_next()
     {
         var won = Play(Start(), StarterWins);
+        var state = State(won);
+        var at = now.AddMilliseconds(GridMatchRules.NextGameDelayMs);
+        // The finished board, its line and the next game's start, which is the session's deadline.
+        Assert.Equal("gameOver", state.GetProperty("phase").GetString());
+        Assert.Equal(at, state.GetProperty("nextGameAtUtc").GetDateTime());
+        Assert.Equal(at, won.DeadlineUtc);
         Assert.Equal(players[1], won.CurrentTurnUserId);
-        Assert.Throws<InvalidOperationException>(() => Drop(won, 0, 3));
+        Assert.False(won.Completed);
 
-        var second = Drop(won, 1, 3);
+        // The timeout worker, once the beat is over: a fresh board, the other partner to start.
+        var next = engine.Apply(GameType.ConnectFour, won.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, at);
+        var fresh = State(next);
+        Assert.Equal("playing", fresh.GetProperty("phase").GetString());
+        Assert.Equal(1, fresh.GetProperty("game").GetInt32());
+        Assert.All(fresh.GetProperty("cells").EnumerateArray(), cell => Assert.Equal(JsonValueKind.Null, cell.ValueKind));
+        Assert.Equal(JsonValueKind.Null, fresh.GetProperty("line").ValueKind);
+        Assert.Equal(JsonValueKind.Null, fresh.GetProperty("nextGameAtUtc").ValueKind);
+        Assert.Equal(players[1], next.CurrentTurnUserId);
+        Assert.Null(next.DeadlineUtc);
+        Assert.Equal(1, fresh.GetProperty("scores").GetProperty(players[0].ToString()).GetInt32());
+    }
+
+    [Fact]
+    public void A_timeout_before_the_beat_is_over_or_during_play_changes_nothing()
+    {
+        var won = Play(Start(), StarterWins);
+        var early = engine.Apply(GameType.ConnectFour, won.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now.AddMilliseconds(500));
+        Assert.Equal("gameOver", State(early).GetProperty("phase").GetString());
+        Assert.Equal(won.DeadlineUtc, early.DeadlineUtc);
+
+        var playing = Drop(Start(), 0, 3);
+        var still = engine.Apply(GameType.ConnectFour, playing.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now.AddHours(1));
+        Assert.Equal(playing.StateJson, still.StateJson);
+    }
+
+    [Fact]
+    public void The_next_starter_may_move_a_moment_early_but_not_during_the_beat()
+    {
+        var won = Play(Start(), StarterWins);
+        var at = won.DeadlineUtc!.Value;
+        // Still showing the result: too soon. And the one who didn't start the next game may never go first.
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.ConnectFour, won.StateJson, players[1], "drop", null, 3, now));
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.ConnectFour, won.StateJson, players[0], "drop", null, 3, at));
+
+        var second = engine.Apply(GameType.ConnectFour, won.StateJson, players[1], "drop", null, 3, at.AddMilliseconds(-GridMatchRules.EarlyStartMs));
         var state = State(second);
         Assert.Equal(1, state.GetProperty("game").GetInt32());
         Assert.Equal(1, state.GetProperty("cells").EnumerateArray().Count(cell => cell.ValueKind != JsonValueKind.Null));
         Assert.Equal(players[1].ToString(), state.GetProperty("cells")[Cell(3, 5)].GetString());
+        Assert.Equal(players[0], second.CurrentTurnUserId);
+        Assert.Null(second.DeadlineUtc);
+    }
+
+    [Fact]
+    public void A_move_that_arrives_after_the_beat_lands_on_the_fresh_board()
+    {
+        var won = Play(Start(), StarterWins);
+        var late = won.DeadlineUtc!.Value.AddSeconds(1);
+        // The server plays the timeout for a move after the deadline, keeping its column: the starter's disc lands.
+        var mine = State(engine.Apply(GameType.ConnectFour, won.StateJson, players[1], GameEngine.TimeoutAction, null, 4, late));
+        Assert.Equal(1, mine.GetProperty("game").GetInt32());
+        Assert.Equal(players[1].ToString(), mine.GetProperty("cells")[Cell(4, 5)].GetString());
+        // Anyone else's late move only starts the next game.
+        var theirs = State(engine.Apply(GameType.ConnectFour, won.StateJson, players[0], GameEngine.TimeoutAction, null, 4, late));
+        Assert.Equal(1, theirs.GetProperty("game").GetInt32());
+        Assert.All(theirs.GetProperty("cells").EnumerateArray(), cell => Assert.Equal(JsonValueKind.Null, cell.ValueKind));
+    }
+
+    [Fact]
+    public void A_board_finished_before_the_beat_existed_is_cleared_by_the_next_starters_move()
+    {
+        // A match saved mid-way by an older server: game over, no next-game time, no deadline.
+        var won = Play(Start(), StarterWins);
+        var old = System.Text.Json.Nodes.JsonNode.Parse(won.StateJson)!.AsObject();
+        old.Remove("nextGameAtUtc");
+        var second = engine.Apply(GameType.ConnectFour, old.ToJsonString(), players[1], "drop", null, 3, now);
+        var state = State(second);
+        Assert.Equal(1, state.GetProperty("game").GetInt32());
+        Assert.Equal(players[1].ToString(), state.GetProperty("cells")[Cell(3, 5)].GetString());
+        Assert.Throws<InvalidOperationException>(() => engine.Apply(GameType.ConnectFour, old.ToJsonString(), players[0], "drop", null, 3, now));
     }
 
     [Fact]

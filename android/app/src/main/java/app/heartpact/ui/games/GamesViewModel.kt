@@ -8,6 +8,7 @@ import app.heartpact.data.ApiResult
 import app.heartpact.data.GameSession
 import app.heartpact.data.GameStatus
 import app.heartpact.data.GameType
+import app.heartpact.data.HISTORY_SIZE
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.utc
 import app.heartpact.i18n.tr
@@ -43,6 +44,8 @@ data class GamesUi(
     val ink: LiveInk = LiveInk(),
     /** I call on: how many categories the partner has filled so far, by session (the couple hub's `GameProgress`). */
     val progress: Map<String, PartnerProgress> = emptyMap(),
+    /** The couple's finished games from the history (`api/game/history`), which reaches past the sessions listed. */
+    val played: List<GameSession> = emptyList(),
 ) {
     /** The couple's one open game, if any. */
     val active: GameSession? get() = sessions.firstOrNull { it.open }
@@ -52,7 +55,12 @@ data class GamesUi(
     fun justFinished(now: Instant): GameSession? = finished?.takeIf { s ->
         s.id !in closed && s.endedAtUtc?.let { Duration.between(utc(it), now) < KEEP_FINISHED } == true
     }
-    val history: List<GameSession> get() = sessions.filter { it.status == GameStatus.Completed }.take(8)
+    /**
+     * The games played to the end, newest first: the history, with any finished since it loaded (from the sessions) on
+     * top. Without a history (an older server) it's the finished games among the sessions, as before.
+     */
+    val history: List<GameSession> get() = (sessions + played).filter { it.status == GameStatus.Completed }.distinctBy { it.id }
+        .sortedByDescending { it.endedAtUtc?.let { at -> runCatching { utc(at) }.getOrNull() } ?: Instant.MIN }.take(HISTORY_SIZE)
 
     /**
      * The list as fetched, except that a game this phone already holds at a newer version (an event that arrived while
@@ -175,6 +183,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun refresh() = viewModelScope.launch {
         (app.games.region() as? ApiResult.Ok)?.value?.let { found -> _ui.update { it.copy(region = found.region) } }
+        (app.games.history() as? ApiResult.Ok)?.value?.let { items -> _ui.update { it.copy(played = items.mapNotNull { item -> item.session }) } }
         when (val result = app.games.sessions()) {
             // Back online clears the offline note; a refusal just shown (a refresh follows it) stays until the next tap.
             is ApiResult.Ok -> _ui.update { it.withSessions(result.value).copy(loaded = true, note = it.note?.takeUnless { n -> n == OFFLINE_MESSAGE }) }

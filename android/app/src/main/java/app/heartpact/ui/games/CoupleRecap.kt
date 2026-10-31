@@ -45,6 +45,9 @@ internal fun GamePlay.resendable(before: GameSession, after: GameSession): Boole
         GameType.WouldYouRather -> wouldYouRather(after).let { it.round == wouldYouRather(before).round && it.myPick == null }
         GameType.Trivia -> trivia(after).let { !it.completed && it.round == trivia(before).round && it.myAnswer == null }
         GameType.CoupleQuiz -> quiz(after).let { it.round == quiz(before).round && it.mine == null }
+        // Connect four: the first disc of the next game, dropped on the fresh board as the server dealt it.
+        GameType.ConnectFour -> grid(before).let { b -> grid(after).let { a ->
+            b.phase == "gameOver" && a.phase == "playing" && a.game == b.game + 1 && a.cells.all { it == null } && after.currentTurnUserId == before.currentTurnUserId } }
         else -> false
     }
 }

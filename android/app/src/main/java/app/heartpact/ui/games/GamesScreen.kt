@@ -187,7 +187,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.GuessMyAnswer -> GuessMyAnswerBoard(s, me, partnerName, busy, actions)
         GameType.WouldYouRather -> WouldYouRatherBoard(s, me, partnerName, busy, actions)
         GameType.TicTacToe -> TicTacToeBoard(s, me, partnerName, ui.ttt, ui.ink, actions, now)
-        GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
+        GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions, now)
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
         GameType.SkillDuel -> SkillDuelBoard(s, me, partnerName, busy, actions)

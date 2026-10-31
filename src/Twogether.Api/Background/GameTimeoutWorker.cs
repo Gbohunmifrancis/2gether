@@ -62,7 +62,7 @@ public sealed class GameTimeoutWorker(
     public static readonly TimeSpan InviteLifetime = TimeSpan.FromDays(1);
     public static readonly TimeSpan IdleGameLifetime = TimeSpan.FromDays(7);
 
-    private async Task EndStaleGames(CancellationToken cancellationToken)
+    public async Task EndStaleGames(CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -81,6 +81,7 @@ public sealed class GameTimeoutWorker(
             session.Abandon(now);
             // A move that lands at the same moment wins: the game wasn't stale after all.
             if (!await SavedAsync(db, cancellationToken)) continue;
+            await GameHistory.KeepAsync(db, engine, session, GameOutcome.TimedOut, now, cancellationToken);
             liveState?.ClearSession(session.Id);
             ended++;
             await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId))
@@ -107,7 +108,7 @@ public sealed class GameTimeoutWorker(
         }
     }
 
-    private async Task AdvanceExpiredRounds(CancellationToken cancellationToken)
+    public async Task AdvanceExpiredRounds(CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -138,6 +139,7 @@ public sealed class GameTimeoutWorker(
                 session.Abandon(now);
                 if (await SavedAsync(db, cancellationToken))
                 {
+                    await GameHistory.KeepAsync(db, engine, session, GameOutcome.Abandoned, now, cancellationToken);
                     liveState?.ClearSession(session.Id);
                     await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameEnded", new GameEndedDto(session.Id, Guid.Empty, "Heartpact", now), cancellationToken);
                 }
@@ -147,6 +149,7 @@ public sealed class GameTimeoutWorker(
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, now);
             // A late move that crossed this tick has already played the timeout: skip this one, as is.
             if (!await SavedAsync(db, cancellationToken)) continue;
+            await GameHistory.KeepAsync(db, engine, session, GameOutcome.Completed, now, cancellationToken);
             var eventName = session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged";
             var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
             await GameEvents.SendAsync(hub, engine, session, players, eventName, cancellationToken);

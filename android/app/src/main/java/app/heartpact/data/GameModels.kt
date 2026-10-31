@@ -255,6 +255,8 @@ data class GridMatchState(
     val draws: Int = 0,
     val results: List<String?> = emptyList(),
     val winnerUserId: String? = null,
+    /** While a finished board is up: when the server starts the next game (null on a board from before the beat). */
+    val nextGameAtUtc: String? = null,
 )
 
 /**
@@ -364,6 +366,11 @@ data class DuelRound(
     /** Whoever scored higher, once both have played; null for a tie. */
     val winner: String? = null,
     val tie: Boolean = false,
+    /**
+     * How many times I've opened this round. Opening it again before scoring deals me another of the same kind: [seed]
+     * is always my own (docs/games.md). 0 from a server that doesn't count.
+     */
+    val opens: Int = 0,
 ) {
     /** Both scores are in and showing. */
     val revealed: Boolean get() = mine != null && partner != null
@@ -484,3 +491,19 @@ data class SnakesState(
 /** Whose versions of the games the couple plays: "ng" for Nigerian couples (Naija content), else "global". */
 @Serializable
 data class GameRegionView(val region: String = "global")
+
+/**
+ * One game in the couple's history (`GET api/game/history`, newest first): how it ended ("completed", "abandoned" or
+ * "timedOut"), and the game itself as a session ([session], null if it's gone), shown like any other.
+ */
+@Serializable
+data class GameHistoryItem(
+    val sessionId: String = "",
+    val gameType: GameType = GameType.Unknown,
+    val outcome: String = "",
+    val winnerUserId: String? = null,
+    val scores: Map<String, Int> = emptyMap(),
+    val roundsPlayed: Int = 0,
+    val endedAtUtc: String? = null,
+    val session: GameSession? = null,
+)

@@ -57,7 +57,8 @@ public sealed class SnakesAndLaddersRules(Func<int, int>? random = null) : IGame
 
     public GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson)
     {
-        var first = players[players.Count > 1 ? random(players.Count) : 0];
+        // The setup names the first player, alternating across the couple's games (GameFirstPlayer); one from before flips the coin.
+        var first = GameFirstPlayer.Of(setupJson) is { } named && players.Contains(named) ? named : players[players.Count > 1 ? random(players.Count) : 0];
         var state = new State
         {
             Players = players.ToList(),

@@ -59,10 +59,11 @@ public interface IGameSetupFactory
 
 /// <summary>
 /// What a setup may take into account beyond the region: both partners' languages (Trivia only fetches English
-/// questions when both read English) and the couple's last few setups of the same game, newest first, so a new game
-/// draws content they haven't just seen.
+/// questions when both read English), the couple's last few setups of the same game, newest first, so a new game
+/// draws content they haven't just seen, and for a game played turn by turn the two players and who went first in
+/// their previous game of it (<see cref="GameFirstPlayer"/>), so the setup can name the other partner first.
 /// </summary>
-public sealed record GameSetupContext(IReadOnlyCollection<string> Languages, IReadOnlyList<string> RecentSetups)
+public sealed record GameSetupContext(IReadOnlyCollection<string> Languages, IReadOnlyList<string> RecentSetups, IReadOnlyList<Guid>? Players = null, Guid? PreviousFirst = null)
 {
     public static GameSetupContext None { get; } = new([], []);
 
@@ -70,10 +71,22 @@ public sealed record GameSetupContext(IReadOnlyCollection<string> Languages, IRe
     public bool AllEnglish => Languages.All(language => string.IsNullOrWhiteSpace(language) || language.StartsWith("en", StringComparison.OrdinalIgnoreCase));
 }
 
-/// <summary>One case per game that needs more than its region; the rest get just the region.</summary>
-public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSetupFactory
+/// <summary>
+/// One case per game that needs more than its region; the rest get just the region. A game played turn by turn also
+/// names its first player when the context knows the two (<see cref="GameFirstPlayer"/>); <c>random</c> flips the
+/// coin for a couple's first game of a kind (the server's secure RNG when null).
+/// </summary>
+public sealed class GameSetupFactory(IGameQuestionProvider questions, Func<int, int>? random = null) : IGameSetupFactory
 {
-    public async Task<string> CreateAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken, GameSetupContext? context = null) => gameType switch
+    public async Task<string> CreateAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken, GameSetupContext? context = null)
+    {
+        var setup = await ContentAsync(gameType, region, letter, cancellationToken, context);
+        return GameFirstPlayer.Alternates(gameType) && context?.Players is { Count: > 1 } players
+            ? GameFirstPlayer.With(setup, GameFirstPlayer.Choose(players, context.PreviousFirst, random))
+            : setup;
+    }
+
+    private async Task<string> ContentAsync(GameType gameType, string region, string? letter, CancellationToken cancellationToken, GameSetupContext? context) => gameType switch
     {
         GameType.ICallOn => JsonSerializer.Serialize(new { region, letter = letter?.ToUpperInvariant() }),
         GameType.MemoryMatch => JsonSerializer.Serialize(new { region }),

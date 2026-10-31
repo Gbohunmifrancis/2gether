@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.heartpact.data.GameSession
+import app.heartpact.data.ServerClock
 import app.heartpact.i18n.tr
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.theme.Heartpact
@@ -40,11 +41,15 @@ import app.heartpact.ui.theme.partner
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.math.sqrt
+import java.time.Instant
 
-/** Connect four: tap a column and your disc drops to the lowest free hole; four in a row wins the game. */
+/**
+ * Connect four: tap a column and your disc drops to the lowest free hole; four in a row wins the game. After each game
+ * the result stays up for the server's beat, then the next board comes by itself ([now]: the server's clock).
+ */
 @Composable
-fun ConnectFourBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
-    GridMatchFrame(s, me, partnerName, busy, tr("Your turn: tap a column")) { g, shown ->
+fun ConnectFourBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant = { ServerClock.now() }) {
+    GridMatchFrame(s, me, partnerName, busy, tr("Your turn: tap a column"), now) { g, shown ->
         val columns = g.columns
         val rows = g.rows
         // The newest disc gets a ring, so a partner's move that landed while you looked away is easy to find.

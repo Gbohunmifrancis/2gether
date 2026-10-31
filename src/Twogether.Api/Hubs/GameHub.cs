@@ -62,6 +62,7 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         {
             throw new HubException("Your partner just updated the game. Reload the latest board and try again.");
         }
+        await GameHistory.KeepAsync(db, engine, session, GameOutcome.Completed, clock.UtcNow, Context.ConnectionAborted);
         // Same event names and same payload shape as GameController and
         // GameTimeoutWorker, so a client can handle a game update from any
         // source with one code path.

@@ -61,6 +61,9 @@ public sealed class GameEngine : IGameEngine
 
     public bool MovesMayCross(GameType gameType) => RulesFor(gameType)?.MovesMayCross ?? false;
 
+    /// <summary>Each turn runs against the clock (<see cref="IGameRules.TurnClock"/>): I call on and Word dash, not Connect four's beat.</summary>
+    public static bool HasTurnClock(GameType gameType) => RulesFor(gameType)?.TurnClock ?? gameType == GameType.ICallOn;
+
     public string ToPublicState(GameType gameType, string stateJson, Guid? viewer)
     {
         // An invite that hasn't started has no state yet; the rules all assume a game in play.
@@ -72,6 +75,8 @@ public sealed class GameEngine : IGameEngine
 
     public GameEngineResult Start(GameType gameType, IReadOnlyList<Guid> playerIds, DateTime utcNow, string? setupJson = null)
     {
+        // Whoever the setup names first goes first (GameFirstPlayer): every game starts with its first player.
+        playerIds = GameFirstPlayer.Order(playerIds, setupJson);
         if (RulesFor(gameType) is { } rules)
         {
             if (playerIds.Count == 0) throw new InvalidOperationException("At least one player is required.");
