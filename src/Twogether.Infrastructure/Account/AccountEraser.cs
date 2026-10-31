@@ -6,8 +6,10 @@ using Twogether.Application.Features.Notifications;
 using Twogether.Application.Features.Pregnancy;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Infrastructure.Billing;
 using Twogether.Infrastructure.Persistence;
 using Twogether.Shared.Localization;
+using Twogether.Shared.Results;
 
 namespace Twogether.Infrastructure.Account;
 
@@ -20,8 +22,11 @@ namespace Twogether.Infrastructure.Account;
 /// cleanup worker with their captions already wiped; the worker deletes the objects within minutes,
 /// once no upload link handed out for them still works.
 /// </summary>
-public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clock) : IAccountEraser
+public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clock, BachsSubscriptionSync? bachs = null) : IAccountEraser
 {
+    public Task<Result> CancelCardSubscriptionsAsync(Guid userId, CancellationToken cancellationToken)
+        => bachs is null ? Task.FromResult(Result.Success()) : bachs.CancelForErasureAsync(userId, cancellationToken);
+
     /// <summary>
     /// Another writer can change a row this reads in the same moment: the alarm worker opening a
     /// dare, or the partner deleting their own account. Then it starts once more from what is there
@@ -114,6 +119,13 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
         // Also cascades from users; removed here so the list above stays the whole story.
         await db.AlbumSyncStates.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.StoreSubscriptions.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
+        // Card payments made in the app go, except what Google still has to be told about (amounts, times and the
+        // country only); the worker reports those and they stay as the record of that report.
+        await db.GoogleExternalTransactions
+            .Where(item => item.UserId == userId
+                && !(item.TransactionTimeUtc != null && item.ReportedAtUtc == null)
+                && !(item.ReportedAtUtc != null && item.RefundTimeUtc != null && item.RefundReportedAtUtc == null))
+            .ExecuteDeleteAsync(cancellationToken);
         await db.Notifications.Where(item => item.UserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.Messages.Where(item => item.SenderUserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
         await db.PartnerInvites.Where(item => item.InviterUserId == userId || orphaned.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);

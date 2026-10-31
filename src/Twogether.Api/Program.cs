@@ -73,6 +73,7 @@ builder.Services.AddHostedService<AlbumSyncReminderWorker>();
 builder.Services.AddHostedService<PlanAlertsWorker>();
 builder.Services.AddHostedService<LocationSweepWorker>();
 builder.Services.AddHostedService<AdminAuditSweepWorker>();
+builder.Services.AddHostedService<GoogleExternalTransactionsWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

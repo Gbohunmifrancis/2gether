@@ -232,6 +232,46 @@ describe("the dashboard", () => {
     expect(await screen.findByText("Christmas theme is on.")).toBeTruthy();
   });
 
+  it("switches card payments in the app on its own, leaving the Christmas theme alone", async () => {
+    const user = userEvent.setup();
+    const puts: unknown[] = [];
+    let state = { christmas: true, bachsInApp: false };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://admin.test");
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      const reply = (status: number, body?: unknown) => new Response(body === undefined ? null : JSON.stringify(body), { status });
+      if (url.pathname !== "/api/admin/features") return reply(404);
+      if ((init?.method ?? "GET") === "GET") return reply(200, state);
+      if (init?.method === "PUT") {
+        if (!headers["x-admin-code"]) return reply(403, { code: "admin.step_up_required", message: "Fresh code, please." });
+        const body = JSON.parse(String(init.body)) as Partial<typeof state>;
+        puts.push(body);
+        state = { ...state, ...body };
+        return reply(200, state);
+      }
+      return reply(405);
+    });
+    act(() => setSession(admin));
+    start("/features");
+
+    const toggle = await screen.findByRole("switch", { name: "Card payments in the app" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByText(/Keep it off until alternative billing is turned on/)).toBeTruthy();
+
+    await user.click(toggle);
+    expect(await screen.findByText("Turn card payments in the app on?")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Turn on" }));
+    const code = await screen.findByLabelText("Authenticator code");
+    await waitFor(() => expect((code as HTMLInputElement).disabled).toBe(false));
+    await user.type(code, "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => expect(screen.getByRole("switch", { name: "Card payments in the app" }).getAttribute("aria-checked")).toBe("true"));
+    expect(puts).toEqual([{ bachsInApp: true }]);
+    expect(screen.getByRole("switch", { name: "Christmas theme" }).getAttribute("aria-checked")).toBe("true");
+    expect(await screen.findByText("Card payments in the app are on.")).toBeTruthy();
+  });
+
   it("lists Features in the navigation", async () => {
     mockApi((method, path) => (method === "GET" && path === "/api/admin/features" ? { status: 200, body: { christmas: true } } : undefined));
     act(() => setSession(admin));

@@ -43,14 +43,19 @@ export function usePaymentsRefresh() {
 const live = (status: SubscriptionStatus) =>
   status === "active" || status === "canceled" || status === "inGracePeriod" || status === "onHold" || status === "paused";
 
+/** Card subscriptions are Bachs's: refunds happen in the Bachs dashboard, never through Google Play. */
+const isCard = (row: SubscriptionRow) => row.store === "bachs";
+
 function SubscriptionActions({ row, ask }: { row: SubscriptionRow; ask: (options: ConfirmOptions) => void }) {
   const toast = useToast();
+  const card = isCard(row);
+  const storeName = card ? "Bachs" : "Google Play";
   const refresh = usePaymentsRefresh();
   const sync = useMutation({
     mutationFn: () => actions.syncSubscription(row.id),
     onSuccess: async () => {
       await refresh();
-      toast("Synced with Google Play.");
+      toast(`Synced with ${storeName}.`);
     },
     onError: (error) => toast(errorMessage(error), true),
   });
@@ -65,7 +70,13 @@ function SubscriptionActions({ row, ask }: { row: SubscriptionRow; ask: (options
 
   return (
     <div className="actions" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
-      <button type="button" className="btn sm ghost" onClick={() => sync.mutate()} disabled={sync.isPending} title="Re-read this subscription from Google Play">
+      <button
+        type="button"
+        className="btn sm ghost"
+        onClick={() => sync.mutate()}
+        disabled={sync.isPending}
+        title={`Re-read this subscription from ${storeName}`}
+      >
         <Icon name="refresh" />
         {sync.isPending ? "Syncing…" : "Sync"}
       </button>
@@ -76,7 +87,7 @@ function SubscriptionActions({ row, ask }: { row: SubscriptionRow; ask: (options
           onClick={() =>
             ask({
               title: "Stop renewal?",
-              body: `${row.buyerEmail ?? "The buyer"} keeps Plus until ${date(row.expiresAtUtc)}, then it ends. Nothing is refunded.`,
+              body: `${row.buyerEmail ?? "The buyer"} keeps Plus until ${date(row.expiresAtUtc)}, then it ends. Nothing is refunded.${card ? " Bachs cancels the card subscription at the period end." : ""}`,
               confirmLabel: "Stop renewal",
               reason: true,
               run: run((reason) => actions.cancelSubscription(row.id, reason), "Renewal stopped."),
@@ -86,7 +97,12 @@ function SubscriptionActions({ row, ask }: { row: SubscriptionRow; ask: (options
           Stop renewal
         </button>
       ) : null}
-      {row.status !== "pending" && row.status !== "pendingPurchaseCanceled" ? (
+      {card ? (
+        <span className="small faint" title="Refunds and ending a card subscription now are done in the Bachs dashboard">
+          Refund in Bachs
+        </span>
+      ) : null}
+      {!card && row.status !== "pending" && row.status !== "pendingPurchaseCanceled" ? (
         <button
           type="button"
           className="btn sm outline"
@@ -103,7 +119,7 @@ function SubscriptionActions({ row, ask }: { row: SubscriptionRow; ask: (options
           Refund
         </button>
       ) : null}
-      {live(row.status) ? (
+      {!card && live(row.status) ? (
         <button
           type="button"
           className="btn sm danger"
@@ -147,7 +163,7 @@ export function SubscriptionsTable({ rows, loading, showBuyer = true }: { rows: 
         header: "Plan",
         cell: ({ row }) => (
           <div>
-            <b>{productLabel(row.original.productId)}</b>
+            <b>{productLabel(row.original.productId)}</b> {isCard(row.original) ? <Badge>Card</Badge> : null}
             <div className="small faint mono" title="End of the purchase token">
               {row.original.tokenSuffix}
             </div>
@@ -162,7 +178,7 @@ export function SubscriptionsTable({ rows, loading, showBuyer = true }: { rows: 
       }),
       column.accessor("expiresAtUtc", { header: "Paid until", cell: ({ getValue }) => date(getValue()) }),
       column.accessor("lastVerifiedAtUtc", {
-        header: "Checked with Google",
+        header: "Last checked",
         meta: { secondary: true },
         cell: ({ getValue }) => <span className="small muted">{dateTime(getValue())}</span>,
       }),

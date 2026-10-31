@@ -54,6 +54,7 @@ public sealed class AdminHealth(
         "Push delivery to phones (only the provider accepting a message is recorded)",
         "Email delivery (a send is not confirmed)",
         "Google Play real-time notifications arriving (only failures to apply one are logged)",
+        "Bachs webhooks arriving (only bad signatures and failures to apply one are logged)",
         "The storage bucket's own size and bill (storage bytes are what the database counts)",
         "Database size, connections and backups",
         "CPU, memory and disk of the API host",
@@ -176,6 +177,10 @@ public sealed class AdminHealth(
                 && db.Couples.Any(couple => couple.Id == goal.CoupleId && couple.Status == CoupleStatus.Active)).Select(goal => goal.NextDueAtUtc), ct),
             await QueueAsync("daresPastDeadline", occurrences.Where(item => (item.Status == ExerciseOccurrenceStatus.Alarming && item.DeadlineUtc <= now.AddMinutes(-1))
                 || (item.Status == ExerciseOccurrenceStatus.InProgress && item.CompleteByUtc != null && item.CompleteByUtc <= now.AddMinutes(-1))).Select(item => item.DeadlineUtc), ct),
+            // Card payments made in the app, waiting to be reported to Google (it wants them within 24 hours).
+            await QueueAsync("googleReports", db.GoogleExternalTransactions.AsNoTracking().Where(item => item.TransactionTimeUtc != null && item.ReportedAtUtc == null).Select(item => item.TransactionTimeUtc!.Value), ct),
+            await QueueAsync("googleReportsOverdue", db.GoogleExternalTransactions.AsNoTracking()
+                .Where(item => item.TransactionTimeUtc != null && item.ReportedAtUtc == null && item.TransactionTimeUtc < now.AddHours(-12)).Select(item => item.TransactionTimeUtc!.Value), ct),
         ];
     }
 

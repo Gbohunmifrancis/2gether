@@ -63,10 +63,10 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | Top couples | The couples making the most hearts, as a sticker wall: their hearts, dares, games, streak and Plus |
 | Users | Search by email, name, user id or couple id; filter active, disabled, not in a couple or internal; who's online now |
 | A user | Account, couple and partner, activity counts, their journey (each day's counts as a sticker strip), devices, subscriptions, grants and admin history. Disable or re-enable, sign out everywhere, email a reset code, mark as internal, give the couple Plus, delete the account |
-| Payments | Every Play subscription: sync with Google, stop renewal, refund the latest payment, or revoke (refund and end now). Complimentary Plus grants, with end |
+| Payments | Every Play subscription: sync with Google, stop renewal, refund the latest payment, or revoke (refund and end now). Card (Bachs) subscriptions, marked "Card": sync with Bachs and stop renewal (Bachs cancels at the period end); refunds and ending one now are done in the Bachs dashboard, and the API refuses them with `409 admin.bachs_dashboard`. Complimentary Plus grants, with end |
 | Audit log | Every admin sign-in (and failure) and action, who, when, on what, from which IP. Kept two years (`AdminAuditSweepWorker`, daily), as the privacy policy says |
 | Health | Probes (database, storage, push, email, food scans) with latency; background workers as beating hearts that go still when late and red when failing; queues; album storage; food scan cost; an honest list of what nothing monitors |
-| Features | Switches that change every app without a release. Today: **Christmas theme**, which turns the festive look on for every app (within about a minute). See `docs/feature-flags.md` |
+| Features | Switches that change every app without a release. Today: **Christmas theme**, which turns the festive look on for every app (within about a minute), and **Card payments in the app** (`bachsInApp`, Google Play billing choice). See `docs/feature-flags.md` |
 | System | Which services are configured, push and clean-up queues, list prices, and the admins |
 
 Analytics windows are 7, 30, 90 or 365 days; filters, pages and windows are in the URL, so a view can be shared.
@@ -94,7 +94,8 @@ that header.
 Every action that changes an account or money asks for confirmation, and most need a **reason**, which goes into
 the audit log. Deleting an account also needs the account's email typed out. It erases everything, exactly as the
 person deleting their own account would, but it doesn't stop a Google Play subscription: stop or revoke that
-first (the dashboard warns when one is still renewing).
+first (the dashboard warns when one is still renewing). A renewing card (Bachs) subscription is cancelled in Bachs,
+immediately and without a refund, before the account goes; if Bachs can't be reached nothing is deleted (503).
 
 Revenue is an estimate: renewing subscriptions × the list price in `Admin__MonthlyPrices__<productId>` (a yearly
 plan's price divided by 12). It ignores Google's fee, tax, trials and currency; Play Console is the record.

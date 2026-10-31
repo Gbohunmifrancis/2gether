@@ -53,6 +53,9 @@ public sealed record SubscriptionSummaryDto(string Store, string ProductId, Stor
 /// CanPurchase is false when my partner already pays: one plan covers both of us. Complimentary: Plus
 /// comes from a grant by Heartpact (support), not a purchase, until ComplimentaryUntilUtc. FreeLimits,
 /// PlusLimits and ProductIds let the app show the comparison and the plans without hard-coding them.
+/// WebCheckout: card checkout (Bachs) is set up, so the website can sell Plus. CardInApp: the app may also offer card
+/// payment next to Google Play (Bachs set up, the bachsInApp flag on, and the person's country in the billing choice
+/// regions).
 /// </summary>
 public sealed record EntitlementDto(
     Plan Plan,
@@ -63,7 +66,9 @@ public sealed record EntitlementDto(
     DateTime? ComplimentaryUntilUtc = null,
     PlanLimits? FreeLimits = null,
     PlanLimits? PlusLimits = null,
-    IReadOnlyList<string>? ProductIds = null);
+    IReadOnlyList<string>? ProductIds = null,
+    bool WebCheckout = false,
+    bool CardInApp = false);
 
 public sealed record VerifyGooglePurchaseRequest(string ProductId, string PurchaseToken);
 

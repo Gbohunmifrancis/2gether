@@ -11,7 +11,9 @@ public enum LockScope
     /// <summary>A person's daily photo scans: count, then record the scan.</summary>
     FoodScans = 2,
     /// <summary>A couple's one open game: check there is none, then invite.</summary>
-    GameInvite = 3
+    GameInvite = 3,
+    /// <summary>One Bachs subscription: its events (and an admin's sync or cancel) apply one at a time, newest wins.</summary>
+    BachsSubscription = 4
 }
 
 /// <summary>
@@ -29,6 +31,9 @@ public static class DatabaseLocks
         if (!database.IsNpgsql()) return;
         await database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({(int)scope}, {Fold(key)})", cancellationToken);
     }
+
+    /// <summary>A lock key for something named by text (a Bachs subscription id).</summary>
+    public static Guid KeyFor(string text) => new(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(text)));
 
     /// <summary>The lock takes two 32-bit keys. Two ids that fold to the same number only make each other wait a moment.</summary>
     public static int Fold(Guid key)

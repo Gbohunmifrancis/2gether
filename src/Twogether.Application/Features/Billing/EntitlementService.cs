@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
+using Twogether.Application.Features.Config;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 
@@ -11,12 +12,13 @@ public interface IEntitlementService
     Task<EntitlementDto> ForUserAsync(Guid userId, CancellationToken cancellationToken);
 }
 
-public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvider clock, BillingSettings settings) : IEntitlementService
+public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvider clock, BillingSettings settings, BachsSettings? bachs = null) : IEntitlementService
 {
     public async Task<EntitlementDto> ForUserAsync(Guid userId, CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
-        var coupleId = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => user.CoupleId).SingleOrDefaultAsync(cancellationToken);
+        var me = await db.Users.AsNoTracking().Where(user => user.Id == userId).Select(user => new { user.CoupleId, user.CountryCode }).SingleOrDefaultAsync(cancellationToken);
+        var coupleId = me?.CoupleId;
         var members = new List<Guid> { userId };
         if (coupleId is { } id)
         {
@@ -25,6 +27,7 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
             if (partner is { } other) members.Add(other);
         }
 
+        // Every store counts (Google Play and Bachs card subscriptions alike); the product id list only gates Play purchases.
         var candidates = await db.StoreSubscriptions.AsNoTracking()
             .Where(item => members.Contains(item.UserId) && item.ExpiresAtUtc > now)
             .ToListAsync(cancellationToken);
@@ -35,6 +38,11 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
                 .MaxAsync(item => (DateTime?)item.ExpiresAtUtc, cancellationToken);
         var complimentary = complimentaryUntil is not null;
         var plan = granting is null && !complimentary ? Plan.Free : Plan.Plus;
+        var webCheckout = bachs?.IsConfigured == true;
+        // The flag is read only when it could matter: card checkout set up and the person in a billing choice region.
+        var cardInApp = webCheckout && BachsPlans.CardInAppCountry(me?.CountryCode)
+            && FeatureFlagService.IsOn(await db.AppSettings.AsNoTracking().Where(item => item.Key == FeatureFlagService.BachsInAppKey)
+                .Select(item => item.Value).FirstOrDefaultAsync(cancellationToken));
         return new EntitlementDto(
             plan,
             settings.Limits(plan),
@@ -44,6 +52,8 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
             ComplimentaryUntilUtc: complimentaryUntil,
             FreeLimits: settings.Free,
             PlusLimits: settings.Plus,
-            ProductIds: settings.ProductIds);
+            ProductIds: settings.ProductIds,
+            WebCheckout: webCheckout,
+            CardInApp: cardInApp);
     }
 }

@@ -36,8 +36,8 @@ public sealed class PostgresAvatarAndFlagTests : IAsyncLifetime
 
         var flags = new FeatureFlagService(db, clock);
         Assert.False((await flags.GetAsync(default)).Christmas);
-        await flags.SetAsync(new FeatureFlagsDto(true), default);
-        await flags.SetAsync(new FeatureFlagsDto(true), default);
+        await flags.SetAsync(new FeatureFlagsUpdate(true), default);
+        await flags.SetAsync(new FeatureFlagsUpdate(true), default);
         Assert.True((await flags.GetAsync(default)).Christmas);
         Assert.Equal(1, await db.AppSettings.CountAsync());
     }
