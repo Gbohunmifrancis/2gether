@@ -91,6 +91,9 @@ internal abstract class SkillPlay(val kind: SkillKind, val seed: Long, val diffi
     var result by mutableStateOf<SkillResult?>(null)
         internal set
 
+    /** What to do, at the top of the round: the game's instruction, unless a round says something more particular. */
+    open val instruction: String get() = kind.instruction
+
     /** A live line under the instruction while playing ("Keep going..."), or empty. */
     var hint by mutableStateOf("")
 
@@ -136,7 +139,7 @@ internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, mod
     val result = play.result
     Column(modifier.fillMaxSize().dottedPage(colors.rule2)) {
         Column(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp)) {
-            Text(play.kind.instruction, style = Heartpact.type.body, color = colors.ink2)
+            Text(play.instruction, style = Heartpact.type.body, color = colors.ink2)
             val line = result?.note ?: play.hint
             AnimatedContent(line, transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }, label = "line") { text ->
                 Text(
