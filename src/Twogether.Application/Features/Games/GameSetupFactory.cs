@@ -71,6 +71,7 @@ public sealed class GameSetupFactory(IGameQuestionProvider questions) : IGameSet
         GameType.Handwriting => JsonSerializer.Serialize(new { region, words = Content.DrawAndGuessWords.Pick(region, DrawAndGuessRules.Rounds) }),
         GameType.SkillDuel => SkillDuelRules.CreateSetup(region),
         GameType.SpotTheDifference => SpotTheDifferenceRules.CreateSetup(region),
+        GameType.SnakesAndLadders => SnakesAndLaddersRules.CreateSetup(region),
         GameType.Trivia => JsonSerializer.Serialize(new { region, trivia = await TriviaRules.QuestionsFor(region, questions, cancellationToken) }),
         _ => JsonSerializer.Serialize(new { region, questions = await questions.GetQuestionsAsync(cancellationToken) }),
     };

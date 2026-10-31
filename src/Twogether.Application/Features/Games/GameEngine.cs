@@ -47,6 +47,7 @@ public sealed class GameEngine : IGameEngine
         new TriviaRules(),
         new SkillDuelRules(),
         new SpotTheDifferenceRules(),
+        new SnakesAndLaddersRules(),
     }.ToDictionary(rules => rules.Type);
 
     public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);

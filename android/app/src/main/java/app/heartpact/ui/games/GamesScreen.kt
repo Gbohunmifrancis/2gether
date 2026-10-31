@@ -151,6 +151,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)
         GameType.SkillDuel -> SkillDuelBoard(s, me, partnerName, busy, actions)
         GameType.SpotTheDifference -> SpotTheDifferenceBoard(s, me, myName, partnerName, actions, now)
+        GameType.SnakesAndLadders -> SnakesAndLaddersBoard(s, me, partnerName, busy, actions)
         // A game from a newer server: say so, and leave "End this game" under it.
         GameType.Unknown -> NoteCard(tr("This game needs a newer Heartpact. Update the app to play it."))
         else -> QuizBoard(s, me, partnerName, busy, actions)

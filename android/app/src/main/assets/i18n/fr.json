@@ -138,6 +138,7 @@
  "Bloating": "Ballonnements",
  "Both hands all the way above your head.": "Les deux mains bien au-dessus de la tête.",
  "Both right!": "Deux bonnes réponses !",
+ "Bounce!": "Rebond !",
  "Breakfast": "Petit-déjeuner",
  "Bring your arms all the way down between raises.": "Redescends bien les bras entre chaque lever.",
  "By continuing you agree to the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.": "En continuant, tu acceptes les <terms>Conditions d'utilisation</terms> et la <privacy>Politique de confidentialité</privacy>.",
@@ -407,6 +408,8 @@
  "Heart skills": "Jeux d'adresse",
  "Heart to heart": "Cœur à cœur",
  "Heartbeat": "Cœur battant",
+ "Heartbreak −5": "Cœur brisé −5",
+ "Heartbreak!": "Cœur brisé !",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact est réservé aux adultes. Tu dois avoir 18 ans ou plus pour t'inscrire.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "Heartpact a besoin de la caméra pour compter tes répétitions. Rien n'est enregistré ni envoyé.",
  "heart|hearts": {
@@ -423,6 +426,9 @@
  "Hold the lips for the time shown, then let go.": "Appuie sur les lèvres le temps indiqué, puis lâche.",
  "Hold to pour": "Maintiens pour verser",
  "Hold to pour, and let go so the love settles right on the line.": "Maintiens pour verser, et lâche pour que l'amour se pose pile sur le trait.",
+ "Hug shield": "Bouclier câlin",
+ "Hug shield on": "Bouclier câlin actif",
+ "Hug shield!": "Bouclier câlin !",
  "I already have an account": "J'ai déjà un compte",
  "I call on": "Petit bac",
  "I have a code from my partner": "J'ai un code de mon partenaire",
@@ -480,6 +486,9 @@
   "one": "coup",
   "other": "coups"
  },
+ "Kiss & swap": "Bisou et échange",
+ "Kiss & swap trades places with whoever is ahead. A hug shield stops your next snake.": "Bisou et échange : tu prends la place de celui ou celle qui est devant. Un bouclier câlin arrête ton prochain serpent.",
+ "Kiss & swap!": "Bisou et échange !",
  "Kiss the center": "Bisou au centre",
  "Knees up to hip height.": "Genoux à hauteur de hanche.",
  "Larger": "Plus grande",
@@ -543,9 +552,12 @@
  "Look closely. It fades to a ghost.": "Regarde bien. Elle va s'effacer en fantôme.",
  "Loose the arrow": "Tire la flèche",
  "Loose the arrow so it flies through the heart's center.": "Tire la flèche pour qu'elle traverse le centre du cœur.",
+ "Love boost +3": "Coup de cœur +3",
+ "Love boost!": "Coup de cœur !",
  "Lower your hips into a straight line.": "Descends les hanches, le corps bien droit.",
  "Lumpy in places. Keep the same distance from the middle.": "Bosselé par endroits. Garde la même distance avec le centre.",
  "Lunch": "Déjeuner",
+ "Made it!": "Arrivé !",
  "Make the points sharper.": "Fais des pointes plus nettes.",
  "Man": "Homme",
  "Manage in Google Play": "Gérer dans Google Play",
@@ -583,6 +595,7 @@
  "More food scans, album space and history": "Plus de scans de repas, d'espace photo et d'historique",
  "Mortar and pestle": "Mortier et pilon",
  "Mutual, visible, and you can stop any time": "Mutuel, visible, et tu peux arrêter quand tu veux",
+ "Mwah!": "Smack !",
  "Naija trivia": "Quiz Naija",
  "name": "prénom",
  "Name": "Nom",
@@ -664,6 +677,7 @@
  "Off center by {pct}%, up and to the left.": "Décalé de {pct}%, vers le haut à gauche.",
  "Off center by {pct}%, up and to the right.": "Décalé de {pct}%, vers le haut à droite.",
  "Off the guide. Trace the dashed heart.": "À côté du modèle. Suis le cœur en pointillés.",
+ "Oh no!": "Oh non !",
  "On now: notifications arrive silently": "Activées : les notifications arrivent sans bruit",
  "On this day": "Ce jour-là",
  "On to level {n}": "Au niveau {n}",
@@ -766,6 +780,7 @@
  "Play Memory match": "Jouer au Memory",
  "Play Naija trivia": "Jouer au Quiz Naija",
  "Play Same answer": "Jouer à Même réponse",
+ "Play Snakes and ladders": "Jouer à Serpents et échelles",
  "Play Spot the difference": "Jouer au Jeu des différences",
  "Play this level again": "Rejouer ce niveau",
  "Play Tic-tac-toe": "Jouer au Morpion",
@@ -843,6 +858,9 @@
  "Rings today at {time}": "Sonne aujourd'hui à {time}",
  "Rings tomorrow at {time}": "Sonne demain à {time}",
  "Rings when a dare is due. You can always silence it on this phone.": "Sonne à l'heure d'un défi. Tu peux toujours couper le son sur ce téléphone.",
+ "Roll the die": "Lancer le dé",
+ "Roll, climb, slide. First to 100 wins.": "Lance, grimpe, glisse. Le premier sur la case 100 gagne.",
+ "Rolling…": "Ça roule…",
  "Round as a promise.": "Rond comme une promesse.",
  "Round {round}": "Manche {round}",
  "Round {round} of {rounds}": "Manche {round} sur {rounds}",
@@ -858,6 +876,7 @@
  "Save": "Enregistrer",
  "Save my answer": "Enregistrer ma réponse",
  "Save {percent}%": "-{percent} %",
+ "Saved by a hug!": "Sauvé par un câlin !",
  "Say what you ate": "Dis ce que tu as mangé",
  "Score {pass} or more to clear this level.": "Il faut {pass} ou plus pour réussir ce niveau.",
  "Score {score} of 100. {grade}. {note}": "Score {score} sur 100. {grade}. {note}",
@@ -919,6 +938,7 @@
  "Silencing keeps the dare open until {time}.": "Si tu coupes le son, le défi reste ouvert jusqu'à {time}.",
  "Sit-ups": "Abdos",
  "six": "six",
+ "Six! Roll again": "Six ! Relance",
  "Six-digit code": "Code à six chiffres",
  "Skip": "Passer",
  "Skipped": "Pas fait",
@@ -927,6 +947,7 @@
  "Slow kiss": "Long baiser",
  "Smaller": "Plus petite",
  "Snack": "En-cas",
+ "Snakes and ladders": "Serpents et échelles",
  "Snap a meal": "Photo de repas",
  "Snap a meal and you'll get a calorie range, never a single made-up number.": "Photographie un repas : tu obtiendras une fourchette de calories, jamais un chiffre inventé.",
  "Snap a meal and you'll get a range, never a single made-up number. Your aim is about {calories} kcal.": "Photographie un repas : tu obtiendras une fourchette, jamais un chiffre inventé. Ton objectif est d'environ {calories} kcal.",
@@ -940,6 +961,7 @@
  "Spot on. Just like the guide.": "Pile poil. Exactement comme le modèle.",
  "Spot the difference": "Jeu des différences",
  "Spotting": "Traces",
+ "Square {number}": "Case {number}",
  "Square {number}, empty": "Case {number}, vide",
  "Square {number}, yours": "Case {number}, à toi",
  "Square {number}, {partner} is drawing": "Case {number}, {partner} est en train de dessiner",
@@ -986,6 +1008,7 @@
  "Tap anywhere to loose the arrow.": "Touche n'importe où pour tirer la flèche.",
  "Tap on beat {n}": "Touche sur le battement {n}",
  "Tap on beat {n}.": "Touche sur le battement {n}.",
+ "Tap the die, or hold it to shake": "Touche le dé, ou garde le doigt dessus pour le secouer",
  "Tap the exact middle of the shape.": "Touche le centre exact de la forme.",
  "Tapped {s} s early.": "Touché {s} s trop tôt.",
  "Tapped {s} s late.": "Touché {s} s trop tard.",
@@ -1008,6 +1031,7 @@
  "That was a peck. Press and hold.": "Ça, c'était un bisou éclair. Appuie et tiens.",
  "That's {partner}'s time ({zone}), where it's {time} now.": "C'est l'heure de {partner} ({zone}), où il est {time}.",
  "the app couldn't be verified": "l'appli n'a pas pu être vérifiée",
+ "The board: you're on square {mine}, {partner} on square {theirs}": "Le plateau : tu es sur la case {mine}, {partner} sur la case {theirs}",
  "The bottom got {pct}% more.": "Le bas a {pct}% de plus.",
  "The camera couldn't read your pose. Try more light.": "La caméra n'arrive pas à lire ta posture. Essaie avec plus de lumière.",
  "The chain so far · {count} word|The chain so far · {count} words": {
@@ -1057,6 +1081,7 @@
  "This video is too large for the album (100 MB at most).": "Cette vidéo est trop lourde pour l'album (100 Mo maximum).",
  "three": "trois",
  "Three misses. No hearts this round.": "Trois ratés. Pas de cœur cette manche.",
+ "Three sixes! Back you go": "Trois six ! Retour en arrière",
  "Through the heart, left of center.": "Dans le cœur, à gauche du centre.",
  "Through the heart, right of center.": "Dans le cœur, à droite du centre.",
  "Through the heart, {s} s early.": "Dans le cœur, {s} s trop tôt.",
@@ -1097,6 +1122,7 @@
  "Unlinks you both and stops every dare": "Vous dissocie tous les deux et arrête tous les défis",
  "Until": "À",
  "Until tomorrow": "Jusqu'à demain",
+ "Up the ladder!": "Et hop, l'échelle !",
  "Update the app to play this round": "Mets l'appli à jour pour jouer cette manche",
  "updated just now": "mis à jour à l'instant",
  "updated over a day ago": "mis à jour il y a plus d'un jour",
@@ -1187,9 +1213,11 @@
  "You picked {answer}": "Tu as choisi {answer}",
  "You picked {answer}. {partner} guessed {guess}.": "Tu as choisi {answer}. {partner} a répondu {guess}.",
  "You picked: {mine}. {partner} picked: {theirs}.": "Tu as choisi : {mine}. {partner} a choisi : {theirs}.",
+ "You rolled {number}": "Tu as fait {number}",
  "You scored {score}": "Ton score : {score}",
  "You spotted {mine}, {partner} {theirs}": "Tu en as trouvé {mine}, {partner} {theirs}",
  "You won game {game}!": "Tu as gagné la partie {game} !",
+ "You won on square 100, {partner} was on {square}": "Tu as gagné sur la case 100, {partner} était sur la {square}",
  "You won the duel": "Tu as gagné le duel",
  "You won the duel by {count} heart|You won the duel by {count} hearts": {
   "one": "Tu as gagné le duel de {count} cœur",
@@ -1208,6 +1236,7 @@
  "You're offline. Your shared album shows up when you're back; photos you add stay on this phone meanwhile.": "Tu es hors ligne. Votre album partagé réapparaîtra à ton retour ; d'ici là, les photos que tu ajoutes restent sur ce téléphone.",
  "You're on mobile data": "Tu es en données mobiles",
  "You're on Wi-Fi": "Tu es en Wi-Fi",
+ "You're on {mine}, {partner} on {theirs}": "Tu es sur la {mine}, {partner} sur la {theirs}",
  "You're sharing; {partner} isn't yet": "Tu partages ; {partner} pas encore",
  "You're X. Draw fast!": "Tu as les X. Dessine vite !",
  "You've both answered.": "Vous avez répondu tous les deux.",
@@ -1240,6 +1269,7 @@
  "Your profile": "Ton profil",
  "Your profile, picture and settings": "Ton profil, ta photo et tes réglages",
  "Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.": "Ton achat attend la validation du paiement. Plus s'activera dès que Google l'aura confirmé.",
+ "Your roll!": "À toi de lancer !",
  "Your session has ended. Sign in again.": "Ta session a expiré. Reconnecte-toi.",
  "Your shared album is full": "Votre album partagé est plein",
  "Your shared album is full, so some stayed on this phone.": "Votre album partagé est plein, certaines sont donc restées sur ce téléphone.",
@@ -1297,6 +1327,10 @@
   "one": "{count} montée de genou",
   "other": "{count} montées de genoux"
  },
+ "{count} hug save|{count} hug saves": {
+  "one": "{count} sauvetage câlin",
+  "other": "{count} sauvetages câlin"
+ },
  "{count} jumping jack|{count} jumping jacks": {
   "one": "{count} jumping jack",
   "other": "{count} jumping jacks"
@@ -1304,6 +1338,10 @@
  "{count} kick in {minutes} min · {day} {time}|{count} kicks in {minutes} min · {day} {time}": {
   "one": "{count} coup en {minutes} min · {day} {time}",
   "other": "{count} coups en {minutes} min · {day} {time}"
+ },
+ "{count} ladder climbed|{count} ladders climbed": {
+  "one": "{count} échelle grimpée",
+  "other": "{count} échelles grimpées"
  },
  "{count} matching answer|{count} matching answers": {
   "one": "{count} réponse identique",
@@ -1374,6 +1412,10 @@
   "one": "{count} répétition n'a pas compté",
   "other": "{count} répétitions n'ont pas compté"
  },
+ "{count} roll|{count} rolls": {
+  "one": "{count} lancer",
+  "other": "{count} lancers"
+ },
  "{count} round left to play|{count} rounds left to play": {
   "one": "{count} manche à jouer",
   "other": "{count} manches à jouer"
@@ -1382,6 +1424,14 @@
   "one": "{count} abdo",
   "other": "{count} abdos"
  },
+ "{count} six|{count} sixes": {
+  "one": "{count} six",
+  "other": "{count} six"
+ },
+ "{count} snake slide|{count} snake slides": {
+  "one": "{count} glissade de serpent",
+  "other": "{count} glissades de serpent"
+ },
  "{count} spot|{count} spots": {
   "one": "{count} trouvée",
   "other": "{count} trouvées"
@@ -1389,6 +1439,10 @@
  "{count} squat|{count} squats": {
   "one": "{count} squat",
   "other": "{count} squats"
+ },
+ "{count} swap|{count} swaps": {
+  "one": "{count} échange",
+  "other": "{count} échanges"
  },
  "{count} week|{count} weeks": {
   "one": "{count} semaine",
@@ -1458,6 +1512,7 @@
  "{partner} is choosing truth or dare…": "{partner} choisit action ou vérité…",
  "{partner} is done. Be quick!": "{partner} a fini. Fais vite !",
  "{partner} is picking an answer. Your guess comes next.": "{partner} choisit une réponse. Ensuite, à toi de deviner.",
+ "{partner} is rolling…": "{partner} lance le dé…",
  "{partner} is thinking of a word…": "{partner} cherche un mot…",
  "{partner} is watching": "{partner} regarde",
  "{partner} is {distance}": "{partner} est {distance}",
@@ -1474,6 +1529,8 @@
   "other": "{partner} a joué {count} manches que tu n'as pas jouées. Joue-les pour voir les deux scores."
  },
  "{partner} played. Play yours to see": "{partner} a joué. Joue la tienne pour voir",
+ "{partner} rolled a six and goes again": "{partner} a fait un six et rejoue",
+ "{partner} rolled {number}": "{partner} a fait {number}",
  "{partner} said \"{answer}\" for a food": "{partner} a dit « {answer} » pour l'aliment",
  "{partner} said \"{answer}\" for a name": "{partner} a dit « {answer} » pour le prénom",
  "{partner} said \"{answer}\" for a place": "{partner} a dit « {answer} » pour le lieu",
@@ -1495,6 +1552,7 @@
  "{partner} stuck their half on. Do the reps and the camera sticks yours.": "{partner} a collé sa moitié. Fais tes répétitions et la caméra collera la tienne.",
  "{partner} won": "{partner} a gagné",
  "{partner} won game {game}": "{partner} a gagné la partie {game}",
+ "{partner} won on square 100, you were on {square}": "{partner} a gagné sur la case 100, tu étais sur la {square}",
  "{partner} won the duel by {count} heart|{partner} won the duel by {count} hearts": {
   "one": "{partner} a gagné le duel de {count} cœur",
   "other": "{partner} a gagné le duel de {count} cœurs"

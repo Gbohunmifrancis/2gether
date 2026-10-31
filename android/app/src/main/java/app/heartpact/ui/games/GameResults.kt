@@ -34,7 +34,8 @@ internal fun GamePlay.score(s: GameSession, me: String): GameScore? {
         GameType.Handwriting -> drawAndGuess(s).let { GameScore(it.scores[me] ?: 0, it.scores[me] ?: 0, together = true, outOf = it.totalRounds) }
         GameType.CoupleQuiz -> quiz(s).let { GameScore(it.scores[me] ?: 0, it.scores[me] ?: 0, together = true, outOf = it.totalRounds.takeIf { n -> n > 0 }) }
         GameType.SpotTheDifference -> versus(spot(s).scores)
-        GameType.SkillDuel, GameType.Unknown -> null
+        // Snakes and ladders celebrates on its own board, once the last roll has played out.
+        GameType.SkillDuel, GameType.SnakesAndLadders, GameType.Unknown -> null
     }
 }
 
@@ -42,6 +43,7 @@ internal fun GamePlay.score(s: GameSession, me: String): GameScore? {
 internal fun GamePlay.lastLine(s: GameSession, me: String, partner: String): String {
     val game = title(s)
     if (s.status == GameStatus.Abandoned) return tr("{game} ended early", "game" to game)
+    if (s.gameType == GameType.SnakesAndLadders) return tr("Last time, {game}: {outcome}", "game" to game, "outcome" to outcome(s, me, partner))
     val score = score(s, me) ?: return tr("Last game: {game}", "game" to game)
     return when {
         score.together -> tr("Last time, {game}: {outcome}", "game" to game, "outcome" to outcome(s, me, partner))

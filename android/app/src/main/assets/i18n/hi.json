@@ -138,6 +138,7 @@
  "Bloating": "पेट फूलना",
  "Both hands all the way above your head.": "दोनों हाथ पूरे सिर के ऊपर।",
  "Both right!": "दोनों सही!",
+ "Bounce!": "उछलकर वापस!",
  "Breakfast": "नाश्ता",
  "Bring your arms all the way down between raises.": "हर बार हाथ पूरे नीचे लाओ।",
  "By continuing you agree to the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.": "आगे बढ़ने का मतलब है कि तुम्हें <terms>शर्तें</terms> और <privacy>प्राइवेसी पॉलिसी</privacy> मंज़ूर हैं।",
@@ -407,6 +408,8 @@
  "Heart skills": "दिल के हुनर",
  "Heart to heart": "दिल से दिल",
  "Heartbeat": "धड़कन",
+ "Heartbreak −5": "दिल टूटा −5",
+ "Heartbreak!": "दिल टूटा!",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact बालिगों के लिए है। साइन अप करने के लिए 18 साल या उससे ज़्यादा उम्र होनी चाहिए।",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "रेप गिनने के लिए Heartpact को कैमरा चाहिए। कुछ भी रिकॉर्ड नहीं होता, न कहीं भेजा जाता है।",
  "heart|hearts": {
@@ -423,6 +426,9 @@
  "Hold the lips for the time shown, then let go.": "दिखाए गए समय तक होंठ दबाए रखो, फिर छोड़ो।",
  "Hold to pour": "दबाकर भरो",
  "Hold to pour, and let go so the love settles right on the line.": "दबाकर भरो, और ऐसे छोड़ो कि प्यार ठीक लाइन पर रुके।",
+ "Hug shield": "झप्पी कवच",
+ "Hug shield on": "झप्पी कवच चालू",
+ "Hug shield!": "झप्पी कवच!",
  "I already have an account": "मेरा अकाउंट पहले से है",
  "I call on": "नाम-जगह-चीज़",
  "I have a code from my partner": "मेरे पास पार्टनर का कोड है",
@@ -480,6 +486,9 @@
   "one": "किक",
   "other": "किक"
  },
+ "Kiss & swap": "पप्पी और अदला-बदली",
+ "Kiss & swap trades places with whoever is ahead. A hug shield stops your next snake.": "पप्पी और अदला-बदली: जो आगे है, उससे जगह बदल लो। झप्पी कवच तुम्हारे अगले साँप को रोक देता है।",
+ "Kiss & swap!": "पप्पी और अदला-बदली!",
  "Kiss the center": "बीचोंबीच किस",
  "Knees up to hip height.": "घुटने कमर तक ऊपर।",
  "Larger": "थोड़ा ज़्यादा",
@@ -543,9 +552,12 @@
  "Look closely. It fades to a ghost.": "ध्यान से देखो। यह धुंधली परछाईं बन जाएगा।",
  "Loose the arrow": "तीर छोड़ो",
  "Loose the arrow so it flies through the heart's center.": "तीर ऐसे छोड़ो कि दिल के ठीक बीच से निकले।",
+ "Love boost +3": "प्यार का धक्का +3",
+ "Love boost!": "प्यार का धक्का!",
  "Lower your hips into a straight line.": "हिप्स नीचे करके सीधी लाइन में लाओ।",
  "Lumpy in places. Keep the same distance from the middle.": "कहीं-कहीं ऊबड़-खाबड़। बीच से एक जैसी दूरी रखो।",
  "Lunch": "लंच",
+ "Made it!": "पहुँच गए!",
  "Make the points sharper.": "नोकें और तीखी बनाओ।",
  "Man": "पुरुष",
  "Manage in Google Play": "Google Play में मैनेज करो",
@@ -583,6 +595,7 @@
  "More food scans, album space and history": "ज़्यादा फ़ूड स्कैन, एल्बम स्पेस और पुराने सवाल",
  "Mortar and pestle": "ओखली-मूसल",
  "Mutual, visible, and you can stop any time": "दोनों तरफ़ से, छिपी नहीं, और जब चाहो बंद",
+ "Mwah!": "मुआह!",
  "Naija trivia": "नाइजा क्विज़",
  "name": "नाम",
  "Name": "नाम",
@@ -664,6 +677,7 @@
  "Off center by {pct}%, up and to the left.": "बीच से {pct}% हटकर, ऊपर बाईं ओर।",
  "Off center by {pct}%, up and to the right.": "बीच से {pct}% हटकर, ऊपर दाईं ओर।",
  "Off the guide. Trace the dashed heart.": "गाइड से हट गए। डैश वाले दिल पर चलो।",
+ "Oh no!": "अरे नहीं!",
  "On now: notifications arrive silently": "अभी चालू: नोटिफ़िकेशन बिना आवाज़ आते हैं",
  "On this day": "आज ही के दिन",
  "On to level {n}": "लेवल {n} पर चलो",
@@ -766,6 +780,7 @@
  "Play Memory match": "मेमोरी मैच खेलो",
  "Play Naija trivia": "नाइजा क्विज़ खेलो",
  "Play Same answer": "एक जैसा जवाब खेलो",
+ "Play Snakes and ladders": "साँप-सीढ़ी खेलो",
  "Play Spot the difference": "अंतर ढूँढो खेलो",
  "Play this level again": "यह लेवल फिर खेलो",
  "Play Tic-tac-toe": "टिक-टैक-टो खेलो",
@@ -843,6 +858,9 @@
  "Rings today at {time}": "आज {time} पर बजेगा",
  "Rings tomorrow at {time}": "कल {time} पर बजेगा",
  "Rings when a dare is due. You can always silence it on this phone.": "चुनौती का समय होते ही बजता है। इस फ़ोन पर इसे कभी भी चुप कराया जा सकता है।",
+ "Roll the die": "पासा फेंको",
+ "Roll, climb, slide. First to 100 wins.": "पासा फेंको, चढ़ो, फिसलो। जो पहले 100 पर पहुँचे, वही जीते।",
+ "Rolling…": "पासा घूम रहा है…",
  "Round as a promise.": "वादे जैसा गोल।",
  "Round {round}": "राउंड {round}",
  "Round {round} of {rounds}": "{rounds} में से राउंड {round}",
@@ -858,6 +876,7 @@
  "Save": "सेव करो",
  "Save my answer": "मेरा जवाब सेव करो",
  "Save {percent}%": "{percent}% बचाओ",
+ "Saved by a hug!": "एक झप्पी ने बचा लिया!",
  "Say what you ate": "बताओ क्या खाया",
  "Score {pass} or more to clear this level.": "यह लेवल पार करने के लिए {pass} या उससे ज़्यादा लाओ।",
  "Score {score} of 100. {grade}. {note}": "100 में से {score} स्कोर। {grade}। {note}",
@@ -919,6 +938,7 @@
  "Silencing keeps the dare open until {time}.": "चुप कराने पर भी चुनौती {time} तक खुली रहेगी।",
  "Sit-ups": "सिट-अप्स",
  "six": "छह",
+ "Six! Roll again": "छक्का! फिर से फेंको",
  "Six-digit code": "छह अंकों का कोड",
  "Skip": "स्किप करो",
  "Skipped": "स्किप हुआ",
@@ -927,6 +947,7 @@
  "Slow kiss": "लंबा किस",
  "Smaller": "थोड़ा कम",
  "Snack": "स्नैक",
+ "Snakes and ladders": "साँप-सीढ़ी",
  "Snap a meal": "फ़ोटो खींचो",
  "Snap a meal and you'll get a calorie range, never a single made-up number.": "खाने की फ़ोटो खींचो, तुम्हें कैलोरी की एक रेंज मिलेगी, कोई मनगढ़ंत अकेला नंबर नहीं।",
  "Snap a meal and you'll get a range, never a single made-up number. Your aim is about {calories} kcal.": "खाने की फ़ोटो खींचो, तुम्हें एक रेंज मिलेगी, कोई मनगढ़ंत अकेला नंबर नहीं। तुम्हारा लक्ष्य लगभग {calories} kcal है।",
@@ -940,6 +961,7 @@
  "Spot on. Just like the guide.": "एकदम सही। बिल्कुल गाइड जैसा।",
  "Spot the difference": "अंतर ढूँढो",
  "Spotting": "स्पॉटिंग",
+ "Square {number}": "खाना {number}",
  "Square {number}, empty": "खाना {number}, खाली",
  "Square {number}, yours": "खाना {number}, तुम्हारा",
  "Square {number}, {partner} is drawing": "खाना {number}, {partner} बना रहे हैं",
@@ -986,6 +1008,7 @@
  "Tap anywhere to loose the arrow.": "तीर छोड़ने के लिए कहीं भी टैप करो।",
  "Tap on beat {n}": "धड़कन {n} पर टैप करो",
  "Tap on beat {n}.": "धड़कन {n} पर टैप करो।",
+ "Tap the die, or hold it to shake": "पासे को छुओ, या हिलाने के लिए दबाकर रखो",
  "Tap the exact middle of the shape.": "आकार के ठीक बीच में टैप करो।",
  "Tapped {s} s early.": "{s} सेकंड पहले टैप किया।",
  "Tapped {s} s late.": "{s} सेकंड देर से टैप किया।",
@@ -1008,6 +1031,7 @@
  "That was a peck. Press and hold.": "यह तो झटपट किस था। दबाकर थामे रखो।",
  "That's {partner}'s time ({zone}), where it's {time} now.": "यह {partner} का समय ({zone}) है, जहाँ अभी {time} बजे हैं।",
  "the app couldn't be verified": "ऐप की पुष्टि नहीं हो सकी",
+ "The board: you're on square {mine}, {partner} on square {theirs}": "बोर्ड: तुम खाना {mine} पर हो, {partner} खाना {theirs} पर",
  "The bottom got {pct}% more.": "नीचे वाले हिस्से को {pct}% ज़्यादा मिला।",
  "The camera couldn't read your pose. Try more light.": "कैमरा तुम्हारा पोज़ नहीं पढ़ पाया। थोड़ी और रोशनी में करो।",
  "The chain so far · {count} word|The chain so far · {count} words": {
@@ -1057,6 +1081,7 @@
  "This video is too large for the album (100 MB at most).": "यह वीडियो एल्बम के लिए बहुत बड़ा है (ज़्यादा से ज़्यादा 100 MB)।",
  "three": "तीन",
  "Three misses. No hearts this round.": "तीनों अंदाज़े गलत। इस राउंड कोई दिल नहीं।",
+ "Three sixes! Back you go": "तीन छक्के! वापस जाओ",
  "Through the heart, left of center.": "दिल में लगा, बीच से बाईं ओर।",
  "Through the heart, right of center.": "दिल में लगा, बीच से दाईं ओर।",
  "Through the heart, {s} s early.": "दिल में लगा, {s} सेकंड पहले।",
@@ -1097,6 +1122,7 @@
  "Unlinks you both and stops every dare": "दोनों का लिंक हटेगा और हर चुनौती बंद होगी",
  "Until": "कब तक",
  "Until tomorrow": "कल तक",
+ "Up the ladder!": "सीढ़ी से ऊपर!",
  "Update the app to play this round": "यह राउंड खेलने के लिए ऐप अपडेट करो",
  "updated just now": "अभी-अभी अपडेट",
  "updated over a day ago": "एक दिन से ज़्यादा पहले अपडेट",
@@ -1187,9 +1213,11 @@
  "You picked {answer}": "तुमने चुना: {answer}",
  "You picked {answer}. {partner} guessed {guess}.": "तुमने {answer} चुना। {partner} का अंदाज़ा था {guess}।",
  "You picked: {mine}. {partner} picked: {theirs}.": "तुमने चुना: {mine}। {partner} ने चुना: {theirs}।",
+ "You rolled {number}": "तुमने {number} फेंका",
  "You scored {score}": "तुम्हारा स्कोर {score}",
  "You spotted {mine}, {partner} {theirs}": "तुमने {mine} ढूँढे, {partner} ने {theirs}",
  "You won game {game}!": "गेम {game} तुम्हारे नाम!",
+ "You won on square 100, {partner} was on {square}": "तुम खाना 100 पर जीते, {partner} खाना {square} पर थे",
  "You won the duel": "तुमने ड्यूल जीता",
  "You won the duel by {count} heart|You won the duel by {count} hearts": {
   "one": "तुमने ड्यूल {count} दिल से जीता",
@@ -1208,6 +1236,7 @@
  "You're offline. Your shared album shows up when you're back; photos you add stay on this phone meanwhile.": "तुम ऑफ़लाइन हो। वापस आने पर साझा एल्बम दिखेगा; तब तक जोड़ी गई फ़ोटो इसी फ़ोन पर रहेंगी।",
  "You're on mobile data": "तुम मोबाइल डेटा पर हो",
  "You're on Wi-Fi": "तुम Wi-Fi पर हो",
+ "You're on {mine}, {partner} on {theirs}": "तुम {mine} पर हो, {partner} {theirs} पर",
  "You're sharing; {partner} isn't yet": "तुम्हारी शेयरिंग चालू; {partner} की अभी नहीं",
  "You're X. Draw fast!": "तुम X हो। जल्दी बनाओ!",
  "You've both answered.": "तुम दोनों ने जवाब दे दिया।",
@@ -1240,6 +1269,7 @@
  "Your profile": "तुम्हारी प्रोफ़ाइल",
  "Your profile, picture and settings": "तुम्हारी प्रोफ़ाइल, फ़ोटो और सेटिंग्स",
  "Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.": "तुम्हारी खरीद पेमेंट पूरा होने का इंतज़ार कर रही है। Google की पुष्टि होते ही Plus चालू हो जाएगा।",
+ "Your roll!": "तुम्हारी बारी!",
  "Your session has ended. Sign in again.": "तुम्हारा सेशन खत्म हो गया। फिर से साइन इन करो।",
  "Your shared album is full": "तुम्हारा साझा एल्बम भर गया",
  "Your shared album is full, so some stayed on this phone.": "तुम्हारा साझा एल्बम भर गया, इसलिए कुछ इसी फ़ोन पर रह गईं।",
@@ -1297,6 +1327,10 @@
   "one": "{count} हाई नी",
   "other": "{count} हाई नीज़"
  },
+ "{count} hug save|{count} hug saves": {
+  "one": "{count} बार झप्पी ने बचाया",
+  "other": "{count} बार झप्पी ने बचाया"
+ },
  "{count} jumping jack|{count} jumping jacks": {
   "one": "{count} जंपिंग जैक",
   "other": "{count} जंपिंग जैक्स"
@@ -1304,6 +1338,10 @@
  "{count} kick in {minutes} min · {day} {time}|{count} kicks in {minutes} min · {day} {time}": {
   "one": "{minutes} मिनट में {count} किक · {day} {time}",
   "other": "{minutes} मिनट में {count} किक · {day} {time}"
+ },
+ "{count} ladder climbed|{count} ladders climbed": {
+  "one": "{count} सीढ़ी चढ़ी",
+  "other": "{count} सीढ़ियाँ चढ़ीं"
  },
  "{count} matching answer|{count} matching answers": {
   "one": "{count} जवाब मिला",
@@ -1374,6 +1412,10 @@
   "one": "{count} रेप नहीं गिना गया",
   "other": "{count} रेप नहीं गिने गए"
  },
+ "{count} roll|{count} rolls": {
+  "one": "{count} बार पासा",
+  "other": "{count} बार पासा"
+ },
  "{count} round left to play|{count} rounds left to play": {
   "one": "{count} राउंड खेलना बाकी",
   "other": "{count} राउंड खेलने बाकी"
@@ -1382,6 +1424,14 @@
   "one": "{count} सिट-अप",
   "other": "{count} सिट-अप्स"
  },
+ "{count} six|{count} sixes": {
+  "one": "{count} छक्का",
+  "other": "{count} छक्के"
+ },
+ "{count} snake slide|{count} snake slides": {
+  "one": "{count} बार साँप से फिसले",
+  "other": "{count} बार साँप से फिसले"
+ },
  "{count} spot|{count} spots": {
   "one": "{count} अंतर",
   "other": "{count} अंतर"
@@ -1389,6 +1439,10 @@
  "{count} squat|{count} squats": {
   "one": "{count} स्क्वैट",
   "other": "{count} स्क्वैट्स"
+ },
+ "{count} swap|{count} swaps": {
+  "one": "{count} अदला-बदली",
+  "other": "{count} अदला-बदली"
  },
  "{count} week|{count} weeks": {
   "one": "{count} हफ़्ता",
@@ -1458,6 +1512,7 @@
  "{partner} is choosing truth or dare…": "{partner} ट्रुथ या डेयर चुन रहे हैं…",
  "{partner} is done. Be quick!": "{partner} का हो गया। जल्दी करो!",
  "{partner} is picking an answer. Your guess comes next.": "{partner} जवाब चुन रहे हैं। उसके बाद तुम्हारा अंदाज़ा।",
+ "{partner} is rolling…": "{partner} पासा फेंक रहे हैं…",
  "{partner} is thinking of a word…": "{partner} शब्द सोच रहे हैं…",
  "{partner} is watching": "{partner} की नज़र तुम पर है",
  "{partner} is {distance}": "{partner} {distance} है",
@@ -1474,6 +1529,8 @@
   "other": "{partner} ने {count} राउंड खेले जो तुमने नहीं खेले। दोनों स्कोर देखने के लिए उन्हें खेलो।"
  },
  "{partner} played. Play yours to see": "{partner} ने खेल लिया। देखने के लिए अपना खेलो",
+ "{partner} rolled a six and goes again": "{partner} ने छक्का फेंका और फिर से खेलेंगे",
+ "{partner} rolled {number}": "{partner} ने {number} फेंका",
  "{partner} said \"{answer}\" for a food": "खाने के लिए {partner} का जवाब: \"{answer}\"",
  "{partner} said \"{answer}\" for a name": "नाम के लिए {partner} का जवाब: \"{answer}\"",
  "{partner} said \"{answer}\" for a place": "जगह के लिए {partner} का जवाब: \"{answer}\"",
@@ -1495,6 +1552,7 @@
  "{partner} stuck their half on. Do the reps and the camera sticks yours.": "{partner} का आधा दिल लग गया। रेप पूरे करो, कैमरा तुम्हारा आधा लगा देगा।",
  "{partner} won": "{partner} की जीत",
  "{partner} won game {game}": "गेम {game} {partner} के नाम",
+ "{partner} won on square 100, you were on {square}": "{partner} खाना 100 पर जीते, तुम खाना {square} पर थे",
  "{partner} won the duel by {count} heart|{partner} won the duel by {count} hearts": {
   "one": "{partner} ने ड्यूल {count} दिल से जीता",
   "other": "{partner} ने ड्यूल {count} दिल से जीता"

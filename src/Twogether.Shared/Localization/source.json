@@ -676,6 +676,8 @@
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:143",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:118",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:249",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:450",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:451",
    "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:192",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:110"
   ],
@@ -800,10 +802,17 @@
   ],
   "code": "GameType.SpotTheDifference => Loc.T(\"{name} invited you to play Spot the difference.\", (\"name\", name)),"
  },
- "{name} invited you to a game.": {
+ "{name} invited you to play Snakes and ladders.": {
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/GameController.cs:209"
+  ],
+  "code": "GameType.SnakesAndLadders => Loc.T(\"{name} invited you to play Snakes and ladders.\", (\"name\", name)),"
+ },
+ "{name} invited you to a game.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/GameController.cs:210"
   ],
   "code": "_ => Loc.T(\"{name} invited you to a game.\", (\"name\", name)),"
  },
@@ -6678,6 +6687,7 @@
    "Twogether.Application/Features/Games/DrawAndGuessRules.cs:55",
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:46",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:67",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:80",
    "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:73",
    "Twogether.Application/Features/Games/TriviaRules.cs:49",
    "Twogether.Application/Features/Games/WouldYouRatherRules.cs:48"
@@ -6691,6 +6701,7 @@
    "Twogether.Application/Features/Games/GuessMyAnswerRules.cs:45",
    "Twogether.Application/Features/Games/SameAnswerRules.cs:51",
    "Twogether.Application/Features/Games/SkillDuelRules.cs:65",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:77",
    "Twogether.Application/Features/Games/SpotTheDifferenceRules.cs:69",
    "Twogether.Application/Features/Games/TriviaRules.cs:48",
    "Twogether.Application/Features/Games/TruthOrDareRules.cs:43",
@@ -6849,6 +6860,7 @@
   "plural": false,
   "uses": [
    "Twogether.Application/Features/Games/SameAnswerRules.cs:52",
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:81",
    "Twogether.Application/Features/Games/WordDashRules.cs:59"
   ],
   "code": "if (state.Players[state.TurnIndex] != move.Actor) throw new InvalidOperationException(Loc.T(\"It's your partner's turn.\"));"
@@ -6880,6 +6892,13 @@
    "Twogether.Application/Features/Games/SkillDuelRules.cs:71"
   ],
   "code": "if (mine[round] is not null) throw new InvalidOperationException(Loc.T(\"You already played this round.\"));"
+ },
+ "Snakes and ladders expects a roll.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Games/SnakesAndLaddersRules.cs:79"
+  ],
+  "code": "throw new InvalidOperationException(Loc.T(\"Snakes and ladders expects a roll.\"));"
  },
  "Spot the difference expects a spot.": {
   "plural": false,

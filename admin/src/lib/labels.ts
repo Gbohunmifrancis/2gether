@@ -29,6 +29,7 @@ const GAMES: Record<string, string> = {
   trivia: "Trivia",
   skillDuel: "Heart to heart duel",
   spotTheDifference: "Spot the difference",
+  snakesAndLadders: "Snakes and ladders",
 };
 export const gameLabel = (name: string) => GAMES[name] ?? humanize(name);
 

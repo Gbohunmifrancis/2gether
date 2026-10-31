@@ -154,6 +154,7 @@
  "Bloating": "انتفاخ",
  "Both hands all the way above your head.": "اليدان كلتاهما فوق الرأس تمامًا.",
  "Both right!": "أصبتما كلاكما!",
+ "Bounce!": "ارتداد!",
  "Breakfast": "الفطور",
  "Bring your arms all the way down between raises.": "أنزل ذراعيك تمامًا بين التكرارات.",
  "By continuing you agree to the <terms>Terms</terms> and the <privacy>Privacy Policy</privacy>.": "المتابعة تعني الموافقة على <terms>الشروط</terms> و<privacy>سياسة الخصوصية</privacy>.",
@@ -431,6 +432,8 @@
  "Heart skills": "مهارات القلب",
  "Heart to heart": "قلب لقلب",
  "Heartbeat": "نبضة قلب",
+ "Heartbreak −5": "قلب مكسور −5",
+ "Heartbreak!": "قلب مكسور!",
  "Heartpact is for adults. You need to be 18 or over to sign up.": "Heartpact للبالغين. يجب أن يكون عمرك 18 عامًا أو أكثر للتسجيل.",
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": "يحتاج Heartpact إلى الكاميرا لعدّ تكراراتك. لا يُسجَّل أو يُرسَل أي شيء.",
  "heart|hearts": {
@@ -451,6 +454,9 @@
  "Hold the lips for the time shown, then let go.": "اضغط على الشفاه طوال الوقت الظاهر، ثم أفلت.",
  "Hold to pour": "اضغط مطولًا للسكب",
  "Hold to pour, and let go so the love settles right on the line.": "اضغط مطولًا للسكب، وأفلِت ليستقرّ الحب على الخط تمامًا.",
+ "Hug shield": "درع الحضن",
+ "Hug shield on": "درع الحضن مفعّل",
+ "Hug shield!": "درع الحضن!",
  "I already have an account": "لديّ حساب بالفعل",
  "I call on": "إنسان حيوان نبات",
  "I have a code from my partner": "لديّ رمز من شريكي",
@@ -516,6 +522,9 @@
   "two": "ركلتان",
   "zero": "ركلات"
  },
+ "Kiss & swap": "قبلة وتبديل",
+ "Kiss & swap trades places with whoever is ahead. A hug shield stops your next snake.": "قبلة وتبديل: تتبادل المكان مع من هو في المقدمة. درع الحضن يوقف ثعبانك التالي.",
+ "Kiss & swap!": "قبلة وتبديل!",
  "Kiss the center": "قبلة في المنتصف",
  "Knees up to hip height.": "الركبتان حتى مستوى الورك.",
  "Larger": "أكبر",
@@ -587,9 +596,12 @@
  "Look closely. It fades to a ghost.": "انظر جيدًا. سيتلاشى حتى يبقى طيفه.",
  "Loose the arrow": "أطلق السهم",
  "Loose the arrow so it flies through the heart's center.": "أطلق السهم ليعبر من منتصف القلب.",
+ "Love boost +3": "دفعة حب +3",
+ "Love boost!": "دفعة حب!",
  "Lower your hips into a straight line.": "اخفض وركيك إلى خط مستقيم.",
  "Lumpy in places. Keep the same distance from the middle.": "نتوءات هنا وهناك. حافظ على البعد نفسه عن المنتصف.",
  "Lunch": "الغداء",
+ "Made it!": "وصلت!",
  "Make the points sharper.": "اجعل الرؤوس أحدّ.",
  "Man": "رجل",
  "Manage in Google Play": "الإدارة في Google Play",
@@ -635,6 +647,7 @@
  "More food scans, album space and history": "مزيد من تحليل صور الطعام ومساحة الألبوم والسجل",
  "Mortar and pestle": "هاون ومدقّة",
  "Mutual, visible, and you can stop any time": "متبادلة وظاهرة، ويمكن الإيقاف في أي وقت",
+ "Mwah!": "مواه!",
  "Naija trivia": "معلومات عامة نيجيرية",
  "name": "اسم",
  "Name": "الاسم",
@@ -724,6 +737,7 @@
  "Off center by {pct}%, up and to the left.": "انحراف عن المنتصف بنسبة {pct}%، إلى الأعلى واليسار.",
  "Off center by {pct}%, up and to the right.": "انحراف عن المنتصف بنسبة {pct}%، إلى الأعلى واليمين.",
  "Off the guide. Trace the dashed heart.": "خارج الدليل. اتبع القلب المنقّط.",
+ "Oh no!": "أوه لا!",
  "On now: notifications arrive silently": "مفعّلة الآن: تصل الإشعارات بصمت",
  "On this day": "في مثل هذا اليوم",
  "On to level {n}": "إلى المستوى {n}",
@@ -846,6 +860,7 @@
  "Play Memory match": "العب: لعبة الذاكرة",
  "Play Naija trivia": "العب: معلومات عامة نيجيرية",
  "Play Same answer": "العب: الإجابة نفسها",
+ "Play Snakes and ladders": "العب السلم والثعبان",
  "Play Spot the difference": "العب: اكتشف الفروق",
  "Play this level again": "العب هذا المستوى مرة أخرى",
  "Play Tic-tac-toe": "العب: إكس أو",
@@ -927,6 +942,9 @@
  "Rings today at {time}": "يرنّ اليوم عند {time}",
  "Rings tomorrow at {time}": "يرنّ غدًا عند {time}",
  "Rings when a dare is due. You can always silence it on this phone.": "يرنّ عندما يحين موعد التحدي. يمكنك دائمًا إسكاته على هذا الهاتف.",
+ "Roll the die": "ارمِ النرد",
+ "Roll, climb, slide. First to 100 wins.": "ارمِ النرد، اصعد، انزلق. أول من يصل إلى 100 يفوز.",
+ "Rolling…": "النرد يتدحرج…",
  "Round as a promise.": "مستديرة كالوعد.",
  "Round {round}": "الجولة {round}",
  "Round {round} of {rounds}": "الجولة {round} من {rounds}",
@@ -942,6 +960,7 @@
  "Save": "حفظ",
  "Save my answer": "حفظ إجابتي",
  "Save {percent}%": "توفير {percent}%",
+ "Saved by a hug!": "أنقذك حضن!",
  "Say what you ate": "اكتب ما أكلته",
  "Score {pass} or more to clear this level.": "تحتاج إلى {pass} أو أكثر لاجتياز هذا المستوى.",
  "Score {score} of 100. {grade}. {note}": "النتيجة {score} من 100. {grade}. {note}",
@@ -1003,6 +1022,7 @@
  "Silencing keeps the dare open until {time}.": "الإسكات يُبقي التحدي مفتوحًا حتى {time}.",
  "Sit-ups": "تمارين البطن",
  "six": "ست",
+ "Six! Roll again": "ستة! ارمِ مجددًا",
  "Six-digit code": "رمز من ستة أرقام",
  "Skip": "تخطي",
  "Skipped": "تم التخطي",
@@ -1011,6 +1031,7 @@
  "Slow kiss": "قبلة طويلة",
  "Smaller": "أصغر",
  "Snack": "وجبة خفيفة",
+ "Snakes and ladders": "السلم والثعبان",
  "Snap a meal": "صوّر وجبة",
  "Snap a meal and you'll get a calorie range, never a single made-up number.": "صوّر وجبة والنتيجة نطاق من السعرات، لا رقم واحد مختلق.",
  "Snap a meal and you'll get a range, never a single made-up number. Your aim is about {calories} kcal.": "صوّر وجبة والنتيجة نطاق، لا رقم واحد مختلق. هدفك نحو {calories} سعرة.",
@@ -1024,6 +1045,7 @@
  "Spot on. Just like the guide.": "مضبوط تمامًا. مثل الدليل بالضبط.",
  "Spot the difference": "اكتشف الفروق",
  "Spotting": "تبقيع",
+ "Square {number}": "المربع {number}",
  "Square {number}, empty": "المربع {number}، فارغ",
  "Square {number}, yours": "المربع {number}، لك",
  "Square {number}, {partner} is drawing": "المربع {number}، {partner} يرسم فيه",
@@ -1074,6 +1096,7 @@
  "Tap anywhere to loose the arrow.": "اضغط في أي مكان لإطلاق السهم.",
  "Tap on beat {n}": "اضغط على النبضة {n}",
  "Tap on beat {n}.": "اضغط على النبضة {n}.",
+ "Tap the die, or hold it to shake": "المس النرد، أو اضغط عليه مطولًا لتهزّه",
  "Tap the exact middle of the shape.": "اضغط على منتصف الشكل تمامًا.",
  "Tapped {s} s early.": "ضغطة مبكرة بـ{s} ث.",
  "Tapped {s} s late.": "ضغطة متأخرة بـ{s} ث.",
@@ -1096,6 +1119,7 @@
  "That was a peck. Press and hold.": "كانت تلك قبلة خاطفة. اضغط واثبت.",
  "That's {partner}'s time ({zone}), where it's {time} now.": "هذا توقيت {partner} ({zone})، حيث الساعة الآن {time}.",
  "the app couldn't be verified": "تعذّر التحقق من التطبيق",
+ "The board: you're on square {mine}, {partner} on square {theirs}": "اللوحة: أنت عند المربع {mine}، و{partner} عند المربع {theirs}",
  "The bottom got {pct}% more.": "الجزء السفلي أكبر بنسبة {pct}%.",
  "The camera couldn't read your pose. Try more light.": "تعذّر على الكاميرا قراءة وضعيتك. جرّب إضاءة أكثر.",
  "The chain so far · {count} word|The chain so far · {count} words": {
@@ -1153,6 +1177,7 @@
  "This video is too large for the album (100 MB at most).": "هذا الفيديو أكبر من أن يُضاف إلى الألبوم (100 ميغابايت كحد أقصى).",
  "three": "ثلاث",
  "Three misses. No hearts this round.": "ثلاث محاولات خاطئة. لا قلوب في هذه الجولة.",
+ "Three sixes! Back you go": "ثلاث ستات! ارجع للخلف",
  "Through the heart, left of center.": "في القلب، يسار المنتصف.",
  "Through the heart, right of center.": "في القلب، يمين المنتصف.",
  "Through the heart, {s} s early.": "في القلب، أبكر بـ{s} ث.",
@@ -1193,6 +1218,7 @@
  "Unlinks you both and stops every dare": "يفصل حسابيكما ويوقف كل التحديات",
  "Until": "حتى",
  "Until tomorrow": "حتى الغد",
+ "Up the ladder!": "إلى أعلى السلم!",
  "Update the app to play this round": "حدّث التطبيق لتلعب هذه الجولة",
  "updated just now": "حُدّث للتو",
  "updated over a day ago": "حُدّث قبل أكثر من يوم",
@@ -1287,9 +1313,11 @@
  "You picked {answer}": "اختيارك: {answer}",
  "You picked {answer}. {partner} guessed {guess}.": "اختيارك: {answer}. وتخمين {partner}: {guess}.",
  "You picked: {mine}. {partner} picked: {theirs}.": "اختيارك: {mine}. اختيار {partner}: {theirs}.",
+ "You rolled {number}": "حصلت على {number}",
  "You scored {score}": "نتيجتك {score}",
  "You spotted {mine}, {partner} {theirs}": "وجدتَ {mine}، و{partner} {theirs}",
  "You won game {game}!": "فزت بالجولة {game}!",
+ "You won on square 100, {partner} was on {square}": "فزت عند المربع 100، وكان {partner} عند {square}",
  "You won the duel": "فزت بالمبارزة",
  "You won the duel by {count} heart|You won the duel by {count} hearts": {
   "few": "فزت بالمبارزة بفارق {count} قلوب",
@@ -1312,6 +1340,7 @@
  "You're offline. Your shared album shows up when you're back; photos you add stay on this phone meanwhile.": "لا يوجد اتصال. سيظهر ألبومكما المشترك عند عودة الاتصال، وفي الأثناء تبقى الصور المضافة على هذا الهاتف.",
  "You're on mobile data": "الاتصال عبر بيانات الجوال",
  "You're on Wi-Fi": "الاتصال عبر Wi-Fi",
+ "You're on {mine}, {partner} on {theirs}": "أنت عند {mine}، و{partner} عند {theirs}",
  "You're sharing; {partner} isn't yet": "موقعك مُشارَك؛ موقع {partner} ليس بعد",
  "You're X. Draw fast!": "أنت X. ارسم بسرعة!",
  "You've both answered.": "أجبتما كلاكما.",
@@ -1344,6 +1373,7 @@
  "Your profile": "ملفك الشخصي",
  "Your profile, picture and settings": "ملفك الشخصي وصورتك وإعداداتك",
  "Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.": "عملية الشراء بانتظار إتمام الدفع. سيُفعَّل Plus فور تأكيد Google.",
+ "Your roll!": "دورك لترمي!",
  "Your session has ended. Sign in again.": "انتهت جلستك. سجّل الدخول مجددًا.",
  "Your shared album is full": "امتلأ ألبومكما المشترك",
  "Your shared album is full, so some stayed on this phone.": "امتلأ ألبومكما المشترك، لذا بقيت بعض الصور على هذا الهاتف.",
@@ -1437,6 +1467,14 @@
   "two": "رفع الركبتين × {count}",
   "zero": "رفع الركبتين × {count}"
  },
+ "{count} hug save|{count} hug saves": {
+  "zero": "لا إنقاذ بحضن",
+  "one": "إنقاذ واحد بحضن",
+  "two": "إنقاذان بحضن",
+  "few": "{count} إنقاذات بحضن",
+  "many": "{count} إنقاذًا بحضن",
+  "other": "{count} إنقاذ بحضن"
+ },
  "{count} jumping jack|{count} jumping jacks": {
   "few": "قفز مفتوح × {count}",
   "many": "قفز مفتوح × {count}",
@@ -1452,6 +1490,14 @@
   "other": "{count} ركلة في {minutes} د · {day} {time}",
   "two": "ركلتان في {minutes} د · {day} {time}",
   "zero": "لا ركلات في {minutes} د · {day} {time}"
+ },
+ "{count} ladder climbed|{count} ladders climbed": {
+  "zero": "لا سلالم",
+  "one": "سلم واحد",
+  "two": "سلمان",
+  "few": "{count} سلالم",
+  "many": "{count} سلمًا",
+  "other": "{count} سلم"
  },
  "{count} matching answer|{count} matching answers": {
   "few": "{count} إجابات متطابقة",
@@ -1590,6 +1636,14 @@
   "two": "تكراران لم يُحتسبا",
   "zero": "كل التكرارات احتُسبت"
  },
+ "{count} roll|{count} rolls": {
+  "zero": "لا رميات",
+  "one": "رمية واحدة",
+  "two": "رميتان",
+  "few": "{count} رميات",
+  "many": "{count} رمية",
+  "other": "{count} رمية"
+ },
  "{count} round left to play|{count} rounds left to play": {
   "few": "{count} جولات متبقية",
   "many": "{count} جولة متبقية",
@@ -1606,6 +1660,22 @@
   "two": "تمارين البطن × {count}",
   "zero": "تمارين البطن × {count}"
  },
+ "{count} six|{count} sixes": {
+  "zero": "لا ستات",
+  "one": "ستة واحدة",
+  "two": "ستتان",
+  "few": "{count} ستات",
+  "many": "{count} ستة",
+  "other": "{count} ستة"
+ },
+ "{count} snake slide|{count} snake slides": {
+  "zero": "لا انزلاقات",
+  "one": "انزلاقة واحدة",
+  "two": "انزلاقتان",
+  "few": "{count} انزلاقات",
+  "many": "{count} انزلاقة",
+  "other": "{count} انزلاقة"
+ },
  "{count} spot|{count} spots": {
   "zero": "{count} فرق",
   "one": "فرق واحد",
@@ -1621,6 +1691,14 @@
   "other": "سكوات × {count}",
   "two": "سكوات × {count}",
   "zero": "سكوات × {count}"
+ },
+ "{count} swap|{count} swaps": {
+  "zero": "لا تبديلات",
+  "one": "تبديل واحد",
+  "two": "تبديلان",
+  "few": "{count} تبديلات",
+  "many": "{count} تبديلًا",
+  "other": "{count} تبديل"
  },
  "{count} week|{count} weeks": {
   "few": "{count} أسابيع",
@@ -1714,6 +1792,7 @@
  "{partner} is choosing truth or dare…": "دور {partner} في الاختيار: صراحة أم جرأة…",
  "{partner} is done. Be quick!": "إجابات {partner} جاهزة. أسرع!",
  "{partner} is picking an answer. Your guess comes next.": "دور {partner} في اختيار الإجابة، ثم يأتي تخمينك.",
+ "{partner} is rolling…": "{partner} يرمي النرد…",
  "{partner} is thinking of a word…": "دور {partner} في التفكير بكلمة…",
  "{partner} is watching": "عين {partner} عليك",
  "{partner} is {distance}": "{partner} {distance}",
@@ -1734,6 +1813,8 @@
   "zero": "لعب {partner} {count} جولة لم تلعبها. العبها لترى النتيجتين."
  },
  "{partner} played. Play yours to see": "لعب {partner}. العب جولتك لترى",
+ "{partner} rolled a six and goes again": "حصل {partner} على ستة وسيرمي مجددًا",
+ "{partner} rolled {number}": "حصل {partner} على {number}",
  "{partner} said \"{answer}\" for a food": "إجابة {partner} في الطعام: «{answer}»",
  "{partner} said \"{answer}\" for a name": "إجابة {partner} في الاسم: «{answer}»",
  "{partner} said \"{answer}\" for a place": "إجابة {partner} في المكان: «{answer}»",
@@ -1755,6 +1836,7 @@
  "{partner} stuck their half on. Do the reps and the camera sticks yours.": "نصف {partner} مُلصق. أنجز التكرارات وتلصق الكاميرا نصفك.",
  "{partner} won": "الفوز لـ{partner}",
  "{partner} won game {game}": "الجولة {game} لـ{partner}",
+ "{partner} won on square 100, you were on {square}": "فاز {partner} عند المربع 100، وكنت عند {square}",
  "{partner} won the duel by {count} heart|{partner} won the duel by {count} hearts": {
   "few": "الفوز لـ{partner} بفارق {count} قلوب",
   "many": "الفوز لـ{partner} بفارق {count} قلبًا",

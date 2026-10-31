@@ -14,5 +14,6 @@ public enum GameType
     ConnectFour,
     Trivia,
     SkillDuel,
-    SpotTheDifference
+    SpotTheDifference,
+    SnakesAndLadders
 }

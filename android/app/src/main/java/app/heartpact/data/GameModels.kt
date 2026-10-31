@@ -14,6 +14,8 @@ enum class GameType {
     @SerialName("skillDuel") SkillDuel,
     /** Spot the difference: the same pictures for both, at the same time; most spots wins. */
     @SerialName("spotTheDifference") SpotTheDifference,
+    /** Snakes and ladders: the server rolls the die; climb, slide, first to 100 wins. */
+    @SerialName("snakesAndLadders") SnakesAndLadders,
     /** A game this version of the app doesn't know (a newer server's): listed and endable, never played, so nothing breaks. */
     @SerialName("unknown") Unknown,
 }
@@ -382,6 +384,63 @@ data class SpotTheDifferenceState(
     /** More spots wins; null for a tie and until the end. */
     val winner: String? = null,
     val tie: Boolean = false,
+) {
+    val finished: Boolean get() = phase == "completed"
+}
+
+/** Snakes and ladders: a ladder (bottom to top) or a snake (head to tail). */
+@Serializable
+data class SnakesLink(val from: Int = 0, val to: Int = 0)
+
+/** A heart square: "swap" (kiss & swap), "boost" (+3), "shield" (hug shield) or "heartbreak" (back 5). */
+@Serializable
+data class SnakesHeart(val square: Int = 0, val kind: String = "")
+
+@Serializable
+data class SnakesBoardLayout(val ladders: List<SnakesLink> = emptyList(), val snakes: List<SnakesLink> = emptyList(), val hearts: List<SnakesHeart> = emptyList())
+
+/**
+ * One thing a roll did, in order: "ladder", "snake", "shield" (a snake cancelled), "hug" (a shield gained), "boost",
+ * "heartbreak", "swap" (you go to [to], your partner to [from]), "kiss", "bounce" (off 100), "threeSixes", "win".
+ */
+@Serializable
+data class SnakesEvent(val kind: String = "", val from: Int = 0, val to: Int = 0)
+
+/** The last roll in full, so both phones replay it: the squares hopped one by one, then the events. */
+@Serializable
+data class SnakesMove(
+    val move: Int = 0,
+    val player: String = "",
+    val roll: Int = 1,
+    val from: Int = 0,
+    val steps: List<Int> = emptyList(),
+    val events: List<SnakesEvent> = emptyList(),
+    val to: Int = 0,
+    val extraTurn: Boolean = false,
+    val sixes: Int = 0,
+)
+
+@Serializable
+data class SnakesStats(val rolls: Int = 0, val ladders: Int = 0, val snakes: Int = 0, val sixes: Int = 0, val swaps: Int = 0, val saves: Int = 0)
+
+@Serializable
+data class SnakesState(
+    val players: List<String> = emptyList(),
+    /** "playing" or "completed". */
+    val phase: String = "playing",
+    val goal: Int = 100,
+    val first: String? = null,
+    /** Whose roll it is; null once it's over. */
+    val turn: String? = null,
+    val board: SnakesBoardLayout = SnakesBoardLayout(),
+    /** Each player's square: 0 is off the board, before square 1. */
+    val positions: Map<String, Int> = emptyMap(),
+    val shields: Map<String, Boolean> = emptyMap(),
+    val stats: Map<String, SnakesStats> = emptyMap(),
+    val sixes: Int = 0,
+    val moves: Int = 0,
+    val last: SnakesMove? = null,
+    val winner: String? = null,
 ) {
     val finished: Boolean get() = phase == "completed"
 }

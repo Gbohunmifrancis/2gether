@@ -21,8 +21,8 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
   timeout worker closes rounds that run out, and a late move is treated as the timeout.
 - **Spot the difference** gives each picture 90 seconds, then a 3-second beat before the next picture; the timeout
   worker plays both.
-- **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match** and **Heart to heart** are turn by
-  turn and have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
+- **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match**, **Heart to heart** and **Snakes
+  and ladders** are turn by turn and have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
 - **Tic-tac-toe** has no turns and no move clock. Two timers are the server's, both on its own clock (the time a
   move arrives, never the phone's): each pen's cooldown, and the 1.5-second beat between games, which is the
   session's `deadlineUtc` while a finished board is up (the timeout worker then starts the next game).
@@ -111,6 +111,39 @@ covers everything, including Tic-tac-toe's live ink (`Ink`, below).
   refused. After the third picture, more spots wins (`winner`; `tie` when equal). The state shows `scene`, `kind`,
   `seed` and `found` (`{index, by}`) for the picture in play, `scenes` for every picture so far, and `scores`;
   each player's spots are their score in the history.
+- **Snakes and ladders** (`snakesAndLadders`), in turn, no clock: a 10×10 board, 1 to 100, rows running left to right
+  then right to left. Both tokens start off the board at 0. The server flips a coin at the start (`first`) for who
+  rolls first; then `turn` (and the session's `currentTurnUserId`) says whose roll it is. The only move is `roll` (no
+  `value` or `index`): the server rolls a die with its secure RNG and plays everything that follows, so the phone
+  never decides an outcome.
+  - **Moving:** the token hops one square per pip (from 0, a 1 lands on square 1). You must land on 100 exactly: an
+    overshoot bounces back by the excess (97 and a 5: 98, 99, 100, 99, 98). Reaching 100 wins at once.
+  - **Sixes:** a 6 rolls again (`extraTurn`); a third 6 in a row sends you back to the square the turn started on and
+    passes the turn (`threeSixes`). A 6 that reaches 100 just wins.
+  - **The landing square**, once (nothing chains): a ladder's foot climbs to its top; a snake's head slides to its
+    tail, unless you carry a hug shield, which cancels that one snake and is used up (`shield`); a heart square:
+    **Love boost** +3, **Heartbreak** back 5, **Hug shield** gives you a shield (one at a time; it shows on your token
+    and in `shields`), **Kiss & swap** trades places with your partner if they're ahead (`swap`), and is just a kiss
+    if you're ahead or level (`kiss`). That's the only catch-up in the game: no hidden rubber-banding. A swap, a
+    bounce and three sixes never set off the square you end up on.
+  - **The board** comes from the setup's seed (`Layout`), so each game has its own: 7 to 9 ladders and 7 to 9 snakes
+    of mixed lengths (at least a one-row and a three-row-or-more of each, a snake head in the last row, a ladder in
+    the first two), and seven heart squares (two swaps, two boosts, two shields, a heartbreak). Every board is
+    `Valid`: ladders go up and snakes down by a row or more; nothing starts or ends on 1 or 100; no two things share
+    a square, so no ladder ends on a snake and no snake on a ladder (no chains, no loops); a boost or a heartbreak
+    lands on a plain square. It must also be fair: the server plays 400 games of one player on it, and a board whose
+    average falls outside 26 to 42 rolls to reach 100 is drawn again (a plain board takes about 34). The board travels
+    in the state (`board`: `ladders` and `snakes` as `{from, to}`, `hearts` as `{square, kind}` with `kind` `swap`,
+    `boost`, `shield` or `heartbreak`).
+  - **`last`** tells the latest roll in full, so both phones replay the same animation:
+    `{move, player, roll, from, steps, events, to, extraTurn, sixes}`. `move` counts every roll from 1 (the app plays
+    a move once, and none it opened on); `steps` are the squares hopped one by one, bounce included; `events` are, in
+    order, `{kind, from, to}` with `kind` one of `ladder`, `snake`, `shield` (a snake cancelled, `from` = `to` = its
+    head), `hug` (a shield gained), `boost`, `heartbreak`, `swap` (you go to `to`, your partner to `from`), `kiss`,
+    `bounce` (`from` 100), `threeSixes` (back to `to`) and `win`; `to` is where the token ends.
+  - The state also has `positions`, `stats` per player (`rolls`, `ladders`, `snakes`, `sixes`, `swaps`, `saves`),
+    `sixes` (in a row this turn), `moves` and `winner`. Nothing is secret. The history keeps each player's final
+    square as their score, the rolls taken as the rounds, and the winner.
 
 # Adding a game
 
@@ -162,6 +195,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
 | Spot the difference (`spotTheDifference`) | both at once, timed | The same two pictures on both phones; tap a difference first to claim it. Three pictures, seven differences each, 90 seconds a picture. | a point per spot; most spots wins |
 | Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring, shoot an arrow through a floating heart, hold a kiss for the time shown, draw a heart), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
+| Snakes and ladders (`snakesAndLadders`) | in turn, no clock | Roll the server's die, climb ladders, slide down snakes, land on heart squares (kiss & swap, love boost, hug shield, heartbreak); a 6 rolls again, three 6s go back; land on 100 exactly. Each game has its own fair board. | first to 100 wins; each player's final square is kept |
 
 ## Text
 
