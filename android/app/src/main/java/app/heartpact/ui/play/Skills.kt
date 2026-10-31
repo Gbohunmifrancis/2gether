@@ -62,11 +62,11 @@ enum class SkillKind(val colour: BlobColour) {
     /** What to do, at the top of a round. */
     val instruction: String get() = when (this) {
         FairShare -> tr("Cut it in two equal halves. Straight through, one swipe.")
-        FillTheHeart -> tr("Hold to pour. The line hides once the love runs.")
+        FillTheHeart -> tr("Hold to pour, and let go so the love settles right on the line.")
         OtherHalf -> tr("Finish the other half across the fold. One stroke or a few.")
-        Heartbeat -> tr("Count the beats. When it goes quiet, tap on beat eight.")
+        Heartbeat -> tr("Count the beats. When it goes quiet, keep counting in your head.")
         KissTheCenter -> tr("Tap the exact middle of the shape.")
-        PromiseRing -> tr("Draw a circle in one stroke, as round as you can.")
+        PromiseRing -> tr("Draw the shape in one stroke, as true as you can.")
     }
 }
 
