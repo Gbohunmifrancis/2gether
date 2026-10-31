@@ -16,6 +16,12 @@ public interface IGameRules
     /// <summary>Moves have a deadline; once it passes, the server plays <see cref="GameEngine.TimeoutAction"/>.</summary>
     bool Timed => false;
 
+    /// <summary>
+    /// Both partners' moves may cross in flight: a move is judged against the state as it is when it arrives, instead
+    /// of being refused for naming an older <c>expectedStateVersion</c>. The rules then check everything themselves.
+    /// </summary>
+    bool MovesMayCross => false;
+
     /// <summary>The first state. <paramref name="setupJson"/> comes from <see cref="GameSetupFactory"/>.</summary>
     GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson);
 

@@ -10,8 +10,10 @@ game list also links to After Round 1 on Google Play. A game that finished in th
 Every response and the couple hub's `GameStarted`, `GameStateChanged` and `GameCompleted` events carry the whole
 session. `stateJson` is a JSON string of the public state (nothing hidden from the other player leaks into it);
 `stateVersion` goes up by one on every change, and a move against an older version is `409 game.version_conflict`:
-reload and try again. `GameInvitation`, `GameCountdown` and `GameEnded` say "refetch". The game hub (`/hubs/game`)
-is not needed: REST plus the couple hub covers everything.
+reload and try again (except in a game whose moves may cross, Tic-tac-toe: there a move is judged against the board
+as it is when it arrives, and `409` only comes from two writes at the same instant). `GameInvitation`,
+`GameCountdown` and `GameEnded` say "refetch". The game hub (`/hubs/game`) is not needed: REST plus the couple hub
+covers everything, including Tic-tac-toe's live ink (`Ink`, below).
 
 ## Clocks
 
@@ -19,6 +21,9 @@ is not needed: REST plus the couple hub covers everything.
   timeout worker closes rounds that run out, and a late move is treated as the timeout.
 - **Same answer** (`coupleQuiz`, and the other quiz-style types), **memory match** and **Heart to heart** are turn by
   turn and have no turn deadline (`deadlineUtc` is null): a couple may take turns hours apart.
+- **Tic-tac-toe** has no turns and no move clock. Two timers are the server's, both on its own clock (the time a
+  move arrives, never the phone's): each pen's cooldown, and the 1.5-second beat between games, which is the
+  session's `deadlineUtc` while a finished board is up (the timeout worker then starts the next game).
 - An invite nobody answers ends after a day, and a turn-by-turn game left alone for a week ends, so a forgotten game
   never blocks a new one. Both send `GameEnded`.
 
@@ -48,6 +53,35 @@ is not needed: REST plus the couple hub covers everything.
   `undo`, `clear` and `pass`; the guesser sends `guess` (any case or accents, a leading "a"/"an"/"the" ignored, in
   English or their own language). A right guess gives both a point; three wrong ones or a pass end the round with
   none. Strokes and guesses cross, so the app queues its moves and resends one that gets `game.version_conflict`.
+- **Tic-tac-toe** (`ticTacToe`), at once: a match of up to five games, first to three wins; the couple's first player
+  (`players[0]`) is X, the other O. Both mark squares whenever they like (`AnyoneMayAct`; `place`, `index` the square
+  0–8 row by row) and a square goes to whoever's move reaches the server first: a claim on a taken square is
+  `422 game.invalid_action` ("That square is taken."), which the app shows as a "Too slow!" bounce, never as an error.
+  After each of your own marks your pen refills for **650 ms** (`cooldownMs` in the state); the server refuses a mark
+  less than 550 ms after your last (100 ms forgiven for network jitter: the phone waits the full 650 ms from sending),
+  and a refused mark costs no cooldown. `pens` holds each player's newest square and when it landed. Moves may cross
+  in flight, so a stale `expectedStateVersion` is fine; `value` names the game the move was made on,
+  `{"game":n,"strokes":[[[x,y],...],...]}` (the hand-drawn mark: up to 3 strokes of 1 to 64 points, coordinates
+  fractions of the square, nothing else; a tap sends a ready-made pen X or O), so a move that crossed the end of a
+  game is refused (or, if it arrived as the late timeout, dropped) instead of landing on the next board. `ink` adds a
+  stroke or two to your newest mark within 2 seconds of placing it (the second line of an X), up to 3 in all, with no
+  cooldown. `marks` holds each square's strokes (null when empty, or for a square placed without strokes). Moves are
+  played one at a time, so the first line made ends the game (two lines made by the same mark are both drawn in
+  `line`); a full board is a draw. The finished board stays up as `gameOver` with `nextGameAtUtc` 1.5 s later; then
+  the next game starts on a fresh board, by the timeout worker or by the first move for it (up to 250 ms early,
+  since phone clocks differ). A move that arrives after the deadline is played as the timeout with its square and
+  value, so it still lands on the fresh board when it was made for it. Turn-by-turn matches from before read the
+  same (the state is a superset of the grid match's); one still open carries on under these rules.
+  - **Live ink**: while a finger draws on a square, the app sends the couple hub
+    `Ink(sessionId, cell, stroke, points)`: `cell` 0–8 (-1 clears the sender's ink), `stroke` a number the phone
+    counts up per stroke, `points` up to 32 x,y pairs (64 numbers from 0 to 1, fractions of the square), only the
+    points new since the last message, at most every 50 ms (20 a second). The hub relays it to the partner only, as
+    `GameInk` `{sessionId, userId, cell, stroke, points}`, for the caller's own couple's Tic-tac-toe in progress after
+    its countdown; anything else (another couple's game, one not in progress, another game type, a malformed message,
+    more than 30 a second from one person) is dropped, and the call returns false. It is never stored and never in
+    `stateJson`: the mark itself still goes in with `place`. The partner's phone shows the stroke in the drawer's
+    colour and fades it 1.5 s after the last message, or swaps it for the mark when the square is taken. Without a
+    hub connection everything still works; the stroke just isn't live.
 - **Heart to heart** (`skillDuel`): five skill rounds (Heart skills, `ui/play`), the same for both: the setup draws a
   seed and from it five of the six kinds (`FairShare`, `FillTheHeart`, `OtherHalf`, `Heartbeat`, `KissTheCenter`,
   `PromiseRing`, the app's `SkillKind` names), none twice, each with its own seed, so both get the same shape or
@@ -71,7 +105,8 @@ is not needed: REST plus the couple hub covers everything.
   move (`action`, optional `value` string and `index` int) and returns the next state, whose turn it is, an optional
   deadline, and whether the game is over. A move that isn't allowed throws `InvalidOperationException` with a
   `Loc.T("...")` message: the app shows it as is.
-- **Turns:** by default only `CurrentTurnUserId` may move. A game where both answer at once sets `AnyoneMayAct`.
+- **Turns:** by default only `CurrentTurnUserId` may move. A game where both answer at once sets `AnyoneMayAct`; one
+  whose moves may cross in flight and be judged on arrival also sets `MovesMayCross` (a stale version isn't refused).
   A game with a clock sets `Timed`; when its deadline passes the server plays `GameEngine.TimeoutAction` for it (the
   timeout worker, or the next move that arrives late). Turn-by-turn games without a clock may be played hours apart.
 - **Secrets:** `ToPublicState(state, viewer)` returns what that partner may see. The word to draw is the drawer's
@@ -105,7 +140,7 @@ ethnic groups; no politics, religion or tribal jokes.
 | Truth or dare (`truthOrDare`) | in turn, no clock | Pick truth or dare, get a couple-safe prompt, the partner marks it done or skipped. | a point per done |
 | Word dash (`wordDash`) | in turn, timed | Word chain: each word starts with the last letter of the one before, no repeats, 20 seconds a turn. A refused word may be retried while the time lasts. First to five. | the other partner, when time runs out |
 | Draw and guess (`handwriting`) | both at once, no clock | One draws a secret word, the other has three guesses. Swap each round, six rounds. | a heart each, when guessed |
-| Tic-tac-toe (`ticTacToe`) | in turn | Classic 3×3; best of five. | a point per game won |
+| Tic-tac-toe (`ticTacToe`) | both at once | 3×3, drawn by hand; first to a square gets it, a 650 ms pen cooldown, the next game 1.5 s after each one; best of five. | a point per game won |
 | Connect four (`connectFour`) | in turn | 7×6, drop discs, four in a row. | a point per game won |
 | Heart to heart (`skillDuel`) | both at once, no clock | The same five skill rounds for both (cut it even, pour to the line, draw the other half, tap the beat, kiss the center, draw a ring), each scored 0–100; scores show side by side once both have played a round. | a heart per round won (a tie a heart each); the higher total wins the duel |
 

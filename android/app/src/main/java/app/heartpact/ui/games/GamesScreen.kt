@@ -55,6 +55,8 @@ data class GameActions(
     val onBack: () -> Unit = {},
     /** Leave a finished game's final board for the picker. */
     val onClose: (String) -> Unit = {},
+    /** Tic-tac-toe: the stroke being drawn on a square, for the partner to watch (square, stroke number, x,y pairs). */
+    val onInk: (GameSession, Int, Int, FloatArray) -> Unit = { _, _, _, _ -> },
 )
 
 /**
@@ -91,7 +93,7 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
                 else -> {
                     // A finished game leads with its result; the final board stays under it.
                     if (active.status == GameStatus.Completed) GameResultCard(active, me, partnerName)
-                    Playing(active, me, partnerName, ui.busy, moves, now, ui.pending)
+                    Playing(active, me, partnerName, ui.busy, moves, now, ui.pending, ui)
                 }
             }
         }
@@ -130,7 +132,7 @@ internal fun secondsUntil(iso: String?, now: () -> Instant): Long {
 }
 
 @Composable
-private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant, pending: List<PendingMove> = emptyList()) {
+private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions, now: () -> Instant, pending: List<PendingMove> = emptyList(), ui: GamesUi = GamesUi()) {
     val countdown = secondsUntil(s.countdownEndsAtUtc, now)
     if (s.status == GameStatus.InProgress && countdown > 0) {
         Countdown(countdown)
@@ -143,7 +145,7 @@ private fun Playing(s: GameSession, me: String, partnerName: String, busy: Boole
         GameType.WordDash -> WordDashBoard(s, me, partnerName, busy, actions, now)
         GameType.GuessMyAnswer -> GuessMyAnswerBoard(s, me, partnerName, busy, actions)
         GameType.WouldYouRather -> WouldYouRatherBoard(s, me, partnerName, busy, actions)
-        GameType.TicTacToe -> TicTacToeBoard(s, me, partnerName, busy, actions)
+        GameType.TicTacToe -> TicTacToeBoard(s, me, partnerName, ui.ttt, ui.ink, actions, now)
         GameType.ConnectFour -> ConnectFourBoard(s, me, partnerName, busy, actions)
         GameType.Handwriting -> DrawAndGuessBoard(s, me, partnerName, pending, actions)
         GameType.Trivia -> TriviaBoard(s, me, partnerName, busy, actions)

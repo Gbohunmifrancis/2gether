@@ -122,7 +122,7 @@ public sealed class SignOutLocationTests : IDisposable
         {
             var caller = new CallerRecorder();
             var coupleHub = new CoupleHub(db, new FakeCurrentUser(couple.MayaId, couple.CoupleId), clock, new CouplePresenceTracker(), new GameLiveState(), new HubConnectionRegistry(),
-                new LocationSharingStopper(db, hub, clock), new LocationFixThrottle())
+                new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), new GameInkGate())
             {
                 Clients = caller,
                 Context = new TestCallerContext(),

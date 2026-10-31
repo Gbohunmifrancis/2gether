@@ -9,6 +9,7 @@ import app.heartpact.data.ICallOnState
 import app.heartpact.data.MemoryState
 import app.heartpact.data.QuizState
 import app.heartpact.data.SkillDuelState
+import app.heartpact.data.TicTacToeState
 import app.heartpact.data.TruthOrDareState
 import app.heartpact.data.WordDashState
 import app.heartpact.data.TriviaState
@@ -27,6 +28,7 @@ object GamePlay {
     fun iCallOn(s: GameSession): ICallOnState = runCatching { json.decodeFromString(ICallOnState.serializer(), s.stateJson) }.getOrDefault(ICallOnState())
     fun truthOrDare(s: GameSession): TruthOrDareState = runCatching { json.decodeFromString(TruthOrDareState.serializer(), s.stateJson) }.getOrDefault(TruthOrDareState())
     fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
+    fun ticTacToe(s: GameSession): TicTacToeState = runCatching { json.decodeFromString(TicTacToeState.serializer(), s.stateJson) }.getOrDefault(TicTacToeState())
     fun grid(s: GameSession): GridMatchState = runCatching { json.decodeFromString(GridMatchState.serializer(), s.stateJson) }.getOrDefault(GridMatchState())
     fun drawAndGuess(s: GameSession): DrawAndGuessState = runCatching { json.decodeFromString(DrawAndGuessState.serializer(), s.stateJson) }.getOrDefault(DrawAndGuessState())
     fun trivia(s: GameSession): TriviaState = runCatching { json.decodeFromString(TriviaState.serializer(), s.stateJson) }.getOrDefault(TriviaState())
@@ -80,7 +82,7 @@ object GamePlay {
         GameType.WordDash -> tr("A word chain against the clock: each word starts with the last letter of the one before. 20 seconds a turn, first to five.")
         GameType.GuessMyAnswer -> tr("Answer about yourself, then guess your partner's answers. A point for every right guess.")
         GameType.WouldYouRather -> tr("Two choices, you both pick at once. A heart each time you pick the same.")
-        GameType.TicTacToe -> tr("Three in a row, your half of the heart against mine. First to win three games takes the match.")
+        GameType.TicTacToe -> tr("No turns: you both draw at once, and a square goes to whoever gets there first. Three in a row wins; first to three games takes the match.")
         GameType.ConnectFour -> tr("Drop your discs and line up four. First to win two games takes the match.")
         GameType.Handwriting -> tr("One draws a secret word, the other has three guesses. Swap each round, six rounds.")
         GameType.Trivia -> if (region == "ng") tr("Ten questions on Naija music, Nollywood, food and more. You both answer, then see who got it.")

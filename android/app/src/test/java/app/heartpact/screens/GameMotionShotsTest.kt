@@ -81,7 +81,7 @@ class GameMotionShotsTest {
     /** Tic-tac-toe: the third piece lands and the pen strikes through the line. */
     @Test fun winLine() {
         fun ttt(board: String, phase: String, line: String, maya: Int, version: Long) = session(GameType.TicTacToe,
-            """{"players":["maya","theo"],"columns":3,"rows":3,"cells":${board.map { if (it == 'm') "\"maya\"" else if (it == 't') "\"theo\"" else "null" }.joinToString(",", "[", "]")},"game":0,"totalGames":5,"winsNeeded":3,"phase":"$phase","line":$line,"scores":{"maya":$maya,"theo":0},"results":${if (maya > 0) "[\"maya\"]" else "[]"}}""",
+            """{"players":["maya","theo"],"columns":3,"rows":3,"cells":${board.map { if (it == 'm') "\"maya\"" else if (it == 't') "\"theo\"" else "null" }.joinToString(",", "[", "]")},"game":0,"totalGames":5,"winsNeeded":3,"phase":"$phase","line":$line,"scores":{"maya":$maya,"theo":0},"results":${if (maya > 0) "[\"maya\"]" else "[]"}${if (phase == "gameOver") ",\"nextGameAtUtc\":\"2026-10-11T18:00:05Z\"" else ""}}""",
             if (maya > 0) "theo" else "maya", version)
         frames("tictactoe-win", ttt("mt.tm....", "playing", "null", 0, 5), ttt("mt.tm...m", "gameOver", "[0,4,8]", 1, 6), listOf(120, 600, 900, 1600))
     }

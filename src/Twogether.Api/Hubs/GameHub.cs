@@ -41,7 +41,7 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         var session = await GetOwnedSession(sessionId);
         if (session.Status != GameSessionStatus.InProgress) throw new HubException("The game is not in progress.");
         if (session.CountdownEndsAtUtc > clock.UtcNow) throw new HubException("Wait for the countdown to finish.");
-        if (session.StateVersion != expectedStateVersion) throw new HubException("The game state changed. Reload before acting.");
+        if (session.StateVersion != expectedStateVersion && !engine.MovesMayCross(session.GameType)) throw new HubException("The game state changed. Reload before acting.");
         if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId!.Value) throw new HubException(Loc.T("It is not this player's turn."));
         GameEngineResult next;
         var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;

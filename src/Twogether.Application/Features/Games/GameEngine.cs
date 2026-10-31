@@ -54,6 +54,8 @@ public sealed class GameEngine : IGameEngine
 
     public bool IsTimed(GameType gameType) => RulesFor(gameType)?.Timed ?? gameType == GameType.ICallOn;
 
+    public bool MovesMayCross(GameType gameType) => RulesFor(gameType)?.MovesMayCross ?? false;
+
     public string ToPublicState(GameType gameType, string stateJson, Guid? viewer)
     {
         // An invite that hasn't started has no state yet; the rules all assume a game in play.

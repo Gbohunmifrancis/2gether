@@ -116,7 +116,8 @@ public sealed class GameController(
         if (session is null || !currentUser.UserId.HasValue) return NotFound();
         if (session.Status != GameSessionStatus.InProgress) return Conflict(new ApiError("game.not_in_progress", Loc.T("The game is not in progress.")));
         if (session.CountdownEndsAtUtc > clock.UtcNow) return Conflict(new ApiError("game.countdown", Loc.T("Wait for the countdown to finish.")));
-        if (session.StateVersion != request.ExpectedStateVersion)
+        // A game whose moves may cross (both at once, judged on arrival) plays a move made on an older board too.
+        if (session.StateVersion != request.ExpectedStateVersion && !engine.MovesMayCross(session.GameType))
             return Conflict(new ApiError("game.version_conflict", Loc.T("The game state changed. The latest board has been loaded.")));
         if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId.Value) return Forbid();
         try

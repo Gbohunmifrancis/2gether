@@ -5,7 +5,8 @@ using Twogether.Shared.Localization;
 namespace Twogether.Application.Features.Games;
 
 /// <summary>
-/// A short match of turn-by-turn games on a grid, shared by tic-tac-toe and connect four (docs/games.md). Partners
+/// A short match of turn-by-turn games on a grid: connect four (docs/games.md). Tic-tac-toe played this way too until it
+/// went live (<see cref="TicTacToeRules"/>), and its state still reads as this one's. Partners
 /// alternate who starts each game (game 0: player 0); a game won scores a point, a draw scores none. The match ends
 /// when someone reaches <see cref="WinsNeeded"/> or after <see cref="GamesInMatch"/> games, most wins taking it.
 /// </summary>
