@@ -16,7 +16,7 @@ environment variables on the host that runs it, using `__` for nesting (`Push__P
 | `PLAY_INTEGRITY_PROJECT_NUMBER` | proving a finished dare came from the genuine app | the **number** of the Google Cloud project linked in Play Console → App integrity. Without it no token is sent. See `docs/exercise-checks.md` |
 | `ANDROID_KEYSTORE_BASE64` | signed release bundle | `base64 -w0 release.jks` of your upload keystore |
 | `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | signed release bundle | chosen when the keystore was made |
-| `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to the `API_URL` variable, else `https://api.heartpact.app/` |
+| `HEARTPACT_RELEASE_API_URL` | release builds | optional; defaults to the `API_URL` variable, else `https://api.heartpact.me/` |
 | `PLAY_SERVICE_ACCOUNT_JSON` | uploading to Google Play | see `docs/deploy.md` |
 | `RAILWAY_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | deploying the API and dashboard | see `docs/deploy.md`, with the `API_URL`, `ADMIN_URL` and other variables |
 
@@ -41,7 +41,8 @@ Google Play happen in `.github/workflows/deploy.yml` (see `docs/deploy.md`).
 | `Email__Provider` = `smtp`, `Email__Host`, `Email__Port` (587), `Email__User`, `Email__Password`, `Email__From` (`Email__FromName`, `Email__StartTls` optional) | password reset codes | any SMTP service: Amazon SES, Postmark, Mailgun, Resend, SendGrid, Google Workspace. `Email__StartTls=false` for implicit TLS on 465. Without it "Forgot password?" says reset isn't set up |
 | `Auth__GoogleClientIds` | Google sign-in | the same web client id as `GOOGLE_WEB_CLIENT_ID` (comma-separate several). Without it the server answers 503 to Google sign-in |
 | `Food__AnthropicApiKey` (or `ANTHROPIC_API_KEY`) | food photo estimates | without it the app logs meals by hand |
-| `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
+| `Billing__Provider` = `googleplay`, `Billing__GooglePlayPackageName`, `Billing__ProductIds` (`heartpact_plus_monthly,heartpact_plus_yearly`; without it no purchase unlocks Plus), `Billing__GooglePlayCredentialsJson`, `Billing__RtdnSecret` | Heartpact Plus | see `docs/billing.md` |
+| `Bachs__ApiKey`, `Bachs__WebhookSecret`, `Bachs__MonthlyProductId`, `Bachs__YearlyProductId` | Heartpact Plus by card (website, and in the app under Google Play billing choice) | Bachs dashboard: Developer portal, API keys (`sk_sandbox_…` for the sandbox, `sk_live_…` for production; the key picks the API address) and Webhooks (the endpoint's `whsec_…` signing secret); Products (the `prod_…` ids of the monthly and yearly plans). Card checkout is on only when all four are set. Optional: `Bachs__ApiUrl` (another API address), `Bachs__SuccessUrl` (default `https://heartpact.me/plus/thanks/`), `Bachs__CancelUrl` (default `https://heartpact.me/plus/`). In-app card payments are reported to Google with the `Billing__GooglePlayCredentialsJson` service account. See `docs/billing.md` |
 | `Integrity__Provider` = `playIntegrity` (`Integrity__PackageName`, `Integrity__CredentialsJson` optional) | flagging finished dares from a modified app or tampered phone | reuses the billing package and service account unless set. Turn on after a build with `PLAY_INTEGRITY_PROJECT_NUMBER` ships. See `docs/exercise-checks.md` |
 | `ForwardedHeaders__Enabled` = `true` | behind a proxy (Railway) | |
 | `Admin__Emails` | the admin dashboard | who may sign in, comma-separated; each signs up in the app first, then enrolls an authenticator. See `docs/admin.md` |

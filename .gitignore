@@ -29,3 +29,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Agent worktrees (local only)
+.claude/worktrees/
+
+# Promo videos: rebuilt by marketing/play-store/tools/video.py
+marketing/play-store/video/

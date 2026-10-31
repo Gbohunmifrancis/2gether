@@ -62,4 +62,25 @@ public sealed class GameFixesTests
         using var after = JsonDocument.Parse(engine.ToPublicState(GameType.MemoryMatch, next.StateJson));
         Assert.Equal(JsonValueKind.Null, after.RootElement.GetProperty("lastPair").ValueKind);
     }
+
+    [Fact]
+    public void A_memory_match_names_the_pair_so_both_phones_can_celebrate_it()
+    {
+        var players = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var now = DateTime.UtcNow;
+        var state = engine.Start(GameType.MemoryMatch, players, now).StateJson;
+        int[] values;
+        using (var raw = JsonDocument.Parse(state)) values = raw.RootElement.GetProperty("Cards").EnumerateArray().Select(card => card.GetProperty("Value").GetInt32()).ToArray();
+        var twin = Array.IndexOf(values, values[0], 1);
+
+        var first = engine.Apply(GameType.MemoryMatch, state, players[0], "flip", null, 0, now);
+        var match = engine.Apply(GameType.MemoryMatch, first.StateJson, players[0], "flip", null, twin, now);
+
+        using var shown = JsonDocument.Parse(engine.ToPublicState(GameType.MemoryMatch, match.StateJson));
+        Assert.Equal("match", shown.RootElement.GetProperty("lastResult").GetString());
+        var pair = shown.RootElement.GetProperty("lastPair").EnumerateArray().Select(card => card.GetProperty("index").GetInt32()).ToList();
+        Assert.Equal([0, twin], pair);
+        // A pair found plays again.
+        Assert.Equal(players[0], match.CurrentTurnUserId);
+    }
 }

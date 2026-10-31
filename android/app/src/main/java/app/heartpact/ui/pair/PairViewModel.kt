@@ -112,6 +112,6 @@ class PairViewModel(private val couple: CoupleRepository, private val userId: St
         const val CODE_DIGITS = 6
         const val POLL_MS = 4_000L
         fun formatCode(code: String) = if (code.length == 6) "${code.take(3)} ${code.drop(3)}" else code
-        fun inviteLink(token: String) = "https://heartpact.app/invite/$token"
+        fun inviteLink(token: String) = "https://heartpact.me/invite/$token"
     }
 }

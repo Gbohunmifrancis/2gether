@@ -76,6 +76,17 @@ public sealed class GameSession : BaseEntity
         UpdatedAtUtc = utcNow;
     }
 
+    /// <summary>
+    /// A finished game's state changed by a move its rules allow after the end (Same answer's "That counts!"): it
+    /// stays finished, with the same end time and the same place in the couple's list of games.
+    /// </summary>
+    public void Amend(string stateJson)
+    {
+        if (Status != GameSessionStatus.Completed) throw new InvalidOperationException("Only a finished game can be amended.");
+        StateJson = stateJson;
+        StateVersion++;
+    }
+
     /// <summary>Not finished yet: waiting for the partner, being played, or paused on an end request.</summary>
     public bool IsOpen => Status is GameSessionStatus.WaitingForPartner or GameSessionStatus.InProgress or GameSessionStatus.Paused;
 

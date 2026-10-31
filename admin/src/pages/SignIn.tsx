@@ -79,7 +79,7 @@ export function SignInPage() {
       const session = await api<AdminSession>("/api/admin/auth/login", {
         method: "POST",
         anonymous: true,
-        body: { email: "ada@heartpact.app", password: "demo", code: "123456" },
+        body: { email: "ada@heartpact.me", password: "demo", code: "123456" },
       });
       setSession(session);
       await navigate({ href: redirect ?? "/", replace: true });

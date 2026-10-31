@@ -28,11 +28,25 @@ const GAMES: Record<string, string> = {
   connectFour: "Connect four",
   trivia: "Trivia",
   skillDuel: "Heart to heart duel",
+  spotTheDifference: "Spot the difference",
+  snakesAndLadders: "Snakes and ladders",
 };
 export const gameLabel = (name: string) => GAMES[name] ?? humanize(name);
 
-/** Skill kinds travel as the app's PascalCase names: "FillTheHeart" → "Fill the heart". */
-export const skillLabel = (name: string) => humanize(name);
+/** Skill kinds travel as the app's PascalCase names; these are the names the app shows. */
+const SKILLS: Record<string, string> = {
+  FairShare: "Fair share",
+  FillTheHeart: "Fill the heart",
+  OtherHalf: "Other half",
+  Heartbeat: "Heartbeat",
+  KissTheCenter: "Kiss the center",
+  PromiseRing: "Promise ring",
+  CupidsAim: "Cupid's aim",
+  SlowKiss: "Slow kiss",
+  DrawAHeart: "Draw a heart",
+};
+/** "FillTheHeart" → "Fill the heart"; a kind this dashboard doesn't know yet is spaced out from its name. */
+export const skillLabel = (name: string) => SKILLS[name] ?? humanize(name);
 
 const PROBES: Record<string, string> = { database: "Database", storage: "Photo storage", push: "Push notifications", email: "Email", foodModel: "Food scans" };
 export const probeLabel = (name: string) => PROBES[name] ?? humanize(name);

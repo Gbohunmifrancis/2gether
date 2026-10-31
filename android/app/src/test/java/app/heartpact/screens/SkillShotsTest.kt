@@ -217,7 +217,7 @@ class SkillShotsTest {
         snap("heartbeat-3-quiet", both = false)
         // Tap 90 ms late.
         while (play.now < play.beatTime(8) + 90) later(16)
-        rule.onNodeWithText("Tap on beat eight").performTouchInput { down(center); up() }
+        rule.onNodeWithText("Tap on beat 8").performTouchInput { down(center); up() }
         later(5000)
         val r = play.result
         assertNotNull(r)
@@ -312,8 +312,11 @@ class SkillShotsTest {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SkillKind.entries.forEach { SkillIcon(it, Heartpact.colors.ink, 24.dp) }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SkillKind.entries.forEach { SkillIcon(it, BlobColour.Rose.ink, 52.dp) }
+                // Big icons, five to a row so all of them fit on a phone.
+                SkillKind.entries.chunked(5).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        row.forEach { SkillIcon(it, BlobColour.Rose.ink, 52.dp) }
+                    }
                 }
             }
         }

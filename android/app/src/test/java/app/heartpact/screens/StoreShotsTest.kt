@@ -212,7 +212,7 @@ class StoreShotsTest {
         val yesterday = DailyQuestion("y", "2026-10-10", "everyday-10", "everyday", srv("What is one small habit of mine that you secretly like?"), myAnswer = mine, partnerAnswered = true, partnerAnswer = theirs)
         at("question") { ReadableScreen { QuestionScreen(QuestionUi(today = question, earlier = listOf(yesterday)), "Theo", {}, {}, {}, {}, today = LocalDate.of(2026, 10, 11)) } }
 
-        // Draw and guess: Maya draws an umbrella; Theo has tried one word.
+        // Draw and guess (the launch video, marketing/video): Maya draws an umbrella; Theo has tried one word.
         val umbrella = listOf(
             stroke(arc(0.5, 0.5, 0.32, PI, 2 * PI)),
             stroke(arc(0.26, 0.5, 0.08, PI, 0.0, 10) + arc(0.42, 0.5, 0.08, PI, 0.0, 10) + arc(0.58, 0.5, 0.08, PI, 0.0, 10) + arc(0.74, 0.5, 0.08, PI, 0.0, 10)),
@@ -223,6 +223,18 @@ class StoreShotsTest {
                 "word":${quote(srv("umbrella"))},"strokes":[$umbrella],"wrongGuesses":[${quote(kite)}],"guessesLeft":2,"maxGuesses":3,
                 "lastRound":{"round":1,"drawer":"theo","word":${quote(srv("guitar"))},"outcome":"guessed","guess":${quote(srv("guitar"))},"strokes":[],"wrongGuesses":[]}}""")
         at("games-draw") { GamesScreen(GamesUi(listOf(draw), loaded = true), "maya", "Theo", GameActions(), { Instant.parse("2026-10-11T18:00:00Z") }) }
+
+        // Snakes and ladders, mid-game on Maya's phone: Theo has just climbed the ladder from 25 to 67; Maya is on 46,
+        // two squares under a snake's head, with a hug shield on, and it's her roll. The board is the server's Layout(2026).
+        val board = """{"ladders":[{"from":3,"to":17},{"from":19,"to":40},{"from":7,"to":48},{"from":51,"to":71},{"from":64,"to":84},{"from":25,"to":67},{"from":38,"to":79}],
+            "snakes":[{"from":47,"to":34},{"from":39,"to":16},{"from":81,"to":37},{"from":53,"to":28},{"from":49,"to":10},{"from":93,"to":66},{"from":89,"to":70}],
+            "hearts":[{"square":30,"kind":"swap"},{"square":52,"kind":"swap"},{"square":57,"kind":"boost"},{"square":8,"kind":"boost"},{"square":27,"kind":"shield"},{"square":76,"kind":"shield"},{"square":26,"kind":"heartbreak"}]}"""
+        val snakes = GameSession("g", "c", GameType.SnakesAndLadders, GameStatus.InProgress, currentTurnUserId = "maya", stateVersion = 24, invitedByUserId = "theo",
+            stateJson = """{"players":["maya","theo"],"phase":"playing","goal":100,"first":"maya","turn":"maya","board":$board,
+                "positions":{"maya":46,"theo":67},"shields":{"maya":true,"theo":false},
+                "stats":{"maya":{"rolls":11,"ladders":2,"snakes":1,"sixes":1,"swaps":0,"saves":0},"theo":{"rolls":11,"ladders":2,"snakes":2,"sixes":1,"swaps":0,"saves":0}},
+                "sixes":0,"moves":22,"last":{"move":22,"player":"theo","roll":4,"from":21,"steps":[22,23,24,25],"events":[{"kind":"ladder","from":25,"to":67}],"to":67,"extraTurn":false,"sixes":0},"winner":null}""")
+        at("games-snakes") { GamesScreen(GamesUi(listOf(snakes), loaded = true), "maya", "Theo", GameActions(), { now }) }
         at("games") { GamesScreen(GamesUi(emptyList(), loaded = true), "maya", "Theo", GameActions(), { now }) }
 
         // The album: a few photos still only on this phone, the shared ones, and on this day.

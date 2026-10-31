@@ -29,9 +29,9 @@ internal fun twoDecimals(v: Float): String = String.format(Locale.getDefault(), 
 
 /**
  * Fair share. [firstShare] is the share (0 to 100) of the first piece: the left one, or the top one when the cut ran
- * [across]. About 5 points off half scores 70.
+ * [across]. About 5 points off half scores 70 at level 1; higher levels of [difficulty] score the same miss lower.
  */
-fun fairShareScore(firstShare: Float, across: Boolean): Scored {
+fun fairShareScore(firstShare: Float, across: Boolean, difficulty: Difficulty = Difficulty.Start): Scored {
     val off = abs(firstShare - 50f)
     // The difference between the two shares as the pieces show them (each to a tenth).
     val tenth = (firstShare * 10f).roundToInt() / 10f
@@ -43,14 +43,14 @@ fun fairShareScore(firstShare: Float, across: Boolean): Scored {
         firstShare > 50f -> tr("Left side got {pct}% more.", "pct" to gap)
         else -> tr("Right side got {pct}% more.", "pct" to gap)
     }
-    return Scored(falloff(off, 14f), note)
+    return Scored(falloff(off, difficulty.k(14f)), note)
 }
 
 /**
  * Fill the heart. [level] and [target] are fractions of the jar's height; [secondsOff] is how long the pour would
- * have taken to close the gap, which is what the player can act on.
+ * have taken to close the gap, which is what the player can act on. [k] tightens with the level (14 at level 1).
  */
-fun fillScore(level: Float, target: Float, secondsOff: Float): Scored {
+fun fillScore(level: Float, target: Float, secondsOff: Float, k: Float = 14f): Scored {
     val gap = (level - target) * 100f
     val s = twoDecimals(secondsOff)
     val note = when {
@@ -58,11 +58,14 @@ fun fillScore(level: Float, target: Float, secondsOff: Float): Scored {
         gap > 0f -> tr("Held on {s} s too long.", "s" to s)
         else -> tr("Let go {s} s too early.", "s" to s)
     }
-    return Scored(falloff(abs(gap), 14f), note)
+    return Scored(falloff(abs(gap), k), note)
 }
 
-/** Heartbeat. [errorMs] is the tap minus beat eight: negative is early. Within 15 ms is perfect; 250 ms off is poor. */
-fun heartbeatScore(errorMs: Float): Scored {
+/**
+ * Heartbeat. [errorMs] is the tap minus the beat to tap on: negative is early. Within 15 ms is perfect; 250 ms off is
+ * poor at level 1, and [k] tightens with the level (256 at level 1).
+ */
+fun heartbeatScore(errorMs: Float, k: Float = 256f): Scored {
     val e = abs(errorMs)
     val s = twoDecimals(e / 1000f)
     val note = when {
@@ -70,17 +73,17 @@ fun heartbeatScore(errorMs: Float): Scored {
         errorMs < 0f -> tr("Tapped {s} s early.", "s" to s)
         else -> tr("Tapped {s} s late.", "s" to s)
     }
-    return Scored(if (e <= 15f) 100 else falloff(e - 15f, 256f), note)
+    return Scored(if (e <= 15f) 100 else falloff(e - 15f, k), note)
 }
 
 /** Heartbeat with no tap at all. */
 fun heartbeatMissed(): Scored = Scored(0, tr("No tap. The beat slipped by."))
 
 /**
- * Kiss the center. [size] is the shape's size (the square root of its area): 5% of it off scores about 72.
- * Screen axes: y grows downwards.
+ * Kiss the center. [size] is the shape's size (the square root of its area): 5% of it off scores about 72 at level 1;
+ * higher levels of [difficulty] score the same miss lower. Screen axes: y grows downwards.
  */
-fun kissScore(kiss: Offset, centre: Offset, size: Float): Scored {
+fun kissScore(kiss: Offset, centre: Offset, size: Float, difficulty: Difficulty = Difficulty.Start): Scored {
     val d = kiss - centre
     val off = d.getDistance() / size
     val pct = oneDecimal(off * 100f)
@@ -98,15 +101,16 @@ fun kissScore(kiss: Offset, centre: Offset, size: Float): Scored {
             else -> tr("Off center by {pct}%, down and to the right.", "pct" to pct)
         }
     }
-    return Scored(falloff(off, 0.15f), note)
+    return Scored(falloff(off, difficulty.k(0.15f)), note)
 }
 
 /**
  * Other half. [drawn] is what the player drew (strokes) and [truth] the real half, both in units where the shape is 1
  * tall and the fold is x = 0. Scored on the distance both ways: drawn to true (did you draw it right?) and true to
- * drawn (did you draw all of it?), so half a drawing can't score well.
+ * drawn (did you draw all of it?), so half a drawing can't score well. Higher levels of [difficulty] score the same
+ * wobble lower.
  */
-fun otherHalfScore(drawn: List<List<Offset>>, truth: List<Offset>): Scored {
+fun otherHalfScore(drawn: List<List<Offset>>, truth: List<Offset>, difficulty: Difficulty = Difficulty.Start): Scored {
     val strokes = drawn.filter { it.isNotEmpty() }.map { resample(it, 0.005f) }
     if (strokes.isEmpty()) return Scored(0, tr("Nothing drawn yet."))
     val mine = strokes.flatten()
@@ -139,7 +143,7 @@ fun otherHalfScore(drawn: List<List<Offset>>, truth: List<Offset>): Scored {
         miss < 0.008f -> tr("A mirror image. Beautiful.")
         else -> tr("Close. A little wobbly in places.")
     }
-    return Scored(falloff(miss, 0.08f), note)
+    return Scored(falloff(miss, difficulty.k(0.08f)), note)
 }
 
 /** A drawn ring, measured: the best circle, where the stroke was cut off past a full turn, and the flaws. */
@@ -219,21 +223,26 @@ fun measureRing(stroke: List<Offset>, minRadius: Float = 28f): Ring? {
     return Ring(c, mean, kept, overlap, gap, spread, oval, shake, if (sweep > 0) 1 else -1)
 }
 
-/** Promise ring: one score from closure, an even radius and a steady line, and a note on the biggest flaw. */
-fun ringScore(ring: Ring): Scored {
+/**
+ * Promise ring: one score from closure, an even radius and a steady line, and a note on the biggest flaw. [k] tightens
+ * with the level (1 at level 1); with a [guideRadius] (dp, from the levels where size counts) the size counts too.
+ */
+fun ringScore(ring: Ring, k: Float = 1f, guideRadius: Float? = null): Scored {
     val gapCost = 2.5f * ring.gapDegrees / 360f
     val ovalCost = 3.5f * ring.oval / sqrt(2f)
     // The spread left over once the oval is accounted for: lumps and a spiral.
     val lumpCost = 3.5f * sqrt((ring.spread * ring.spread - ring.oval * ring.oval / 2f).coerceAtLeast(0f))
     val shakeCost = 8f * ring.shake
-    val cost = gapCost + ovalCost + lumpCost + shakeCost
-    val worst = maxOf(gapCost, ovalCost, lumpCost, shakeCost)
+    val sizeCost = if (guideRadius != null && guideRadius > 0f) sizeCost(ring.radius / guideRadius) else 0f
+    val cost = gapCost + ovalCost + lumpCost + shakeCost + sizeCost
+    val worst = maxOf(gapCost, ovalCost, lumpCost, shakeCost, sizeCost)
     val note = when {
         cost < 0.03f -> tr("Round as a promise.")
+        worst == sizeCost -> sizeNote(ring.radius / guideRadius!!)
         worst == gapCost -> tr("Left {deg}° open.", "deg" to ring.gapDegrees.roundToInt())
         worst == ovalCost -> if (ring.oval < 0.06f) tr("A bit oval.") else tr("Quite oval. Keep the sides even.")
         worst == lumpCost -> tr("Lumpy in places. Keep the same distance from the middle.")
         else -> tr("A shaky line. Slow and steady.")
     }
-    return Scored((100.0 * exp(-cost.toDouble())).roundToInt().coerceIn(0, 100), note)
+    return Scored(falloff(cost, k), note)
 }

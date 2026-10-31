@@ -154,3 +154,48 @@ public sealed class InterferingWriter(string sql, bool everySave = false) : Save
         return result;
     }
 }
+
+/// <summary>Bachs in memory: records what our server asked, answers what the test sets.</summary>
+public sealed class FakeBachsBilling : IBachsBilling
+{
+    public bool IsConfigured { get; set; } = true;
+    public List<(BachsCheckoutRequest Request, string IdempotencyKey)> Checkouts { get; } = [];
+    public List<string> Portals { get; } = [];
+    public List<(string SubscriptionId, bool AtPeriodEnd)> Cancels { get; } = [];
+    public Func<string, bool, Result<BachsSubscriptionSnapshot>>? OnCancel { get; set; }
+    public Func<string, Result<BachsSubscriptionSnapshot>>? OnGet { get; set; }
+
+    public Task<Result<BachsCheckout>> CreateCheckoutAsync(BachsCheckoutRequest request, string idempotencyKey, CancellationToken cancellationToken)
+    {
+        Checkouts.Add((request, idempotencyKey));
+        return Task.FromResult(Result.Success(new BachsCheckout("chk_test", "https://checkout.bachs.io/c/test")));
+    }
+
+    public Task<Result<string>> CreatePortalSessionAsync(string customerId, CancellationToken cancellationToken)
+    {
+        Portals.Add(customerId);
+        return Task.FromResult(Result.Success("https://portal.bachs.io/s/test"));
+    }
+
+    public Task<Result<BachsSubscriptionSnapshot>> GetSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken)
+        => Task.FromResult(OnGet?.Invoke(subscriptionId) ?? Result.Failure<BachsSubscriptionSnapshot>(Error.NotFound("billing.bachs_not_found", "not found")));
+
+    public Task<Result<BachsSubscriptionSnapshot>> CancelSubscriptionAsync(string subscriptionId, bool atPeriodEnd, CancellationToken cancellationToken)
+    {
+        Cancels.Add((subscriptionId, atPeriodEnd));
+        return Task.FromResult(OnCancel?.Invoke(subscriptionId, atPeriodEnd) ?? Result.Failure<BachsSubscriptionSnapshot>(Error.NotFound("billing.bachs_not_found", "not found")));
+    }
+}
+
+/// <summary>Answers every HTTP request from a function and keeps what was sent, body included.</summary>
+public sealed class RecordingHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
+{
+    public List<(HttpRequestMessage Request, string? Body)> Sent { get; } = [];
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+        Sent.Add((request, body));
+        return respond(request);
+    }
+}

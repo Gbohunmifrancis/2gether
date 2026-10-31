@@ -1,6 +1,9 @@
+using System.Globalization;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Twogether.Core.Enums;
+using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Games;
 
@@ -46,6 +49,8 @@ public sealed class GameEngine : IGameEngine
         new DrawAndGuessRules(),
         new TriviaRules(),
         new SkillDuelRules(),
+        new SpotTheDifferenceRules(),
+        new SnakesAndLaddersRules(),
     }.ToDictionary(rules => rules.Type);
 
     public static IGameRules? RulesFor(GameType gameType) => Registered.GetValueOrDefault(gameType);
@@ -53,6 +58,11 @@ public sealed class GameEngine : IGameEngine
     public bool AnyoneMayAct(GameType gameType) => RulesFor(gameType)?.AnyoneMayAct ?? gameType == GameType.ICallOn;
 
     public bool IsTimed(GameType gameType) => RulesFor(gameType)?.Timed ?? gameType == GameType.ICallOn;
+
+    public bool MovesMayCross(GameType gameType) => RulesFor(gameType)?.MovesMayCross ?? false;
+
+    /// <summary>Each turn runs against the clock (<see cref="IGameRules.TurnClock"/>): I call on and Word dash, not Connect four's beat.</summary>
+    public static bool HasTurnClock(GameType gameType) => RulesFor(gameType)?.TurnClock ?? gameType == GameType.ICallOn;
 
     public string ToPublicState(GameType gameType, string stateJson, Guid? viewer)
     {
@@ -65,6 +75,8 @@ public sealed class GameEngine : IGameEngine
 
     public GameEngineResult Start(GameType gameType, IReadOnlyList<Guid> playerIds, DateTime utcNow, string? setupJson = null)
     {
+        // Whoever the setup names first goes first (GameFirstPlayer): every game starts with its first player.
+        playerIds = GameFirstPlayer.Order(playerIds, setupJson);
         if (RulesFor(gameType) is { } rules)
         {
             if (playerIds.Count == 0) throw new InvalidOperationException("At least one player is required.");
@@ -217,6 +229,9 @@ public sealed class GameEngine : IGameEngine
         {
             var first = state.Cards[state.Revealed[0]];
             var second = state.Cards[state.Revealed[1]];
+            // Both players saw both cards turn over: the pair names them until the next flip, so both phones know which
+            // two to celebrate (a match) or to keep face up (a miss).
+            state.LastPair = [new MemoryFlip(state.Revealed[0], first.Value), new MemoryFlip(state.Revealed[1], second.Value)];
             if (first.Value == second.Value)
             {
                 first.Matched = true;
@@ -227,8 +242,6 @@ public sealed class GameEngine : IGameEngine
             else
             {
                 state.LastResult = "different";
-                // Both players saw both cards turn over: keep the pair visible until the next flip.
-                state.LastPair = [new MemoryFlip(state.Revealed[0], first.Value), new MemoryFlip(state.Revealed[1], second.Value)];
                 state.TurnIndex = (state.TurnIndex + 1) % state.Players.Count;
             }
             state.Revealed.Clear();
@@ -266,22 +279,26 @@ public sealed class GameEngine : IGameEngine
         }
         if (string.Equals(action, "vet", StringComparison.OrdinalIgnoreCase))
         {
-            if (state.Phase != VettingPhase) throw new InvalidOperationException("There is nothing waiting for a verdict.");
-            if (string.IsNullOrWhiteSpace(value)) throw new InvalidOperationException("A verdict needs a player, a category and a decision.");
-            var verdict = JsonSerializer.Deserialize<VetRequest>(value, PublicJsonOptions) ?? throw new InvalidOperationException("That verdict is invalid.");
+            if (state.Phase != VettingPhase) throw new InvalidOperationException(Loc.T("There is nothing waiting for a verdict."));
+            if (string.IsNullOrWhiteSpace(value)) throw new InvalidOperationException(Loc.T("That verdict couldn't be read. Try again."));
+            VetRequest? verdict;
+            try { verdict = JsonSerializer.Deserialize<VetRequest>(value, PublicJsonOptions); }
+            catch (JsonException) { verdict = null; }
+            if (verdict is null) throw new InvalidOperationException(Loc.T("That verdict couldn't be read. Try again."));
             var pending = state.PendingVetting.FirstOrDefault(item => item.Player == verdict.Player && string.Equals(item.Category, verdict.Category, StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidOperationException("That answer is not waiting for a verdict.");
-            if (pending.Judge != actorUserId) throw new InvalidOperationException("Only your partner's answers are yours to vet.");
+                ?? throw new InvalidOperationException(Loc.T("That answer is not waiting for a verdict."));
+            if (pending.Judge != actorUserId) throw new InvalidOperationException(Loc.T("Only your partner's answers are yours to judge."));
             pending.Allowed = verdict.Allow;
             return state.PendingVetting.All(item => item.Allowed.HasValue)
                 ? ScoreRound(state, utcNow)
                 : new GameEngineResult(JsonSerializer.Serialize(state), state.Players[0], utcNow.AddSeconds(VettingSeconds), false);
         }
         if (!string.Equals(action, "submit", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(value))
-            throw new InvalidOperationException("I call on expects answers for every category.");
-        if (state.Phase == VettingPhase) throw new InvalidOperationException("This round is being vetted. Wait for the verdicts.");
-        if (!state.Players.Contains(actorUserId)) throw new InvalidOperationException("You are not a player in this game.");
-        if (state.Submissions.ContainsKey(actorUserId)) throw new InvalidOperationException("You already submitted this round. Wait for your partner.");
+            throw new InvalidOperationException(Loc.T("Fill in every category first."));
+        if (state.Phase == CompletedPhase) throw new InvalidOperationException(Loc.T("This game is over."));
+        if (state.Phase == VettingPhase) throw new InvalidOperationException(Loc.T("This round is being judged. Wait for the verdicts."));
+        if (!state.Players.Contains(actorUserId)) throw new InvalidOperationException(Loc.T("You are not a player in this game."));
+        if (state.Submissions.ContainsKey(actorUserId)) throw new InvalidOperationException(Loc.T("You already sent your answers. Wait for your partner."));
         Record(state, actorUserId, value, validations, requireComplete: true);
         // Whoever submits first ends the round for both: the partner's in-progress
         // answers ride along so a fast finisher does not have to wait out the clock.
@@ -302,19 +319,20 @@ public sealed class GameEngine : IGameEngine
             if (string.IsNullOrWhiteSpace(submission.AnswersJson)) continue;
             // A draft is whatever the partner had typed so far, so partial answers count.
             try { Record(state, player, submission.AnswersJson, submission.Validations, requireComplete: false); }
-            catch (JsonException) { }
+            catch (Exception exception) when (exception is JsonException or InvalidOperationException) { }
         }
     }
 
     private static void Record(ICallOnState state, Guid player, string answersJson, IReadOnlyDictionary<string, bool?>? validations, bool requireComplete)
     {
-        var answers = JsonSerializer.Deserialize<Dictionary<string, string>>(answersJson) ?? throw new InvalidOperationException("Answers are invalid.");
-        var normalized = state.Categories.ToDictionary(category => category, category => answers.FirstOrDefault(item => string.Equals(item.Key, category, StringComparison.OrdinalIgnoreCase)).Value?.Trim() ?? string.Empty);
-        if (requireComplete)
-        {
-            var missing = state.Categories.Where(category => string.IsNullOrWhiteSpace(normalized[category])).ToList();
-            if (missing.Count > 0) throw new InvalidOperationException($"Complete: {string.Join(", ", missing)}.");
-        }
+        Dictionary<string, string>? answers;
+        try { answers = JsonSerializer.Deserialize<Dictionary<string, string>>(answersJson); }
+        catch (JsonException) when (requireComplete) { answers = null; }
+        if (answers is null) throw new InvalidOperationException(Loc.T("Those answers couldn't be read. Try again."));
+        // One line each, and no longer than the app lets anyone type: an answer is a word or two.
+        var normalized = state.Categories.ToDictionary(category => category, category => Clean(answers.FirstOrDefault(item => string.Equals(item.Key, category, StringComparison.OrdinalIgnoreCase)).Value));
+        if (requireComplete && state.Categories.Any(category => string.IsNullOrWhiteSpace(normalized[category])))
+            throw new InvalidOperationException(Loc.T("Fill in every category first."));
         state.Submissions[player] = normalized;
         state.Validations[player] = validations?.ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase) ?? [];
     }
@@ -360,7 +378,8 @@ public sealed class GameEngine : IGameEngine
                 .Where(item => Counts(state, item.Player, category, item.Answer, verdicts))
                 .ToList();
             var awarded = new Dictionary<Guid, int>();
-            foreach (var group in counted.GroupBy(item => item.Answer, StringComparer.OrdinalIgnoreCase))
+            // "Zürich" and "zurich " are the same answer: shared, a point each.
+            foreach (var group in counted.GroupBy(item => Fold(item.Answer)))
             {
                 var points = group.Count() == 1 ? 2 : 1;
                 foreach (var item in group)
@@ -401,7 +420,8 @@ public sealed class GameEngine : IGameEngine
         {
             state.Submissions.Clear();
             state.Validations.Clear();
-            state.Letter = RandomLetter(state.Region);
+            state.UsedLetters.Add(state.Letter);
+            state.Letter = RandomLetter(state.Region, state.UsedLetters);
             state.Phase = AnsweringPhase;
         }
         return new GameEngineResult(JsonSerializer.Serialize(state), completed ? null : state.Players[0], completed ? null : utcNow.AddSeconds(AnsweringSeconds), completed);
@@ -479,11 +499,59 @@ public sealed class GameEngine : IGameEngine
         }
     }
 
-    private static string RandomLetter(string? region)
+    /// <summary>A letter the round may use, not one already played this game while others are left.</summary>
+    private static string RandomLetter(string? region, IReadOnlyCollection<string>? played = null)
     {
         var playable = PlayableLetters(region);
+        var fresh = played is null ? playable : playable.Where(letter => !played.Contains(letter, StringComparer.OrdinalIgnoreCase)).ToList();
+        if (fresh.Count > 0) playable = fresh;
         return playable[RandomNumberGenerator.GetInt32(playable.Count)];
     }
+
+    /// <summary>
+    /// The I call on round whose answers are being typed, or null when nobody is typing (judging, or over): the
+    /// round a draft must name to be counted when the clock runs out.
+    /// </summary>
+    public static int? ICallOnAnsweringRound(string stateJson)
+    {
+        try
+        {
+            var state = Deserialize<ICallOnState>(stateJson);
+            return state.Phase == AnsweringPhase ? state.Round : null;
+        }
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// An answer as it is compared: no accents, no case, single spaces. "Éric" starts with E and "Zürich" is "zurich",
+    /// so a French or Portuguese keyboard plays the same game as an English one.
+    /// </summary>
+    public static string Fold(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var decomposed = text.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
+        var plain = new StringBuilder(decomposed.Length);
+        foreach (var c in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark) continue;
+            plain.Append(char.IsWhiteSpace(c) ? ' ' : c);
+        }
+        return string.Join(' ', plain.ToString().Normalize(NormalizationForm.FormC).Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    /// <summary>An answer as it is kept: one line, single spaces, at most <see cref="MaxAnswerLength"/> characters.</summary>
+    private static string Clean(string? answer)
+    {
+        if (string.IsNullOrWhiteSpace(answer)) return string.Empty;
+        var oneLine = string.Join(' ', answer.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return oneLine.Length > MaxAnswerLength ? oneLine[..MaxAnswerLength].TrimEnd() : oneLine;
+    }
+
+    /// <summary>The longest answer kept; the app lets 40 characters be typed.</summary>
+    public const int MaxAnswerLength = 40;
 
     /// <summary>The letters a round may draw: those with a word in every category of the region's lists.</summary>
     public static IReadOnlyList<string> PlayableLetters(string? region) => Enumerable.Range('A', 26)
@@ -496,9 +564,9 @@ public sealed class GameEngine : IGameEngine
 
     private static AnswerRuling Rule(string category, string answer, string letter, IReadOnlyDictionary<string, bool?>? validations, string? region)
     {
-        if (string.IsNullOrWhiteSpace(answer) || !answer.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) return AnswerRuling.Invalid;
+        var normalized = Fold(answer);
+        if (normalized.Length == 0 || !normalized.StartsWith(Fold(letter), StringComparison.Ordinal)) return AnswerRuling.Invalid;
         if (validations?.TryGetValue(category, out var external) == true && external == true) return AnswerRuling.Valid;
-        var normalized = answer.Trim().ToLowerInvariant();
         if (WordListsFor(region).TryGetValue(category, out var words) && words.Contains(normalized)) return AnswerRuling.Valid;
         // The dictionary either said no or could not say. Nigerian names, local places
         // and everyday slang legitimately miss an English word list, so the partner
@@ -570,6 +638,8 @@ public sealed class GameEngine : IGameEngine
         public int TurnIndex { get; set; }
         public int Round { get; set; }
         public string Letter { get; set; } = "A";
+        /// <summary>Letters of the rounds already played, so a later round draws a new one.</summary>
+        public List<string> UsedLetters { get; set; } = [];
         public List<string> Categories { get; set; } = [];
         /// <summary>Whose word lists score the game; null for games set up before regions, which play the global lists.</summary>
         public string? Region { get; set; }

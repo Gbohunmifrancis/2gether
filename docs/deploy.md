@@ -38,13 +38,13 @@ Secrets go under Settings → Secrets and variables → Actions → Secrets; pla
 |---|---|---|
 | `RAILWAY_TOKEN` | secret | a Railway **project token** for the production environment (Railway → project → Settings → Tokens) |
 | `RAILWAY_SERVICE` | variable | the API's service name in Railway; default `api` |
-| `API_URL` | variable | the API's public URL, no trailing slash, e.g. `https://api.heartpact.app`. Used to verify the deploy, by the dashboard build, and by the app's release build |
-| `ADMIN_URL` | variable | the dashboard's public URL, e.g. `https://admin.heartpact.app` |
+| `API_URL` | variable | the API's public URL, no trailing slash, e.g. `https://api.heartpact.me`. Used to verify the deploy, by the dashboard build, and by the app's release build |
+| `ADMIN_URL` | variable | the dashboard's public URL, e.g. `https://admin.heartpact.me` |
 | `CLOUDFLARE_API_TOKEN` | secret | a Cloudflare API token with **Cloudflare Pages: Edit** |
 | `CLOUDFLARE_ACCOUNT_ID` | secret | Cloudflare dashboard → the account's ID |
 | `CLOUDFLARE_PAGES_PROJECT` | variable | the Pages project name; default `heartpact-admin` |
 | `CLOUDFLARE_SITE_PROJECT` | variable | the marketing site's Pages project; default `heartpact-site` |
-| `SITE_URL` | variable | the marketing site's public URL, e.g. `https://heartpact.app`; also add it to the API's `Frontend__Origin` |
+| `SITE_URL` | variable | the marketing site's public URL, e.g. `https://heartpact.me`; also add it to the API's `Frontend__Origin` |
 | `PLAY_SERVICE_ACCOUNT_JSON` | secret | the JSON key of a Google Cloud service account invited in Play Console (below) |
 | `PLAY_TRACK` | variable | default track: `internal` (default), `alpha`, `beta` or `production` |
 | `PLAY_RELEASE_STATUS` | variable | `completed` (default) or `draft` while the Play app has never been published |
@@ -73,7 +73,7 @@ written to be additive, so the old build keeps working while the new one starts.
 ### Cloudflare Pages (dashboard)
 
 1. Create the project once: `npx wrangler pages project create heartpact-admin --production-branch main`.
-2. Add a custom domain (e.g. `admin.heartpact.app`), which becomes `ADMIN_URL`. Consider putting Cloudflare Access
+2. Add a custom domain (e.g. `admin.heartpact.me`), which becomes `ADMIN_URL`. Consider putting Cloudflare Access
    in front of it as well.
 3. `admin/public/_redirects` sends every path to the app, and `_headers` sets the security headers.
 
@@ -103,7 +103,7 @@ counts up, as Play requires. Release notes are the commit's first line.
 ```bash
 echo "$(git rev-parse HEAD)" > version.txt   # optional: lets /health report the commit
 npx @railway/cli up --ci --service api       # with RAILWAY_TOKEN set
-cd admin && VITE_API_URL=https://api.heartpact.app npm run build && npx wrangler pages deploy dist --project-name heartpact-admin --branch main
+cd admin && VITE_API_URL=https://api.heartpact.me npm run build && npx wrangler pages deploy dist --project-name heartpact-admin --branch main
 ```
 
 Don't commit `version.txt`. It isn't in `.gitignore` on purpose, because `railway up` skips ignored files.

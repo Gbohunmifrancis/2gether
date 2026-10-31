@@ -9,6 +9,7 @@ import app.heartpact.data.ICallOnState
 import app.heartpact.data.MemoryState
 import app.heartpact.data.QuizState
 import app.heartpact.data.SkillDuelState
+import app.heartpact.data.TicTacToeState
 import app.heartpact.data.TruthOrDareState
 import app.heartpact.data.WordDashState
 import app.heartpact.data.TriviaState
@@ -27,6 +28,7 @@ object GamePlay {
     fun iCallOn(s: GameSession): ICallOnState = runCatching { json.decodeFromString(ICallOnState.serializer(), s.stateJson) }.getOrDefault(ICallOnState())
     fun truthOrDare(s: GameSession): TruthOrDareState = runCatching { json.decodeFromString(TruthOrDareState.serializer(), s.stateJson) }.getOrDefault(TruthOrDareState())
     fun wordDash(s: GameSession): WordDashState = runCatching { json.decodeFromString(WordDashState.serializer(), s.stateJson) }.getOrDefault(WordDashState())
+    fun ticTacToe(s: GameSession): TicTacToeState = runCatching { json.decodeFromString(TicTacToeState.serializer(), s.stateJson) }.getOrDefault(TicTacToeState())
     fun grid(s: GameSession): GridMatchState = runCatching { json.decodeFromString(GridMatchState.serializer(), s.stateJson) }.getOrDefault(GridMatchState())
     fun drawAndGuess(s: GameSession): DrawAndGuessState = runCatching { json.decodeFromString(DrawAndGuessState.serializer(), s.stateJson) }.getOrDefault(DrawAndGuessState())
     fun trivia(s: GameSession): TriviaState = runCatching { json.decodeFromString(TriviaState.serializer(), s.stateJson) }.getOrDefault(TriviaState())
@@ -34,8 +36,28 @@ object GamePlay {
     /** The session's content region from its setup: "ng" for Nigerian couples, else "global". */
     fun region(s: GameSession): String = runCatching { json.parseToJsonElement(s.setupJson).jsonObject["region"]?.jsonPrimitive?.content }.getOrNull() ?: "global"
 
+    /**
+     * I call on: whether an answer sheet or a verdict that crossed the partner's move ([before] is the board it was
+     * made on, [after] the board now) still means something and should go again: the same round, answers still being
+     * typed, or that answer still waiting for this verdict.
+     */
+    fun iCallOnStillWanted(before: GameSession, after: GameSession, action: String, value: String?): Boolean {
+        if (after.status != GameStatus.InProgress) return false
+        val was = iCallOn(before)
+        val now = iCallOn(after)
+        if (was.round != now.round || was.letter != now.letter) return false
+        return when (action) {
+            "submit" -> now.phase == "answering"
+            "vet" -> {
+                val verdict = value?.let { runCatching { json.decodeFromString(app.heartpact.data.VetVerdict.serializer(), it) }.getOrNull() } ?: return false
+                now.phase == "vetting" && now.pendingVetting.any { it.player == verdict.player && it.category == verdict.category && it.allowed == null }
+            }
+            else -> false
+        }
+    }
+
     /** The games the app offers (docs/games.md). */
-    val offered = listOf(GameType.SkillDuel, GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
+    val offered = listOf(GameType.SkillDuel, GameType.SpotTheDifference, GameType.SnakesAndLadders, GameType.CoupleQuiz, GameType.MemoryMatch, GameType.ICallOn, GameType.Trivia, GameType.GuessMyAnswer, GameType.WouldYouRather,
         GameType.TruthOrDare, GameType.WordDash, GameType.Handwriting, GameType.TicTacToe, GameType.ConnectFour)
 
     /** A session's name; Nigerian couples' trivia is Naija trivia. */
@@ -54,6 +76,9 @@ object GamePlay {
         GameType.ConnectFour -> tr("Connect four")
         GameType.Trivia -> if (region == "ng") tr("Naija trivia") else tr("Trivia")
         GameType.SkillDuel -> tr("Heart to heart")
+        GameType.SpotTheDifference -> tr("Spot the difference")
+        GameType.SnakesAndLadders -> tr("Snakes and ladders")
+        GameType.Unknown -> tr("A new game")
     }
 
     /** The button that accepts an invite: one whole phrase per game. */
@@ -70,6 +95,9 @@ object GamePlay {
         GameType.ConnectFour -> tr("Play Connect four")
         GameType.Trivia -> if (region == "ng") tr("Play Naija trivia") else tr("Play Trivia")
         GameType.SkillDuel -> tr("Play Heart to heart")
+        GameType.SpotTheDifference -> tr("Play Spot the difference")
+        GameType.SnakesAndLadders -> tr("Play Snakes and ladders")
+        GameType.Unknown -> tr("Join the game")
     }
 
     fun blurb(type: GameType, region: String? = null) = when (type) {
@@ -80,12 +108,15 @@ object GamePlay {
         GameType.WordDash -> tr("A word chain against the clock: each word starts with the last letter of the one before. 20 seconds a turn, first to five.")
         GameType.GuessMyAnswer -> tr("Answer about yourself, then guess your partner's answers. A point for every right guess.")
         GameType.WouldYouRather -> tr("Two choices, you both pick at once. A heart each time you pick the same.")
-        GameType.TicTacToe -> tr("Three in a row, your half of the heart against mine. First to win three games takes the match.")
+        GameType.TicTacToe -> tr("No turns: you both draw at once, and a square goes to whoever gets there first. Three in a row wins; first to three games takes the match.")
         GameType.ConnectFour -> tr("Drop your discs and line up four. First to win two games takes the match.")
         GameType.Handwriting -> tr("One draws a secret word, the other has three guesses. Swap each round, six rounds.")
         GameType.Trivia -> if (region == "ng") tr("Ten questions on Naija music, Nollywood, food and more. You both answer, then see who got it.")
             else tr("Ten questions, four choices each. You both answer, then the right one shows.")
         GameType.SkillDuel -> tr("The same five skill rounds for both of you, each on your own time. Your scores show side by side.")
+        GameType.SpotTheDifference -> tr("Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.")
+        GameType.SnakesAndLadders -> tr("Roll, climb, slide. First to 100 wins.")
+        GameType.Unknown -> tr("This game needs a newer Heartpact. Update the app to play it.")
         else -> tr("Take turns answering.")
     }
 
@@ -101,7 +132,11 @@ object GamePlay {
             GameType.TicTacToe, GameType.ConnectFour -> grid(s).scores
             GameType.Handwriting -> return trn(drawAndGuess(s).scores[me] ?: 0, "{count} drawing guessed", "{count} drawings guessed")
             GameType.Trivia -> trivia(s).scores
+            GameType.SpotTheDifference -> return spotOutcome(spot(s), me, partner)
+            GameType.SnakesAndLadders -> return snakesOutcome(snakes(s), me, partner)
             GameType.SkillDuel -> skillDuel(s).let { d -> if (d.totals != null) return duelOutcome(d, me, partner) else d.hearts }
+            // A newer game's scores can't be read here: say only that it was played.
+            GameType.Unknown -> return tr("Played")
             else -> return trn(quiz(s).scores[me] ?: 0, "{count} matching answer", "{count} matching answers")
         }
         val mine = scores[me] ?: 0

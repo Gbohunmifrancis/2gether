@@ -25,7 +25,8 @@ public sealed class ExerciseAlarmWorker(
     IHubContext<CoupleHub> hub,
     IDateTimeProvider clock,
     ILogger<ExerciseAlarmWorker> logger,
-    WorkerHeartbeats? heartbeats = null) : BackgroundService
+    WorkerHeartbeats? heartbeats = null,
+    Twogether.Application.Features.Billing.BillingSettings? billing = null) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
     public const string HeartbeatName = "exerciseAlarms";
@@ -121,6 +122,7 @@ public sealed class ExerciseAlarmWorker(
                 && db.Couples.Any(couple => couple.Id == item.CoupleId && couple.Status == CoupleStatus.Active))
             .SingleOrDefaultAsync(cancellationToken);
         if (goal is null) return false;
+        if (await PausedByPlanAsync(db, goal, now, cancellationToken)) return true;
 
         var zone = ExerciseSchedule.ResolveTimeZone(goal.TimeZoneId);
         var scheduledAtUtc = goal.NextDueAtUtc;
@@ -154,6 +156,46 @@ public sealed class ExerciseAlarmWorker(
             await ExerciseEvents.OccurrenceAsync(hub, ExerciseEvents.AlarmStarted, ExerciseMapper.ToDto(occurrence, names.GetValueOrDefault(occurrence.UserId) ?? Loc.T("Your partner")), cancellationToken);
         }
         if (notification is not null) await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
+        return true;
+    }
+
+    /// <summary>
+    /// The plan caps active dares per person (Free: one each). When Plus has ended with more running, a dare past the cap
+    /// is paused as it comes due instead of ringing (the oldest keep ringing), and both partners are told: resuming it
+    /// needs Plus, or pausing another.
+    /// </summary>
+    private async Task<bool> PausedByPlanAsync(IApplicationDbContext db, ExerciseGoal goal, DateTime now, CancellationToken cancellationToken)
+    {
+        if (billing is null) return false;
+        var plan = await new Twogether.Application.Features.Billing.EntitlementService(db, clock, billing).ForUserAsync(goal.AssignedUserId, cancellationToken);
+        var limit = plan.Limits.ActiveDaresPerPerson;
+        if (limit is null) return false;
+        var active = await db.ExerciseGoals.AsNoTracking()
+            .Where(item => item.CoupleId == goal.CoupleId && item.AssignedUserId == goal.AssignedUserId && item.IsActive)
+            .Select(item => new { item.Id, item.CreatedAtUtc })
+            .ToListAsync(cancellationToken);
+        if (!Twogether.Application.Features.Billing.DareLimits.ToPause(limit, active.Select(item => (item.Id, item.CreatedAtUtc))).Contains(goal.Id)) return false;
+
+        goal.Deactivate(now);
+        var couple = await db.Couples.AsNoTracking().SingleAsync(item => item.Id == goal.CoupleId, cancellationToken);
+        var members = new[] { couple.UserAId, couple.UserBId }.OfType<Guid>().Distinct().ToList();
+        var names = await NamesAsync(db, members, cancellationToken);
+        var notifications = new List<Notification>();
+        foreach (var userId in members)
+        {
+            using var _ = Loc.Use(await db.LanguageOfAsync(userId, cancellationToken));
+            var dare = ExerciseText.Title(goal.Title, goal.ExerciseType);
+            var body = userId == goal.AssignedUserId
+                ? Loc.T("Your {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.", ("dare", dare))
+                : Loc.T("{name}'s {dare} dare is paused: the free plan has one daily dare each. Get Heartpact Plus to keep them all, or pause another and resume this one.",
+                    ("name", names.GetValueOrDefault(goal.AssignedUserId) ?? Loc.T("Your partner")), ("dare", dare));
+            notifications.Add(Notification.Create(userId, goal.CoupleId, NotificationType.ExercisePausedByPlan, Loc.T("Dare paused"), body,
+                System.Text.Json.JsonSerializer.Serialize(new { goalId = goal.Id }), now));
+        }
+        foreach (var notification in notifications) db.Notifications.Add(notification);
+        await db.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Paused exercise goal {GoalId}: over the plan's active dare limit.", goal.Id);
+        foreach (var notification in notifications) await ExerciseEvents.NotificationAsync(hub, notification, cancellationToken);
         return true;
     }
 

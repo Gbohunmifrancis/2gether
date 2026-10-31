@@ -113,5 +113,6 @@ export const actions = {
   resetAuthenticator: (userId: string) => post(`/api/admin/admins/${userId}/reset-authenticator`),
 
   /** Needs a fresh authenticator code (the step-up dialog asks). Answers the new state. */
-  setFeatures: (features: Features) => api<Features>("/api/admin/features", { method: "PUT", body: features }),
+  /** Only the switches named change; the server refuses a body that names none. */
+  setFeatures: (features: Partial<Features>) => api<Features>("/api/admin/features", { method: "PUT", body: features }),
 };

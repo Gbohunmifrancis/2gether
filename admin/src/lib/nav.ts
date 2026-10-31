@@ -68,7 +68,12 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Ops",
     items: [
       { to: "/health", label: "Health", icon: "health", keywords: ["probes", "workers", "queues", "status", "uptime"] },
-      { to: "/features", label: "Features", icon: "toggle", keywords: ["christmas", "theme", "festive", "flags", "switches", "holiday"] },
+      {
+        to: "/features",
+        label: "Features",
+        icon: "toggle",
+        keywords: ["christmas", "theme", "festive", "flags", "switches", "holiday", "card", "bachs", "billing choice"],
+      },
       { to: "/system", label: "System", icon: "system", keywords: ["settings", "admins", "prices"] },
     ],
   },

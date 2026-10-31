@@ -35,7 +35,7 @@ function start(path: string) {
 const admin: AdminSession = {
   accessToken: "admin-token",
   expiresAtUtc: new Date(Date.now() + 4 * 3600_000).toISOString(),
-  admin: { id: "00000000-0000-0000-0000-00000000000a", email: "ops@heartpact.app", displayName: "Ops" },
+  admin: { id: "00000000-0000-0000-0000-00000000000a", email: "ops@heartpact.me", displayName: "Ops" },
 };
 
 const maya: UserRow = {
@@ -97,7 +97,7 @@ describe("the dashboard", () => {
               code: "admin.enrollment_required",
               message: "Scan this",
               secret: "JBSWY3DPEHPK3PXPJBSWY3DP",
-              otpauthUri: "otpauth://totp/Heartpact:ops@heartpact.app?secret=JBSWY3DPEHPK3PXPJBSWY3DP",
+              otpauthUri: "otpauth://totp/Heartpact:ops@heartpact.me?secret=JBSWY3DPEHPK3PXPJBSWY3DP",
             },
           };
         if (code === "000000") return { status: 401, body: { code: "admin.invalid_code", message: "That code didn't work. Codes change every 30 seconds." } };
@@ -108,7 +108,7 @@ describe("the dashboard", () => {
     });
 
     start("/sign-in?redirect=%2Fusers");
-    await user.type(await screen.findByLabelText("Email"), "ops@heartpact.app");
+    await user.type(await screen.findByLabelText("Email"), "ops@heartpact.me");
     await user.type(screen.getByLabelText("Password"), "longenough");
     await user.click(screen.getByRole("button", { name: "Continue" }));
 
@@ -230,6 +230,46 @@ describe("the dashboard", () => {
       { code: "123456", body: { christmas: true } },
     ]);
     expect(await screen.findByText("Christmas theme is on.")).toBeTruthy();
+  });
+
+  it("switches card payments in the app on its own, leaving the Christmas theme alone", async () => {
+    const user = userEvent.setup();
+    const puts: unknown[] = [];
+    let state = { christmas: true, bachsInApp: false };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://admin.test");
+      const headers = (init?.headers ?? {}) as Record<string, string>;
+      const reply = (status: number, body?: unknown) => new Response(body === undefined ? null : JSON.stringify(body), { status });
+      if (url.pathname !== "/api/admin/features") return reply(404);
+      if ((init?.method ?? "GET") === "GET") return reply(200, state);
+      if (init?.method === "PUT") {
+        if (!headers["x-admin-code"]) return reply(403, { code: "admin.step_up_required", message: "Fresh code, please." });
+        const body = JSON.parse(String(init.body)) as Partial<typeof state>;
+        puts.push(body);
+        state = { ...state, ...body };
+        return reply(200, state);
+      }
+      return reply(405);
+    });
+    act(() => setSession(admin));
+    start("/features");
+
+    const toggle = await screen.findByRole("switch", { name: "Card payments in the app" });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByText(/Keep it off until alternative billing is turned on/)).toBeTruthy();
+
+    await user.click(toggle);
+    expect(await screen.findByText("Turn card payments in the app on?")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Turn on" }));
+    const code = await screen.findByLabelText("Authenticator code");
+    await waitFor(() => expect((code as HTMLInputElement).disabled).toBe(false));
+    await user.type(code, "123456");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => expect(screen.getByRole("switch", { name: "Card payments in the app" }).getAttribute("aria-checked")).toBe("true"));
+    expect(puts).toEqual([{ bachsInApp: true }]);
+    expect(screen.getByRole("switch", { name: "Christmas theme" }).getAttribute("aria-checked")).toBe("true");
+    expect(await screen.findByText("Card payments in the app are on.")).toBeTruthy();
   });
 
   it("lists Features in the navigation", async () => {

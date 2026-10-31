@@ -77,6 +77,11 @@ fun TodayTab(
     now: Instant = Instant.now(),
     onGames: () -> Unit = {},
     onExactAlarmsAsked: () -> Unit = {},
+    /** A game waiting on me (TodayGames.waiting): shown near the top, accepted or put off right here. */
+    game: WaitingGame? = null,
+    gameBusy: Boolean = false,
+    onAcceptGame: (String) -> Unit = {},
+    onDeclineGame: (String) -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val view = ui.view
@@ -85,7 +90,8 @@ fun TodayTab(
     AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
             Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
-            val date = LocalDate.now().format(Dates.formatter("EEEE d MMMM"))
+            // The same clock as the dare's countdown, so the header and the card always agree on the day.
+            val date = now.atZone(ZoneId.systemDefault()).toLocalDate().format(Dates.formatter("EEEE d MMMM"))
             Text(if (view != null) trn(view.hearts, "{date} · {count} heart this week", "{date} · {count} hearts this week", "date" to date) else date,
                 style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }
@@ -113,6 +119,8 @@ fun TodayTab(
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(bottom = 10.dp)) }
         if (!ui.readiness.ready) Readiness(ui)
         view?.partnerRinging?.takeIf { it.callOffRequestedAtUtc != null && it.id !in ui.kept }?.let { CallOffRequest(it, partnerName, ui.busy, onCallOff, onKeep) }
+        // A game waiting on me (an invite, my turn) is quick to answer, so it comes before the day's dare.
+        game?.let { GameWaitingCard(it, partnerName, gameBusy, onAcceptGame, onDeclineGame, onGames, Modifier.padding(horizontal = 12.dp).padding(top = 6.dp)) }
         when {
             view?.mine != null -> DareCard(view.mine, partnerName, now, onStartCamera, onDoItNow)
             view != null -> StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp).fillMaxWidth(), shape = Shapes.Dare) {
@@ -125,7 +133,7 @@ fun TodayTab(
         }
         // Games sit one tap from the first screen, not three taps down in Us.
         StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
-            CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
+            CardRow(tr("Play together"), subtitle = tr("Heart to heart, Spot the difference, trivia and more"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
         }
     }
 }

@@ -133,11 +133,24 @@ public sealed class DrawAndGuessRules : IGameRules
         // The guesser may answer in English or in their own language (this request's).
         var targets = new[] { word, Show(state, word) }.Select(Normalize).Where(text => text.Length > 0).ToHashSet();
         var normalized = Normalize(guess);
-        if (targets.Contains(normalized)) return EndRound(state, Guessed, guess);
+        if (targets.Any(target => SameWord(target, normalized))) return EndRound(state, Guessed, guess);
         if (state.WrongGuesses.Any(previous => Normalize(previous) == normalized))
             throw new InvalidOperationException(Loc.T("You already tried that one."));
         state.WrongGuesses.Add(guess);
         return state.WrongGuesses.Count >= MaxGuesses ? EndRound(state, Missed, null) : Result(state);
+    }
+
+    /// <summary>
+    /// A guess is right when it is the word, or the word with a plural "s" or "es" added or taken off ("cats" for "cat",
+    /// "scissor" for "scissors"): the drawing shows the thing, not how many.
+    /// </summary>
+    public static bool SameWord(string target, string guess)
+    {
+        if (target == guess) return true;
+        var (shorter, longer) = target.Length < guess.Length ? (target, guess) : (guess, target);
+        if (shorter.Length < 3 || !longer.StartsWith(shorter, StringComparison.Ordinal)) return false;
+        var ending = longer[shorter.Length..];
+        return ending is "s" or "es";
     }
 
     private static GameEngineResult EndRound(DrawState state, string outcome, string? guess)

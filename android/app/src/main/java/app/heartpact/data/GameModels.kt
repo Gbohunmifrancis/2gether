@@ -12,6 +12,12 @@ enum class GameType {
     @SerialName("wouldYouRather") WouldYouRather, @SerialName("ticTacToe") TicTacToe, @SerialName("connectFour") ConnectFour, @SerialName("trivia") Trivia,
     /** Heart to heart: the same skill rounds for both, scores side by side (ui/play). */
     @SerialName("skillDuel") SkillDuel,
+    /** Spot the difference: the same pictures for both, at the same time; most spots wins. */
+    @SerialName("spotTheDifference") SpotTheDifference,
+    /** Snakes and ladders: the server rolls the die; climb, slide, first to 100 wins. */
+    @SerialName("snakesAndLadders") SnakesAndLadders,
+    /** A game this version of the app doesn't know (a newer server's): listed and endable, never played, so nothing breaks. */
+    @SerialName("unknown") Unknown,
 }
 
 @Serializable
@@ -21,8 +27,10 @@ enum class GameStatus { @SerialName("waitingForPartner") Waiting, @SerialName("i
 data class GameSession(
     val id: String,
     val coupleId: String = "",
-    val gameType: GameType,
-    val status: GameStatus,
+    /** A type this app doesn't know reads as [GameType.Unknown] (coerced to this default). */
+    val gameType: GameType = GameType.Unknown,
+    /** A status this app doesn't know (a newer server's) reads as ended, so the list still loads. */
+    val status: GameStatus = GameStatus.Abandoned,
     val startedAtUtc: String? = null,
     val endedAtUtc: String? = null,
     val currentTurnUserId: String? = null,
@@ -44,6 +52,11 @@ data class CreateGameRequest(val gameType: GameType, val letter: String? = null)
 @Serializable
 data class GameActionRequest(val expectedStateVersion: Long, val action: String, val value: String? = null, val index: Int? = null)
 
+/**
+ * Same answer's state. [kind] is "who" for a prompt answered by picking one of you two (the answer is that partner's
+ * id), else "text". [mine] is my own answer this round, [answered] who has answered; both answers show in [last] once
+ * both are in, and every round played in [history].
+ */
 @Serializable
 data class QuizState(
     val players: List<String> = emptyList(),
@@ -52,9 +65,35 @@ data class QuizState(
     val totalRounds: Int = 0,
     val turnIndex: Int = 0,
     val prompt: String = "",
+    val kind: String? = null,
     val answerCount: Int = 0,
+    val answered: List<String> = emptyList(),
+    val mine: String? = null,
     val lastResult: String? = null,
+    val last: QuizReveal? = null,
+    val history: List<QuizReveal> = emptyList(),
 )
+
+/**
+ * A Same answer round once both are in: the prompt and each partner's answer (a partner's id for a "who" prompt).
+ * [match] is true for a round either of you counted by hand ("That counts!") too; [accepted] says it was counted,
+ * and [acceptedBy] by whom.
+ */
+@Serializable
+data class QuizReveal(
+    val round: Int = 0,
+    val prompt: String = "",
+    val kind: String = "text",
+    val answers: Map<String, String> = emptyMap(),
+    val match: Boolean = false,
+    val accepted: Boolean = false,
+    val acceptedBy: String? = null,
+) {
+    /** The answers matched on their own, not by counting. */
+    val matched: Boolean get() = match && !accepted
+    /** Revealed, different, and not counted yet: "That counts!" can still count it. */
+    val countable: Boolean get() = !match && !accepted && answers.size >= 2
+}
 
 @Serializable
 data class MemoryCardState(val index: Int, val value: Int? = null, val matched: Boolean = false)
@@ -104,7 +143,14 @@ data class ICallOnState(
 data class VetVerdict(val player: String, val category: String, val allow: Boolean)
 
 @Serializable
-data class TruthOrDareOutcome(val chooser: String, val choice: String, val prompt: String = "", val result: String = "done")
+data class TruthOrDareOutcome(
+    val chooser: String,
+    val choice: String,
+    val prompt: String = "",
+    val result: String = "done",
+    /** The chooser passed on the prompt themselves (result "skipped"). */
+    val passed: Boolean = false,
+)
 
 @Serializable
 data class TruthOrDareState(
@@ -119,6 +165,8 @@ data class TruthOrDareState(
     /** "truth" or "dare" once chosen. */
     val choice: String? = null,
     val prompt: String? = null,
+    /** The chooser has swapped this turn's prompt (once a turn). */
+    val swapped: Boolean = false,
     val last: TruthOrDareOutcome? = null,
 )
 
@@ -173,6 +221,8 @@ data class GuessMyAnswerState(
     /** The subject's own answer while their partner guesses; null for the guesser. */
     val answer: Int? = null,
     val last: GuessReveal? = null,
+    /** Every round played so far, for the recap at the end. */
+    val history: List<GuessReveal> = emptyList(),
 )
 
 /** Would you rather's last round: both picks (0 for a, 1 for b), shown once both are in. */
@@ -191,10 +241,12 @@ data class WouldYouRatherState(
     val picked: List<String> = emptyList(),
     val myPick: Int? = null,
     val last: RatherReveal? = null,
+    /** Every round played so far, for the recap at the end. */
+    val history: List<RatherReveal> = emptyList(),
 )
 
 /**
- * Tic-tac-toe and connect four: a short match of games on a grid. [cells] go row by row from the top and hold the
+ * Connect four (and tic-tac-toe's scores, which read the same): a short match of games on a grid. [cells] go row by row from the top and hold the
  * player id that owns each one, or null. [phase] is "playing", "gameOver" (the finished board, with its [line], until
  * the next starter moves) or "matchOver". [results] holds each finished game's winner, null for a draw.
  */
@@ -214,7 +266,40 @@ data class GridMatchState(
     val draws: Int = 0,
     val results: List<String?> = emptyList(),
     val winnerUserId: String? = null,
+    /** While a finished board is up: when the server starts the next game (null on a board from before the beat). */
+    val nextGameAtUtc: String? = null,
 )
+
+/**
+ * Tic-tac-toe, played at once (docs/games.md): the grid match's fields, plus each square's hand-drawn mark ([marks],
+ * null for an empty square or one placed before marks were drawn), when the next game starts while a finished board
+ * is up ([nextGameAtUtc]), and how long a pen takes to refill after its own mark ([cooldownMs]).
+ */
+@Serializable
+data class TicTacToeState(
+    val players: List<String> = emptyList(),
+    val cells: List<String?> = emptyList(),
+    val game: Int = 0,
+    val totalGames: Int = 5,
+    val winsNeeded: Int = 3,
+    val phase: String = "playing",
+    val lastMove: Int? = null,
+    val line: List<Int>? = null,
+    val scores: Map<String, Int> = emptyMap(),
+    val draws: Int = 0,
+    val results: List<String?> = emptyList(),
+    val winnerUserId: String? = null,
+    val marks: List<TicTacToeMark?> = emptyList(),
+    val nextGameAtUtc: String? = null,
+    val cooldownMs: Int = 650,
+)
+
+/** A hand-drawn mark: up to three strokes, each point `[x, y]` as fractions of its square. */
+@Serializable
+data class TicTacToeMark(val strokes: List<TicTacToeStroke> = emptyList())
+
+@Serializable
+data class TicTacToeStroke(val points: List<List<Double>> = emptyList())
 
 /** Draw and guess (`handwriting` on the wire): one stroke, coordinates as fractions of the canvas (0 to 1). */
 @Serializable
@@ -271,6 +356,8 @@ data class TriviaState(
     val answered: List<String> = emptyList(),
     val myAnswer: Int? = null,
     val reveal: TriviaReveal? = null,
+    /** Every question both answered so far, for the recap at the end. */
+    val history: List<TriviaReveal> = emptyList(),
     val completed: Boolean = false,
 )
 
@@ -290,6 +377,11 @@ data class DuelRound(
     /** Whoever scored higher, once both have played; null for a tie. */
     val winner: String? = null,
     val tie: Boolean = false,
+    /**
+     * How many times I've opened this round. Opening it again before scoring deals me another of the same kind: [seed]
+     * is always my own (docs/games.md). 0 from a server that doesn't count.
+     */
+    val opens: Int = 0,
 ) {
     /** Both scores are in and showing. */
     val revealed: Boolean get() = mine != null && partner != null
@@ -319,6 +411,110 @@ data class SkillDuelState(
     val finished: Boolean get() = totals != null
 }
 
+/** Spot the difference: one difference found, and by whom. */
+@Serializable
+data class SpotFind(val index: Int = 0, val by: String = "")
+
+/** One picture of a Spot the difference game: its kind and seed (the phone draws it), who found what, and whether time ran out. */
+@Serializable
+data class SpotPicture(val index: Int = 0, val kind: String = "", val seed: Int = 0, val found: List<SpotFind> = emptyList(), val timedOut: Boolean = false)
+
+@Serializable
+data class SpotTheDifferenceState(
+    val players: List<String> = emptyList(),
+    /** "spotting", "between" (a short beat before the next picture) or "completed". */
+    val phase: String = "spotting",
+    val scene: Int = 0,
+    val totalScenes: Int = 3,
+    val differences: Int = 7,
+    val sceneSeconds: Int = 90,
+    val beatSeconds: Int = 3,
+    val kind: String? = null,
+    val seed: Int = 0,
+    val found: List<SpotFind> = emptyList(),
+    /** The pictures so far, the one in play last. */
+    val scenes: List<SpotPicture> = emptyList(),
+    val scores: Map<String, Int> = emptyMap(),
+    /** More spots wins; null for a tie and until the end. */
+    val winner: String? = null,
+    val tie: Boolean = false,
+) {
+    val finished: Boolean get() = phase == "completed"
+}
+
+/** Snakes and ladders: a ladder (bottom to top) or a snake (head to tail). */
+@Serializable
+data class SnakesLink(val from: Int = 0, val to: Int = 0)
+
+/** A heart square: "swap" (kiss & swap), "boost" (+3), "shield" (hug shield) or "heartbreak" (back 5). */
+@Serializable
+data class SnakesHeart(val square: Int = 0, val kind: String = "")
+
+@Serializable
+data class SnakesBoardLayout(val ladders: List<SnakesLink> = emptyList(), val snakes: List<SnakesLink> = emptyList(), val hearts: List<SnakesHeart> = emptyList())
+
+/**
+ * One thing a roll did, in order: "ladder", "snake", "shield" (a snake cancelled), "hug" (a shield gained), "boost",
+ * "heartbreak", "swap" (you go to [to], your partner to [from]), "kiss", "bounce" (off 100), "threeSixes", "win".
+ */
+@Serializable
+data class SnakesEvent(val kind: String = "", val from: Int = 0, val to: Int = 0)
+
+/** The last roll in full, so both phones replay it: the squares hopped one by one, then the events. */
+@Serializable
+data class SnakesMove(
+    val move: Int = 0,
+    val player: String = "",
+    val roll: Int = 1,
+    val from: Int = 0,
+    val steps: List<Int> = emptyList(),
+    val events: List<SnakesEvent> = emptyList(),
+    val to: Int = 0,
+    val extraTurn: Boolean = false,
+    val sixes: Int = 0,
+)
+
+@Serializable
+data class SnakesStats(val rolls: Int = 0, val ladders: Int = 0, val snakes: Int = 0, val sixes: Int = 0, val swaps: Int = 0, val saves: Int = 0)
+
+@Serializable
+data class SnakesState(
+    val players: List<String> = emptyList(),
+    /** "playing" or "completed". */
+    val phase: String = "playing",
+    val goal: Int = 100,
+    val first: String? = null,
+    /** Whose roll it is; null once it's over. */
+    val turn: String? = null,
+    val board: SnakesBoardLayout = SnakesBoardLayout(),
+    /** Each player's square: 0 is off the board, before square 1. */
+    val positions: Map<String, Int> = emptyMap(),
+    val shields: Map<String, Boolean> = emptyMap(),
+    val stats: Map<String, SnakesStats> = emptyMap(),
+    val sixes: Int = 0,
+    val moves: Int = 0,
+    val last: SnakesMove? = null,
+    val winner: String? = null,
+) {
+    val finished: Boolean get() = phase == "completed"
+}
+
 /** Whose versions of the games the couple plays: "ng" for Nigerian couples (Naija content), else "global". */
 @Serializable
 data class GameRegionView(val region: String = "global")
+
+/**
+ * One game in the couple's history (`GET api/game/history`, newest first): how it ended ("completed", "abandoned" or
+ * "timedOut"), and the game itself as a session ([session], null if it's gone), shown like any other.
+ */
+@Serializable
+data class GameHistoryItem(
+    val sessionId: String = "",
+    val gameType: GameType = GameType.Unknown,
+    val outcome: String = "",
+    val winnerUserId: String? = null,
+    val scores: Map<String, Int> = emptyMap(),
+    val roundsPlayed: Int = 0,
+    val endedAtUtc: String? = null,
+    val session: GameSession? = null,
+)

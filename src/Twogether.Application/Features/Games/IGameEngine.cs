@@ -14,6 +14,10 @@ public interface IGameEngine
     bool AnyoneMayAct(GameType gameType);
     /// <summary>Moves have a deadline that the server enforces.</summary>
     bool IsTimed(GameType gameType);
+    /// <summary>A move made on an older state version is still played, against the latest state (<see cref="IGameRules.MovesMayCross"/>).</summary>
+    bool MovesMayCross(GameType gameType);
+    /// <summary>A move that may still be made on a finished game, for a while (<see cref="IGameRules.PlayableAfterEnd"/>).</summary>
+    bool PlayableAfterEnd(GameType gameType, string action) => GameEngine.RulesFor(gameType)?.PlayableAfterEnd(action) ?? false;
     /// <summary>Scores and rounds played, for writing a game result when the game ends.</summary>
     GameScoreSummary Summarise(GameType gameType, string stateJson);
 }

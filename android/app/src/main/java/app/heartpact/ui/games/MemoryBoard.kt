@@ -37,7 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.heartpact.data.GameSession
@@ -64,11 +66,16 @@ internal fun MemoryBoard(s: GameSession, me: String, partnerName: String, busy: 
     val myTurn = s.currentTurnUserId == me && s.status == GameStatus.InProgress
     if (s.status != GameStatus.Completed) {
         Scoreboard(m.scores, me, partnerName, turnOf(s, me)) { trn(it, "{count} pair", "{count} pairs") }
+        // Each side says what just happened, then whose go it is: "A pair! Go again" to one, "Theo found a pair" to the other.
         Text(when {
             myTurn && m.revealed.size == 1 -> tr("Now find its pair")
-            myTurn -> if (m.lastResult == "match") tr("A pair! Go again") else tr("Your turn: flip a card")
-            else -> if (m.lastResult == "different") tr("No pair. {partner}'s turn", "partner" to partnerName) else tr("{partner}'s turn", "partner" to partnerName)
-        }, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp))
+            myTurn && m.lastResult == "match" -> tr("A pair! Go again")
+            myTurn && m.lastResult == "different" -> tr("No pair for {partner}. Your turn", "partner" to partnerName)
+            myTurn -> tr("Your turn: flip a card")
+            m.lastResult == "different" -> tr("No pair. {partner}'s turn", "partner" to partnerName)
+            m.lastResult == "match" && m.revealed.isEmpty() -> tr("{partner} found a pair and goes again", "partner" to partnerName)
+            else -> tr("{partner}'s turn", "partner" to partnerName)
+        }, style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(bottom = 12.dp).semantics { liveRegion = LiveRegionMode.Polite })
     }
     val shown = m.lastPair.orEmpty().associate { it.index to it.value }
     // The last pair turned over: keyed by its cards, so it celebrates (or shakes) once, not on every later move.
@@ -122,7 +129,12 @@ private fun MemoryCard(index: Int, value: Int?, matched: Boolean, faded: Boolean
     val shake = rememberShake(miss)
     val alpha by animateFloatAsState(if (matched) 0.6f else if (faded) 0.82f else 1f, gentle(tween(600, delayMillis = 500)), label = "card")
     val showFace = turn.value > 90f
-    val label = (value ?: face)?.takeIf { faceUp }?.let { GamePlay.cardLabel(it, theme) } ?: tr("Face-down card {number}", "number" to index + 1)
+    val picture = (value ?: face)?.takeIf { faceUp }?.let { GamePlay.cardLabel(it, theme) }
+    val label = when {
+        picture == null -> tr("Face-down card {number}", "number" to index + 1)
+        matched -> tr("{card}, matched", "card" to picture)
+        else -> tr("{card}, card {number}", "card" to picture, "number" to index + 1)
+    }
     Box(modifier.aspectRatio(0.8f).zIndex(if (celebrate != null) 1f else 0f)) {
         Box(
             Modifier.fillMaxSize()

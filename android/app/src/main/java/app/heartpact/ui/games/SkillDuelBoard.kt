@@ -98,6 +98,8 @@ import kotlin.math.PI
  * Heart to heart: five skill rounds, the same for both, each played on your own time. A partner's score stays a
  * sealed "?" until you've played that round too; then both count up side by side, the pen circles them, the round's
  * heart is stamped and Maya and Theo react. At the end the hearts decide the duel; the points only when the hearts are level.
+ * A round opens only once the server knows (`open`): backing out and opening it again deals another of the same kind
+ * (docs/games.md), so the round is played on the seed the server sends for me.
  */
 
 /** How long ScoreReveal takes to count [score] up (PlayKit's timing), so the stamp lands right after. */
@@ -119,15 +121,19 @@ private object DuelSeen {
     }
 }
 
-/** A score on its way to the server: shown at once, resent if the partner's move got there first. */
-private data class Sending(val score: Int, val version: Long, val tries: Int)
+/** A score on its way to the server: shown at once, resent if the partner's move got there first. [seed] is the round it was played on. */
+private data class Sending(val score: Int, val version: Long, val tries: Int, val seed: Long)
+
+/** A round asked to open: it opens once the server has counted it ([opens] goes past [before]); [sent] once the request was seen on its way. */
+private data class Opening(val round: Int, val before: Int, val sent: Boolean = false)
 
 private data class RevealEvent(val round: Int, val winner: String?, val tie: Boolean)
 
 /** The skill game a round names; null for one this app doesn't know yet. */
 private fun DuelRound.skill(): SkillKind? = SkillKind.entries.firstOrNull { it.name == kind }
 
-private fun scoreJson(score: Int) = """{"score":$score}"""
+/** The score and the seed it was played on, so a round dealt again since is never scored with the old one's result. */
+internal fun scoreJson(score: Int, seed: Long) = """{"score":$score,"seed":$seed}"""
 
 @Composable
 internal fun SkillDuelBoard(s: GameSession, me: String, partnerName: String, busy: Boolean, actions: GameActions) {
@@ -139,20 +145,53 @@ internal fun SkillDuelBoard(s: GameSession, me: String, partnerName: String, bus
     val haptics = rememberPlayHaptics()
     val sending = remember(s.id) { mutableStateMapOf<Int, Sending>() }
     var playing by remember(s.id) { mutableStateOf<Int?>(null) }
+    /** The seed the round being played was opened on: the server's for me, kept while it plays. */
+    var playingSeed by remember(s.id) { mutableStateOf(0L) }
+    var opening by remember(s.id) { mutableStateOf<Opening?>(null) }
     var event by remember(s.id) { mutableStateOf<RevealEvent?>(null) }
 
-    fun send(round: Int, score: Int, tries: Int) {
-        sending[round] = Sending(score, s.stateVersion, tries)
-        actions.onAct(s, "score", scoreJson(score), round)
+    fun send(round: Int, score: Int, tries: Int, seed: Long) {
+        sending[round] = Sending(score, s.stateVersion, tries, seed)
+        actions.onAct(s, "score", scoreJson(score, seed), round)
+    }
+
+    fun open(round: Int) {
+        opening = Opening(round, d.rounds.getOrNull(round)?.opens ?: 0)
+        actions.onAct(s, "open", null, round)
+    }
+
+    // The round opens once the server has counted it, on the seed it sent; a request that ended without (offline, say)
+    // opens nothing, and the note says why.
+    LaunchedEffect(s.stateVersion, busy, opening) {
+        val asked = opening ?: return@LaunchedEffect
+        val round = d.rounds.getOrNull(asked.round)
+        when {
+            round == null || round.mine != null -> opening = null
+            round.opens > asked.before -> {
+                playingSeed = round.seed
+                playing = asked.round
+                opening = null
+            }
+            busy -> if (!asked.sent) opening = asked.copy(sent = true)
+            asked.sent -> opening = null
+            // Never seen on its way (it came and went between frames, or never left): don't hold the board for it.
+            else -> {
+                delay(1500)
+                opening = null
+            }
+        }
     }
 
     // Scores sent at the same moment by both meet a version conflict: once the board has the newer state, send again.
+    // A round dealt again since (opened on another phone) has a new seed: that score is for a round that's gone.
     LaunchedEffect(s.stateVersion, busy) {
         if (busy) return@LaunchedEffect
         sending.entries.toList().forEach { (round, out) ->
+            val now = d.rounds.getOrNull(round)
             when {
-                d.rounds.getOrNull(round)?.mine != null -> sending.remove(round)
-                out.version != s.stateVersion && out.tries < 3 -> send(round, out.score, out.tries + 1)
+                now?.mine != null -> sending.remove(round)
+                now != null && now.opens > 0 && now.seed != out.seed -> sending.remove(round)
+                out.version != s.stateVersion && out.tries < 3 -> send(round, out.score, out.tries + 1, out.seed)
             }
         }
     }
@@ -189,14 +228,14 @@ internal fun SkillDuelBoard(s: GameSession, me: String, partnerName: String, bus
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         rounds.forEach { round ->
             val out = sending[round.index]
-            val canPlay = s.status == GameStatus.InProgress && round.mine == null && round.skill() != null && !busy
+            val canPlay = s.status == GameStatus.InProgress && round.mine == null && round.skill() != null && !busy && opening == null
             RoundCard(
                 session = s.id, round = round, me = me, partnerName = partnerName, next = round.index == next, still = still,
                 sendingState = out, failed = failed(out),
                 enabled = canPlay || failed(out),
                 onTap = {
                     haptics.tick()
-                    if (out != null) send(round.index, out.score, 1) else playing = round.index
+                    if (out != null) send(round.index, out.score, 1, out.seed) else open(round.index)
                 },
                 onReveal = { event = RevealEvent(round.index, round.winner, round.tie) },
             )
@@ -207,14 +246,19 @@ internal fun SkillDuelBoard(s: GameSession, me: String, partnerName: String, bus
     val kind = round?.skill()
     if (round != null && kind != null) {
         val index = round.index
-        Dialog(onDismissRequest = { playing = null }, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
+        // A score counts the moment it's made: closing the round while its score is still counting up sends it all the
+        // same, so a round can't be left and played again for a better one.
+        var made by remember(s.id, index) { mutableStateOf<Int?>(null) }
+        val seed = playingSeed
+        fun close() {
+            playing = null
+            made?.let { if (sending[index] == null) send(index, it, 1, seed) }
+        }
+        Dialog(onDismissRequest = ::close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false)) {
             // The round draws its own page; the host (here) keeps it clear of the status and navigation bars.
             Column(Modifier.fillMaxSize().background(colors.page).statusBarsPadding().navigationBarsPadding()) {
-                TopBar(tr("Round {round} of {rounds} · {game}", "round" to index + 1, "rounds" to d.totalRounds, "game" to kind.title), { playing = null })
-                SkillRound(kind, round.seed, onDone = { result ->
-                    playing = null
-                    send(index, result.score.coerceIn(0, 100), 1)
-                }, Modifier.weight(1f))
+                TopBar(tr("Round {round} of {rounds} · {game}", "round" to index + 1, "rounds" to d.totalRounds, "game" to kind.title), ::close)
+                SkillRound(kind, seed, onDone = { close() }, Modifier.weight(1f), onScored = { made = it.score.coerceIn(0, 100) })
             }
         }
     }

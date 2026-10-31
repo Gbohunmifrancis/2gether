@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.heartpact.data.GameSession
@@ -54,7 +56,8 @@ internal fun WordDashBoard(s: GameSession, me: String, partnerName: String, busy
     val playing = s.status == GameStatus.InProgress && w.phase != "completed"
     val myTurn = playing && s.currentTurnUserId == me
     // Keep a refused word in the field so it can be fixed; clear it once the chain moves on.
-    var word by remember(w.chainNumber, w.chain.size) { mutableStateOf("") }
+    // Kept through a rotation or a trip to another app, too.
+    var word by rememberSaveable(s.id, w.chainNumber, w.chain.size) { mutableStateOf("") }
     if (playing) {
         Scoreboard(w.scores, me, partnerName, turnOf(s, me)) { trn(it, "{count} pt", "{count} pts") }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -66,7 +69,18 @@ internal fun WordDashBoard(s: GameSession, me: String, partnerName: String, busy
             TimerBadge(left, w.turnSeconds)
         }
     }
-    lastNote(w, me, partnerName)?.let { RoundReveal(w.chainNumber, null, hearts = w.timedOut != me, Modifier.padding(top = 12.dp)) { NoteCard(it) } }
+    lastNote(w, me, partnerName)?.let { note ->
+        RoundReveal(w.chainNumber, null, hearts = w.timedOut != me, Modifier.padding(top = 12.dp)) {
+            Column {
+                NoteCard(note)
+                // The chain that just ended, so both can see how far it got.
+                w.lastChain?.takeIf { it.isNotEmpty() }?.let { words ->
+                    Text(trn(words.size, "The last chain, {count} word: {words}", "The last chain, {count} words: {words}", "words" to words.joinToString(" → ")),
+                        style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp))
+                }
+            }
+        }
+    }
     if (w.chain.isNotEmpty()) Chain(w, me)
     when {
         !playing -> Unit
@@ -74,11 +88,14 @@ internal fun WordDashBoard(s: GameSession, me: String, partnerName: String, busy
             Text(if (w.chain.isEmpty()) tr("Your turn: start the chain.") else tr("Your turn: keep the chain going."),
                 style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 18.dp))
             val letter = w.letter.orEmpty()
-            val send = { if (word.isNotBlank()) actions.onAct(s, "play", word.trim(), null) }
+            val ready = word.length >= 2 && left > 0 && !busy
+            val send = { if (ready) actions.onAct(s, "play", word.trim(), null) }
             HeartField(tr("A word starting with {letter}", "letter" to letter), word, { word = it.filter { c -> !c.isWhitespace() }.take(30) }, Modifier.padding(top = 10.dp),
-                keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.None, autoCorrectEnabled = false, imeAction = ImeAction.Send),
+                // English words, A to Z: ask the keyboard for its Latin layout whatever the phone's language.
+                keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.None, autoCorrectEnabled = false, keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Send),
                 actions = KeyboardActions(onSend = { send() }))
             HeartButton(tr("Play it"), send, Modifier.padding(top = 12.dp), enabled = word.length >= 2 && left > 0, busy = busy)
+            if (w.chainNumber == 1 && w.chain.isEmpty()) Text(tr("Any English word. The next one starts with its last letter."), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))
         }
         else -> Text(tr("{partner} is thinking of a word…", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2, modifier = Modifier.padding(top = 18.dp))
     }

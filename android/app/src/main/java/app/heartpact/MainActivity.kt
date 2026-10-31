@@ -40,10 +40,10 @@ class MainActivity : ComponentActivity() {
         handleInvite(intent)
     }
 
-    /** https://heartpact.app/invite/{token}: remember the token; pairing accepts it once signed in. */
+    /** https://heartpact.me/invite/{token}: remember the token; pairing accepts it once signed in. */
     private fun handleInvite(intent: Intent?) {
         val uri = intent?.data ?: return
-        if (uri.host != "heartpact.app") return
+        if (uri.host != "heartpact.me") return
         val segments = uri.pathSegments
         if (segments.size == 2 && segments[0] == "invite" && segments[1].matches(Regex("[0-9a-f]{16,128}"))) appModel.openedInvite(segments[1])
     }

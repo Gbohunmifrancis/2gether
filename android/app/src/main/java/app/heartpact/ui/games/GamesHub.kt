@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.LineBreak
@@ -106,13 +107,28 @@ internal object NoSkillBests : SkillBests {
     override fun record(result: SkillResult) {}
 }
 
-/** The games to invite your partner to: Heart to heart first, then the rest. */
-internal val coupleGames: List<GameType> get() = (listOf(GameType.SkillDuel) + GamePlay.offered).distinct()
+/** Games where one of you wins, Heart to heart first. A game offered but placed in neither group lands here, at the end. */
+private val headToHead = listOf(GameType.SkillDuel, GameType.SpotTheDifference, GameType.SnakesAndLadders, GameType.MemoryMatch,
+    GameType.TicTacToe, GameType.ConnectFour, GameType.Trivia, GameType.WordDash)
+
+/** Games about the two of you: answers, guesses, dares and drawings, talked over as you go. */
+private val talkAndPlay = listOf(GameType.CoupleQuiz, GameType.GuessMyAnswer, GameType.WouldYouRather, GameType.TruthOrDare, GameType.Handwriting, GameType.ICallOn)
+
+/** The games to invite your partner to, in two groups so fourteen are easy to scan: head to head, then talk and play. */
+internal val coupleGroups: List<List<GameType>> get() {
+    val talk = talkAndPlay.filter { it in GamePlay.offered }
+    val versus = (headToHead.filter { it in GamePlay.offered } + GamePlay.offered.filter { it !in headToHead && it !in talk }).distinct()
+    return listOf(versus, talk)
+}
+
+/** Every game to invite your partner to: Heart to heart first, then the rest. */
+internal val coupleGames: List<GameType> get() = coupleGroups.flatten()
 
 @Composable
 internal fun GamesHub(ui: GamesUi, me: String, partnerName: String, actions: GameActions, bests: SkillBests, onPractice: (SkillKind) -> Unit) {
     val region = ui.region ?: ui.sessions.firstOrNull()?.let(GamePlay::region)
-    HubHeader(ui.finished, me, partnerName)
+    // "Last time": the newest game played to the end, from the history, however many invites came after it.
+    HubHeader(ui.history.firstOrNull(), me, partnerName)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         // Side by side on a wide screen; one under the other on a phone.
         if (maxWidth >= TwoPaneFrom) {
@@ -135,15 +151,17 @@ internal fun GamesHub(ui: GamesUi, me: String, partnerName: String, actions: Gam
 @Composable
 private fun HubHeader(last: GameSession?, me: String, partnerName: String) {
     val colors = Heartpact.colors
-    val score = last?.let { GamePlay.score(it, me) }
+    // The winner cheers; a draw or a game played as a team, both do.
+    val won = last?.let { GamePlay.won(it, me) }
+    val played = last != null && last.gameType != GameType.Unknown
     val mine = when {
-        score == null -> Reaction.Idle
-        score.lost -> Reaction.Waiting
+        !played -> Reaction.Idle
+        won == false -> Reaction.Waiting
         else -> Reaction.Cheer
     }
     val theirs = when {
-        score == null -> Reaction.Idle
-        score.won -> Reaction.Waiting
+        !played -> Reaction.Idle
+        won == true -> Reaction.Waiting
         else -> Reaction.Cheer
     }
     Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 26.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -174,17 +192,38 @@ private fun SectionHead(title: String, line: String?, modifier: Modifier = Modif
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CoupleSection(ui: GamesUi, region: String?, partnerName: String, actions: GameActions) {
-    val colors = Heartpact.colors
     val games = coupleGames
     var picked by rememberSaveable { mutableStateOf(ui.finished?.gameType?.takeIf { it in games } ?: games.first()) }
     var letter by rememberSaveable { mutableStateOf<String?>(null) }
     SectionHead(tr("Play together"), tr("Live, the two of you, each on your own phone."))
-    BlobGrid(games, picked, { picked = it }, startAt = 0, counts = listOf(6, 4, 3), label = { GamePlay.title(it, region) }, colour = { it.blob }) { type, tint, size ->
-        GameIcon(type, tint, size)
+    var startAt = 0
+    coupleGroups.forEachIndexed { g, group ->
+        if (group.isEmpty()) return@forEachIndexed
+        GroupHead(if (g == 0) tr("Head to head") else tr("Talk and play"), Modifier.padding(top = if (g == 0) 2.dp else 22.dp))
+        // Both groups on the same columns, so every blob is the same size: fours on a phone, a row each on a wide screen.
+        BlobGrid(group, picked, { picked = it }, startAt = startAt, counts = listOf(8, 4),
+            label = { GamePlay.title(it, region) }, colour = { it.blob }) { type, tint, size ->
+            GameIcon(type, tint, size)
+        }
+        startAt += group.size
+        // What's picked shows under its own group, so the button is never a whole grid away.
+        if (picked in group) GameDetail(picked, region, partnerName, ui, actions, letter) { letter = it }
     }
+}
+
+/** A group's name inside a section: small, quiet, so the blobs stay the thing to look at. */
+@Composable
+private fun GroupHead(text: String, modifier: Modifier = Modifier) {
+    Text(text.uppercase(), style = Heartpact.type.labelSmall.copy(letterSpacing = 0.08.sp), color = Heartpact.colors.ink2,
+        modifier = modifier.padding(bottom = 10.dp).semantics { heading() })
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GameDetail(picked: GameType, region: String?, partnerName: String, ui: GamesUi, actions: GameActions, letter: String?, onLetter: (String?) -> Unit) {
+    val colors = Heartpact.colors
     Detail(picked) { type ->
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(GamePlay.title(type, region), style = Heartpact.type.title, color = colors.ink, textAlign = TextAlign.Center)
@@ -192,8 +231,8 @@ private fun CoupleSection(ui: GamesUi, region: String?, partnerName: String, act
             if (type == GameType.ICallOn) {
                 Text(tr("First letter"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    HeartChip(tr("Surprise me"), letter == null, { letter = null })
-                    listOf("A", "B", "M", "S", "T").forEach { l -> HeartChip(l, letter == l, { letter = l }) }
+                    HeartChip(tr("Surprise me"), letter == null, { onLetter(null) })
+                    listOf("A", "B", "M", "S", "T").forEach { l -> HeartChip(l, letter == l, { onLetter(l) }) }
                 }
             }
             HeartButton(tr("Invite {partner}", "partner" to partnerName), { actions.onInvite(type, if (type == GameType.ICallOn) letter else null) },
@@ -208,7 +247,7 @@ private fun SkillSection(bests: SkillBests, startAt: Int, onPractice: (SkillKind
     var picked by rememberSaveable { mutableStateOf(SkillKind.entries.first()) }
     Column(modifier) {
         SectionHead(tr("Heart skills"), tr("Tiny tests of a steady hand. Practice alone and beat your best."))
-        BlobGrid(SkillKind.entries, picked, { picked = it }, startAt = startAt, counts = listOf(6, 3), label = { it.title }, colour = { it.colour }) { kind, tint, size ->
+        BlobGrid(SkillKind.entries, picked, { picked = it }, startAt = startAt, counts = listOf(9, 3), label = { it.title }, colour = { it.colour }) { kind, tint, size ->
             SkillIcon(kind, tint, size)
         }
         Detail(picked) { kind ->
@@ -263,10 +302,11 @@ private fun <T> BlobGrid(
         val cell = (maxWidth - gap * (columns - 1)) / columns
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items.chunked(columns).forEachIndexed { r, row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                // A short last row sits in the middle.
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally)) {
                     row.forEachIndexed { c, item ->
                         val index = items.indexOf(item)
-                        PickBlob(label(item), colour(item), index * 7 + 3, item == picked, startAt + r * columns + c, breath, { onPick(item) }, Modifier.width(cell)) { tint, size ->
+                        PickBlob(label(item), colour(item), (startAt + index) * 7 + 3, item == picked, startAt + r * columns + c, breath, { onPick(item) }, Modifier.width(cell)) { tint, size ->
                             icon(item, tint, size)
                         }
                     }

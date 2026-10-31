@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://heartpact.app/sitemap.xml
+Sitemap: https://heartpact.me/sitemap.xml

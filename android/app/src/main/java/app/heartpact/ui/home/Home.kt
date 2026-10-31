@@ -81,7 +81,7 @@ enum class Tab(val icon: Icon3D) {
 
 /** The signed-in, linked app: five tabs. Each tab's real content arrives with its feature. */
 @Composable
-fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, food: (@Composable () -> Unit)? = null, us: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, onRefresh: (Tab) -> kotlinx.coroutines.Job? = { null }, showTour: Boolean = false, onTourDone: () -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}) {
+fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initialTab: Tab = Tab.Today, today: @Composable () -> Unit = {}, pacts: (@Composable () -> Unit)? = null, food: (@Composable () -> Unit)? = null, us: (@Composable () -> Unit)? = null, album: (@Composable () -> Unit)? = null, onTab: (Tab) -> Unit = {}, onRefresh: (Tab) -> kotlinx.coroutines.Job? = { null }, showTour: Boolean = false, onTourDone: () -> Unit = {}, requestedTab: Tab? = null, onRequestedTab: () -> Unit = {}, banner: (@Composable () -> Unit)? = null) {
     var tab by rememberSaveable { mutableStateOf(initialTab) }
     // A notification can ask for a tab (the album nudge opens Album).
     LaunchedEffect(requestedTab) {
@@ -92,8 +92,10 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
     val tabBounds = remember { androidx.compose.runtime.mutableStateMapOf<Tab, androidx.compose.ui.geometry.Rect>() }
     var touring by remember { mutableStateOf(showTour) }
     val scope = rememberCoroutineScope()
-    val content: @Composable () -> Unit = {
-        PullToRefreshBox(isRefreshing = refreshing, onRefresh = {
+    val content: @Composable () -> Unit = { Column(Modifier.fillMaxSize()) {
+        // Not linked yet: the way to connect sits above every tab.
+        banner?.invoke()
+        PullToRefreshBox(modifier = Modifier.weight(1f), isRefreshing = refreshing, onRefresh = {
             refreshing = true
             scope.launch {
                 // The tab's own refresh may finish at once offline; hold the spinner long enough to be seen.
@@ -115,7 +117,7 @@ fun HomeScreen(myName: String, partnerName: String, onSignOut: () -> Unit, initi
                 Tab.Album -> album?.invoke() ?: TabPage(tr("Album"), tr("Photos stay on your phone until you sync")) { EmptyPage(Who.Left, Pose.Rest, tr("No photos yet"), tr("Add photos and they stay on this phone. When you tap Sync, they join your shared album."), Mood.Sleep) }
             }
         }
-    }
+    } }
     // Phones get the bottom bar; tablets, and phones on their side, the rail down the side (android/README.md, Tablets).
     val measured: (Tab, androidx.compose.ui.geometry.Rect) -> Unit = { t, r -> tabBounds[t] = r }
     Box(Modifier.fillMaxSize()) {

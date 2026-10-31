@@ -38,6 +38,12 @@ enum class SkillKind(val colour: BlobColour) {
     KissTheCenter(BlobColour.Butter),
     /** Draw a ring in one stroke. Score: round, closed, even. */
     PromiseRing(BlobColour.Lilac),
+    /** A heart floats across the page; loose Cupid's arrow from below to go right through its centre. Score: how close. */
+    CupidsAim(BlobColour.Teal),
+    /** Press and hold the lips for the time shown; the timer fades out. Score: how close to the time. */
+    SlowKiss(BlobColour.Orchid),
+    /** Draw a heart in one stroke. Score: how heart-shaped (both lobes, the point, closed, steady). */
+    DrawAHeart(BlobColour.Lime),
     ;
 
     val title: String get() = when (this) {
@@ -47,6 +53,9 @@ enum class SkillKind(val colour: BlobColour) {
         Heartbeat -> tr("Heartbeat")
         KissTheCenter -> tr("Kiss the center")
         PromiseRing -> tr("Promise ring")
+        CupidsAim -> tr("Cupid's aim")
+        SlowKiss -> tr("Slow kiss")
+        DrawAHeart -> tr("Draw a heart")
     }
 
     /** One line under the title in the picker. */
@@ -57,16 +66,22 @@ enum class SkillKind(val colour: BlobColour) {
         Heartbeat -> tr("Feel the beat. Tap when it would land.")
         KissTheCenter -> tr("Drop the kiss dead center.")
         PromiseRing -> tr("One stroke. As round as your promise.")
+        CupidsAim -> tr("One arrow. Right through the heart.")
+        SlowKiss -> tr("Hold the kiss. Let go right on time.")
+        DrawAHeart -> tr("One stroke. The truest heart you can.")
     }
 
     /** What to do, at the top of a round. */
     val instruction: String get() = when (this) {
         FairShare -> tr("Cut it in two equal halves. Straight through, one swipe.")
-        FillTheHeart -> tr("Hold to pour. The line hides once the love runs.")
+        FillTheHeart -> tr("Hold to pour, and let go so the love settles right on the line.")
         OtherHalf -> tr("Finish the other half across the fold. One stroke or a few.")
-        Heartbeat -> tr("Count the beats. When it goes quiet, tap on beat eight.")
+        Heartbeat -> tr("Count the beats. When it goes quiet, keep counting in your head.")
         KissTheCenter -> tr("Tap the exact middle of the shape.")
-        PromiseRing -> tr("Draw a circle in one stroke, as round as you can.")
+        PromiseRing -> tr("Draw the shape in one stroke, as true as you can.")
+        CupidsAim -> tr("Loose the arrow so it flies through the heart's center.")
+        SlowKiss -> tr("Hold the lips for the time shown, then let go.")
+        DrawAHeart -> tr("Draw a heart in one stroke, as true as you can.")
     }
 }
 
@@ -76,13 +91,14 @@ data class SkillResult(val kind: SkillKind, val score: Int, val note: String)
 /**
  * One round of [kind], from first touch to the score: the instruction, the play, then the score revealed (counted up,
  * circled, stamped) with its note. [seed] picks the shape or target, so both partners in a duel get the same round.
- * [onDone] gets the result once the reveal has finished; [onAgain] (practice) offers a new round.
+ * [onDone] gets the result once the reveal has finished; [onAgain] (practice) offers a new round. [onScored] gets it the moment
+ * it's scored, before the reveal, so a duel keeps the score even if the round is left while it plays out.
  * Fills the space it's given and draws its own dotted page.
  */
 @Composable
-fun SkillRound(kind: SkillKind, seed: Long, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null) {
+fun SkillRound(kind: SkillKind, seed: Long, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null, onScored: ((SkillResult) -> Unit)? = null) {
     val play = remember(kind, seed) { newPlay(kind, seed) }
-    SkillRoundFrame(play, onDone, modifier, onAgain)
+    SkillRoundFrame(play, onDone, modifier, onAgain, onScored = onScored)
 }
 
 /** The game's picture on its picker blob: a simple line icon in [tint]. */
@@ -92,18 +108,24 @@ fun SkillIcon(kind: SkillKind, tint: Color, size: Dp, modifier: Modifier = Modif
 }
 
 /**
- * Practice: rounds of one skill game, alone, as many as you like. Keeps the best score on the phone.
- * [onBack] leaves for the picker.
+ * Practice: one skill game, alone, a level at a time. Clear a level's pass mark and the next is harder; the best score
+ * and the level reached stay on the phone. [onBack] leaves for the picker.
  */
 @Composable
 fun SkillPracticeScreen(kind: SkillKind, onBack: () -> Unit) {
     PracticeScreen(kind, onBack, rememberSkillBests())
 }
 
-/** Best practice scores, kept on the phone. */
+/** Best practice scores and the levels reached, kept on the phone. */
 interface SkillBests {
     fun best(kind: SkillKind): Int?
     fun record(result: SkillResult)
+
+    /** The highest level opened in practice (where practice picks up), 1 before any is cleared. */
+    fun level(kind: SkillKind): Int = 1
+
+    /** Opens [level] (clearing the one before it). Only ever goes up. */
+    fun reach(kind: SkillKind, level: Int) {}
 
     companion object {
         /** The phone's own best scores (its preferences, keyed by [SkillKind.name]). */

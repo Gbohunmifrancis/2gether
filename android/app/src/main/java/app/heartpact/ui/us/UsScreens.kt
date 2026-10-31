@@ -132,7 +132,7 @@ fun UsTab(
             }
         }
         StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
-            CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
+            CardRow(tr("Play together"), subtitle = tr("Heart to heart, Spot the difference, trivia and more"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
         }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
         Box(Modifier.padding(top = 14.dp)) { location() }
@@ -143,7 +143,7 @@ fun UsTab(
     }
 }
 
-/** The Privacy Policy and Terms of Use, opened on heartpact.app in the app's language. */
+/** The Privacy Policy and Terms of Use, opened on heartpact.me in the app's language. */
 @Composable
 fun LegalCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current

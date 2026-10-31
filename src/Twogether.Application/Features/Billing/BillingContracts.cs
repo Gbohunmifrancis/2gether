@@ -3,7 +3,8 @@ using Twogether.Shared.Results;
 
 namespace Twogether.Application.Features.Billing;
 
-public sealed record PlanLimits(int FoodScansPerDay, long MemoriesBytes, int QuestionHistoryDays);
+/// <param name="ActiveDaresPerPerson">How many daily dares can be active for each partner at once; null is no limit.</param>
+public sealed record PlanLimits(int FoodScansPerDay, long MemoriesBytes, int QuestionHistoryDays, int? ActiveDaresPerPerson = null);
 
 /// <summary>Bound from the "Billing" section.</summary>
 public sealed class BillingSettings
@@ -16,7 +17,7 @@ public sealed class BillingSettings
     public IReadOnlyList<string> ProductIds { get; init; } = [];
     /// <summary>Secret in the Pub/Sub push URL for real-time notifications.</summary>
     public string? RtdnSecret { get; init; }
-    public PlanLimits Free { get; init; } = new(3, 500L * 1024 * 1024, 7);
+    public PlanLimits Free { get; init; } = new(3, 500L * 1024 * 1024, 7, 1);
     public PlanLimits Plus { get; init; } = new(20, 2L * 1024 * 1024 * 1024, 90);
 
     public PlanLimits Limits(Plan plan) => plan == Plan.Plus ? Plus : Free;
@@ -52,6 +53,9 @@ public sealed record SubscriptionSummaryDto(string Store, string ProductId, Stor
 /// CanPurchase is false when my partner already pays: one plan covers both of us. Complimentary: Plus
 /// comes from a grant by Heartpact (support), not a purchase, until ComplimentaryUntilUtc. FreeLimits,
 /// PlusLimits and ProductIds let the app show the comparison and the plans without hard-coding them.
+/// WebCheckout: card checkout (Bachs) is set up, so the website can sell Plus. CardInApp: the app may also offer card
+/// payment next to Google Play (Bachs set up, the bachsInApp flag on, and the person's country in the billing choice
+/// regions).
 /// </summary>
 public sealed record EntitlementDto(
     Plan Plan,
@@ -62,7 +66,9 @@ public sealed record EntitlementDto(
     DateTime? ComplimentaryUntilUtc = null,
     PlanLimits? FreeLimits = null,
     PlanLimits? PlusLimits = null,
-    IReadOnlyList<string>? ProductIds = null);
+    IReadOnlyList<string>? ProductIds = null,
+    bool WebCheckout = false,
+    bool CardInApp = false);
 
 public sealed record VerifyGooglePurchaseRequest(string ProductId, string PurchaseToken);
 

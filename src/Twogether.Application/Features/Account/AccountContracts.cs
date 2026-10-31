@@ -30,6 +30,13 @@ public interface IAccountEraser
 {
     /// <summary>Null when the user no longer exists, for example after a concurrent delete.</summary>
     Task<AccountErasure?> EraseAsync(Guid userId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Call before <see cref="EraseAsync"/>: cancels, now, a card (Bachs) subscription that would otherwise keep
+    /// charging someone who no longer has an account. A failure means nothing may be erased yet: try again later.
+    /// Google Play subscriptions can't be cancelled for the person; they are warned instead.
+    /// </summary>
+    Task<Result> CancelCardSubscriptionsAsync(Guid userId, CancellationToken cancellationToken);
 }
 
 public static class AccountDeletionRules
@@ -53,4 +60,19 @@ public static class AccountDeletionRules
     public static bool WillRenew(StoreSubscription subscription)
         => subscription.AutoRenewing
            && subscription.Status is StoreSubscriptionStatus.Active or StoreSubscriptionStatus.InGracePeriod or StoreSubscriptionStatus.OnHold or StoreSubscriptionStatus.Paused;
+
+    /// <summary>
+    /// What to tell someone deleting their account while a subscription renews, or null when nothing does. Google Play
+    /// keeps charging until they cancel in the Play Store; a card subscription is cancelled with the account, and the
+    /// rest of its period is not refunded.
+    /// </summary>
+    public static string? RenewalWarning(IEnumerable<StoreSubscription> subscriptions)
+    {
+        var renewing = subscriptions.Where(WillRenew).ToList();
+        if (renewing.Any(item => !item.IsBachs))
+            return Loc.T("Your Heartpact Plus subscription keeps renewing after you delete your account. Cancel it in the Play Store, or confirm that you understand.");
+        if (renewing.Count > 0)
+            return Loc.T("Deleting your account cancels your Heartpact Plus card subscription now, and the time left isn't refunded. Confirm that you understand.");
+        return null;
+    }
 }

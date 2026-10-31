@@ -145,7 +145,7 @@ fun AlbumTab(
             ui.note?.let { note -> full("note") { NoteCard(note, Modifier.padding(bottom = 10.dp)) } }
             ui.result?.let { result -> full("result") { ResultCard(result, onDismissResult) } }
             val usage = ui.usage
-            val nearlyFull = usage != null && usage.limitBytes > 0 && usage.usedBytes >= usage.limitBytes * 9 / 10
+            val nearlyFull = usage != null && usage.limitBytes > 0 && usage.usedBytes >= usage.limitBytes * 8 / 10
             val refusedFull = ui.refused.any { it.errorCode == "memories.quota_exceeded" }
             if (onGetPlus != null && (nearlyFull || refusedFull)) full("plus") { PlusPrompt(refusedFull || (usage != null && usage.usedBytes >= usage.limitBytes), onGetPlus) }
             if (ui.waiting.isNotEmpty() || ui.sync != SyncState.Idle) full("banner") { SyncBanner(ui, onSync = { sheetOpen = true }) }

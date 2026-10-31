@@ -1,0 +1,142 @@
+package app.heartpact.ui.games
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import app.heartpact.data.GameSession
+import app.heartpact.data.GameStatus
+import app.heartpact.data.GameType
+import app.heartpact.i18n.tr
+import app.heartpact.ui.components.StickerCard
+import app.heartpact.ui.play.HeartBurst
+import app.heartpact.ui.play.PlayInk
+import app.heartpact.ui.play.unitHeart
+import app.heartpact.ui.theme.Heartpact
+
+/*
+ * What Same answer, Guess my answer, Would you rather and Trivia share: a move you both make at once that crossed
+ * your partner's, and the round-by-round recap under a finished game.
+ */
+
+/**
+ * After a `409` for a move both partners make at once: the move still stands on [after] (the same round, and I
+ * haven't moved in it yet), so it can go again. The partner's move landing first is no reason to lose mine.
+ */
+internal fun GamePlay.resendable(before: GameSession, after: GameSession): Boolean {
+    if (after.id != before.id || after.status != GameStatus.InProgress) return false
+    return when (before.gameType) {
+        GameType.WouldYouRather -> wouldYouRather(after).let { it.round == wouldYouRather(before).round && it.myPick == null }
+        GameType.Trivia -> trivia(after).let { !it.completed && it.round == trivia(before).round && it.myAnswer == null }
+        GameType.CoupleQuiz -> quiz(after).let { it.round == quiz(before).round && it.mine == null }
+        // Connect four: the first disc of the next game, dropped on the fresh board as the server dealt it.
+        GameType.ConnectFour -> grid(before).let { b -> grid(after).let { a ->
+            b.phase == "gameOver" && a.phase == "playing" && a.game == b.game + 1 && a.cells.all { it == null } && after.currentTurnUserId == before.currentTurnUserId } }
+        else -> false
+    }
+}
+
+/**
+ * Same answer's "That counts!" after a `409` (an answer landed first): [round] is still there to count on [after],
+ * revealed, different and not counted yet, so the count goes again. Counted already (by the partner, at the same
+ * moment) means there's nothing left to do.
+ */
+internal fun GamePlay.countStillWanted(after: GameSession, round: Int?): Boolean {
+    if (after.gameType != GameType.CoupleQuiz || round == null) return false
+    if (after.status != GameStatus.InProgress && after.status != GameStatus.Completed) return false
+    val q = quiz(after)
+    return (q.history + listOfNotNull(q.last)).any { it.round == round && it.countable }
+}
+
+/**
+ * One round in a finished game's recap: what was asked, what each of you said, and whether it was a hit. [action] is
+ * something still to do about that round (Same answer's "That counts!"), shown under it.
+ */
+internal data class RecapRow(val question: String, val lines: List<String>, val hit: Boolean, val action: RecapAction? = null)
+
+/** A button under a recap row. */
+internal class RecapAction(val content: @Composable () -> Unit)
+
+/**
+ * The finished game, round by round: each question with both of your answers under it, a heart beside the ones you
+ * matched (or got right). [title] heads the card. Empty for games finished before the server kept the rounds.
+ */
+@Composable
+internal fun RecapCard(rows: List<RecapRow>, modifier: Modifier = Modifier, title: String = tr("Round by round")) {
+    if (rows.isEmpty()) return
+    val colors = Heartpact.colors
+    StickerCard(modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Text(title, style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 6.dp).semantics { heading() })
+        rows.forEachIndexed { i, row ->
+            val hitLabel = if (row.hit) tr("A hit") else tr("A miss")
+            var m = Modifier.fillMaxWidth()
+            if (i > 0) m = m.drawBehind {
+                drawLine(colors.rule, Offset(0f, 0f), Offset(size.width, 0f), 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx())))
+            }
+            Row(
+                m.semantics(mergeDescendants = true) { contentDescription = listOf("${i + 1}. ${row.question}", *row.lines.toTypedArray(), hitLabel).joinToString(". ") }
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                RecapMark(i + 1, row.hit)
+                Column(Modifier.weight(1f)) {
+                    Text(row.question, style = Heartpact.type.label, color = colors.ink)
+                    row.lines.forEach { Text(it, style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 2.dp)) }
+                    row.action?.content?.invoke()
+                }
+            }
+        }
+        Box(Modifier.padding(bottom = 8.dp))
+    }
+}
+
+/** Ink on the pen-pink heart, by day and by night (white on pink is too faint to read). */
+private val OnPen = androidx.compose.ui.graphics.Color(0xFF161A3D)
+
+/**
+ * The round's number in a heart: filled in pen for a hit, an outline for a miss, so it reads without colour. A miss
+ * that turns into a hit while it's on screen (counted after all) bursts with hearts.
+ */
+@Composable
+private fun RecapMark(number: Int, hit: Boolean) {
+    val colors = Heartpact.colors
+    val outline = colors.rule2
+    var was by remember { mutableStateOf(hit) }
+    var burst by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(hit) {
+        if (hit && !was) burst = (burst ?: 0) + 1
+        was = hit
+    }
+    Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+        HeartBurst(burst, Modifier.size(30.dp), count = 10, spread = 60.dp)
+        Canvas(Modifier.size(30.dp)) {
+            translate(center.x, center.y + 1.dp.toPx()) {
+                val heart = unitHeart(size.minDimension * 0.98f)
+                if (hit) drawPath(heart, PlayInk.Pen) else drawPath(heart, outline, style = Stroke(2.dp.toPx()))
+            }
+        }
+        Text("$number", style = Heartpact.type.labelSmall, color = if (hit) OnPen else colors.ink2, modifier = Modifier.padding(bottom = 3.dp))
+    }
+}

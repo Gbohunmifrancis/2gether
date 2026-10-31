@@ -52,10 +52,15 @@ class SessionStore(private val dataStore: DataStore<Preferences>, private val js
 
     suspend fun markOnboardingSeen() = dataStore.edit { it[ONBOARDING] = true }
 
+    /** This person chose to look around before linking: the app opens on Home, with a way to connect from there. */
+    suspend fun connectLater(userId: String) = dataStore.edit { it[CONNECT_LATER] = userId }
+
+    suspend fun connectsLater(userId: String): Boolean = dataStore.data.first()[CONNECT_LATER] == userId
+
     suspend fun clear() {
         token = null
         dataStore.edit {
-            it.remove(TOKEN); it.remove(USER); it.remove(COUPLE_STATUS); it.remove(SIDE)
+            it.remove(TOKEN); it.remove(USER); it.remove(COUPLE_STATUS); it.remove(SIDE); it.remove(CONNECT_LATER)
         }
     }
 
@@ -73,5 +78,6 @@ class SessionStore(private val dataStore: DataStore<Preferences>, private val js
         val COUPLE_STATUS = stringPreferencesKey("couple_status")
         val SIDE = stringPreferencesKey("side")
         val ONBOARDING = booleanPreferencesKey("onboarding_seen")
+        val CONNECT_LATER = stringPreferencesKey("connect_later")
     }
 }

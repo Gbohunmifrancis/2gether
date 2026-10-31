@@ -72,7 +72,7 @@ import kotlin.math.sin
  * The launch moment: each half walks in from its side of the screen, they meet in the middle,
  * and together they become the mark; then the tick cuts itself in and the wordmark rises. The mark opens its eyes,
  * its heart beats twice, and it blinks. [SplashScene] is a pure function of time so every frame can be checked;
- * [AnimatedSplash] plays it, with its sound (`res/raw/splash_love.wav`, made by `tools/splash_sound.py` on this timeline).
+ * [AnimatedSplash] plays it, with its sound (`res/raw/splash_love.ogg`, made by `tools/splash_sound.py` on this timeline).
  */
 object SplashTimeline {
     const val WALK_START = 150f

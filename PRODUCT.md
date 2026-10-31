@@ -36,7 +36,7 @@ One partner sets an exercise goal for the other. At the set time the phone rings
 - **Platform:** Android first, iOS later. Exact alarms need a user grant on Android 14+, and the alarm must stay locally dismissible.
 - **Privacy:** location is mutual-only and never framed as "checking on" a partner (Play stalkerware policy). Health data follows explicit per-feature share levels. Anything the caller may not see is hidden entirely, not greyed out.
 - **Data rules:** the server owns timers, turns, scores, consent and streaks; the app renders server state.
-- **Plans:** Free and Plus. One partner's Plus covers both. Plus gives 20 food scans a day instead of 3, 2 GB of album instead of 500 MB, and 90 days of question history instead of 7.
+- **Plans:** Free and Plus. One partner's Plus covers both. Free has one active daily dare per partner; Plus has unlimited dares, 20 food scans a day instead of 3, 2 GB of album instead of 500 MB, and 90 days of question history instead of 7. Both are warned before a limit bites (album at 80% and 95%, Plus three days before it ends).
 - **Food estimates:** about ±30–40% error. Always shown as a range and labelled as an estimate.
 
 ## Brand Commitments
@@ -47,7 +47,7 @@ The name is **Heartpact** (fallbacks Twinpact and Vowfit; research §7). An earl
 
 - Market, policy and monetization research: `docs/research/mobile-pivot-viability.md`.
 - Backend contracts for every feature: `docs/*.md`.
-- No real users, testimonials, reviews, press, install counts or prices to show. Do not invent any. Plan prices are not set; the Play product ids are `heartpact_plus_monthly` and `heartpact_plus_yearly`.
+- No real users, testimonials, reviews, press or install counts to show. Do not invent any. Plus is $7.99 a month or $39.99 a year in US dollars, with 7 days free on the yearly plan (`docs/research/pricing-2026.md`); the Play product ids are `heartpact_plus_monthly` and `heartpact_plus_yearly`. Any price shown must match Play Console.
 
 ## Product Principles
 

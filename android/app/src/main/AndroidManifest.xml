@@ -42,12 +42,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Invite links: https://heartpact.app/invite/{token} opens the app on the pair screen. -->
+            <!-- Invite links: https://heartpact.me/invite/{token} opens the app on the pair screen. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="heartpact.app" android:pathPrefix="/invite/" />
+                <data android:scheme="https" android:host="heartpact.me" android:pathPrefix="/invite/" />
             </intent-filter>
         </activity>
 

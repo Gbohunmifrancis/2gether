@@ -2,7 +2,7 @@
 """
 Demo data for the admin console: about 240 people over the last 90 days, believable enough to design and review
 the dashboard against. Development only. It needs a local API started like seed.py says (Billing__Provider=fake,
-Email__Provider=log, RateLimits__Enabled=false, Admin__Emails=ops@heartpact.app, plus the monthly prices for the
+Email__Provider=log, RateLimits__Enabled=false, Admin__Emails=ops@heartpact.me, plus the monthly prices for the
 revenue estimate) and psql access to that API's database.
 
     python3 admin/scripts/seed_demo.py --reset                  # wipe the data (schema stays), then seed
@@ -82,9 +82,9 @@ from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
 UTC = dt.timezone.utc
-ADMIN = "ops@heartpact.app"
+ADMIN = "ops@heartpact.me"
 PASSWORD = "longenough"
-MARKER = "qa.team@heartpact.app"  # the first internal account: if it's there, this script seeded the database
+MARKER = "qa.team@heartpact.me"  # the first internal account: if it's there, this script seeded the database
 DEFAULT_PSQL = "psql -h /var/lib/postgresql/heartpact-dev -p 5544 -U postgres -d heartpact"
 FAR = dt.datetime(2100, 1, 1, tzinfo=UTC)  # parks a goal's alarm pointer while the script works on it
 DAY = dt.timedelta(days=1)
@@ -624,9 +624,9 @@ class Planner:
         """The team's own couple and the store reviewer: real usage, left out of analytics."""
         a = Person(len(self.people), "Tobi (team)", MARKER, "male", dt.date(1993, 5, 14), "NG", "en", "Africa/Lagos",
                    at_local("Africa/Lagos", self.day0, 10.2), method="both", internal=True)
-        b = Person(len(self.people) + 1, "Ada (team)", "qa.partner@heartpact.app", "female", dt.date(1995, 9, 2), "NG", "en", "Africa/Lagos",
+        b = Person(len(self.people) + 1, "Ada (team)", "qa.partner@heartpact.me", "female", dt.date(1995, 9, 2), "NG", "en", "Africa/Lagos",
                    a.signup + 7 * MIN, method="password", internal=True)
-        reviewer = Person(len(self.people) + 2, "Play review", "play-review@heartpact.app", "preferNotToSay", dt.date(1990, 1, 1), "US", "en",
+        reviewer = Person(len(self.people) + 2, "Play review", "play-review@heartpact.me", "preferNotToSay", dt.date(1990, 1, 1), "US", "en",
                           "America/Los_Angeles", at_local("America/Los_Angeles", self.day0 + dt.timedelta(days=3), 11), internal=True)
         for p in (a, b, reviewer):
             p.act(p.signup)

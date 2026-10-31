@@ -4,8 +4,20 @@ using Twogether.Core.Entities;
 
 namespace Twogether.Application.Features.Config;
 
-/// <summary>What the apps ask for at start, and what the admin dashboard switches: <c>{ "christmas": true }</c>.</summary>
-public sealed record FeatureFlagsDto(bool Christmas);
+/// <summary>
+/// Every flag, as the admin dashboard reads and switches them: <c>{ "christmas": true, "bachsInApp": false }</c>.
+/// BachsInApp lets the app offer card payment (Bachs) next to Google Play where Google's billing choice allows it.
+/// </summary>
+public sealed record FeatureFlagsDto(bool Christmas, bool BachsInApp = false);
+
+/// <summary>What the apps ask for at start (<c>GET api/config</c>): only what changes how every app looks, nothing personal.</summary>
+public sealed record PublicConfigDto(bool Christmas);
+
+/// <summary>A change to some flags; a flag left null stays as it is.</summary>
+public sealed record FeatureFlagsUpdate(bool? Christmas = null, bool? BachsInApp = null)
+{
+    public bool IsEmpty => Christmas is null && BachsInApp is null;
+}
 
 /// <summary>
 /// Server-wide feature flags, one <c>app_settings</c> row each. A flag nobody has ever set has no row and is off, so
@@ -14,16 +26,27 @@ public sealed record FeatureFlagsDto(bool Christmas);
 public sealed class FeatureFlagService(IApplicationDbContext db, IDateTimeProvider clock)
 {
     public const string ChristmasKey = "feature.christmas";
+    public const string BachsInAppKey = "feature.bachsInApp";
 
     public async Task<FeatureFlagsDto> GetAsync(CancellationToken cancellationToken)
     {
-        // One primary-key read: this runs on every app start.
-        var christmas = await db.AppSettings.AsNoTracking().Where(item => item.Key == ChristmasKey).Select(item => item.Value).FirstOrDefaultAsync(cancellationToken);
-        return new FeatureFlagsDto(IsOn(christmas));
+        var rows = await db.AppSettings.AsNoTracking().Where(item => item.Key == ChristmasKey || item.Key == BachsInAppKey)
+            .Select(item => new { item.Key, item.Value }).ToListAsync(cancellationToken);
+        return new FeatureFlagsDto(IsOn(rows.FirstOrDefault(row => row.Key == ChristmasKey)?.Value), IsOn(rows.FirstOrDefault(row => row.Key == BachsInAppKey)?.Value));
     }
 
-    public async Task SetAsync(FeatureFlagsDto flags, CancellationToken cancellationToken)
-        => await UpsertAsync(ChristmasKey, flags.Christmas ? "true" : "false", cancellationToken);
+    public async Task<PublicConfigDto> GetPublicAsync(CancellationToken cancellationToken)
+    {
+        // One primary-key read: this runs on every app start.
+        var christmas = await db.AppSettings.AsNoTracking().Where(item => item.Key == ChristmasKey).Select(item => item.Value).FirstOrDefaultAsync(cancellationToken);
+        return new PublicConfigDto(IsOn(christmas));
+    }
+
+    public async Task SetAsync(FeatureFlagsUpdate update, CancellationToken cancellationToken)
+    {
+        if (update.Christmas is { } christmas) await UpsertAsync(ChristmasKey, christmas ? "true" : "false", cancellationToken);
+        if (update.BachsInApp is { } bachsInApp) await UpsertAsync(BachsInAppKey, bachsInApp ? "true" : "false", cancellationToken);
+    }
 
     public static bool IsOn(string? stored) => string.Equals(stored, "true", StringComparison.OrdinalIgnoreCase);
 

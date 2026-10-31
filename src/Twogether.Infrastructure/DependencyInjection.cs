@@ -82,6 +82,20 @@ public static class DependencyInjection
             case "fake": services.AddSingleton<IGooglePlayBilling, FakeGooglePlayBilling>(); break;
             default: services.AddSingleton<IGooglePlayBilling, DisabledGooglePlayBilling>(); break;
         }
+        // Billing choice reports use the Play billing service account; without it they wait in the outbox.
+        if (string.Equals(billing.Provider?.Trim(), "googleplay", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(billing.GooglePlayCredentialsJson) && !string.IsNullOrWhiteSpace(billing.GooglePlayPackageName))
+            services.AddSingleton<IGoogleExternalTransactionReporter>(provider => new GoogleExternalTransactionReporter(
+                billing, provider.GetRequiredService<HttpClient>(), provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<GoogleExternalTransactionReporter>>()));
+        else services.AddSingleton<IGoogleExternalTransactionReporter, DisabledGoogleExternalTransactionReporter>();
+
+        var bachs = BuildBachsSettings(configuration);
+        services.AddSingleton(bachs);
+        if (bachs.IsConfigured)
+            services.AddSingleton<IBachsBilling>(provider => new BachsBilling(bachs, provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<BachsBilling>>()));
+        else services.AddSingleton<IBachsBilling, DisabledBachsBilling>();
+        services.AddScoped<BachsSubscriptionSync>();
+
         // Play Integrity reuses the billing service account and package unless given its own.
         var integrity = new PlayIntegritySettings
         {
@@ -104,6 +118,9 @@ public static class DependencyInjection
         var defaults = new BillingSettings();
         int Int(string key, int fallback) => int.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
         long Long(string key, long fallback) => long.TryParse(configuration[key], out var value) && value > 0 ? value : fallback;
+        // Active dares: a positive number caps them, "0" or "none" lifts the cap, unset keeps the default.
+        int? Dares(string key, int? fallback) => configuration[key] is not { } text ? fallback
+            : int.TryParse(text, out var value) && value > 0 ? value : text.Trim() is "0" or "none" ? null : fallback;
         return new BillingSettings
         {
             Provider = configuration["Billing:Provider"],
@@ -111,8 +128,24 @@ public static class DependencyInjection
             GooglePlayCredentialsJson = configuration["Billing:GooglePlayCredentialsJson"],
             ProductIds = (configuration["Billing:ProductIds"] ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             RtdnSecret = configuration["Billing:RtdnSecret"],
-            Free = new PlanLimits(Int("Billing:Free:FoodScansPerDay", defaults.Free.FoodScansPerDay), Long("Billing:Free:MemoriesBytes", defaults.Free.MemoriesBytes), Int("Billing:Free:QuestionHistoryDays", defaults.Free.QuestionHistoryDays)),
-            Plus = new PlanLimits(Int("Billing:Plus:FoodScansPerDay", defaults.Plus.FoodScansPerDay), Long("Billing:Plus:MemoriesBytes", defaults.Plus.MemoriesBytes), Int("Billing:Plus:QuestionHistoryDays", defaults.Plus.QuestionHistoryDays))
+            Free = new PlanLimits(Int("Billing:Free:FoodScansPerDay", defaults.Free.FoodScansPerDay), Long("Billing:Free:MemoriesBytes", defaults.Free.MemoriesBytes), Int("Billing:Free:QuestionHistoryDays", defaults.Free.QuestionHistoryDays), Dares("Billing:Free:ActiveDaresPerPerson", defaults.Free.ActiveDaresPerPerson)),
+            Plus = new PlanLimits(Int("Billing:Plus:FoodScansPerDay", defaults.Plus.FoodScansPerDay), Long("Billing:Plus:MemoriesBytes", defaults.Plus.MemoriesBytes), Int("Billing:Plus:QuestionHistoryDays", defaults.Plus.QuestionHistoryDays), Dares("Billing:Plus:ActiveDaresPerPerson", defaults.Plus.ActiveDaresPerPerson))
+        };
+    }
+
+    private static BachsSettings BuildBachsSettings(IConfiguration configuration)
+    {
+        var defaults = new BachsSettings();
+        static string? Value(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+        return new BachsSettings
+        {
+            ApiKey = Value(configuration["Bachs:ApiKey"]),
+            WebhookSecret = Value(configuration["Bachs:WebhookSecret"]),
+            MonthlyProductId = Value(configuration["Bachs:MonthlyProductId"]),
+            YearlyProductId = Value(configuration["Bachs:YearlyProductId"]),
+            ApiUrl = Value(configuration["Bachs:ApiUrl"]),
+            SuccessUrl = Value(configuration["Bachs:SuccessUrl"]) ?? defaults.SuccessUrl,
+            CancelUrl = Value(configuration["Bachs:CancelUrl"]) ?? defaults.CancelUrl,
         };
     }
 

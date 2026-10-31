@@ -63,7 +63,7 @@ public sealed class SkillDuelRulesTests
             for (var i = 1; i < plan.Count; i++) Assert.NotEqual(plan[i - 1].Kind, plan[i].Kind);
         }
         // Over many duels every kind turns up, in different orders.
-        Assert.Equal(6, Enumerable.Range(0, 50).SelectMany(seed => SkillDuelRules.Plan(seed)).Select(round => round.Kind).Distinct().Count());
+        Assert.Equal(SkillDuelRules.Kinds.Count, Enumerable.Range(0, 50).SelectMany(seed => SkillDuelRules.Plan(seed)).Select(round => round.Kind).Distinct().Count());
         Assert.True(Enumerable.Range(0, 50).Select(seed => SkillDuelRules.Plan(seed)[0].Kind).Distinct().Count() > 1);
 
         var started = Start(42);

@@ -520,5 +520,47 @@ public static class DatabaseSchemaUpgrade
             "UpdatedAtUtc" timestamp with time zone NOT NULL,
             CONSTRAINT "PK_app_settings" PRIMARY KEY ("Key")
         );
+
+        -- Bachs card subscriptions (docs/billing.md): the store's customer, and the time of the newest event applied, so
+        -- an older event delivered late cannot overwrite a newer state. Each handled event id, so a redelivery is a no-op.
+        ALTER TABLE store_subscriptions ADD COLUMN IF NOT EXISTS "ExternalCustomerId" character varying(100) NULL;
+        ALTER TABLE store_subscriptions ADD COLUMN IF NOT EXISTS "LastEventAtUtc" timestamp with time zone NULL;
+        CREATE TABLE IF NOT EXISTS bachs_webhook_events (
+            "Id" character varying(100) NOT NULL,
+            "Type" character varying(100) NOT NULL,
+            "ReceivedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_bachs_webhook_events" PRIMARY KEY ("Id")
+        );
+
+        -- Google Play billing choice: card payments made in the app, waiting to be (or already) reported to Google.
+        CREATE TABLE IF NOT EXISTS google_external_transactions (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "Kind" character varying(20) NOT NULL,
+            "Token" character varying(2048) NULL,
+            "ExternalTransactionId" character varying(63) NOT NULL,
+            "InitialExternalTransactionId" character varying(63) NULL,
+            "BachsSubscriptionId" character varying(100) NULL,
+            "BachsInvoiceId" character varying(100) NULL,
+            "BachsChargeId" character varying(100) NULL,
+            "AmountMicros" bigint NOT NULL,
+            "Currency" character varying(3) NOT NULL,
+            "RegionCode" character varying(2) NOT NULL,
+            "TransactionTimeUtc" timestamp with time zone NULL,
+            "ReportedAtUtc" timestamp with time zone NULL,
+            "Attempts" integer NOT NULL,
+            "NextAttemptAtUtc" timestamp with time zone NULL,
+            "LastError" character varying(200) NULL,
+            "RefundAmountMicros" bigint NULL,
+            "RefundId" character varying(100) NULL,
+            "RefundTimeUtc" timestamp with time zone NULL,
+            "RefundReportedAtUtc" timestamp with time zone NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_google_external_transactions" PRIMARY KEY ("Id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_google_external_transactions_ExternalTransactionId" ON google_external_transactions ("ExternalTransactionId");
+        CREATE INDEX IF NOT EXISTS "IX_google_external_transactions_BachsSubscriptionId" ON google_external_transactions ("BachsSubscriptionId");
+        CREATE INDEX IF NOT EXISTS "IX_google_external_transactions_ReportedAtUtc" ON google_external_transactions ("ReportedAtUtc");
         """;
 }

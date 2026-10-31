@@ -8,20 +8,20 @@ import org.junit.Test
 
 class LegalPagesTest {
     @Test fun englishPagesSitAtTheRoot() {
-        assertEquals("https://heartpact.app/privacy/", LegalPages.privacy("en"))
-        assertEquals("https://heartpact.app/terms/", LegalPages.terms("en"))
+        assertEquals("https://heartpact.me/privacy/", LegalPages.privacy("en"))
+        assertEquals("https://heartpact.me/terms/", LegalPages.terms("en"))
     }
 
     @Test fun translatedPagesSitUnderTheirLanguage() {
         for (language in listOf("fr", "pt", "es", "ar", "hi")) {
-            assertEquals("https://heartpact.app/$language/privacy/", LegalPages.privacy(language))
-            assertEquals("https://heartpact.app/$language/terms/", LegalPages.terms(language))
+            assertEquals("https://heartpact.me/$language/privacy/", LegalPages.privacy(language))
+            assertEquals("https://heartpact.me/$language/terms/", LegalPages.terms(language))
         }
     }
 
     @Test fun otherLanguagesGetEnglish() {
-        assertEquals("https://heartpact.app/privacy/", LegalPages.privacy("de"))
-        assertEquals("https://heartpact.app/terms/", LegalPages.terms(""))
+        assertEquals("https://heartpact.me/privacy/", LegalPages.privacy("de"))
+        assertEquals("https://heartpact.me/terms/", LegalPages.terms(""))
     }
 
     @Test fun taggedWordsBecomeLinks() {

@@ -10,11 +10,15 @@ object PushInbox {
     /** Returns the new list to store, or null when [id] was already handled. */
     fun accept(seen: List<String>, id: String): List<String>? = if (id in seen) null else (seen + id).takeLast(KEEP)
 
-    /** Which tab a tap on this kind of notification should open. */
+    /** Not a tab: the games screen, over home. */
+    const val GAMES = "games"
+
+    /** Which tab a tap on this kind of notification should open; game notices open the games themselves. */
     fun tabFor(type: String?): String = when {
         type == null -> "today"
         type.startsWith("exercise") -> "today"
-        type == "memoriesSynced" || type == "albumSyncReminder" -> "album"
+        type == "memoriesSynced" || type == "albumSyncReminder" || type == "albumAlmostFull" -> "album"
+        type.startsWith("game") -> GAMES
         else -> "us"
     }
 

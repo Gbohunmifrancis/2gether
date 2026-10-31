@@ -5,20 +5,29 @@ using Twogether.Shared.Localization;
 namespace Twogether.Application.Features.Games;
 
 /// <summary>
-/// A short match of turn-by-turn games on a grid, shared by tic-tac-toe and connect four (docs/games.md). Partners
-/// alternate who starts each game (game 0: player 0); a game won scores a point, a draw scores none. The match ends
-/// when someone reaches <see cref="WinsNeeded"/> or after <see cref="GamesInMatch"/> games, most wins taking it.
+/// A short match of turn-by-turn games on a grid: connect four (docs/games.md). Tic-tac-toe played this way too until it
+/// went live (<see cref="TicTacToeRules"/>), and its state still reads as this one's. Partners
+/// alternate who starts each game (game 0: player 0, who is the couple's first player for this match,
+/// <see cref="GameFirstPlayer"/>; game 1: the other; and so on); a game won scores a point, a draw scores none. The
+/// match ends when someone reaches <see cref="WinsNeeded"/> or after <see cref="GamesInMatch"/> games, most wins taking it.
 /// </summary>
 /// <remarks>
-/// After a game ends the finished board stays in the state (phase <c>gameOver</c>, with its winning line) so both
-/// partners see how it went. The next game starts with the next starter's first move: there is no separate "next"
-/// action, so nobody has to press anything for the match to carry on.
+/// After a game ends the finished board stays in the state (phase <c>gameOver</c>, with its winning line) for a beat,
+/// <see cref="NextGameDelayMs"/>, so both partners see how it went; the beat is the session's deadline
+/// (<c>nextGameAtUtc</c> in the state), and when it passes the server starts the next game on a fresh board (the timeout
+/// worker), with nobody pressing anything. The next starter may make the first move up to <see cref="EarlyStartMs"/>
+/// early (phone clocks differ a little), and a move that arrives after the beat is played on the fresh board. A board
+/// left over from before the beat existed (no <c>nextGameAtUtc</c>) is cleared by the next starter's first move, as then.
 /// </remarks>
 public abstract class GridMatchRules : IGameRules
 {
     public const string PlayingPhase = "playing";
     public const string GameOverPhase = "gameOver";
     public const string MatchOverPhase = "matchOver";
+    /// <summary>The beat between a finished game and the next one's fresh board.</summary>
+    public const int NextGameDelayMs = 1500;
+    /// <summary>A first move for the next game may arrive this much before the beat is over.</summary>
+    public const int EarlyStartMs = 250;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private static readonly (int Columns, int Rows)[] Directions = [(1, 0), (0, 1), (1, 1), (1, -1)];
@@ -36,6 +45,12 @@ public abstract class GridMatchRules : IGameRules
     /// <summary>The cell a move at <paramref name="index"/> fills, or <see cref="InvalidOperationException"/> when it can't.</summary>
     protected abstract int Land(GridMatchState state, int? index);
 
+    /// <summary>The beat between games is a deadline: the server starts the next game when it passes.</summary>
+    public bool Timed => true;
+
+    /// <summary>The turns themselves have no clock: a couple may take them hours apart (and get a "your turn" push).</summary>
+    public bool TurnClock => false;
+
     public GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson)
     {
         var state = new GridMatchState
@@ -48,27 +63,57 @@ public abstract class GridMatchRules : IGameRules
             WinsNeeded = WinsNeeded,
             Scores = players.ToDictionary(player => player, _ => 0),
         };
-        return new GameEngineResult(Write(state), state.Players[0], null, false);
+        return Result(state);
     }
 
     public GameEngineResult Apply(GameMove move)
     {
+        var state = Read(move.StateJson);
+        if (string.Equals(move.Action, GameEngine.TimeoutAction, StringComparison.OrdinalIgnoreCase)) return Timeout(state, move);
         if (!string.Equals(move.Action, MoveAction, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(Loc.T("That move isn't part of this game."));
-        var state = Read(move.StateJson);
         if (state.Phase == MatchOverPhase) throw new InvalidOperationException(Loc.T("This match is over."));
         if (state.Players[state.TurnIndex] != move.Actor) throw new InvalidOperationException(Loc.T("It's not your turn yet."));
 
         if (state.Phase == GameOverPhase)
         {
-            // The next starter's first move clears the finished board.
-            state.Game++;
-            state.Cells = Enumerable.Repeat<Guid?>(null, state.Columns * state.Rows).ToList();
-            state.Line = null;
-            state.LastMove = null;
-            state.Phase = PlayingPhase;
+            // The next starter's first move, once the beat is (nearly) over, clears the finished board.
+            if (state.NextGameAtUtc is { } at && move.UtcNow < at.AddMilliseconds(-EarlyStartMs))
+                throw new InvalidOperationException(Loc.T("Get ready, the next game is about to start."));
+            NextGame(state);
         }
+        return Play(state, move);
+    }
 
+    /// <summary>
+    /// The beat after a game is over: the next game starts on a fresh board. A move that arrived after the beat comes
+    /// here too (the server plays the timeout for a late move, keeping its column): the next starter's is played on the
+    /// fresh board, anyone else's dropped.
+    /// </summary>
+    private GameEngineResult Timeout(GridMatchState state, GameMove move)
+    {
+        if (state.Phase != GameOverPhase || state.NextGameAtUtc is { } at && move.UtcNow < at.AddMilliseconds(-EarlyStartMs)) return Result(state);
+        NextGame(state);
+        if (move.Index.HasValue && state.Players[state.TurnIndex] == move.Actor)
+        {
+            try { return Play(state, move); }
+            catch (InvalidOperationException) { /* The late move doesn't fit the fresh board: the board still moves on. */ }
+        }
+        return Result(state);
+    }
+
+    private static void NextGame(GridMatchState state)
+    {
+        state.Game++;
+        state.Cells = Enumerable.Repeat<Guid?>(null, state.Columns * state.Rows).ToList();
+        state.Line = null;
+        state.LastMove = null;
+        state.NextGameAtUtc = null;
+        state.Phase = PlayingPhase;
+    }
+
+    private GameEngineResult Play(GridMatchState state, GameMove move)
+    {
         var cell = Land(state, move.Index);
         state.Cells[cell] = move.Actor;
         state.LastMove = cell;
@@ -79,16 +124,16 @@ public abstract class GridMatchRules : IGameRules
             state.Line = line;
             state.Scores[move.Actor] = state.Scores.GetValueOrDefault(move.Actor) + 1;
             state.Results.Add(move.Actor);
-            return EndGame(state);
+            return EndGame(state, move.UtcNow);
         }
         if (state.Cells.All(owner => owner is not null))
         {
             state.Results.Add(null);
             state.Draws++;
-            return EndGame(state);
+            return EndGame(state, move.UtcNow);
         }
         state.TurnIndex = (state.TurnIndex + 1) % state.Players.Count;
-        return new GameEngineResult(Write(state), state.Players[state.TurnIndex], null, false);
+        return Result(state);
     }
 
     /// <summary>Nothing in a grid game is secret: both partners see the whole board.</summary>
@@ -100,21 +145,30 @@ public abstract class GridMatchRules : IGameRules
         return new GameScoreSummary(state.Scores, state.Results.Count, state.WinnerUserId);
     }
 
-    private static GameEngineResult EndGame(GridMatchState state)
+    private static GameEngineResult EndGame(GridMatchState state, DateTime utcNow)
     {
         var finished = state.Results.Count >= state.TotalGames || state.Scores.Values.Any(wins => wins >= state.WinsNeeded);
         if (!finished)
         {
             state.Phase = GameOverPhase;
+            // The next game's starter: the partners take turns starting, game by game.
             state.TurnIndex = (state.Game + 1) % state.Players.Count;
-            return new GameEngineResult(Write(state), state.Players[state.TurnIndex], null, false);
+            state.NextGameAtUtc = utcNow.AddMilliseconds(NextGameDelayMs);
+            return Result(state);
         }
         state.Phase = MatchOverPhase;
+        state.NextGameAtUtc = null;
         var best = state.Scores.Values.Max();
         var leaders = state.Scores.Where(item => item.Value == best).Select(item => item.Key).ToList();
         state.WinnerUserId = leaders.Count == 1 ? leaders[0] : null;
         return new GameEngineResult(Write(state), null, null, true);
     }
+
+    /// <summary>Whose turn it is (during the beat: the next game's starter); the deadline is the next game's start while a finished board is up.</summary>
+    private static GameEngineResult Result(GridMatchState state)
+        => state.Phase == MatchOverPhase
+            ? new GameEngineResult(Write(state), null, null, true)
+            : new GameEngineResult(Write(state), state.Players[state.TurnIndex], state.Phase == GameOverPhase ? state.NextGameAtUtc : null, false);
 
     /// <summary>Every cell of a run of <see cref="InARow"/> or more through <paramref name="cell"/>, in board order; null if none.</summary>
     private List<int>? LineThrough(GridMatchState state, int cell)
@@ -170,4 +224,6 @@ public sealed class GridMatchState
     /// <summary>Each finished game's winner, or null for a draw.</summary>
     public List<Guid?> Results { get; set; } = [];
     public Guid? WinnerUserId { get; set; }
+    /// <summary>While a finished board is up: when the next game starts (server time). Null for a board from before the beat.</summary>
+    public DateTime? NextGameAtUtc { get; set; }
 }

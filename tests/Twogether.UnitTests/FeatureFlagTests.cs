@@ -25,7 +25,7 @@ public sealed class FeatureFlagTests : IDisposable
     {
         var http = new DefaultHttpContext
         {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.app")], "test")),
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.me")], "test")),
         };
         return new AdminFeaturesController(new FeatureFlagService(db, clock), new AdminAudit(db, clock, new HttpContextAccessor { HttpContext = http }), db)
         {
@@ -48,12 +48,12 @@ public sealed class FeatureFlagTests : IDisposable
         await using var db = database.CreateContext();
         var service = new FeatureFlagService(db, clock);
 
-        await service.SetAsync(new FeatureFlagsDto(true), default);
+        await service.SetAsync(new FeatureFlagsUpdate(true), default);
         Assert.True((await service.GetAsync(default)).Christmas);
         clock.UtcNow = clock.UtcNow.AddHours(1);
-        await service.SetAsync(new FeatureFlagsDto(false), default);
+        await service.SetAsync(new FeatureFlagsUpdate(false), default);
         Assert.False((await service.GetAsync(default)).Christmas);
-        await service.SetAsync(new FeatureFlagsDto(true), default);
+        await service.SetAsync(new FeatureFlagsUpdate(true), default);
 
         await using var check = database.CreateContext();
         var row = await check.AppSettings.AsNoTracking().SingleAsync();
@@ -81,8 +81,8 @@ public sealed class FeatureFlagTests : IDisposable
         await using var second = database.CreateContext();
 
         await Task.WhenAll(
-            new FeatureFlagService(first, clock).SetAsync(new FeatureFlagsDto(true), default),
-            new FeatureFlagService(second, clock).SetAsync(new FeatureFlagsDto(true), default));
+            new FeatureFlagService(first, clock).SetAsync(new FeatureFlagsUpdate(true), default),
+            new FeatureFlagService(second, clock).SetAsync(new FeatureFlagsUpdate(true), default));
 
         await using var check = database.CreateContext();
         Assert.Equal("true", (await check.AppSettings.AsNoTracking().SingleAsync()).Value);
@@ -92,7 +92,7 @@ public sealed class FeatureFlagTests : IDisposable
     public async Task The_public_config_is_anonymous_cacheable_for_60_seconds_and_camel_case()
     {
         await using var db = database.CreateContext();
-        await new FeatureFlagService(db, clock).SetAsync(new FeatureFlagsDto(true), default);
+        await new FeatureFlagService(db, clock).SetAsync(new FeatureFlagsUpdate(true), default);
         var method = typeof(ConfigController).GetMethod(nameof(ConfigController.Get))!;
 
         Assert.NotNull(method.GetCustomAttributes(typeof(AllowAnonymousAttribute), true).SingleOrDefault());
@@ -102,7 +102,7 @@ public sealed class FeatureFlagTests : IDisposable
         Assert.False(cache.NoStore);
 
         var result = await new ConfigController(new FeatureFlagService(db, clock)).Get(default);
-        var dto = Assert.IsType<FeatureFlagsDto>(Assert.IsType<OkObjectResult>(result.Result).Value);
+        var dto = Assert.IsType<PublicConfigDto>(Assert.IsType<OkObjectResult>(result.Result).Value);
         Assert.Equal("{\"christmas\":true}", JsonSerializer.Serialize(dto, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
     }
 
@@ -120,15 +120,36 @@ public sealed class FeatureFlagTests : IDisposable
         await using var check = database.CreateContext();
         Assert.False((await new FeatureFlagService(check, clock).GetAsync(default)).Christmas);
         var events = (await check.AdminAuditEvents.AsNoTracking().ToListAsync()).Select(item => (item.Action, item.TargetType, item.TargetId, item.Details, item.AdminEmail)).ToList();
-        Assert.Contains(("features.updated", "feature", "christmas", "christmas: off -> on", "ops@heartpact.app"), events);
-        Assert.Contains(("features.updated", "feature", "christmas", "christmas: on -> off", "ops@heartpact.app"), events);
+        Assert.Contains(("features.updated", "feature", "christmas", "christmas: off -> on", "ops@heartpact.me"), events);
+        Assert.Contains(("features.updated", "feature", "christmas", "christmas: on -> off", "ops@heartpact.me"), events);
+    }
+
+    [Fact]
+    public async Task Card_payments_in_the_app_start_off_and_switch_alone_without_touching_christmas()
+    {
+        await using var db = database.CreateContext();
+        await new FeatureFlagService(db, clock).SetAsync(new FeatureFlagsUpdate(Christmas: true), default);
+        var admin = Admin(db);
+
+        Assert.False(Assert.IsType<FeatureFlagsDto>(Assert.IsType<OkObjectResult>((await admin.Get(default)).Result).Value).BachsInApp);
+        var on = Assert.IsType<FeatureFlagsDto>(Assert.IsType<OkObjectResult>((await admin.Put(new AdminFeaturesRequest(BachsInApp: true), default)).Result).Value);
+
+        Assert.Equal(new FeatureFlagsDto(Christmas: true, BachsInApp: true), on);
+        Assert.Equal("{\"christmas\":true,\"bachsInApp\":true}", JsonSerializer.Serialize(on, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        await using var check = database.CreateContext();
+        Assert.Equal("true", (await check.AppSettings.AsNoTracking().SingleAsync(item => item.Key == "feature.bachsInApp")).Value);
+        var events = (await check.AdminAuditEvents.AsNoTracking().ToListAsync()).Select(item => (item.Action, item.TargetId, item.Details)).ToList();
+        Assert.Equal([("features.updated", "bachsInApp", "bachsInApp: off -> on")], events);
+        // The public config stays what every app needs at start; card payment is per person, in the entitlement.
+        var config = await new ConfigController(new FeatureFlagService(check, clock)).Get(default);
+        Assert.Equal("{\"christmas\":true}", JsonSerializer.Serialize(Assert.IsType<OkObjectResult>(config.Result).Value, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
     }
 
     [Fact]
     public async Task A_body_without_the_flag_is_refused_instead_of_switching_it_off()
     {
         await using var db = database.CreateContext();
-        await new FeatureFlagService(db, clock).SetAsync(new FeatureFlagsDto(true), default);
+        await new FeatureFlagService(db, clock).SetAsync(new FeatureFlagsUpdate(true), default);
 
         var result = await Admin(db).Put(new AdminFeaturesRequest(null), default);
 

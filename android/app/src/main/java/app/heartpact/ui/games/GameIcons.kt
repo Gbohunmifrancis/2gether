@@ -39,6 +39,9 @@ internal val GameType.blob: BlobColour get() = when (this) {
     GameType.Handwriting -> BlobColour.Sky
     GameType.TicTacToe -> BlobColour.Butter
     GameType.ConnectFour -> BlobColour.Peach
+    GameType.SpotTheDifference -> BlobColour.Lime
+    GameType.SnakesAndLadders -> BlobColour.Orchid
+    GameType.Unknown -> BlobColour.Indigo
 }
 
 /** A couple game's line icon, [size] across, in [tint]. */
@@ -61,6 +64,9 @@ internal fun GameIcon(type: GameType, tint: Color, size: Dp, modifier: Modifier 
             GameType.TruthOrDare -> icon.flame()
             GameType.GuessMyAnswer -> icon.magnifier()
             GameType.SkillDuel -> icon.twoHearts()
+            GameType.SpotTheDifference -> icon.twoPictures()
+            GameType.SnakesAndLadders -> icon.snakeAndLadder()
+            GameType.Unknown -> icon.question()
         }
     }
 }
@@ -189,6 +195,34 @@ private class IconPen(val d: DrawScope, val u: Float, val tint: Color, val line:
         d.drawCircle(tint, 6.5f * u, p(10f, 10f), style = line)
         d.drawLine(tint, p(14.8f, 14.8f), p(20.5f, 20.5f), line.width * 1.4f, StrokeCap.Round)
         d.translate(10f * u, 10.4f * u) { d.drawPath(unitHeart(5.2f * u), tint) }
+    }
+
+    /** Two little pictures side by side, the second with one thing circled: spot the difference. */
+    fun twoPictures() {
+        box(2f, 6f, 9.5f, 12f, 2f)
+        box(12.5f, 6f, 9.5f, 12f, 2f)
+        d.drawCircle(tint, 1.7f * u, p(5.4f, 10f))
+        d.drawCircle(tint, 1.7f * u, p(15.9f, 10f))
+        d.translate(7.6f * u, 14.6f * u) { d.drawPath(unitHeart(4f * u), tint) }
+        // The difference: the heart is gone from the second picture, circled where it was.
+        d.drawCircle(tint, 3.4f * u, p(18.1f, 14.4f), style = line)
+    }
+
+    /** A ladder leaning up and a little snake curling down beside it, with a heart at the top: snakes and ladders. */
+    fun snakeAndLadder() {
+        seg(4.5f, 20.5f, 9.5f, 4.5f)
+        seg(9f, 21.5f, 14f, 5.5f)
+        for (i in 1..4) {
+            val t = i / 5f
+            seg(4.5f + 5f * t, 20.5f - 16f * t, 9f + 5f * t, 21.5f - 16f * t)
+        }
+        path {
+            moveTo(17.5f * u, 6f * u)
+            cubicTo(21.5f * u, 8f * u, 14f * u, 11.5f * u, 18f * u, 14f * u)
+            cubicTo(21.5f * u, 16f * u, 17f * u, 19.5f * u, 20.5f * u, 21f * u)
+        }
+        d.drawCircle(tint, 1.6f * u, p(17.3f, 5.6f))
+        d.translate(12f * u, 2.6f * u) { d.drawPath(unitHeart(3.6f * u), tint) }
     }
 
     /** Two hearts leaning in: heart to heart. */

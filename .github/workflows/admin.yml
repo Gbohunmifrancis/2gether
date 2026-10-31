@@ -66,7 +66,7 @@ jobs:
           RateLimits__Enabled: "false"
           Email__Provider: log
           Billing__Provider: fake
-          Admin__Emails: ops@heartpact.app
+          Admin__Emails: ops@heartpact.me
           Admin__Currency: GBP
           Admin__MonthlyPrices__heartpact_plus_monthly: "4.99"
           Admin__MonthlyPrices__heartpact_plus_yearly: "3.33"

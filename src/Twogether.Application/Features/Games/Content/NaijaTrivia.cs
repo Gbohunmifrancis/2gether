@@ -8,7 +8,7 @@ namespace Twogether.Application.Features.Games;
 /// </summary>
 public static class NaijaTrivia
 {
-    public static IReadOnlyList<TriviaQuestion> Draw(int count) => TriviaItem.Draw(Questions, count, translate: false);
+    public static IReadOnlyList<TriviaQuestion> Draw(int count, IReadOnlySet<string>? seen = null) => TriviaItem.Draw(Questions, count, translate: false, seen);
 
     public static readonly IReadOnlyList<TriviaItem> Questions =
     [

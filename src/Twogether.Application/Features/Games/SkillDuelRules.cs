@@ -11,6 +11,12 @@ namespace Twogether.Application.Features.Games;
 /// higher score, a tie is a heart each; the duel goes to whoever has more hearts. Level on hearts, the higher total of
 /// points breaks the tie; level on both, it's a tie.
 /// </summary>
+/// <remarks>
+/// The phone says when a round starts (<c>open</c>). Opening a round again without having scored it (backing out to
+/// try again) deals that player a different seed for it (<see cref="Reseed"/>): the same kind, still at level 1, but
+/// another shape or target, so a round can't be scouted and replayed. The partner's round keeps its own seed. A score
+/// may name the seed it was played on (<c>{"score": n, "seed": s}</c>); it must be the player's current one.
+/// </remarks>
 public sealed class SkillDuelRules : IGameRules
 {
     public const int Rounds = 5;
@@ -19,7 +25,8 @@ public sealed class SkillDuelRules : IGameRules
     private const string CompletedPhase = "completed";
 
     /// <summary>The skill games, by the app's <c>SkillKind</c> names (ui/play/Skills.kt): they travel as is.</summary>
-    public static readonly IReadOnlyList<string> Kinds = ["FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing"];
+    public static readonly IReadOnlyList<string> Kinds =
+        ["FairShare", "FillTheHeart", "OtherHalf", "Heartbeat", "KissTheCenter", "PromiseRing", "CupidsAim", "SlowKiss", "DrawAHeart"];
 
     private static readonly JsonSerializerOptions SetupJson = new(JsonSerializerDefaults.Web);
     private static readonly JsonSerializerOptions PublicJson = new(JsonSerializerDefaults.Web);
@@ -27,6 +34,12 @@ public sealed class SkillDuelRules : IGameRules
     public GameType Type => GameType.SkillDuel;
 
     public bool AnyoneMayAct => true;
+
+    /// <summary>
+    /// Each score is one partner's own round, judged on arrival (a round scored twice is refused), so two scores sent
+    /// at the same moment never need a reload and a resend.
+    /// </summary>
+    public bool MovesMayCross => true;
 
     /// <summary>The setup for a new duel: its region, a seed, and the five rounds that seed draws.</summary>
     public static string CreateSetup(string region, int? seed = null)
@@ -36,7 +49,7 @@ public sealed class SkillDuelRules : IGameRules
     }
 
     /// <summary>
-    /// Five rounds from a seed: five of the six kinds in a shuffled order (so none comes twice, let alone twice in a
+    /// Five rounds from a seed: five of the kinds in a shuffled order (so none comes twice, let alone twice in a
     /// row), each with its own seed for the shape or target.
     /// </summary>
     public static List<Round> Plan(int seed)
@@ -56,9 +69,13 @@ public sealed class SkillDuelRules : IGameRules
         return new GameEngineResult(JsonSerializer.Serialize(state), state.Players[0], null, false);
     }
 
+    public const string OpenAction = "open";
+    public const string ScoreAction = "score";
+
     public GameEngineResult Apply(GameMove move)
     {
-        if (!string.Equals(move.Action, "score", StringComparison.OrdinalIgnoreCase))
+        var open = string.Equals(move.Action, OpenAction, StringComparison.OrdinalIgnoreCase);
+        if (!open && !string.Equals(move.Action, ScoreAction, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(Loc.T("Heart to heart expects a score."));
         var state = Read(move.StateJson);
         if (state.Phase == CompletedPhase) throw new InvalidOperationException(Loc.T("This game is over."));
@@ -66,16 +83,73 @@ public sealed class SkillDuelRules : IGameRules
             throw new InvalidOperationException(Loc.T("You are not a player in this game."));
         if (move.Index is not { } round || round < 0 || round >= state.Rounds.Count)
             throw new InvalidOperationException(Loc.T("Pick one of the five rounds."));
-        var score = ParseScore(move.Value) ?? throw new InvalidOperationException(Loc.T("A score is a whole number from 0 to 100."));
         if (mine[round] is not null) throw new InvalidOperationException(Loc.T("You already played this round."));
+
+        if (open)
+        {
+            // Backing out of a round and opening it again deals another round of the same kind.
+            var opens = Slots(state.Opens, move.Actor, state.Rounds.Count, 0);
+            if (opens[round] > 0) Slots(state.Seeds, move.Actor, state.Rounds.Count, (int?)null)[round] = Reseed(SeedOf(state, move.Actor, round), opens[round]);
+            opens[round]++;
+            return Result(state, move.Actor, completed: false);
+        }
+
+        var (score, seed) = ParseScore(move.Value);
+        if (score is null) throw new InvalidOperationException(Loc.T("A score is a whole number from 0 to 100."));
+        // A score played on a round this player has since been dealt again is for a round that's gone.
+        if (seed is { } played && played != SeedOf(state, move.Actor, round))
+            throw new InvalidOperationException(Loc.T("That round was dealt again. Play it once more."));
         mine[round] = score;
 
         var completed = state.Players.All(player => Finished(state, player));
         if (completed) state.Phase = CompletedPhase;
-        // Both may play at any time; the turn names whoever still has rounds to play, the partner first.
-        var partner = state.Players.FirstOrDefault(player => player != move.Actor);
-        Guid? next = completed ? null : partner != Guid.Empty && !Finished(state, partner) ? partner : move.Actor;
+        return Result(state, move.Actor, completed);
+    }
+
+    /// <summary>Both may play at any time; the turn names whoever still has rounds to play, the partner first.</summary>
+    private static GameEngineResult Result(State state, Guid actor, bool completed)
+    {
+        var partner = state.Players.FirstOrDefault(player => player != actor);
+        Guid? next = completed ? null : partner != Guid.Empty && !Finished(state, partner) ? partner : actor;
         return new GameEngineResult(JsonSerializer.Serialize(state), next, null, completed);
+    }
+
+    /// <summary>The seed <paramref name="player"/> plays <paramref name="round"/> on: their own once they've been dealt it again, else the round's.</summary>
+    public static int SeedOf(string stateJson, Guid player, int round) => SeedOf(Read(stateJson), player, round);
+
+    private static int SeedOf(State state, Guid player, int round)
+        => state.Seeds.TryGetValue(player, out var seeds) && round < seeds.Count && seeds[round] is { } own ? own : state.Rounds[round].Seed;
+
+    /// <summary>
+    /// The seed for a round dealt again: drawn from the one it replaces and how many times it has been opened, so it's
+    /// the same on every server, and never the one it replaces.
+    /// </summary>
+    public static int Reseed(int seed, int opens)
+    {
+        var random = new Random(unchecked(seed ^ (opens * 0x5BD1E995)));
+        var next = random.Next();
+        while (next == seed) next = random.Next();
+        return next;
+    }
+
+    /// <summary>
+    /// The score just sent finished <paramref name="actor"/>'s five rounds while their partner still has some to play
+    /// (the moment the partner is reminded, docs/games.md). It happens once per duel: the second to finish ends it.
+    /// </summary>
+    public static bool FinishedFirst(string before, string after, Guid actor)
+    {
+        var then = Read(before);
+        var now = Read(after);
+        var partner = now.Players.FirstOrDefault(player => player != actor);
+        return !Finished(then, actor) && Finished(now, actor) && partner != Guid.Empty && !Finished(now, partner);
+    }
+
+    /// <summary>A player's list in <paramref name="lists"/>, one slot per round, made (or filled out) when missing.</summary>
+    private static List<T> Slots<T>(Dictionary<Guid, List<T>> lists, Guid player, int rounds, T empty)
+    {
+        if (!lists.TryGetValue(player, out var list)) lists[player] = list = [];
+        while (list.Count < rounds) list.Add(empty);
+        return list;
     }
 
     public string ToPublicState(string stateJson, Guid? viewer)
@@ -101,7 +175,10 @@ public sealed class SkillDuelRules : IGameRules
                 {
                     index,
                     round.Kind,
-                    round.Seed,
+                    // The viewer's own seed: a round they backed out of and opened again has been dealt anew.
+                    seed = me is { } own ? SeedOf(state, own, index) : round.Seed,
+                    // How many times the viewer has opened this round (on any phone): opening it again without a score deals it anew.
+                    opens = me is { } opener && state.Opens.TryGetValue(opener, out var counts) && index < counts.Count ? counts[index] : 0,
                     mine = myScore,
                     // The partner's score is theirs alone until you've played the round too; until then, only that they have.
                     partner = myScore is null ? null : theirs,
@@ -152,21 +229,25 @@ public sealed class SkillDuelRules : IGameRules
         return new SkillDuelTally(scores, anyPlayed && hearts.Count == 2 ? Math.Abs(hearts[0] - hearts[1]) : null, finished && Decide(state).Winner is null);
     }
 
-    /// <summary>The score in <c>{"score": n}</c>: a whole number from 0 to 100, nothing else.</summary>
-    private static int? ParseScore(string? value)
+    /// <summary>
+    /// The score in <c>{"score": n}</c>: a whole number from 0 to 100; and the seed it was played on (<c>"seed"</c>, a
+    /// whole number), when the phone says.
+    /// </summary>
+    private static (int? Score, int? Seed) ParseScore(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (string.IsNullOrWhiteSpace(value)) return (null, null);
         try
         {
             using var document = JsonDocument.Parse(value);
             var root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object) return null;
-            if (!root.TryGetProperty("score", out var score) || score.ValueKind != JsonValueKind.Number || !score.TryGetInt32(out var n)) return null;
-            return n is >= 0 and <= MaxScore ? n : null;
+            if (root.ValueKind != JsonValueKind.Object) return (null, null);
+            if (!root.TryGetProperty("score", out var score) || score.ValueKind != JsonValueKind.Number || !score.TryGetInt32(out var n)) return (null, null);
+            int? seed = root.TryGetProperty("seed", out var played) && played.ValueKind == JsonValueKind.Number && played.TryGetInt32(out var s) ? s : null;
+            return (n is >= 0 and <= MaxScore ? n : null, seed);
         }
         catch (JsonException)
         {
-            return null;
+            return (null, null);
         }
     }
 
@@ -266,6 +347,10 @@ public sealed class SkillDuelRules : IGameRules
         /// <summary>Each player's score per round, null until played.</summary>
         public Dictionary<Guid, List<int?>> Scores { get; set; } = [];
         public string Phase { get; set; } = PlayingPhase;
+        /// <summary>Each player's own seed per round once they've been dealt it again (null: the round's). Empty in a duel from before.</summary>
+        public Dictionary<Guid, List<int?>> Seeds { get; set; } = [];
+        /// <summary>How many times each player has opened each round (any phone). Empty in a duel from before.</summary>
+        public Dictionary<Guid, List<int>> Opens { get; set; } = [];
     }
 }
 

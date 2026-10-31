@@ -43,6 +43,8 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
         .readTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(bearer(session))
         .addInterceptor(language())
+        // How far this phone's clock is from the server's, for counting down to server deadlines (ServerClock).
+        .addNetworkInterceptor(ServerClock.interceptor())
         .apply {
             // Bodies carry passwords and tokens: log only method, URL and status, and only in debug.
             if (BuildConfig.DEBUG) addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))

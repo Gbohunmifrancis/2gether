@@ -76,8 +76,11 @@ import kotlinx.coroutines.delay
  * and board, and the score it hands over when the round ends.
  */
 
-/** One round of one game: its state, its board and (for some) its buttons. Created per round from the seed. */
-internal abstract class SkillPlay(val kind: SkillKind, val seed: Long) {
+/**
+ * One round of one game: its state, its board and (for some) its buttons. Created per round from the seed and the
+ * [difficulty] (Levels.kt), which the game reads for its shapes, speeds and how strictly it scores.
+ */
+internal abstract class SkillPlay(val kind: SkillKind, val seed: Long, val difficulty: Difficulty = Difficulty.Start) {
     /** The score, once the round is played; the frame reveals it [revealAfterMs] later, once the board has settled. */
     var scored by mutableStateOf<Scored?>(null)
         private set
@@ -87,6 +90,9 @@ internal abstract class SkillPlay(val kind: SkillKind, val seed: Long) {
     /** The score, revealed. */
     var result by mutableStateOf<SkillResult?>(null)
         internal set
+
+    /** What to do, at the top of the round: the game's instruction, unless a round says something more particular. */
+    open val instruction: String get() = kind.instruction
 
     /** A live line under the instruction while playing ("Keep going..."), or empty. */
     var hint by mutableStateOf("")
@@ -105,25 +111,32 @@ internal abstract class SkillPlay(val kind: SkillKind, val seed: Long) {
     open val hasControls: Boolean get() = false
 }
 
-internal fun newPlay(kind: SkillKind, seed: Long): SkillPlay = when (kind) {
-    SkillKind.FairShare -> FairSharePlay(seed)
-    SkillKind.FillTheHeart -> FillPlay(seed)
-    SkillKind.OtherHalf -> OtherHalfPlay(seed)
-    SkillKind.Heartbeat -> HeartbeatPlay(seed)
-    SkillKind.KissTheCenter -> KissPlay(seed)
-    SkillKind.PromiseRing -> RingPlay(seed)
+internal fun newPlay(kind: SkillKind, seed: Long, difficulty: Difficulty = Difficulty.Start): SkillPlay = when (kind) {
+    SkillKind.FairShare -> FairSharePlay(seed, difficulty)
+    SkillKind.FillTheHeart -> FillPlay(seed, difficulty)
+    SkillKind.OtherHalf -> OtherHalfPlay(seed, difficulty)
+    SkillKind.Heartbeat -> HeartbeatPlay(seed, difficulty)
+    SkillKind.KissTheCenter -> KissPlay(seed, difficulty)
+    SkillKind.PromiseRing -> RingPlay(seed, difficulty)
+    SkillKind.CupidsAim -> CupidPlay(seed, difficulty)
+    SkillKind.SlowKiss -> SlowKissPlay(seed, difficulty)
+    SkillKind.DrawAHeart -> DrawHeartPlay(seed, difficulty)
 }
 
 /** How long the score reveal takes to count, circle and stamp (ScoreReveal's own timings). */
 internal fun revealMs(score: Int): Long = 650L + score * 4 + 380 + 420
 
 @Composable
-internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null) {
+internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, modifier: Modifier = Modifier, onAgain: (() -> Unit)? = null, againLabel: String? = null,
+    onScored: ((SkillResult) -> Unit)? = null) {
     val colors = Heartpact.colors
     val done by rememberUpdatedState(onDone)
+    val locked by rememberUpdatedState(onScored)
     val scored = play.scored
     LaunchedEffect(scored) {
         if (scored == null) return@LaunchedEffect
+        // The score is final the moment it's made, before the reveal plays: leaving during the reveal can't undo it.
+        locked?.invoke(SkillResult(play.kind, scored.score, scored.note))
         delay(play.revealAfterMs)
         val r = SkillResult(play.kind, scored.score, scored.note)
         play.result = r
@@ -133,7 +146,7 @@ internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, mod
     val result = play.result
     Column(modifier.fillMaxSize().dottedPage(colors.rule2)) {
         Column(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp)) {
-            Text(play.kind.instruction, style = Heartpact.type.body, color = colors.ink2)
+            Text(play.instruction, style = Heartpact.type.body, color = colors.ink2)
             val line = result?.note ?: play.hint
             AnimatedContent(line, transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }, label = "line") { text ->
                 Text(
@@ -150,7 +163,7 @@ internal fun SkillRoundFrame(play: SkillPlay, onDone: (SkillResult) -> Unit, mod
         }
         Box(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 10.dp, bottom = 18.dp).height(56.dp), contentAlignment = Alignment.Center) {
             when {
-                result != null && onAgain != null -> HeartButton(tr("New round"), onAgain)
+                result != null && onAgain != null -> HeartButton(againLabel ?: tr("New round"), onAgain)
                 result == null && scored == null && play.hasControls -> play.Controls(Modifier.fillMaxWidth())
                 result == null && scored == null && onAgain != null -> HeartButton(tr("New round"), onAgain, kind = ButtonKind.Outline)
             }

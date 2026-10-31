@@ -41,7 +41,7 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         var session = await GetOwnedSession(sessionId);
         if (session.Status != GameSessionStatus.InProgress) throw new HubException("The game is not in progress.");
         if (session.CountdownEndsAtUtc > clock.UtcNow) throw new HubException("Wait for the countdown to finish.");
-        if (session.StateVersion != expectedStateVersion) throw new HubException("The game state changed. Reload before acting.");
+        if (session.StateVersion != expectedStateVersion && !engine.MovesMayCross(session.GameType)) throw new HubException("The game state changed. Reload before acting.");
         if (!engine.AnyoneMayAct(session.GameType) && session.CurrentTurnUserId != currentUser.UserId!.Value) throw new HubException(Loc.T("It is not this player's turn."));
         GameEngineResult next;
         var expired = session.DeadlineUtc is { } deadline && deadline <= clock.UtcNow;
@@ -62,6 +62,7 @@ public sealed class GameHub(IApplicationDbContext db, ICurrentUser currentUser, 
         {
             throw new HubException("Your partner just updated the game. Reload the latest board and try again.");
         }
+        await GameHistory.KeepAsync(db, engine, session, GameOutcome.Completed, clock.UtcNow, Context.ConnectionAborted);
         // Same event names and same payload shape as GameController and
         // GameTimeoutWorker, so a client can handle a game update from any
         // source with one code path.

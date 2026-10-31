@@ -18,6 +18,8 @@ public static class DependencyInjection
         services.AddSingleton<IGameOutcomeService, GameOutcomeService>();
         services.AddScoped<IEntitlementService, EntitlementService>();
         services.AddScoped<GooglePlaySubscriptionSync>();
+        services.AddScoped<BachsCheckoutService>();
+        services.AddScoped<GoogleExternalTransactionSender>();
         services.AddScoped<AccountExportService>();
         services.AddScoped<AvatarService>();
         services.AddScoped<Twogether.Application.Features.Config.FeatureFlagService>();

@@ -56,9 +56,9 @@ class PlusOffersTest {
     }
 
     @Test fun `the comparison reads the server's limits`() {
-        val rows = PlusOffers.comparison(PlanLimits(3, 500L * 1024 * 1024, 7), PlanLimits(20, 2L * 1024 * 1024 * 1024, 90))
-        assertEquals(listOf("3", "500 MB", "7 days"), rows.map { it.second })
-        assertEquals(listOf("20", "2 GB", "90 days"), rows.map { it.third })
+        val rows = PlusOffers.comparison(PlanLimits(3, 500L * 1024 * 1024, 7, activeDaresPerPerson = 1), PlanLimits(20, 2L * 1024 * 1024 * 1024, 90))
+        assertEquals(listOf("1 each", "3", "500 MB", "7 days"), rows.map { it.second })
+        assertEquals(listOf("Unlimited", "20", "2 GB", "90 days"), rows.map { it.third })
         assertEquals("1.5 GB", PlusOffers.storage(1536L * 1024 * 1024))
     }
 }

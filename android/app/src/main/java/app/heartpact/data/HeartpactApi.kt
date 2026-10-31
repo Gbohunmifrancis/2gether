@@ -241,6 +241,9 @@ interface HeartpactApi {
     @GET("api/game/sessions")
     suspend fun gameSessions(): Response<List<GameSession>>
 
+    @GET("api/game/history")
+    suspend fun gameHistory(@Query("limit") limit: Int): Response<List<GameHistoryItem>>
+
     @POST("api/game/sessions")
     suspend fun createGame(@Body request: CreateGameRequest): Response<GameSession>
 

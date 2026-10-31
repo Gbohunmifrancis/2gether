@@ -15,6 +15,7 @@ using Twogether.Application.Features.Billing;
 using Twogether.Application.Features.Config;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
+using Twogether.Infrastructure.Billing;
 using Twogether.Shared.Results;
 
 namespace Twogether.Api.Controllers.Admin;
@@ -192,6 +193,10 @@ public sealed class AdminUsersController(
         if (!string.Equals(request.ConfirmEmail?.Trim(), user.Email, StringComparison.OrdinalIgnoreCase))
             return UnprocessableEntity(new ApiError("admin.confirm_email", "Type the account's email exactly to confirm."));
         if (string.IsNullOrWhiteSpace(request.Reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));
+        // A card subscription that would renew is cancelled with the account; if Bachs can't be reached, nothing goes yet.
+        var cancelled = await eraser.CancelCardSubscriptionsAsync(userId, ct);
+        if (cancelled.IsFailure)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(cancelled.Error.Code, "The person's card subscription couldn't be cancelled in Bachs just now, so nothing was deleted. Try again in a few minutes."));
         audit.Record(User, "user.deleted", "user", userId.ToString(), $"{user.Email}: {request.Reason.Trim()}");
         await db.SaveChangesAsync(ct);
         AccountErasure? erased;
@@ -212,7 +217,7 @@ public sealed class AdminUsersController(
     private bool IsSelf(Guid userId) => User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == userId.ToString();
 }
 
-/// <summary>Google Play subscriptions and complimentary Plus.</summary>
+/// <summary>Google Play and Bachs (card) subscriptions, and complimentary Plus.</summary>
 [Authorize(Policy = AdminAuth.Policy)]
 [Route("api/admin")]
 public sealed class AdminSubscriptionsController(
@@ -220,7 +225,9 @@ public sealed class AdminSubscriptionsController(
     IDateTimeProvider clock,
     AdminAudit audit,
     IGooglePlayBilling billing,
-    GooglePlaySubscriptionSync sync) : ApiControllerBase
+    GooglePlaySubscriptionSync sync,
+    IBachsBilling bachs,
+    BachsSubscriptionSync bachsSync) : ApiControllerBase
 {
     internal static AdminSubscriptionRow Row(StoreSubscription item, string? buyerEmail) => new(
         item.Id, item.Store, item.ProductId, item.UserId, buyerEmail, item.Status, item.ExpiresAtUtc, item.AutoRenewing, item.Acknowledged,
@@ -263,6 +270,8 @@ public sealed class AdminSubscriptionsController(
         var subscription = await db.StoreSubscriptions.AsNoTracking().SingleOrDefaultAsync(item => item.Id == id, ct);
         if (subscription is null) return NotFound();
         if (call is not null && string.IsNullOrWhiteSpace(reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));
+        // A card subscription is Bachs's, never Google Play's.
+        if (subscription.IsBachs) return await ManageBachsAsync(subscription, action, reason, ct);
         if (call is not null)
         {
             var result = await call(subscription.ProductId, subscription.PurchaseToken, ct);
@@ -280,6 +289,26 @@ public sealed class AdminSubscriptionsController(
         var fresh = await db.StoreSubscriptions.AsNoTracking().SingleAsync(item => item.Id == id, ct);
         var buyer = await db.Users.AsNoTracking().Where(user => user.Id == fresh.UserId).Select(user => user.Email).SingleOrDefaultAsync(ct);
         return Ok(Row(fresh, buyer));
+    }
+
+    /// <summary>
+    /// Sync re-reads the subscription from Bachs; cancel stops renewal at the period end in Bachs. Refunds (and a
+    /// revoke, which is a refund) are made in the Bachs dashboard, where the payment is: the webhooks bring the result.
+    /// </summary>
+    private async Task<IActionResult> ManageBachsAsync(StoreSubscription subscription, string action, string? reason, CancellationToken ct)
+    {
+        if (action is "subscription.refunded" or "subscription.revoked")
+            return Conflict(new ApiError("admin.bachs_dashboard",
+                "This is a card subscription (Bachs). Refund it in the Bachs dashboard (Payments, then the payment, then Refund); to end Plus now, cancel the subscription there too. The change reaches Heartpact by webhook."));
+        if (!bachs.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(BachsCheckoutService.Unavailable, "Bachs isn't set up on this server."));
+        var result = action == "subscription.canceled"
+            ? await bachsSync.CancelAsync(subscription, atPeriodEnd: true, ct)
+            : await bachsSync.RefreshAsync(subscription, ct);
+        audit.Record(User, action, "subscription", subscription.Id.ToString(), reason?.Trim(), result.IsSuccess);
+        await db.SaveChangesAsync(ct);
+        if (result.IsFailure) return FromError(result.Error);
+        var buyer = await db.Users.AsNoTracking().Where(user => user.Id == result.Value.UserId).Select(user => user.Email).SingleOrDefaultAsync(ct);
+        return Ok(Row(result.Value, buyer));
     }
 
     [HttpGet("grants")]
@@ -354,7 +383,8 @@ public sealed class AdminSystemController(
     IGoogleTokenVerifier google,
     IGooglePlayBilling billing,
     AdminSecretProtector secrets,
-    LocationSharingStopper locationStopper) : ApiControllerBase
+    LocationSharingStopper locationStopper,
+    BachsSettings bachs) : ApiControllerBase
 {
     [HttpGet("system")]
     public async Task<ActionResult<AdminSystem>> System(CancellationToken ct)
@@ -374,6 +404,7 @@ public sealed class AdminSystemController(
             new("Email (password reset)", email.IsConfigured, configuration["Email:Provider"] ?? "off"),
             new("Google sign-in", google.IsConfigured, google.IsConfigured ? "on" : "off"),
             new("Google Play billing", billing.IsConfigured, configuration["Billing:Provider"] ?? "off"),
+            new("Card payments (Bachs)", bachs.IsConfigured, bachs.IsConfigured ? (bachs.ApiKey!.StartsWith("sk_live_", StringComparison.Ordinal) ? "live" : "sandbox") : "off"),
         };
         return Ok(new AdminSystem(now, features, pushPending, pushSent, pushFailed, memoriesDeleting, openGames,
             settings.Emails.Count, settings.TokenLifetime.TotalHours, settings.Currency, settings.MonthlyPrices));
@@ -427,18 +458,26 @@ public sealed class AdminFeaturesController(FeatureFlagService flags, AdminAudit
     [RequireStepUp]
     public async Task<ActionResult<FeatureFlagsDto>> Put(AdminFeaturesRequest request, CancellationToken ct)
     {
-        if (request.Christmas is not { } christmas) return UnprocessableEntity(new ApiError("admin.features_invalid", "Say whether the Christmas theme is on or off."));
+        var update = new FeatureFlagsUpdate(request.Christmas, request.BachsInApp);
+        if (update.IsEmpty) return UnprocessableEntity(new ApiError("admin.features_invalid", "Say which switch to turn on or off."));
         var before = await flags.GetAsync(ct);
-        var after = new FeatureFlagsDto(christmas);
-        await flags.SetAsync(after, ct);
-        audit.Record(User, "features.updated", "feature", "christmas", $"christmas: {(before.Christmas ? "on" : "off")} -> {(after.Christmas ? "on" : "off")}");
+        await flags.SetAsync(update, ct);
+        var after = await flags.GetAsync(ct);
+        static string State(bool on) => on ? "on" : "off";
+        if (request.Christmas is not null)
+            audit.Record(User, "features.updated", "feature", "christmas", $"christmas: {State(before.Christmas)} -> {State(after.Christmas)}");
+        if (request.BachsInApp is not null)
+            audit.Record(User, "features.updated", "feature", "bachsInApp", $"bachsInApp: {State(before.BachsInApp)} -> {State(after.BachsInApp)}");
         await db.SaveChangesAsync(ct);
         return Ok(after);
     }
 }
 
-/// <summary>Nullable so a body that leaves it out is refused instead of switching the theme off.</summary>
-public sealed record AdminFeaturesRequest(bool? Christmas);
+/// <summary>
+/// Each switch is optional, so a body names only what it changes; one that names none is refused, and a switch left
+/// out is never turned off by omission.
+/// </summary>
+public sealed record AdminFeaturesRequest(bool? Christmas = null, bool? BachsInApp = null);
 public sealed record AdminPage<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
 public sealed record AdminUserRow(Guid Id, string Email, string DisplayName, DateTime CreatedAtUtc, DateTime? LastActiveAtUtc, DateTime? DisabledAtUtc, bool Google, bool Password, CoupleStatus? CoupleStatus, bool Paying, bool Internal = false);
 public sealed record AdminPersonRef(Guid Id, string Email, string DisplayName);

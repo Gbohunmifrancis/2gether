@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Games.Content;
@@ -54,7 +53,7 @@ public static class GuessMyAnswerBank
         Q(Loc.N("Your favourite time of day?"), Loc.N("Early morning"), Loc.N("Afternoon"), Loc.N("Evening"), Loc.N("Late night")),
         Q(Loc.N("How do you take your eggs?"), Loc.N("Scrambled"), Loc.N("Fried"), Loc.N("Boiled"), Loc.N("No eggs, please")),
         Q(Loc.N("Your biggest guilty pleasure?"), Loc.N("Reality TV"), Loc.N("Junk food"), Loc.N("Online shopping"), Loc.N("Sleeping in")),
-        Q(Loc.N("Your idea of a perfect gift?"), Loc.N("Flowers"), Loc.N("Jewellery"), Loc.N("A handwritten letter"), Loc.N("Tickets to something")),
+        Q(Loc.N("Your favourite way to travel?"), Loc.N("By plane"), Loc.N("By train"), Loc.N("By car"), Loc.N("By boat")),
         Q(Loc.N("What could you not live without?"), Loc.N("My phone"), Loc.N("Music"), Loc.N("Coffee"), Loc.N("My friends")),
         Q(Loc.N("Your dream car?"), Loc.N("Something sporty"), Loc.N("Something big"), Loc.N("Something electric"), Loc.N("I don't need one")),
         Q(Loc.N("Your happy place?"), Loc.N("The beach"), Loc.N("The kitchen"), Loc.N("Bed"), Loc.N("Out with friends")),
@@ -101,13 +100,9 @@ public static class GuessMyAnswerBank
 
     public static IReadOnlyList<ChoiceQuestion> For(string region) => region == GameRegion.Nigeria ? Nigerian : Global;
 
-    /// <summary><paramref name="count"/> different questions at random, for one game.</summary>
-    public static IReadOnlyList<ChoiceQuestion> Pick(string region, int count)
-    {
-        var copy = For(region).ToArray();
-        RandomNumberGenerator.Shuffle(copy.AsSpan());
-        return copy.Take(count).ToList();
-    }
+    /// <summary><paramref name="count"/> different questions at random for one game, those in <paramref name="seen"/> last.</summary>
+    public static IReadOnlyList<ChoiceQuestion> Pick(string region, int count, IReadOnlySet<string>? seen = null)
+        => FreshPick.Pick(For(region), count, question => question.Text, seen);
 
     private static ChoiceQuestion Q(string text, params string[] choices) => new(text, choices);
 }

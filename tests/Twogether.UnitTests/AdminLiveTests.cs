@@ -30,7 +30,7 @@ public sealed class AdminLiveFeedTests : IDisposable
     private static readonly DateTime Now = TestCouple.Now;
     private readonly TestDatabase database = new();
     private readonly FakeClock clock = new(Now.AddHours(2));
-    private readonly AdminSettings settings = new() { Emails = ["OPS@heartpact.app"] };
+    private readonly AdminSettings settings = new() { Emails = ["OPS@heartpact.me"] };
 
     public void Dispose() => database.Dispose();
 
@@ -60,8 +60,8 @@ public sealed class AdminLiveFeedTests : IDisposable
             AccountDeletion.Record(false, Now.AddMinutes(60)), AccountDeletion.Record(true, Now.AddMinutes(61)));
 
         // A test couple and an admin: they never show.
-        var ivy = User.Create("ivy@heartpact.app", "Ivy", new DateOnly(1990, 1, 1), Now.AddMinutes(5));
-        var ian = User.Create("ian@heartpact.app", "Ian", new DateOnly(1990, 1, 1), Now.AddMinutes(5));
+        var ivy = User.Create("ivy@heartpact.me", "Ivy", new DateOnly(1990, 1, 1), Now.AddMinutes(5));
+        var ian = User.Create("ian@heartpact.me", "Ian", new DateOnly(1990, 1, 1), Now.AddMinutes(5));
         ivy.MarkInternal(true, Now);
         ian.MarkInternal(true, Now);
         var testCouple = Couple.Create(ivy.Id, Now.AddMinutes(5));
@@ -72,7 +72,7 @@ public sealed class AdminLiveFeedTests : IDisposable
         var testDare = ExerciseOccurrence.Open(testGoal, DateOnly.FromDateTime(Now), Now.AddMinutes(7), Now.AddMinutes(7));
         testDare.Start(Now.AddMinutes(8));
         testDare.Complete(5, 0.9, Now.AddMinutes(9));
-        var admin = User.Create("ops@heartpact.app", "Ops", new DateOnly(1990, 1, 1), Now.AddMinutes(70));
+        var admin = User.Create("ops@heartpact.me", "Ops", new DateOnly(1990, 1, 1), Now.AddMinutes(70));
         db.AddRange(ivy, ian, testCouple, testGoal, testDare, admin);
         await db.SaveChangesAsync();
         return new Scene(couple, ivy.Id, done.Id);
@@ -415,8 +415,8 @@ public sealed class AdminJourneyTests : IDisposable
             var goal = ExerciseGoal.Create(couple.CoupleId, couple.TheoId, couple.MayaId, ExerciseType.Squat, null, 15, new TimeOnly(12, 0), "UTC", 30, Now);
             db.AddRange(goal,
                 new UserActivityDay { UserId = mayaId, Day = DateOnly.FromDateTime(Now) },
-                AdminAuditEvent.Record(null, "ops@heartpact.app", "user.viewed", "user", mayaId.ToString(), null, null, true, Now),
-                AdminAuditEvent.Record(null, "ops@heartpact.app", "plus.granted", "couple", couple.CoupleId.ToString(), "30 days: sorry", null, true, Now),
+                AdminAuditEvent.Record(null, "ops@heartpact.me", "user.viewed", "user", mayaId.ToString(), null, null, true, Now),
+                AdminAuditEvent.Record(null, "ops@heartpact.me", "plus.granted", "couple", couple.CoupleId.ToString(), "30 days: sorry", null, true, Now),
                 PlusGrant.Create(couple.CoupleId, Now.AddDays(30), "sorry", Guid.NewGuid(), Now));
             await db.SaveChangesAsync();
         }
@@ -452,7 +452,7 @@ public sealed class AdminStepUpTests : IDisposable
     private async Task EnrollAsync()
     {
         await using var db = database.CreateContext();
-        var admin = User.Create("ops@heartpact.app", "Ops", new DateOnly(1990, 1, 1), Now, "hash");
+        var admin = User.Create("ops@heartpact.me", "Ops", new DateOnly(1990, 1, 1), Now, "hash");
         secret = Totp.NewSecret();
         var account = AdminAccount.Pending(admin.Id, secrets.Protect(secret), Now);
         // Signed in a minute ago with that minute's code.
@@ -466,7 +466,7 @@ public sealed class AdminStepUpTests : IDisposable
     {
         var http = new DefaultHttpContext
         {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, adminId.ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.app")], "test")),
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, adminId.ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.me")], "test")),
         };
         http.Request.Path = "/api/admin/users/x/disable";
         if (code is not null) http.Request.Headers[StepUpFilter.Header] = code;
@@ -561,7 +561,7 @@ public sealed class AdminInternalAccountTests : IDisposable
     {
         var http = new DefaultHttpContext
         {
-            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.app")], "test")),
+            User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.me")], "test")),
         };
         return new AdminPeopleController(db, clock, new AdminAudit(db, clock, new HttpContextAccessor { HttpContext = http }), new AdminJourney(db, clock))
         {
@@ -585,7 +585,7 @@ public sealed class AdminInternalAccountTests : IDisposable
         await using var read = database.CreateContext();
         Assert.True((await read.Users.SingleAsync(user => user.Id == couple.MayaId)).IsInternal);
         var audit = await read.AdminAuditEvents.SingleAsync();
-        Assert.Equal(("user.marked_internal", "user", couple.MayaId.ToString(), "QA phone", "ops@heartpact.app"), (audit.Action, audit.TargetType, audit.TargetId, audit.Details, audit.AdminEmail));
+        Assert.Equal(("user.marked_internal", "user", couple.MayaId.ToString(), "QA phone", "ops@heartpact.me"), (audit.Action, audit.TargetType, audit.TargetId, audit.Details, audit.AdminEmail));
 
         // Theo is still counted; Maya and the couple she is in are not.
         var events = await new AdminLiveFeed(read, clock, new AdminSettings(), new AdminAlertMonitor()).SinceAsync(Now.AddMinutes(-1), 50, default);

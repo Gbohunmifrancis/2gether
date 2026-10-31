@@ -7,7 +7,9 @@ namespace Twogether.Application.Features.Games;
 /// <summary>
 /// Trivia (docs/games.md): ten multiple-choice questions, both partners answer at once, no clock. A partner's pick and
 /// the right answer stay hidden until both have answered; then both see them and a right answer scores a point.
-/// Global couples get Open Trivia DB (the built-in bank if it's down); Nigerian couples get Naija trivia.
+/// Global couples who both read English get Open Trivia DB (the built-in bank if it's down); global couples where either
+/// reads another language get the built-in bank, which each partner reads in their own language; Nigerian couples get
+/// Naija trivia. A new game draws questions the couple hasn't met in their last few games where the bank allows.
 /// </summary>
 public sealed class TriviaRules : IGameRules
 {
@@ -21,11 +23,19 @@ public sealed class TriviaRules : IGameRules
     public bool AnyoneMayAct => true;
 
     /// <summary>The questions a new game is set up with, fixed when it is invited.</summary>
-    public static async Task<IReadOnlyList<TriviaQuestion>> QuestionsFor(string region, IGameQuestionProvider provider, CancellationToken cancellationToken)
+    public static async Task<IReadOnlyList<TriviaQuestion>> QuestionsFor(string region, IGameQuestionProvider provider, CancellationToken cancellationToken, GameSetupContext? context = null)
     {
-        if (region == GameRegion.Nigeria) return NaijaTrivia.Draw(QuestionCount);
-        var fetched = (await provider.GetTriviaAsync(QuestionCount, cancellationToken)).Where(question => question.IsPlayable).Take(QuestionCount).ToList();
-        return fetched.Count == QuestionCount ? fetched : [.. fetched, .. GlobalTrivia.Draw(QuestionCount - fetched.Count)];
+        context ??= GameSetupContext.None;
+        var seen = Content.FreshPick.Seen(context.RecentSetups, "trivia", nameof(TriviaQuestion.Text));
+        if (region == GameRegion.Nigeria) return NaijaTrivia.Draw(QuestionCount, seen);
+        // Open Trivia DB is English only: a partner who reads another language would get questions they can't read.
+        if (!context.AllEnglish) return GlobalTrivia.Draw(QuestionCount, seen);
+        var fetched = (await provider.GetTriviaAsync(QuestionCount, cancellationToken))
+            .Where(question => question.IsPlayable && !seen.Contains(question.Text))
+            .DistinctBy(question => question.Text, StringComparer.OrdinalIgnoreCase)
+            .Take(QuestionCount)
+            .ToList();
+        return fetched.Count == QuestionCount ? fetched : [.. fetched, .. GlobalTrivia.Draw(QuestionCount - fetched.Count, seen)];
     }
 
     public GameEngineResult Start(IReadOnlyList<Guid> players, DateTime utcNow, string? setupJson)
@@ -60,6 +70,7 @@ public sealed class TriviaRules : IGameRules
         foreach (var (player, answer) in state.Answers)
             if (answer == question.Answer) state.Scores[player]++;
         state.Reveal = new TriviaReveal { Round = state.Round, Picks = new Dictionary<Guid, int>(state.Answers) };
+        state.History.Add(state.Reveal);
         state.Answers.Clear();
         state.Round++;
         var completed = state.Round >= state.Questions.Count;
@@ -81,16 +92,20 @@ public sealed class TriviaRules : IGameRules
             question = current is null ? null : Shown(current),
             answered = state.Players.Where(state.Answers.ContainsKey),
             myAnswer = viewer is { } me && state.Answers.TryGetValue(me, out var mine) ? mine : (int?)null,
-            reveal = revealed is null ? null : new
-            {
-                round = state.Reveal!.Round,
-                question = Shown(revealed),
-                answer = revealed.Answer,
-                picks = state.Reveal.Picks,
-            },
+            reveal = revealed is null ? null : View(state.Reveal!, revealed),
+            // Every question answered so far, both picks and the right answer: the game's recap once it's over.
+            history = state.History.Where(played => played.Round < state.Questions.Count).Select(played => View(played, state.Questions[played.Round])),
             completed = current is null,
         }, PublicJsonOptions);
     }
+
+    private static object View(TriviaReveal played, TriviaQuestion question) => new
+    {
+        round = played.Round,
+        question = Shown(question),
+        answer = question.Answer,
+        picks = played.Picks,
+    };
 
     public GameScoreSummary Summarise(string stateJson)
     {
@@ -119,7 +134,7 @@ public sealed class TriviaRules : IGameRules
     }
 
     private static TriviaState Read(string stateJson)
-        => JsonSerializer.Deserialize<TriviaState>(stateJson) ?? throw new InvalidOperationException("Game state is invalid.");
+        => JsonSerializer.Deserialize<TriviaState>(stateJson) ?? throw new InvalidOperationException(Loc.T("This game session is corrupted. End it and start a new game."));
 
     private sealed class TriviaState
     {
@@ -131,6 +146,8 @@ public sealed class TriviaRules : IGameRules
         /// <summary>This question's picks so far: secret from the partner until both are in.</summary>
         public Dictionary<Guid, int> Answers { get; set; } = [];
         public TriviaReveal? Reveal { get; set; }
+        /// <summary>Every question both answered, with their picks (empty in games from before it was kept).</summary>
+        public List<TriviaReveal> History { get; set; } = [];
     }
 
     /// <summary>The last question both answered: what each picked. Its right answer is in the question.</summary>

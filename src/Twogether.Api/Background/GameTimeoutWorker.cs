@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Twogether.Api.Controllers;
 using Twogether.Api.Hubs;
+using Twogether.Api.Presence;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Admin.Ops;
@@ -16,7 +17,8 @@ public sealed class GameTimeoutWorker(
     IGameEngine engine,
     IDateTimeProvider clock,
     ILogger<GameTimeoutWorker> logger,
-    WorkerHeartbeats? heartbeats = null) : BackgroundService
+    WorkerHeartbeats? heartbeats = null,
+    GameLiveState? liveState = null) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
     public const string HeartbeatName = "gameTimeouts";
@@ -60,7 +62,7 @@ public sealed class GameTimeoutWorker(
     public static readonly TimeSpan InviteLifetime = TimeSpan.FromDays(1);
     public static readonly TimeSpan IdleGameLifetime = TimeSpan.FromDays(7);
 
-    private async Task EndStaleGames(CancellationToken cancellationToken)
+    public async Task EndStaleGames(CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -73,17 +75,40 @@ public sealed class GameTimeoutWorker(
             .Take(100)
             .ToListAsync(cancellationToken);
         if (stale.Count == 0) return;
-        foreach (var session in stale) session.Abandon(now);
-        await db.SaveChangesAsync(cancellationToken);
+        var ended = 0;
         foreach (var session in stale)
         {
+            session.Abandon(now);
+            // A move that lands at the same moment wins: the game wasn't stale after all.
+            if (!await SavedAsync(db, cancellationToken)) continue;
+            await GameHistory.KeepAsync(db, engine, session, GameOutcome.TimedOut, now, cancellationToken);
+            liveState?.ClearSession(session.Id);
+            ended++;
             await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId))
                 .SendAsync("GameEnded", new GameEndedDto(session.Id, Guid.Empty, "Heartpact", now), cancellationToken);
         }
-        logger.LogInformation("Ended {Count} stale games.", stale.Count);
+        logger.LogInformation("Ended {Count} stale games.", ended);
     }
 
-    private async Task AdvanceExpiredRounds(CancellationToken cancellationToken)
+    /// <summary>
+    /// Saves one session's change. A partner's move that reached it first is a conflict: that change is dropped (the
+    /// next tick looks again at the session as it now is) instead of failing every other game in the batch.
+    /// </summary>
+    public static async Task<bool> SavedAsync(IApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateConcurrencyException exception)
+        {
+            foreach (var entry in exception.Entries) entry.State = EntityState.Detached;
+            return false;
+        }
+    }
+
+    public async Task AdvanceExpiredRounds(CancellationToken cancellationToken)
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -100,14 +125,31 @@ public sealed class GameTimeoutWorker(
 
         foreach (var session in sessions)
         {
-            var next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now);
-            if (next.Completed) session.Complete(next.StateJson, now);
+            GameEngineResult next;
+            try
+            {
+                // I call on: what each partner had typed when the clock ran out still counts.
+                var drafts = GameController.LateAnswers(liveState, session, Guid.Empty, null, null);
+                next = engine.Apply(session.GameType, session.StateJson, Guid.Empty, GameEngine.TimeoutAction, null, null, now, coSubmissions: drafts);
+            }
+            catch (Exception exception) when (exception is System.Text.Json.JsonException or InvalidOperationException)
+            {
+                // A state the rules can't read would come back every second and hold up every other game: end it.
+                logger.LogWarning(exception, "Ending game {SessionId}: its timeout could not be played.", session.Id);
+                session.Abandon(now);
+                if (await SavedAsync(db, cancellationToken))
+                {
+                    await GameHistory.KeepAsync(db, engine, session, GameOutcome.Abandoned, now, cancellationToken);
+                    liveState?.ClearSession(session.Id);
+                    await hub.Clients.Group(CoupleHub.GroupName(session.CoupleId)).SendAsync("GameEnded", new GameEndedDto(session.Id, Guid.Empty, "Heartpact", now), cancellationToken);
+                }
+                continue;
+            }
+            if (next.Completed) { session.Complete(next.StateJson, now); liveState?.ClearSession(session.Id); }
             else session.UpdateState(next.CurrentTurnUserId!.Value, next.DeadlineUtc, next.StateJson, now);
-        }
-        await db.SaveChangesAsync(cancellationToken);
-
-        foreach (var session in sessions)
-        {
+            // A late move that crossed this tick has already played the timeout: skip this one, as is.
+            if (!await SavedAsync(db, cancellationToken)) continue;
+            await GameHistory.KeepAsync(db, engine, session, GameOutcome.Completed, now, cancellationToken);
             var eventName = session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged";
             var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
             await GameEvents.SendAsync(hub, engine, session, players, eventName, cancellationToken);

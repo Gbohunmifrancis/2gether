@@ -61,7 +61,7 @@ public sealed class WordDashRules : IGameRules
         var word = Normalize(move.Value);
         var letter = NextLetter(state);
         if (word.Length < 2 || word.Length > MaxWordLength || !word.All(char.IsAsciiLetter))
-            throw new InvalidOperationException(Loc.T("Use one word of two letters or more, letters only."));
+            throw new InvalidOperationException(Loc.T("Play one English word of two letters or more, A to Z only."));
         if (!word.StartsWith(letter, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(Loc.T("Your word has to start with {letter}.", ("letter", letter)));
         if (state.Used.Contains(word))
@@ -145,7 +145,11 @@ public sealed class WordDashRules : IGameRules
     private static string NextLetter(State state)
         => state.Chain.Count == 0 ? state.StartLetter : char.ToUpperInvariant(state.Chain[^1].Word[^1]).ToString();
 
-    private static string Normalize(string? value) => (value ?? string.Empty).Trim().ToLowerInvariant();
+    /// <summary>
+    /// A word as it is played: lower case, accents dropped ("café" is "cafe", as an English dictionary spells it) and
+    /// hyphens closed up ("puff-puff" is "puffpuff"). What's left must be A to Z.
+    /// </summary>
+    public static string Normalize(string? value) => GameEngine.Fold(value).Replace("-", string.Empty).Replace("'", string.Empty).Replace("’", string.Empty);
 
     private static string RandomLetter(string? not = null)
     {

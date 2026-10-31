@@ -15,6 +15,8 @@ public sealed class StoreSubscriptionConfiguration : IEntityTypeConfiguration<St
         builder.Property(item => item.ProductId).HasMaxLength(100).IsRequired();
         builder.Property(item => item.Status).HasConversion<string>().HasMaxLength(30).IsRequired();
         builder.Property(item => item.LinkedPurchaseToken).HasMaxLength(StoreSubscription.MaxTokenLength);
+        builder.Property(item => item.ExternalCustomerId).HasMaxLength(StoreSubscription.MaxCustomerIdLength);
+        builder.Ignore(item => item.IsBachs);
         // One purchase, one owner: a shared token can never be claimed twice.
         builder.HasIndex(item => item.PurchaseToken).IsUnique();
         builder.HasIndex(item => new { item.UserId, item.ExpiresAtUtc });

@@ -44,8 +44,9 @@ import kotlin.math.roundToInt
  * the whole line and the two pieces spring apart, each showing its share. Scored on how close the split is to half.
  */
 
-internal class FairSharePlay(seed: Long) : SkillPlay(SkillKind.FairShare, seed) {
-    val treat = Treat.of(seed)
+internal class FairSharePlay(seed: Long, difficulty: Difficulty = Difficulty.Start) : SkillPlay(SkillKind.FairShare, seed, difficulty) {
+    // More kinds of treat as the levels rise, more tilted and more bitten into.
+    val treat = Treat.of(seed, difficulty = difficulty)
 
     /** The two pieces after the cut: [first] is the left (or top) one, which the score and note talk about. */
     class Split(val a: Offset, val b: Offset, val first: List<Offset>, val second: List<Offset>, val firstShare: Float, val away: Offset)
@@ -63,6 +64,20 @@ internal class FairSharePlay(seed: Long) : SkillPlay(SkillKind.FairShare, seed) 
         TreatKind.Chocolate -> tr("A chocolate bar, one bite gone.")
         TreatKind.Pizza -> tr("A pizza, a slice already gone.")
         TreatKind.Jelly -> tr("A jelly, very wobbly.")
+        TreatKind.Macaron -> tr("A macaron, cream in the middle.")
+        TreatKind.Toast -> tr("A slice of toast, buttered.")
+        TreatKind.Watermelon -> tr("A slice of watermelon, seeds and all.")
+        TreatKind.CandyHeart -> tr("A candy heart, sweet as you.")
+        TreatKind.Cheese -> tr("A wedge of cheese, full of holes.")
+        TreatKind.Waffle -> tr("A waffle with a pat of butter.")
+        TreatKind.CakeSlice -> tr("A slice of cake, a strawberry on top.")
+        TreatKind.Cupcake -> tr("A cupcake, the frosting piled high.")
+        TreatKind.Donut -> tr("A donut. Mind the hole.")
+        TreatKind.Lollipop -> tr("A lollipop, stick and all.")
+        TreatKind.IceCream -> tr("An ice cream cone, melting fast.")
+        TreatKind.JellyBean -> tr("A jelly bean, a big one.")
+        TreatKind.Croissant -> tr("A croissant, still warm.")
+        TreatKind.Gummy -> tr("A gummy, squished out of shape.")
     }
 
     init { hint = describe }
@@ -92,7 +107,7 @@ internal class FairSharePlay(seed: Long) : SkillPlay(SkillKind.FairShare, seed) 
         if (n.x * apart.x + n.y * apart.y < 0) n = -n
         split = Split(a, b, first, second, share, n)
         hint = ""
-        finish(fairShareScore(share, across), 1100)
+        finish(fairShareScore(share, across, difficulty), 1100)
         return true
     }
 

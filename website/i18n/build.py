@@ -22,7 +22,7 @@ import sys
 
 SITE = pathlib.Path(__file__).resolve().parent.parent
 HERE = SITE / "i18n"
-ORIGIN = "https://heartpact.app"
+ORIGIN = "https://heartpact.me"
 PAGES = ["index.html", "privacy/index.html", "terms/index.html", "delete-account/index.html", "404.html"]
 LEGAL = {"privacy/index.html", "terms/index.html"}
 LANGUAGES = ["fr", "pt", "es", "ar", "hi"]
