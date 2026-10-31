@@ -181,6 +181,8 @@ public sealed class GameController(
         {
             return Conflict(new ApiError("game.version_conflict", Loc.T("Your partner just updated the game. The latest board has been loaded.")));
         }
+        // A new round of Draw and guess swaps the drawer: whoever drew may no longer send live ink (docs/games.md).
+        if (turnBefore != session.CurrentTurnUserId) (HttpContext?.RequestServices?.GetService(typeof(GameInkGate)) as GameInkGate)?.Forget(session.Id);
         var players = await GameEvents.PlayersAsync(db, session.CoupleId, cancellationToken);
         await GameEvents.SendAsync(hub, engine, session, players, session.Status == GameSessionStatus.Completed ? "GameCompleted" : "GameStateChanged", cancellationToken);
         if (turnBefore != session.CurrentTurnUserId) await NudgeTurnAsync(session, currentUser.UserId.Value, cancellationToken);

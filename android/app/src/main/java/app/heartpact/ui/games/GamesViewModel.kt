@@ -41,6 +41,8 @@ data class GamesUi(
     val ttt: TicTacToeUi = TicTacToeUi(),
     /** Tic-tac-toe: the partner's stroke as they draw it, relayed by the couple hub. */
     val ink: LiveInk = LiveInk(),
+    /** Draw and guess: the drawer's strokes as they're drawn, relayed by the couple hub, for the guesser to watch. */
+    val sketch: LiveSketch = LiveSketch(),
     /** I call on: how many categories the partner has filled so far, by session (the couple hub's `GameProgress`). */
     val progress: Map<String, PartnerProgress> = emptyMap(),
 ) {
@@ -116,7 +118,7 @@ internal fun reconnections(connected: Flow<Boolean>): Flow<Unit> = flow {
 @Serializable
 data class PartnerProgress(val sessionId: String = "", val userId: String = "", val round: Int = 0, val filled: Int = 0, val total: Int = 0)
 
-/** The couple hub's `GameInk`: the partner's live stroke on a tic-tac-toe square ([cell] -1 clears it). */
+/** The couple hub's `GameInk`: the partner's live stroke on a tic-tac-toe square, or the drawer's in Draw and guess ([cell] -1 un-draws). */
 @Serializable
 private data class GameInkEvent(val sessionId: String, val userId: String = "", val cell: Int, val stroke: Int = 0, val points: List<Float> = emptyList())
 
@@ -152,7 +154,11 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
                     "GameProgress" -> runCatching { app.json.decodeFromString(PartnerProgress.serializer(), event.json) }.getOrNull()
                         ?.let { p -> _ui.update { it.copy(progress = it.progress + (p.sessionId to p)) } }
                     "GameInk" -> runCatching { app.json.decodeFromString(GameInkEvent.serializer(), event.json) }.getOrNull()
-                        ?.let { _ui.value.ink.receive(it.sessionId, it.cell, it.stroke, it.points, System.currentTimeMillis()) }
+                        ?.let { e ->
+                            val drawing = _ui.value.sessions.firstOrNull { it.id == e.sessionId }?.gameType == GameType.Handwriting
+                            if (drawing) _ui.value.sketch.receive(e.sessionId, e.userId, e.cell, e.stroke, e.points)
+                            else _ui.value.ink.receive(e.sessionId, e.cell, e.stroke, e.points, System.currentTimeMillis())
+                        }
                 }
             }
         }
@@ -191,7 +197,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application) {
         send = { s, action, value, index -> app.games.act(s.id, s.stateVersion, action, value, index) },
         load = { app.games.session(it) })
 
-    /** Tic-tac-toe: the stroke under my finger, for my partner to watch live (dropped when the hub isn't connected). */
+    /** Tic-tac-toe and Draw and guess: the stroke under my finger, for my partner to watch live (dropped when the hub isn't connected). */
     fun ink(session: GameSession, cell: Int, stroke: Int, points: FloatArray) = app.live.ink(session.id, cell, stroke, points)
 
     /** I call on: what's typed so far, so it still counts if the clock runs out before it's sent. */
