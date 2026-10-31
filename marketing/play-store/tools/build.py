@@ -376,7 +376,7 @@ def promo(lang: str, art: Path) -> None:
         Image.open(png).convert("RGB").save(out / f"{name}.jpg", quality=92, optimize=True, progressive=True)
 
     # Feed posts, 4:5 (Instagram, Facebook): caption and badge on top, the real screen below.
-    for n, (index, screen) in enumerate([(0, "today"), (3, "camera"), (5, "question"), (6, "games-draw")]):
+    for n, (index, screen) in enumerate([(0, "today"), (3, "camera"), (5, "question"), (6, "games-snakes")]):
         head, sub = panels[index]
         body = [ribbon(1080, 1350, base=1000, amplitude=70, wavelength=1500, band=80, phase=n)]
         body.append(caption(lang, head, sub, 80, 90, 920, 70, 34, art, brand_size=46 if index == 0 else 0, badge_height=80))

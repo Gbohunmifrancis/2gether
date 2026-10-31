@@ -90,7 +90,8 @@ fun TodayTab(
     AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
             Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
-            val date = LocalDate.now().format(Dates.formatter("EEEE d MMMM"))
+            // The same clock as the dare's countdown, so the header and the card always agree on the day.
+            val date = now.atZone(ZoneId.systemDefault()).toLocalDate().format(Dates.formatter("EEEE d MMMM"))
             Text(if (view != null) trn(view.hearts, "{date} · {count} heart this week", "{date} · {count} hearts this week", "date" to date) else date,
                 style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 6.dp))
         }

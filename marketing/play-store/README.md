@@ -7,9 +7,10 @@ English (`en`, Play `en-US`), French (`fr`, `fr-FR`), Portuguese (`pt`, `pt-BR`)
 and Hindi (`hi`, `hi-IN`).
 
 **Every screen is the real app.** The screenshots are the app's own Compose screens, rendered by the Android screenshot
-tests (`StoreShotsTest`) in each language, with the server's own translated text (the daily question, the word to
-draw). Nothing is mocked up or retouched. The art on the page (the two-tone hearts, Maya and Theo, the logo) is the
-app's own drawing code too (`StoreArtTest`), and the Play icon is drawn from the launcher's own icon layers.
+tests (`StoreShotsTest`) in each language, with the server's own translated text (the daily question) and the server's
+own Snakes and ladders board. Nothing is mocked up or retouched. The art on the page (the two-tone hearts, Maya and
+Theo, the logo) is the app's own drawing code too (`StoreArtTest`), and the Play icon is drawn from the launcher's own
+icon layers.
 
 - **Camera:** the camera screen shows a real photo where the front camera's picture goes. The body points on it are what
   the app's own pose model (`pose_landmarker_lite.task`) found on that photo. The photo fills the camera area the way a
@@ -45,18 +46,19 @@ it will look: `previews/phone-panorama-<lang>.jpg`.
 
 | # | Caption (English) | Real screen |
 | --- | --- | --- |
-| 01 | Keep your promises to each other. | Today: a dare ringing, the week's hearts |
+| 01 | Keep your promises to each other. | Today: a dare ringing, Play together, the week's hearts |
 | 02 | Dare each other to move. | New dare for Theo |
 | 03 | When it's time, the phone rings. | The alarm |
 | 04 | The camera counts every rep. | Squats on camera, 14 of 20 |
 | 05 | Every promise you keep becomes a heart. | Heart complete |
 | 06 | One question a day. | Today's question, both answered |
-| 07 | Play together, even apart. | Draw and guess |
+| 07 | Play together, even apart. | Snakes and ladders mid-game: Theo just up a ladder to 67, Maya on 46 by a snake with a hug shield, her roll |
 | 08 | Nothing is shared until you choose. | Album: photos waiting on this phone until Sync |
 
 Captions are in `tools/captions.json`. Where the app already says it ("Keep your promises to each other.", "Dare each
 other to move.", "Every promise you keep becomes a heart.", "Nothing is shared until you choose."), each language uses
-the app's own translation word for word.
+the app's own translation word for word, and slide 07's line names the games as the app does in that language
+("Snakes and ladders", "Draw and guess", "Trivia").
 
 **Tablets.** The app has a tablet layout (`android/README.md`, Tablets): a navigation rail, two panes on Today, Food
 and Us, the games and the album in columns. The tablet sets show it lying down: Today, Food, Today's question, the games
@@ -96,7 +98,7 @@ in the app's own Play listing.
 
 | File | Size | For |
 | --- | --- | --- |
-| `post-1-today-1080x1350.jpg` … `post-4-games-draw-1080x1350.jpg` | 1080 × 1350 (4:5) | Instagram and Facebook feed posts, or a carousel |
+| `post-1-today-1080x1350.jpg` … `post-4-games-snakes-1080x1350.jpg` | 1080 × 1350 (4:5) | Instagram and Facebook feed posts, or a carousel |
 | `story-1080x1920.jpg` | 1080 × 1920 (9:16) | Instagram and Facebook stories, WhatsApp status, TikTok. Text and badge stay inside the safe area (250 px top, 340 px bottom). |
 | `x-1600x900.jpg` | 1600 × 900 (16:9) | X / Twitter, LinkedIn and Facebook posts |
 | `link-preview-1200x630.jpg` | 1200 × 630 | Link previews (Open Graph): the website, WhatsApp, Facebook, LinkedIn, Slack |
