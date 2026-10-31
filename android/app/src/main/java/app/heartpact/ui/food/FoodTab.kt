@@ -1,5 +1,6 @@
 package app.heartpact.ui.food
 
+import app.heartpact.ui.components.heroHeight
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -99,8 +100,14 @@ fun FoodTab(
         }, second = if (day == null) null else ({
             SectionHeader(tr("Logged today"), Modifier.padding(horizontal = 8.dp).padding(top = 14.dp))
             if (day.entries.isEmpty()) {
-                StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {
-                    Text(tr("Nothing yet. Snap your next meal, or log it by hand."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(18.dp))
+                // Nothing logged: a proper empty state with the characters, sized to fill the page rather than a one-line card.
+                StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth(), shape = app.heartpact.ui.theme.Shapes.Dare) {
+                    Column(Modifier.fillMaxWidth().heroHeight(0.34f).padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        app.heartpact.ui.graphics.Character(app.heartpact.ui.graphics.Who.Both, app.heartpact.ui.graphics.Pose.Cheer, 110.dp)
+                        Text(tr("Nothing logged yet"), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 12.dp))
+                        Text(tr("Snap your next meal, or log it by hand."), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 4.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
                 }
             } else {
                 StickerCard(Modifier.padding(horizontal = 12.dp).fillMaxWidth()) {

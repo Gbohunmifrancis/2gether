@@ -1,5 +1,6 @@
 package app.heartpact.data
 
+import kotlinx.coroutines.launch
 import android.content.Context
 import android.content.SharedPreferences
 import app.heartpact.live.LiveHub
@@ -32,6 +33,10 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val appContext: Context = context.applicationContext
 
     val session = SessionStore(context, json)
+
+    val theme = app.heartpact.ui.theme.ThemeSettings(context)
+
+    val tour = app.heartpact.ui.tour.TourState(context)
 
     private val http = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -75,6 +80,14 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val exercise = ExerciseRepository(api, json)
     val food = FoodRepository(api, json)
     val us = UsRepository(api, json)
+    val avatars = AvatarRepository(api, json, context.cacheDir)
+
+    init {
+        // The admin dashboard's switches (Christmas): asked once per start; offline keeps what was last known.
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
+            (apiCall(json) { api.config() } as? ApiResult.Ok)?.let { theme.setChristmas(it.value.christmas) }
+        }
+    }
     val cycle = CycleRepository(api, json)
     val pregnancy = PregnancyRepository(api, json)
     val location = LocationRepository(api, json)

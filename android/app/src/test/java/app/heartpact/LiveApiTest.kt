@@ -52,7 +52,7 @@ class LiveApiTest {
     private val sessions = mutableMapOf<String, SessionStore>()
 
     private fun client(name: String): Triple<SessionStore, AuthRepository, CoupleRepository> {
-        val session = SessionStore(PreferenceDataStoreFactory.create { folder.newFile("$name.preferences_pb") }, json)
+        val session = SessionStore(PreferenceDataStoreFactory.create { java.io.File(folder.root, "$name.preferences_pb") }, json)
         val api = Retrofit.Builder().baseUrl(System.getenv("HEARTPACT_API_URL")!!)
             .client(OkHttpClient.Builder().addInterceptor(bearer(session)).build())
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))

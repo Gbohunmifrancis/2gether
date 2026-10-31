@@ -1,5 +1,6 @@
 package app.heartpact.ui.us
 
+import app.heartpact.data.AvatarRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.heartpact.data.ApiResult
@@ -74,6 +75,22 @@ class UsViewModel(private val us: UsRepository, events: Flow<String> = emptyFlow
     /** Saved on the server; the stored session updates, so everything reading the user sees the new country. */
     fun setCountry(user: AuthUser, code: String) {
         if (code != user.countryCode) save { it.updateProfile(user, countryCode = code) }
+    }
+
+    fun setName(user: AuthUser, name: String) {
+        val clean = name.trim()
+        if (clean.isNotEmpty() && clean != user.displayName) save { it.updateProfile(user, displayName = clean) }
+    }
+
+    /** Sends the prepared JPEG, then reads the account again so everything showing the picture sees the new version. */
+    fun setPicture(avatars: AvatarRepository, jpeg: ByteArray?, onSaved: () -> Unit = {}) {
+        val auth = account ?: return
+        _ui.update { it.copy(busy = true) }
+        viewModelScope.launch {
+            val result = if (jpeg == null) avatars.remove() else avatars.upload(jpeg)
+            if (result is ApiResult.Ok) { auth.refreshMe(); _ui.update { it.copy(busy = false, note = null) }; onSaved() }
+            else _ui.update { it.copy(busy = false, note = (result as? ApiResult.Failure)?.message ?: OFFLINE_MESSAGE) }
+        }
     }
 
     /** Choosing Woman turns on cycle tracking (unless the partner already tracks one); [onSaved] reloads it. */

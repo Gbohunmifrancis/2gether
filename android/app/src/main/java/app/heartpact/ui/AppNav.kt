@@ -1,5 +1,9 @@
 package app.heartpact.ui
 
+import androidx.compose.runtime.CompositionLocalProvider
+import app.heartpact.ui.us.ProfileScreen
+import app.heartpact.ui.components.Face
+import app.heartpact.ui.components.LocalAvatars
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -82,6 +86,14 @@ import app.heartpact.ui.today.NewDareScreen
 import app.heartpact.ui.today.NewDareViewModel
 import app.heartpact.ui.today.TodayTab
 import app.heartpact.ui.today.TodayViewModel
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -130,6 +142,7 @@ private object Routes {
     const val FORGOT = "forgot?email={email}"
     fun forgot(email: String) = "forgot?email=" + Uri.encode(email)
     const val QUESTION = "question"
+    const val PROFILE = "profile"
     const val CYCLE = "cycle"
     const val MAP = "map"
     const val GAMES = "games"
@@ -152,7 +165,7 @@ private fun Destination.route() = when (this) {
 @Composable
 fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
     val side by appModel.side.collectAsStateWithLifecycle()
-    HeartpactTheme(actor = side) {
+    HeartpactTheme(night = container.theme.night(androidx.compose.foundation.isSystemInDarkTheme()), actor = side) {
         val nav = rememberNavController()
         val destination by appModel.destination.collectAsStateWithLifecycle()
         var splashDone by remember { mutableStateOf(false) }
@@ -168,8 +181,16 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
             if (nav.currentDestination?.route != route) nav.resetTo(route)
         }
 
+        CompositionLocalProvider(LocalAvatars provides container.avatars) {
         Box(Modifier.fillMaxSize().background(Heartpact.colors.page)) {
-            NavHost(nav, startDestination = Routes.SPLASH) {
+            // Screens glide in from the side with a soft fade and a little scale; going back reverses it. The splash and
+            // the root screens (home, welcome) cross-fade instead, since nothing is "behind" them.
+            NavHost(nav, startDestination = Routes.SPLASH,
+                enterTransition = { slideInHorizontally(tween(360, easing = FastOutSlowInEasing)) { it / 5 } + fadeIn(tween(320)) + scaleIn(tween(360), initialScale = 0.96f) },
+                exitTransition = { slideOutHorizontally(tween(360, easing = FastOutSlowInEasing)) { -it / 8 } + fadeOut(tween(240)) },
+                popEnterTransition = { slideInHorizontally(tween(360, easing = FastOutSlowInEasing)) { -it / 8 } + fadeIn(tween(320)) },
+                popExitTransition = { slideOutHorizontally(tween(360, easing = FastOutSlowInEasing)) { it / 5 } + fadeOut(tween(240)) + scaleOut(tween(360), targetScale = 0.96f) },
+            ) {
                 composable(Routes.SPLASH) { AnimatedSplash(onFinished = { splashDone = true }) }
                 composable(Routes.ONBOARDING) { ReadableScreen { OnboardingScreen(onDone = { appModel.finishOnboarding() }) } }
                 composable(Routes.WELCOME) {
@@ -242,6 +263,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val session by appModel.session.collectAsStateWithLifecycle()
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val me = session?.user ?: return@composable
+                    val partnerMember = couple?.members?.firstOrNull { it.userId != me.id }
+                    val partnerSide = if (side == Side.Left) Side.Right else Side.Left
                     val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val context = LocalContext.current
@@ -298,6 +321,16 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() },
                         requestedTab = requestedTab?.let { name -> Tab.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } },
                         onRequestedTab = appModel::tabOpened,
+                        showTour = !container.tour.seen(), onTourDone = container.tour::markSeen,
+                        onRefresh = {
+                            when (it) {
+                                Tab.Today -> todayModel.refresh()
+                                Tab.Pacts -> pactsModel.refresh()
+                                Tab.Album -> albumModel.refresh()
+                                Tab.Food -> foodModel.refresh()
+                                Tab.Us -> usModel.refresh()
+                            }
+                        },
                         onTab = {
                             when (it) {
                                 Tab.Pacts -> pactsModel.refresh()
@@ -309,14 +342,9 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         },
                         us = {
                             UsTab(
-                                ui = usUi, myName = me.displayName, partnerName = partner, togetherSince = UsText.togetherSince(couple?.linkedAtUtc),
-                                onQuestion = { nav.navigate(Routes.QUESTION) }, onNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
-                                onSignOut = { appModel.signOut() },
-                                onEndPact = { usModel.endPact { appModel.refresh() } },
-                                onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
-                                onClearDeleteError = usModel::clearDeleteError,
-                                country = me.countryCode, onCountry = { usModel.setCountry(me, it) },
-                                gender = me.gender, onGender = { usModel.setGender(me, it) { cycleSummary.load() } },
+                                ui = usUi, me = Face(me.id, me.displayName, me.avatarVersion, side), partner = Face(partnerMember?.userId ?: "", partner, partnerMember?.avatarVersion ?: 0, partnerSide),
+                                togetherSince = UsText.togetherSince(couple?.linkedAtUtc),
+                                onQuestion = { nav.navigate(Routes.QUESTION) }, onProfile = { nav.navigate(Routes.PROFILE) }, onGames = { nav.navigate(Routes.GAMES) },
                                 location = {
                                     LocationCard(locationUi, partner, onOpen = { nav.navigate(Routes.MAP) }, onShare = shareLocation,
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)
@@ -332,8 +360,6 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                     }
                                     CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),
                                         icon3d = Icon3D.Plus, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
-                                    CardRow(tr("Play together"), subtitle = tr("Same answer, memory match, I call on"),
-                                        icon3d = Icon3D.Games, divider = true, onClick = { nav.navigate(Routes.GAMES) }) { Chevron() }
                                     CardRow(tr("Pregnancy mode"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
                                         icon3d = Icon3D.Pregnancy, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
                                 },
@@ -372,6 +398,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onCallOff = todayModel::callOffTogether,
                             onKeep = todayModel::keepIt,
                             onNewDare = { nav.navigate(Routes.NEW_DARE) },
+                            onGames = { nav.navigate(Routes.GAMES) },
                             onExactAlarmsAsked = todayModel::exactAlarmsAsked,
                         )
                     })
@@ -387,6 +414,27 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val ui by model.ui.collectAsStateWithLifecycle()
                         PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
                             onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) })
+                    }
+                }
+                composable(Routes.PROFILE) {
+                    ReadableScreen {
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val me = session?.user ?: return@composable
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
+                        val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents, container.auth) } })
+                        val usUi by usModel.ui.collectAsStateWithLifecycle()
+                        LaunchedEffect(Unit) { usModel.refresh() }
+                        ProfileScreen(
+                            ui = usUi, me = Face(me.id, me.displayName, me.avatarVersion, side), country = me.countryCode, gender = me.gender, partnerName = partner,
+                            themeMode = container.theme.mode, onBack = { nav.popBackStack() },
+                            onPicture = { jpeg -> usModel.setPicture(container.avatars, jpeg) { appModel.refresh() } },
+                            onName = { usModel.setName(me, it) }, onCountry = { usModel.setCountry(me, it) }, onGender = { usModel.setGender(me, it) },
+                            onThemeMode = container.theme::set, onNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
+                            onSignOut = { appModel.signOut() }, onEndPact = { usModel.endPact { appModel.refresh() } },
+                            onDeleteAccount = { password -> usModel.deleteAccount(password) { appModel.signOut() } },
+                            onClearDeleteError = usModel::clearDeleteError,
+                        )
                     }
                 }
                 composable(Routes.QUESTION) {
@@ -417,14 +465,17 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                 composable(Routes.MAP) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
                     val session by appModel.session.collectAsStateWithLifecycle()
-                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
+                    val partnerMember = couple?.members?.firstOrNull { it.userId != session?.user?.id }
+                    val partner = partnerMember?.displayName ?: tr("your partner")
                     val application = LocalContext.current.applicationContext as Application
                     val model: LocationViewModel = viewModel(factory = viewModelFactory { initializer { LocationViewModel(application) } })
                     LaunchedEffect(Unit) { model.refresh() }
                     val state by model.ui.collectAsStateWithLifecycle()
                     val share = rememberShareLocation { model.share(partner) }
-                    MapScreen(state, partner, MapActions(onShare = share, onPause = model::pause, onResume = model::resume, onStop = model::stop, onBack = { nav.popBackStack() }),
-                        myName = session?.user?.displayName ?: tr("You"))
+                    // Who is who on the map: pictures and names, each in their half of the heart.
+                    val meFace = Face(session?.user?.id ?: "", session?.user?.displayName ?: tr("You"), session?.user?.avatarVersion ?: 0, side)
+                    val partnerFace = Face(partnerMember?.userId ?: "", partner, partnerMember?.avatarVersion ?: 0, if (side == Side.Left) Side.Right else Side.Left)
+                    MapScreen(state, meFace, partnerFace, MapActions(onShare = share, onPause = model::pause, onResume = model::resume, onStop = model::stop, onBack = { nav.popBackStack() }))
                 }
                 composable(Routes.CYCLE) {
                     ReadableScreen {
@@ -497,6 +548,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     }
                 }
             }
+        }
         }
     }
 }

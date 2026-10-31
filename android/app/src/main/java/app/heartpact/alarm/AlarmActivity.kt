@@ -80,7 +80,7 @@ class AlarmActivity : ComponentActivity() {
                             BackHandler { leave() }
                             val deadline = app.heartpact.data.utc(phase.occurrence.completeByUtc ?: phase.occurrence.deadlineUtc)
                             // The workout follows the phone's day or night; the ringing screen stays on ink.
-                            HeartpactTheme(night = isSystemInDarkTheme(), actor = side) {
+                            HeartpactTheme(night = (application as HeartpactApplication).container.theme.night(isSystemInDarkTheme()), actor = side) {
                                 CameraRepScreen(
                                     type = phase.occurrence.exerciseType,
                                     target = phase.occurrence.target,

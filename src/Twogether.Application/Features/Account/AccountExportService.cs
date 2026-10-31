@@ -3,6 +3,7 @@ using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Memories;
 using Twogether.Core.Enums;
 using Twogether.Core.Questions;
+using Twogether.Core.Users;
 
 namespace Twogether.Application.Features.Account;
 
@@ -25,7 +26,11 @@ public sealed class AccountExportService(IApplicationDbContext db, IMediaStorage
         {
             user.Id, user.Email, user.DisplayName, user.AvatarUrl, user.MapColor, user.Gender, user.DateOfBirth,
             user.TimeZoneId, user.CycleOwner, user.EmailVerified, SignsInWithGoogle = user.GoogleId != null,
-            user.CoupleId, user.CreatedAtUtc, user.UpdatedAtUtc
+            user.CoupleId, user.CreatedAtUtc, user.UpdatedAtUtc,
+            // The profile picture itself (base64), so the export holds everything the profile does.
+            ProfilePicture = user.AvatarBytes is { } picture && AvatarImage.Detect(picture) is { } pictureType
+                ? new { ContentType = pictureType, SizeBytes = picture.Length, Version = user.AvatarVersion, Base64 = Convert.ToBase64String(picture) }
+                : null
         };
 
         var answers = await db.DailyAnswers.AsNoTracking()

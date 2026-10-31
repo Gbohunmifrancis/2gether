@@ -266,7 +266,7 @@ public sealed class AuthController(
 
     private static AuthResponse ToResponse(User user, string token) => new(token, ToUser(user));
     private static AuthUserDto ToUser(User user) => new(user.Id, user.Email, user.DisplayName, user.CoupleId, user.TimeZoneId, user.AvatarUrl, user.MapColor, user.CycleOwner, user.Gender,
-        user.CountryCode, ContentRegions.For(user.CountryCode));
+        user.CountryCode, ContentRegions.For(user.CountryCode), user.PublicAvatarVersion);
 
     /// <summary>Optional on the wire (older app versions don't send it), but a code that is sent must be a real country.</summary>
     /// <summary>A new account's date of birth: a real date, and 18 or over (AgeRules). Null when it's fine.</summary>
@@ -310,6 +310,9 @@ public sealed record GoogleProfileRequired(string Code, string Message, string E
 public sealed record AuthResponse(string AccessToken, AuthUserDto User);
 /// <summary>Country and gender are optional: left out (as older app versions do), they stay as they are.</summary>
 public sealed record UpdateProfileRequest(string DisplayName, string? AvatarUrl, string? MapColor, string? CountryCode = null, Gender? Gender = null);
-/// <summary><c>Region</c> is the content region for <c>CountryCode</c> (africa, mena, southasia, eastasia, latam, default).</summary>
+/// <summary>
+/// <c>Region</c> is the content region for <c>CountryCode</c> (africa, mena, southasia, eastasia, latam, default).
+/// <c>AvatarVersion</c> is 0 without a profile picture, else the version of <c>GET api/users/{id}/avatar</c> to ask for.
+/// </summary>
 public sealed record AuthUserDto(Guid Id, string Email, string DisplayName, Guid? CoupleId, string TimeZoneId, string? AvatarUrl, string MapColor, bool CycleOwner, Gender Gender,
-    string? CountryCode, string Region);
+    string? CountryCode, string Region, long AvatarVersion = 0);

@@ -1,5 +1,7 @@
 package app.heartpact.screens
 
+import app.heartpact.ui.theme.Side
+import app.heartpact.ui.components.Face
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -66,8 +68,7 @@ class LocalizedShotsTest {
         at("new-dare") { NewDareScreen(NewDareState(type = ExerciseType.PushUp, target = 30), "Theo", {}, {}, {}, {}, {}, {}) }
         at("us") {
             HomeScreen("Maya", "Theo", {}, initialTab = Tab.Us, us = {
-                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), "Maya", "Theo", "2 March", {}, {}, {}, {}, {}, {},
-                    country = "NG", onCountry = {}, gender = Gender.Female, onGender = {})
+                UsTab(UsUi(question = question, preferences = NotificationPreferences(quietHoursEnabled = true)), Face("maya", "Maya", 0, Side.Left), Face("theo", "Theo", 0, Side.Right), "2 March", {}, {}, {})
             })
         }
     }

@@ -30,9 +30,6 @@ android {
         for (name in listOf("FIREBASE_PROJECT_ID", "FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_SENDER_ID")) {
             buildConfigField("String", name, "\"${setting(name)}\"")
         }
-        // Google Maps for the location map. Without a key the app draws its own map of the two of you.
-        manifestPlaceholders["mapsApiKey"] = setting("MAPS_API_KEY")
-        buildConfigField("boolean", "HAS_MAPS_KEY", setting("MAPS_API_KEY").isNotBlank().toString())
         // Google sign-in: the web OAuth client id the server checks ID tokens against. Empty hides the button.
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${setting("GOOGLE_WEB_CLIENT_ID")}\"")
         // Play Integrity: the Google Cloud project number linked in Play Console. Empty skips the check.
@@ -118,7 +115,8 @@ dependencies {
     implementation(libs.signalr)
     // SignalR hands hub payloads over as Gson elements; it only declares Gson at runtime.
     implementation(libs.gson)
-    implementation(libs.maps.compose)
+    // The location map: MapLibre Native with OpenFreeMap vector tiles (no API key); styled at runtime in ui/map.
+    implementation(libs.maplibre)
     // The fused provider for location sharing on phones older than Android 12 (the version billing already brings).
     implementation(libs.play.location)
     implementation(libs.billing.ktx)

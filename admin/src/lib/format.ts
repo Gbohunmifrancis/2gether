@@ -119,6 +119,7 @@ const actionLabels: Record<string, string> = {
   "subscription.revoked": "Revoked subscription",
   "plus.granted": "Granted Plus",
   "plus.revoked": "Revoked Plus grant",
+  "features.updated": "Changed a feature",
 };
 
 export const actionLabel = (action: string) => actionLabels[action] ?? humanize(action);

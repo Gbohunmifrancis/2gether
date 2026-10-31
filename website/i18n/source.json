@@ -729,7 +729,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>Account details:</strong> email address, a password (stored only as a salted hash) or your Google account ID if you sign in with Google, display name, date of birth, gender (you can choose \"prefer not to say\"), the country you live in (chosen when you sign up, and changeable under Us), the language of your app, time zone, profile picture link and map colour.": {
+ "<strong>Account details:</strong> email address, a password (stored only as a salted hash) or your Google account ID if you sign in with Google, display name, date of birth, gender (you can choose \"prefer not to say\"), the country you live in (chosen when you sign up, and changeable under Us), the language of your app, time zone, map colour, and your profile picture if you add one (the picture itself, at most 400 KB, stored with your account in our database).": {
   "kind": "text",
   "pages": [
    "privacy/index.html"

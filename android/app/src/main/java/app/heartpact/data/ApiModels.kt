@@ -40,6 +40,8 @@ data class AuthUser(
     val coupleId: String? = null,
     val timeZoneId: String = "UTC",
     val avatarUrl: String? = null,
+    /** Bumps whenever the picture changes; 0 means none. The picture itself is `GET api/users/{id}/avatar`. */
+    val avatarVersion: Long = 0,
     val mapColor: String? = null,
     val cycleOwner: Boolean = false,
     val gender: Gender = Gender.PreferNotToSay,
@@ -57,7 +59,11 @@ data class UpdateProfileRequest(val displayName: String, val avatarUrl: String?,
 data class AuthResponse(val accessToken: String, val user: AuthUser)
 
 @Serializable
-data class CoupleMember(val userId: String, val displayName: String, val avatarUrl: String? = null, val side: CoupleSide = CoupleSide.Left)
+data class CoupleMember(val userId: String, val displayName: String, val avatarUrl: String? = null, val avatarVersion: Long = 0, val side: CoupleSide = CoupleSide.Left)
+
+/** What the server says before anyone signs in: switches the admins can flip (`GET api/config`). */
+@Serializable
+data class AppConfig(val christmas: Boolean = false)
 
 @Serializable
 data class Couple(val id: String, val status: CoupleStatus, val linkedAtUtc: String? = null, val members: List<CoupleMember> = emptyList())

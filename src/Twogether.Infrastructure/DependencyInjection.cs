@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddSingleton(email);
         switch (email.Provider?.Trim().ToLowerInvariant())
         {
+            case "resend": services.AddSingleton<IEmailSender, ResendEmailSender>(); break;
             case "smtp": services.AddSingleton<IEmailSender, SmtpEmailSender>(); break;
             case "log": services.AddSingleton<IEmailSender, LogEmailSender>(); break;
             default: services.AddSingleton<IEmailSender, DisabledEmailSender>(); break;
@@ -122,6 +123,7 @@ public static class DependencyInjection
         Port = int.TryParse(configuration["Email:Port"], out var port) && port > 0 ? port : 587,
         User = configuration["Email:User"],
         Password = configuration["Email:Password"],
+        ApiKey = configuration["Email:ApiKey"],
         From = configuration["Email:From"],
         FromName = string.IsNullOrWhiteSpace(configuration["Email:FromName"]) ? "Heartpact" : configuration["Email:FromName"]!,
         StartTls = !bool.TryParse(configuration["Email:StartTls"], out var startTls) || startTls,

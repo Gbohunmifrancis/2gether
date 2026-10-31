@@ -70,10 +70,6 @@
             </intent-filter>
         </receiver>
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="${mapsApiKey}" />
-
         <service
             android:name=".location.LocationShareService"
             android:exported="false"

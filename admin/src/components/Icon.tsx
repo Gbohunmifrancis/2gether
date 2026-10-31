@@ -236,6 +236,12 @@ const paths: Record<string, ReactNode> = {
       <path d="M7.5 14.5h9" />
     </>
   ),
+  toggle: (
+    <>
+      <rect x="2.5" y="7" width="19" height="10" rx="5" />
+      <circle cx="16.5" cy="12" r="2.5" />
+    </>
+  ),
   close: <path d="M6 6l12 12M18 6L6 18" />,
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
   command: (

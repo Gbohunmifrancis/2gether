@@ -42,7 +42,7 @@ export function toApiError(status: number, body: unknown): ApiError {
 }
 
 export interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: unknown;
   /** Sign-in calls send no token and must not sign out on 401. */
   anonymous?: boolean;

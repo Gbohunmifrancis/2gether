@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.Dp
+import app.heartpact.ui.theme.Season
 
 /**
  * The two Heartpact characters, ported from design/heartpact-v3/mascots.js: each partner is one
@@ -35,8 +36,12 @@ private val INK = Color(0xFF161A3D)
 
 private data class Palette(val body: Color, val shade: Color, val blush: Color, val face: Color, val catchlight: Color)
 
-private val LEFT = Palette(Color(0xFF262D66), Color(0xFF1A1F4D), Color(0xFFE58AA8), Color.White, Color(0xFF262D66))
-private val RIGHT = Palette(Color(0xFF7480D4), Color(0xFF5F6BC6), Color(0xFFF2A3BA), INK, Color.White)
+private val LEFT_BASE = Palette(Color(0xFF262D66), Color(0xFF1A1F4D), Color(0xFFE58AA8), Color.White, Color(0xFF262D66))
+private val RIGHT_BASE = Palette(Color(0xFF7480D4), Color(0xFF5F6BC6), Color(0xFFF2A3BA), INK, Color.White)
+private val LEFT_XMAS = Palette(Color(0xFFB3202A), Color(0xFF7E141C), Color(0xFFF4A6A6), Color.White, Color(0xFFB3202A))
+private val RIGHT_XMAS = Palette(Color(0xFF2E7D4F), Color(0xFF1F5E3A), Color(0xFFF2A3BA), INK, Color.White)
+private val LEFT get() = if (Season.christmas) LEFT_XMAS else LEFT_BASE
+private val RIGHT get() = if (Season.christmas) RIGHT_XMAS else RIGHT_BASE
 
 /** Character canvas in units: one half sits in a 100x120 box; this leaves room for arms and keyline. */
 const val CHAR_VB_X = -22f
@@ -68,6 +73,7 @@ fun DrawScope.drawCharacters(who: Who, pose: Pose, mood: Mood, sticker: Boolean,
     }
     parts.forEach { it.body(this, alpha, featureAlpha) }
     sides.forEach { mirror -> drawFace(mood, mirror, if (mirror) RIGHT else LEFT, featureAlpha, parts[sides.indexOf(mirror)].bob) }
+    if (Season.christmas) parts.forEach { it.santaHat(this, featureAlpha) }
 }
 
 private val HALF = parse("M50 22 C 46 10 37 2 26 2 C 11 2 0 15 0 33 C 0 60 25 80 50 106 Z")
@@ -116,6 +122,26 @@ private class HalfParts(val mirror: Boolean, pose: Pose, val stride: Stride?) {
             limbs(color, grow, alpha)
             drawPath(HALF, color, alpha = alpha)
             drawPath(HALF, color, alpha = alpha, style = Stroke(grow * 2, join = StrokeJoin.Round))
+        }
+    }
+
+    /** A Santa hat on the top of the lobe: a red cone that flops outward, a white band and a pompom. */
+    fun santaHat(scope: DrawScope, alpha: Float) = with(scope) {
+        mirrored {
+            val cone = Path().apply {
+                moveTo(5f, 17f)
+                cubicTo(5f, 4f, 2f, -10f, -5f, -19f)
+                cubicTo(8f, -11f, 30f, -5f, 47f, 9f)
+                close()
+            }
+            drawPath(cone, Color(0xFFD42B35), alpha = alpha)
+            drawPath(cone, Color(0xFF8E1A22), alpha = alpha, style = Stroke(1.2f, join = StrokeJoin.Round))
+            rotate(-14f, Offset(26f, 13f)) {
+                drawRoundRect(Color.White, Offset(1f, 8f), Size(50f, 10f), androidx.compose.ui.geometry.CornerRadius(5f, 5f), alpha = alpha)
+            }
+            // The pompom gets a soft grey edge so it still reads on white cards.
+            drawCircle(Color(0xFFD9D4CF), 7.3f, Offset(-5f, -19f), alpha = alpha)
+            drawCircle(Color.White, 6.3f, Offset(-5f, -19f), alpha = alpha)
         }
     }
 
