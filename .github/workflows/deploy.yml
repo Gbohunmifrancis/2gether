@@ -229,9 +229,13 @@ jobs:
           script=$(grep -o '/assets/index-[A-Za-z0-9_-]*\.js' dist/index.html | head -1)
           for i in $(seq 1 30); do
             if curl -fsS --max-time 10 -o /dev/null "$CHECK_URL$script"; then
+              # On a custom domain the headers can reach the edge a little after the files: keep looking until they do.
               headers=$(curl -sS -D - -o /dev/null "$CHECK_URL/users")
-              echo "$headers" | grep -iq "^x-frame-options: DENY" || { echo "::error::$CHECK_URL is missing its security headers (public/_headers)."; exit 1; }
-              echo "$headers" | grep -iq "^content-security-policy:" || { echo "::error::$CHECK_URL has no Content-Security-Policy."; exit 1; }
+              if ! echo "$headers" | grep -iq "^x-frame-options: DENY" || ! echo "$headers" | grep -iq "^content-security-policy:"; then
+                missing="security headers (public/_headers)"
+                sleep 10
+                continue
+              fi
               # The dashboard calls the API from its own origin: the API must allow it in Frontend__Origin.
               allowed=$(curl -sS -D - -o /dev/null -X OPTIONS -H "Origin: $ADMIN_URL" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type" "${API_URL%/}/api/admin/auth/login" | tr -d '\r' | grep -i "^access-control-allow-origin:" || true)
               [ -n "$allowed" ] || echo "::warning title=Dashboard can't reach the API::Add $ADMIN_URL to Frontend__Origin on the API."
@@ -240,7 +244,7 @@ jobs:
             fi
             sleep 10
           done
-          echo "::error title=Dashboard not live::$CHECK_URL doesn't serve $script after 5 minutes."
+          echo "::error title=Dashboard not live::$CHECK_URL doesn't serve $script${missing:+ with its $missing} after 5 minutes."
           exit 1
 
   website:
