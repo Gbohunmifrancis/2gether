@@ -433,6 +433,7 @@ export function health(lateWorker: boolean): Health {
     ],
     storageBytes: 612 * 1024 ** 3 + 345 * 1024 ** 2,
     foodScanCost: { days: 30, inputTokens: 10_480_000, outputTokens: 1_336_000, estimatedCost: 3.42, currency: "GBP" },
+    aiCost: { days: 30, inputTokens: 2_910_000, outputTokens: 402_000, estimatedCost: 1.07, currency: "GBP" },
     notMonitored: [
       "Backups (the host takes them; nothing here checks they ran)",
       "Email bounces and complaints",

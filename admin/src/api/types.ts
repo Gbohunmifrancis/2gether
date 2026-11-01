@@ -199,6 +199,11 @@ export interface Features {
   christmas: boolean;
   /** Card payment (Bachs) next to Google Play in the app, where Google's billing choice allows it. */
   bachsInApp: boolean;
+  /** The AI features (docs/ai.md). Each starts on; off hides it in every app. */
+  aiDareIdeas: boolean;
+  aiCoach: boolean;
+  aiWeeklyRecap: boolean;
+  aiPlanner: boolean;
 }
 
 export interface SystemStatus {
@@ -460,6 +465,8 @@ export interface Health {
   storageBytes: number;
   foodScanCost: { days: number; inputTokens: number; outputTokens: number; estimatedCost: number | null; currency: string };
   notMonitored: string[];
+  /** The AI features' calls to Claude, priced like food scans (same model). Missing from an older API. */
+  aiCost?: { days: number; inputTokens: number; outputTokens: number; estimatedCost: number | null; currency: string } | null;
 }
 
 export interface Alert {
