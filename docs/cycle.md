@@ -54,4 +54,11 @@ A calendar estimate from the last period start and the owner's averages, in `Two
 - `PUT api/cycle/logs/{date}`: the same date bounds (`cycle.invalid_date`), a known flow and mood (`cycle.invalid_log`),
   notes and symptoms within their limits. Two first saves of the same day that race end as one row: the loser updates it.
 
+## In the app
+
+The app draws the forecast as a cycle dial and a month calendar (`android/.../ui/cycle`, `CyclePlan`): logged (or
+owner-set) period days filled, a rolled-forward or next period dotted as predicted, the fertile window and ovulation
+(`fertileWindowEnd`) in their own colour and named "predicted", today marked. The partner gets the same look from what
+is shared: the forecast at `predictionsOnly`, and the logged periods too at `fullDetail`.
+
 These are estimates for planning, not medical advice or contraception; the app says so on both partners' screens.

@@ -42,6 +42,35 @@ class CycleShotsTest {
         shot("cycle-settings") { CycleScreen(CycleUi(CycleMode.Setup, CycleProfile(shareLevel = CycleShare.PredictionsOnly, lastPeriodStartDate = "2026-09-30"), prediction, editing = true), "Theo", CycleActions(), today) }
     }
 
+    /** The period-tracker look: the dial and the month, by day and night, in a period, on ovulation, and right to left. */
+    @Test fun dial() {
+        val owner = CycleUi(CycleMode.Owner, CycleProfile(shareLevel = CycleShare.PredictionsOnly, lastPeriodStartDate = "2026-09-30"), prediction, logs)
+        shot("cycle-dial") { CycleScreen(owner, "Theo", CycleActions(), today) }
+        shot("cycle-dial-night", night = true) { CycleScreen(owner, "Theo", CycleActions(), today) }
+        shot("cycle-dial-period") { CycleScreen(owner.copy(prediction = prediction.copy(cycleDay = 2)), "Theo", CycleActions(), LocalDate.of(2026, 10, 1)) }
+        shot("cycle-dial-ovulation") { CycleScreen(owner.copy(prediction = prediction.copy(cycleDay = 15)), "Theo", CycleActions(), LocalDate.of(2026, 10, 14)) }
+        val everything = SharedCycle(CycleProfile(shareLevel = CycleShare.FullDetail), prediction, logs)
+        shot("cycle-dial-partner-everything") { CycleScreen(CycleUi(CycleMode.Partner, shared = everything), "Maya", CycleActions(), today) }
+    }
+
+    @Test fun arabic() {
+        val file = java.io.File("src/main/assets/i18n/ar.json")
+        val english = java.util.Locale.getDefault()
+        java.util.Locale.setDefault(java.util.Locale.forLanguageTag("ar"))
+        app.heartpact.i18n.Tr.use("ar", file.readText())
+        try {
+            val owner = CycleUi(CycleMode.Owner, CycleProfile(shareLevel = CycleShare.PredictionsOnly, lastPeriodStartDate = "2026-09-30"), prediction, logs)
+            shot("ar/cycle-dial") {
+                androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl) {
+                    CycleScreen(owner, "Theo", CycleActions(), today)
+                }
+            }
+        } finally {
+            java.util.Locale.setDefault(english)
+            app.heartpact.i18n.Tr.use("en", null)
+        }
+    }
+
     @Test fun pregnancy() {
         val p = Pregnancy("p", "maya", "Maya", isMine = true, dueDate = "2027-03-14", week = 18, day = 3, trimester = 2, daysToGo = 154, progress = 0.45)
         val appts = listOf(

@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
+import androidx.core.content.edit
 import android.provider.Settings
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -135,7 +136,7 @@ fun AnimatedSplash(onFinished: () -> Unit) {
             inRive = withTimeoutOrNull(RIVE_WAIT_MS) { snapshotFlow { riveFile }.first { it != null } } != null
             if (inRive == true && withTimeoutOrNull(RIVE_WAIT_MS) { snapshotFlow { riveDrawn }.first { it } } == null) inRive = false
             started = true
-            sound?.start()
+            sound?.let { SplashSound.play(context, it) }
             val start = withFrameMillis { it }
             while (time < SplashTimeline.END) {
                 time = withFrameMillis { (it - start).toFloat() }.coerceAtMost(SplashTimeline.END)
@@ -205,8 +206,29 @@ fun SplashScene(timeMs: Float, modifier: Modifier = Modifier, art: (@Composable 
     }
 }
 
-/** The splash's sound: only when the phone's ringer is on (not silent or vibrate), on the system sounds volume. */
+/**
+ * How loud the splash plays: in full the very first time it's heard on this phone, then at a quarter of that, so a
+ * daily open is a soft hello rather than a fanfare.
+ */
+fun splashVolume(heardBefore: Boolean): Float = if (heardBefore) 0.25f else 1f
+
+/**
+ * The splash's sound: only when the phone's ringer is on (not silent or vibrate; that is its "sound off"), on the
+ * system sounds volume, at [splashVolume].
+ */
 private object SplashSound {
+    private const val PREFS = "splash"
+    private const val HEARD = "heard"
+
+    fun play(context: Context, player: MediaPlayer) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val volume = splashVolume(prefs.getBoolean(HEARD, false))
+        runCatching {
+            player.setVolume(volume, volume)
+            player.start()
+        }.onSuccess { prefs.edit { putBoolean(HEARD, true) } }
+    }
+
     fun load(context: Context): MediaPlayer? {
         val audio = context.getSystemService(AudioManager::class.java) ?: return null
         if (audio.ringerMode != AudioManager.RINGER_MODE_NORMAL) return null

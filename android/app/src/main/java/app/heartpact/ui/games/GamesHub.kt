@@ -125,7 +125,7 @@ internal val coupleGroups: List<List<GameType>> get() {
 internal val coupleGames: List<GameType> get() = coupleGroups.flatten()
 
 @Composable
-internal fun GamesHub(ui: GamesUi, me: String, partnerName: String, actions: GameActions, bests: SkillBests, onPractice: (SkillKind) -> Unit) {
+internal fun GamesHub(ui: GamesUi, me: String, partnerName: String, actions: GameActions, bests: SkillBests, onRules: (GameType) -> Unit = {}, onPractice: (SkillKind) -> Unit) {
     val region = ui.region ?: ui.sessions.firstOrNull()?.let(GamePlay::region)
     // "Last time": the newest game played to the end, from the history, however many invites came after it.
     HubHeader(ui.history.firstOrNull(), me, partnerName)
@@ -133,12 +133,12 @@ internal fun GamesHub(ui: GamesUi, me: String, partnerName: String, actions: Gam
         // Side by side on a wide screen; one under the other on a phone.
         if (maxWidth >= TwoPaneFrom) {
             Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
-                Column(Modifier.weight(1.3f)) { CoupleSection(ui, region, partnerName, actions) }
+                Column(Modifier.weight(1.3f)) { CoupleSection(ui, region, partnerName, actions, onRules) }
                 Column(Modifier.weight(1f)) { SkillSection(bests, startAt = 4, onPractice) }
             }
         } else {
             Column {
-                CoupleSection(ui, region, partnerName, actions)
+                CoupleSection(ui, region, partnerName, actions, onRules)
                 SkillSection(bests, startAt = 10, onPractice, Modifier.padding(top = 34.dp))
             }
         }
@@ -193,7 +193,7 @@ private fun SectionHead(title: String, line: String?, modifier: Modifier = Modif
 }
 
 @Composable
-private fun CoupleSection(ui: GamesUi, region: String?, partnerName: String, actions: GameActions) {
+private fun CoupleSection(ui: GamesUi, region: String?, partnerName: String, actions: GameActions, onRules: (GameType) -> Unit) {
     val games = coupleGames
     var picked by rememberSaveable { mutableStateOf(ui.finished?.gameType?.takeIf { it in games } ?: games.first()) }
     var letter by rememberSaveable { mutableStateOf<String?>(null) }
@@ -209,7 +209,7 @@ private fun CoupleSection(ui: GamesUi, region: String?, partnerName: String, act
         }
         startAt += group.size
         // What's picked shows under its own group, so the button is never a whole grid away.
-        if (picked in group) GameDetail(picked, region, partnerName, ui, actions, letter) { letter = it }
+        if (picked in group) GameDetail(picked, region, partnerName, ui, actions, letter, onRules) { letter = it }
     }
 }
 
@@ -222,7 +222,7 @@ private fun GroupHead(text: String, modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GameDetail(picked: GameType, region: String?, partnerName: String, ui: GamesUi, actions: GameActions, letter: String?, onLetter: (String?) -> Unit) {
+private fun GameDetail(picked: GameType, region: String?, partnerName: String, ui: GamesUi, actions: GameActions, letter: String?, onRules: (GameType) -> Unit, onLetter: (String?) -> Unit) {
     val colors = Heartpact.colors
     Detail(picked) { type ->
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -237,6 +237,7 @@ private fun GameDetail(picked: GameType, region: String?, partnerName: String, u
             }
             HeartButton(tr("Invite {partner}", "partner" to partnerName), { actions.onInvite(type, if (type == GameType.ICallOn) letter else null) },
                 Modifier.padding(top = 14.dp).widthIn(max = 420.dp), enabled = !ui.busy)
+            if (GameRules.of(type) != null) HeartButton(tr("How to play"), { onRules(type) }, Modifier.widthIn(max = 420.dp), kind = ButtonKind.Text)
         }
     }
 }

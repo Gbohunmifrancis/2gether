@@ -39,6 +39,15 @@ import app.heartpact.ui.plus.PlusViewModel
 import app.heartpact.ui.components.ReadableScreen
 import app.heartpact.ui.components.openInBrowser
 import app.heartpact.push.PushInbox
+import app.heartpact.push.BannerQueue
+import app.heartpact.push.PushActions
+import app.heartpact.data.NotificationPreferences
+import app.heartpact.data.ApiResult
+import app.heartpact.ui.components.InAppBannerHost
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.launch
 import app.heartpact.ui.games.GameActions
 import app.heartpact.ui.games.GamesScreen
 import app.heartpact.ui.games.GamesViewModel
@@ -110,6 +119,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -197,6 +207,29 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
             if (route == Routes.SPLASH) return@LaunchedEffect
             appModel.tabOpened()
             if (route != Routes.GAMES) nav.navigate(Routes.GAMES) { launchSingleTop = true }
+        }
+
+        // A screen over Home a notification asked for ("watch/{occurrenceId}" when a dare goes live). An app without that
+        // screen yet (the route isn't in the graph) opens Today instead.
+        val requestedRoute by appModel.openRoute.collectAsStateWithLifecycle()
+        LaunchedEffect(requestedRoute, splashDone, destination, entry?.destination?.route) {
+            val wanted = requestedRoute ?: return@LaunchedEffect
+            if (!splashDone || destination != Destination.Home) return@LaunchedEffect
+            val route = entry?.destination?.route ?: return@LaunchedEffect
+            if (route == Routes.SPLASH) return@LaunchedEffect
+            appModel.routeOpened()
+            if (runCatching { nav.navigate(wanted) { launchSingleTop = true } }.isFailure) appModel.openTab("today")
+        }
+
+        // What arrives while the app is open drops in as a banner, one at a time, obeying the person's notification switches.
+        var banners by remember { mutableStateOf(BannerQueue()) }
+        var notificationPrefs by remember { mutableStateOf<NotificationPreferences?>(null) }
+        val lifecycle = LocalLifecycleOwner.current
+        LaunchedEffect(Unit) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                launch { (container.us.preferences() as? ApiResult.Ok)?.let { notificationPrefs = it.value } }
+                container.notices.collect { notice -> if (PushActions.allowed(notice.type, notificationPrefs)) banners = banners.offer(notice) }
+            }
         }
 
         // An invite link opened on Home before linking: the pair screen opens over Home with it.
@@ -547,7 +580,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         onAct = { s, action, value, index -> model.act(s, action, value, index) }, onBack = { nav.popBackStack() },
                         onClose = { model.close(it) }, onInk = { s, cell, stroke, points -> model.ink(s, cell, stroke, points) },
                         onDraft = { s, round, answers -> model.draft(s, round, answers) },
-                    ), myName = session?.user?.displayName.orEmpty())
+                    ), myName = session?.user?.displayName.orEmpty(), rulesSeen = app.heartpact.ui.games.rememberRulesSeen(me))
                 }
                 composable(Routes.MAP) {
                     val couple by appModel.couple.collectAsStateWithLifecycle()
@@ -636,10 +669,33 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     }
                 }
             }
+            val here = entry?.destination?.route
+            InAppBannerHost(
+                banners,
+                // Never over the splash; the alarm and the camera are their own screens, where the app isn't resumed.
+                blocked = here == null || here == Routes.SPLASH || destination != Destination.Home || BANNER_BLOCKED.any { here.startsWith(it) },
+                onOpen = { notice ->
+                    val target = notice.target
+                    when {
+                        target.route != null -> appModel.openRoute(target.route)
+                        target.tab == PushInbox.GAMES -> appModel.openTab(PushInbox.GAMES)
+                        else -> {
+                            // A tab is on Home: come back to it from whatever screen is over it.
+                            if (here != Routes.HOME) nav.popBackStack(Routes.HOME, inclusive = false)
+                            appModel.openTab(target.tab)
+                        }
+                    }
+                },
+                onDone = { banners = banners.next() },
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
         }
         }
     }
 }
+
+/** Screens a banner must never cover (a camera or an alarm hosted in the app's own navigation). */
+private val BANNER_BLOCKED = listOf("camera", "alarm")
 
 /** Today's "Start on camera" opens the same full-screen flow the alarm uses. */
 private fun alarmIntent(context: Context, dare: MyDare, partnerName: String, early: Boolean = false): Intent {

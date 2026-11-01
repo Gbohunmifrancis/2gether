@@ -36,7 +36,8 @@ public sealed class NotificationPreferenceTests
 
         var asked = Notification.Create(Guid.NewGuid(), Guid.NewGuid(), NotificationType.ExerciseCallOffAsked, "Maya asks to call off today's sit-ups", "Knee is sore", "{\"occurrenceId\":\"x\"}", LagosNoon);
         var push = PushPolicy.Build(asked, "t", PushTokenKind.RegistrationToken, LagosNoon);
-        Assert.Equal((PushPriority.Normal, PushPolicy.GeneralChannel, false), (push.Priority, push.ChannelId, push.DataOnly));
+        // The partner is waiting on an answer: high priority on the partner channel, drawn by the app with Let off / Keep it.
+        Assert.Equal((PushPriority.High, PushPolicy.PartnerChannel, true), (push.Priority, push.ChannelId, push.DataOnly));
         Assert.Equal("exerciseCallOffAsked", push.Data["type"]);
         Assert.Equal(TimeSpan.FromHours(1), push.TimeToLive);
         Assert.True(PushPolicy.IsStale(asked, LagosNoon.AddMinutes(61)));
@@ -110,7 +111,7 @@ public sealed class NotificationPreferenceTests
         var quiet = PushPolicy.Build(message, "t", PushTokenKind.RegistrationToken, LagosNight, PushRoute.Quiet);
         Assert.Equal(PushPolicy.QuietChannel, quiet.ChannelId);
         Assert.Equal("true", quiet.Data["quiet"]);
-        Assert.Equal(PushPolicy.GeneralChannel, PushPolicy.Build(message, "t", PushTokenKind.RegistrationToken, LagosNight).ChannelId);
+        Assert.Equal(PushPolicy.PartnerChannel, PushPolicy.Build(message, "t", PushTokenKind.RegistrationToken, LagosNight).ChannelId);
         var ringing = PushPolicy.Build(alarm, "t", PushTokenKind.RegistrationToken, LagosNight, PushRoute.Quiet);
         Assert.Equal(PushPolicy.AlarmChannel, ringing.ChannelId);
         Assert.False(ringing.Data.ContainsKey("quiet"));

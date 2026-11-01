@@ -4,7 +4,9 @@ import app.heartpact.data.CycleDayLog
 import app.heartpact.data.CyclePrediction
 import app.heartpact.data.FlowLevel
 import app.heartpact.ui.cycle.CyclePlan
+import app.heartpact.ui.cycle.CycleMark
 import app.heartpact.ui.cycle.DayKind
+import app.heartpact.ui.cycle.DialText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -88,5 +90,91 @@ class CyclePlanTest {
         assertEquals("31 October–2 November", CyclePlan.likely(LocalDate.of(2026, 11, 1)))
         assertEquals("Day 12 · Theo sees predictions", CyclePlan.usRow(true, 12, app.heartpact.data.CycleShare.PredictionsOnly, "Theo", null))
         assertEquals("Day 12 of Maya's cycle", CyclePlan.usRow(false, null, null, "Maya", 12))
+    }
+
+    @Test fun `the dial gives each day of the cycle an equal share of the circle, day 1 at the top`() {
+        val ring = CyclePlan.ring(prediction, emptyList(), 5, today)
+        assertEquals(28, ring.size)
+        assertEquals((1..28).toList(), ring.map { it.day })
+        val step = 360f / 28
+        // Segments and the gaps between them make the whole circle, and each segment starts a step after the last.
+        assertEquals(360f, ring.sumOf { it.sweepDegrees.toDouble() }.toFloat() + 28 * (step - ring[0].sweepDegrees), 0.01f)
+        assertEquals(-90f, ring[0].startDegrees - (step - ring[0].sweepDegrees) / 2f, 0.01f)
+        ring.zipWithNext().forEach { (a, b) -> assertEquals(step, b.startDegrees - a.startDegrees, 0.01f) }
+        // Today (day 12) sits where its segment's middle is: 11.5 steps round from the top.
+        val now = ring.single { it.today }
+        assertEquals(12, now.day)
+        assertEquals(-90f + 11.5f * step, now.midDegrees, 0.01f)
+    }
+
+    @Test fun `the dial marks the period, the predicted fertile window and ovulation`() {
+        val ring = CyclePlan.ring(prediction, emptyList(), 5, today)
+        assertEquals(List(5) { CycleMark.Period }, ring.take(5).map { it.mark })
+        // Fertile 9-14 October is days 10 to 15; ovulation is its last day.
+        assertEquals(listOf(10, 11, 12, 13, 14), ring.filter { it.mark == CycleMark.Fertile }.map { it.day })
+        assertEquals(15, ring.single { it.mark == CycleMark.Ovulation }.day)
+        assertEquals(LocalDate.of(2026, 10, 14), ring.single { it.mark == CycleMark.Ovulation }.date)
+        // A rolled-forward cycle's period is a prediction, not one that happened.
+        val rolled = CyclePlan.ring(prediction.copy(lastPeriodStart = "2026-09-02"), emptyList(), 5, today)
+        assertEquals(List(5) { CycleMark.PredictedPeriod }, rolled.take(5).map { it.mark })
+    }
+
+    @Test fun `right to left, the dial runs the other way round`() {
+        val ltr = CyclePlan.ring(prediction, emptyList(), 5, today)
+        val rtl = CyclePlan.ring(prediction, emptyList(), 5, today, clockwise = false)
+        ltr.zip(rtl).forEach { (l, r) ->
+            // Mirrored about the vertical through the top: -90 + a becomes -90 - a.
+            assertEquals(-180f - l.midDegrees, r.midDegrees, 0.01f)
+            assertEquals(l.sweepDegrees, r.sweepDegrees, 0.001f)
+        }
+    }
+
+    @Test fun `a late period runs the dial on to today`() {
+        val lateToday = LocalDate.of(2026, 10, 31)
+        val late = prediction.copy(lastPeriodStart = "2026-09-30", cycleDay = 32, daysLate = 3)
+        val ring = CyclePlan.ring(late, emptyList(), 5, lateToday)
+        assertEquals(32, ring.size)
+        assertTrue(ring.last().today)
+        assertEquals(DialText("Day 32", "Period may be late", "3 days past the predicted start"), CyclePlan.dial(late, ring, 5, lateToday))
+        assertEquals("Period due today", CyclePlan.dial(late.copy(daysLate = 0), ring, 5, lateToday)?.line)
+    }
+
+    @Test fun `the middle of the dial says where you are`() {
+        val ring = CyclePlan.ring(prediction, emptyList(), 5, today)
+        // 11 October is in the predicted fertile window; the next period is 28 October.
+        assertEquals(DialText("Day 12", "Period in 17 days", "Fertile window, predicted"), CyclePlan.dial(prediction, ring, 5, today))
+        val second = LocalDate.of(2026, 10, 1)
+        val inPeriod = prediction.copy(cycleDay = 2)
+        assertEquals(DialText("Period day 2", "Usually about 5 days", null, period = true), CyclePlan.dial(inPeriod, CyclePlan.ring(inPeriod, emptyList(), 5, second), 5, second))
+        val ovulating = LocalDate.of(2026, 10, 14)
+        assertEquals("Ovulation, predicted", CyclePlan.dial(prediction.copy(cycleDay = 15), CyclePlan.ring(prediction, emptyList(), 5, ovulating), 5, ovulating)?.note)
+        val eve = LocalDate.of(2026, 10, 27)
+        assertEquals("Period in 1 day", CyclePlan.dial(prediction.copy(cycleDay = 28), CyclePlan.ring(prediction, emptyList(), 5, eve), 5, eve)?.line)
+        assertEquals(null, CyclePlan.dial(CyclePrediction(), emptyList(), 5, today))
+    }
+
+    @Test fun `the calendar carries the same marks, earlier logged periods and the predicted next one`() {
+        val earlier = listOf("2026-09-02", "2026-09-03").map { CycleDayLog(it, FlowLevel.Light) }
+        val marks = CyclePlan.marks(prediction, earlier, 5, today)
+        assertEquals(CycleMark.Period, marks[LocalDate.of(2026, 9, 2)])
+        assertEquals(CycleMark.Period, marks[LocalDate.of(2026, 9, 30)])
+        assertEquals(CycleMark.Ovulation, marks[LocalDate.of(2026, 10, 14)])
+        assertEquals(CycleMark.Fertile, marks[LocalDate.of(2026, 10, 9)])
+        assertEquals(CycleMark.PredictedPeriod, marks[LocalDate.of(2026, 10, 28)])
+        assertEquals(CycleMark.PredictedPeriod, marks[LocalDate.of(2026, 11, 1)])
+        assertEquals(null, marks[LocalDate.of(2026, 10, 20)])
+        assertEquals(java.time.YearMonth.of(2026, 9)..java.time.YearMonth.of(2026, 11), CyclePlan.months(marks, today))
+    }
+
+    @Test fun `a month is whole weeks from the first day of the week`() {
+        val october = CyclePlan.month(java.time.YearMonth.of(2026, 10), emptyMap(), today, java.time.DayOfWeek.MONDAY)
+        // 1 October 2026 is a Thursday: three empty squares first.
+        assertEquals(listOf(null, null, null), october.first().take(3))
+        assertEquals(1, october.first()[3]?.date?.dayOfMonth)
+        assertTrue(october.all { it.size == 7 })
+        assertEquals(31, october.flatten().count { it != null })
+        assertTrue(october.flatten().single { it?.today == true }!!.date == today)
+        val sundayFirst = CyclePlan.month(java.time.YearMonth.of(2026, 10), emptyMap(), today, java.time.DayOfWeek.SUNDAY)
+        assertEquals(4, sundayFirst.first().indexOfFirst { it != null })
     }
 }

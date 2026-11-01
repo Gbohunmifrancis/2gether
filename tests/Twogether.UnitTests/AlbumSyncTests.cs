@@ -236,7 +236,9 @@ public sealed class AlbumNotificationTests
 
         var synced = Notification.Create(Guid.NewGuid(), Guid.NewGuid(), NotificationType.MemoriesSynced, MemorySyncText.SyncedTitle,
             MemorySyncText.SyncedBody("Maya", 3), "{\"count\":3}", Noon);
-        Assert.False(PushPolicy.Build(synced, "t", PushTokenKind.RegistrationToken, Noon).DataOnly);
+        // Every push is data only now (the app draws them all); the partner's photos are an ordinary, normal-priority one.
+        var syncedPush = PushPolicy.Build(synced, "t", PushTokenKind.RegistrationToken, Noon);
+        Assert.Equal((PushPriority.Normal, PushPolicy.GeneralChannel), (syncedPush.Priority, syncedPush.ChannelId));
     }
 }
 

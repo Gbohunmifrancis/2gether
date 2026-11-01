@@ -1,6 +1,29 @@
 package app.heartpact.ui.cycle
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
+import app.heartpact.data.CyclePrediction
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.time.temporal.WeekFields
+import java.util.Locale
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -65,18 +88,11 @@ import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.components.TopBar
-import app.heartpact.ui.graphics.Character
-import app.heartpact.ui.graphics.Mood
-import app.heartpact.ui.graphics.Pose
-import app.heartpact.ui.graphics.Who
 import app.heartpact.ui.theme.Heartpact
-import app.heartpact.ui.theme.LocalActor
 import app.heartpact.ui.theme.Shapes
-import app.heartpact.ui.theme.Side
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 data class CycleActions(
     val onSetup: (LocalDate, Int, Int, CycleShare) -> Unit = { _, _, _, _ -> },
@@ -111,18 +127,6 @@ fun CycleScreen(ui: CycleUi, partnerName: String, actions: CycleActions, today: 
     }
 }
 
-@Composable
-private fun Big(day: Int?, line: String?) {
-    val mine = LocalActor.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(day?.let { tr("Day {day}", "day" to it) } ?: tr("No date yet"), style = Heartpact.type.display.copy(fontSize = 72.sp, lineHeight = 66.sp), color = Heartpact.colors.ink, maxLines = 1, softWrap = false)
-            line?.let { Text(it, style = Heartpact.type.bodyLarge, color = Heartpact.colors.ink2, modifier = Modifier.padding(top = 12.dp)) }
-        }
-        Character(if (mine == Side.Left) Who.Left else Who.Right, Pose.Rest, 84.dp, mood = Mood.Sleep)
-    }
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Owner(ui: CycleUi, partnerName: String, actions: CycleActions, today: LocalDate) {
@@ -131,8 +135,8 @@ private fun Owner(ui: CycleUi, partnerName: String, actions: CycleActions, today
     var picking by remember { mutableStateOf(false) }
     val day = ui.day ?: today
     val todayLog = ui.logFor(day)
-    Big(ui.prediction.cycleDay, CyclePlan.summary(ui.prediction, ui.profile.averageCycleLengthDays))
-    Strip(CyclePlan.strip(ui.prediction, ui.logs, ui.profile.averagePeriodLengthDays, today))
+    Forecast(ui.prediction, ui.logs, ui.profile.averagePeriodLengthDays, today, CyclePlan.summary(ui.prediction, ui.profile.averageCycleLengthDays),
+        selected = day, onPick = { if (CyclePlan.canLog(it, today)) actions.onPickDay(it) })
     Row(Modifier.padding(top = 22.dp, bottom = 10.dp), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(CyclePlan.dayTitle(day, today), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.weight(1f))
         Text(tr("Another day"), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clickable { picking = true })
@@ -185,8 +189,9 @@ private fun Partner(ui: CycleUi, partnerName: String, today: LocalDate) {
         Text(tr("{partner} shares their cycle with you, but there's nothing to predict right now.", "partner" to partnerName), style = Heartpact.type.bodyLarge, color = colors.ink2)
         return
     }
-    Big(prediction.cycleDay, CyclePlan.partnerSummary(prediction, profile.averageCycleLengthDays, partnerName))
-    Strip(CyclePlan.strip(prediction, shared.logs, profile.averagePeriodLengthDays, today))
+    // Only what's shared: at "predictions" the server sends no logs, so only the forecast is drawn.
+    Forecast(prediction, if (profile.shareLevel == CycleShare.FullDetail) shared.logs else emptyList(), profile.averagePeriodLengthDays, today,
+        CyclePlan.partnerSummary(prediction, profile.averageCycleLengthDays, partnerName))
     val todayLog = shared.logs.firstOrNull { it.logDate == today.toString() }
     if (profile.shareLevel == CycleShare.FullDetail && todayLog != null) {
         StickerCard(Modifier.padding(top = 18.dp).fillMaxWidth()) {
@@ -205,51 +210,218 @@ private fun Partner(ui: CycleUi, partnerName: String, today: LocalDate) {
         style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.padding(top = 18.dp))
 }
 
-/** One bar per day: period dark, fertile light, today outlined, the predicted next period dashed. */
+/** The colours a period tracker is read by: a period red, a fertile teal, both a shade deeper at night for the dark page. */
+private data class CycleInk(val period: Color, val periodSoft: Color, val fertile: Color, val fertileSoft: Color, val ovulation: Color, val onMark: Color, val plain: Color)
+
 @Composable
-private fun Strip(days: List<StripDay>) {
-    if (days.isEmpty()) return
+private fun cycleInk(): CycleInk {
     val colors = Heartpact.colors
-    val period = Heartpact.actor.action
-    val fertile = colors.left.soft
-    val plain = colors.sticker2
-    val ink = colors.ink
-    val fmt = Dates.formatter("d MMM")
-    StickerCard(Modifier.padding(top = 20.dp).fillMaxWidth(), shape = Shapes.Dare) {
-        Column(Modifier.padding(18.dp)) {
-            Canvas(Modifier.fillMaxWidth().height(64.dp).semantics { contentDescription = tr("Cycle from {from} to {to}", "from" to days.first().date.format(fmt), "to" to days.last().date.format(fmt)) }) {
-                val gap = 2.dp.toPx()
-                val w = (size.width - gap * (days.size - 1)) / days.size
-                days.forEachIndexed { i, d ->
-                    val x = i * (w + gap)
-                    val tall = d.kind == DayKind.Period || d.kind == DayKind.Predicted || d.today
-                    val h = if (tall) size.height else size.height * 0.38f
-                    val top = size.height - h
-                    val r = CornerRadius(w / 2, w / 2)
-                    when (d.kind) {
-                        DayKind.Predicted -> drawRoundRect(ink, Offset(x, top), Size(w, h), r, style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))))
-                        else -> drawRoundRect(if (d.kind == DayKind.Period) period else if (d.kind == DayKind.Fertile) fertile else plain, Offset(x, top), Size(w, h), r)
+    return if (colors.isNight) CycleInk(Color(0xFFFF6B93), Color(0xFF4A2338), Color(0xFF3FC7B4), Color(0xFF1D5450), Color(0xFF7FE3D3), Color(0xFF10132B), colors.sticker2)
+    else CycleInk(Color(0xFFD23B68), Color(0xFFFADCE6), Color(0xFF1E9C8C), Color(0xFFD3F1EC), Color(0xFF0B7366), Color.White, colors.sticker2)
+}
+
+/**
+ * The forecast as a period tracker draws it: a dial of the cycle's days with the period, the predicted fertile window,
+ * ovulation and today, the words in the middle, then the month calendar with the same marks and a legend. [onPick]
+ * (the owner) logs a tapped day; [selected] is the day being logged.
+ */
+@Composable
+private fun Forecast(prediction: CyclePrediction, logs: List<CycleDayLog>, periodLength: Int, today: LocalDate, summary: String?,
+                     selected: LocalDate? = null, onPick: ((LocalDate) -> Unit)? = null) {
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val ring = CyclePlan.ring(prediction, logs, periodLength, today, clockwise = !rtl)
+    val text = CyclePlan.dial(prediction, ring, periodLength, today)
+    if (ring.isNotEmpty() && text != null) Dial(ring, text, Modifier.padding(top = 4.dp))
+    summary?.let { Text(it, style = Heartpact.type.body, color = Heartpact.colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) }
+    val marks = CyclePlan.marks(prediction, logs, periodLength, today)
+    MonthCalendar(marks, today, selected, onPick, Modifier.padding(top = 18.dp))
+}
+
+/** The cycle dial: a day per segment from day 1 at the top, the period filled, predictions dotted, today a knob on the ring. */
+@Composable
+private fun Dial(ring: List<RingDay>, text: DialText, modifier: Modifier = Modifier) {
+    val colors = Heartpact.colors
+    val ink = cycleInk()
+    val measurer = rememberTextMeasurer()
+    val numbers = Heartpact.type.labelSmall.copy(color = colors.ink3, fontSize = 10.5.sp)
+    val described = listOfNotNull(text.big, text.line, text.note).joinToString(". ")
+    BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val side = minOf(maxWidth, 300.dp)
+        Box(Modifier.size(side), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.matchParentSize().semantics { contentDescription = described }) {
+                val band = size.minDimension * 0.095f
+                val radius = size.minDimension / 2f - band / 2f - 10.dp.toPx()
+                val topLeft = Offset(center.x - radius, center.y - radius)
+                val arc = Size(radius * 2, radius * 2)
+                ring.forEach { d ->
+                    val fill = when (d.mark) {
+                        CycleMark.Period -> ink.period
+                        CycleMark.PredictedPeriod -> ink.periodSoft
+                        CycleMark.Fertile -> ink.fertileSoft
+                        CycleMark.Ovulation -> ink.fertile
+                        CycleMark.None -> ink.plain
                     }
-                    if (d.today && d.kind != DayKind.Predicted) drawRoundRect(ink, Offset(x, top), Size(w, h), r, style = Stroke(2.dp.toPx()))
+                    drawArc(fill, d.startDegrees, d.sweepDegrees, useCenter = false, topLeft = topLeft, size = arc, style = Stroke(band, cap = StrokeCap.Butt))
+                    val mid = Math.toRadians(d.midDegrees.toDouble())
+                    val at = Offset(center.x + radius * cos(mid).toFloat(), center.y + radius * sin(mid).toFloat())
+                    when (d.mark) {
+                        // A predicted period is dotted: a rose dot in each of its days.
+                        CycleMark.PredictedPeriod -> drawCircle(ink.period, band * 0.13f, at)
+                        // The fertile window's days carry a small teal dot; ovulation a white egg with a teal centre.
+                        CycleMark.Fertile -> drawCircle(ink.fertile, band * 0.11f, at)
+                        CycleMark.Ovulation -> {
+                            drawCircle(ink.onMark, band * 0.24f, at)
+                            drawCircle(ink.fertile, band * 0.12f, at)
+                        }
+                        else -> Unit
+                    }
+                    // Day numbers inside the ring: day 1, every seventh, and today.
+                    if ((d.day == 1 || d.day % 7 == 0) && !d.today) {
+                        val label = measurer.measure(d.day.toString(), numbers)
+                        val r = radius - band / 2f - 11.dp.toPx()
+                        drawText(label, topLeft = Offset(center.x + r * cos(mid).toFloat() - label.size.width / 2f, center.y + r * sin(mid).toFloat() - label.size.height / 2f))
+                    }
+                }
+                // Today: a knob riding on the ring.
+                ring.firstOrNull { it.today }?.let { d ->
+                    val mid = Math.toRadians(d.midDegrees.toDouble())
+                    val at = Offset(center.x + radius * cos(mid).toFloat(), center.y + radius * sin(mid).toFloat())
+                    drawCircle(colors.left.art.copy(alpha = 0.18f), band * 0.78f, at + Offset(0f, 2.dp.toPx()))
+                    drawCircle(colors.sticker, band * 0.7f, at)
+                    drawCircle(colors.ink, band * 0.7f, at, style = Stroke(2.5.dp.toPx()))
+                    // Today's day number sits in the knob.
+                    val label = measurer.measure(d.day.toString(), numbers.copy(color = colors.ink, fontWeight = FontWeight.Bold, fontSize = 12.sp))
+                    drawText(label, topLeft = Offset(at.x - label.size.width / 2f, at.y - label.size.height / 2f))
                 }
             }
-            Row(Modifier.padding(top = 8.dp)) {
-                Text(days.first().date.format(fmt), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.weight(1f))
-                days.firstOrNull { it.kind == DayKind.Predicted }?.let { Text(it.date.format(fmt), style = Heartpact.type.small, color = colors.ink2) }
-            }
-            Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Legend(tr("period")) { Box(Modifier.size(12.dp).clip(Shapes.Tile).background(period)) }
-                Legend(tr("fertile, estimated")) { Box(Modifier.size(12.dp).clip(Shapes.Tile).background(fertile)) }
-                Legend(tr("predicted")) { Box(Modifier.size(12.dp).border(1.5.dp, ink, Shapes.Tile)) }
+            Column(Modifier.padding(horizontal = side * 0.2f), horizontalAlignment = Alignment.CenterHorizontally) {
+                val big = text.big
+                val fontSize = when {
+                    big.length <= 7 -> 46.sp
+                    big.length <= 11 -> 36.sp
+                    big.length <= 15 -> 30.sp
+                    else -> 25.sp
+                }
+                Text(big, style = Heartpact.type.display.copy(fontSize = fontSize, lineHeight = fontSize * 1.02f), color = colors.ink, textAlign = TextAlign.Center, maxLines = 2)
+                text.line?.let { Text(it, style = Heartpact.type.label, color = if (text.period) ink.period else colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp)) }
+                text.note?.let {
+                    Text(it, style = Heartpact.type.labelSmall, color = ink.ovulation, textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp).clip(Shapes.Pill).background(ink.fertileSoft).padding(horizontal = 10.dp, vertical = 4.dp))
+                }
             }
         }
     }
 }
 
+/** The month, with the dial's marks; the owner taps a day (up to two months back) to log it. */
 @Composable
-private fun Legend(label: String, swatch: @Composable () -> Unit) {
+private fun MonthCalendar(marks: Map<LocalDate, CycleMark>, today: LocalDate, selected: LocalDate?, onPick: ((LocalDate) -> Unit)?, modifier: Modifier = Modifier) {
+    val colors = Heartpact.colors
+    val ink = cycleInk()
+    val range = CyclePlan.months(marks, today)
+    var month by remember { mutableStateOf(YearMonth.from(today)) }
+    val locale = Locale.getDefault()
+    val firstDay = WeekFields.of(locale).firstDayOfWeek
+    StickerCard(modifier.fillMaxWidth(), shape = Shapes.Dare) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { month = month.minusMonths(1) }, enabled = month > range.start) {
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, tr("Previous month"), tint = if (month > range.start) colors.ink else colors.ink4)
+                }
+                Text(month.atDay(1).format(Dates.formatter("MMMM yyyy")).replaceFirstChar { it.titlecase(locale) }, style = Heartpact.type.titleSmall, color = colors.ink,
+                    textAlign = TextAlign.Center, modifier = Modifier.weight(1f).semantics { heading() })
+                IconButton(onClick = { month = month.plusMonths(1) }, enabled = month < range.endInclusive) {
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, tr("Next month"), tint = if (month < range.endInclusive) colors.ink else colors.ink4)
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 4.dp)) {
+                (0 until 7).map { firstDay.plus(it.toLong()) }.forEach { d ->
+                    Text(d.getDisplayName(TextStyle.NARROW, locale), style = Heartpact.type.labelSmall, color = colors.ink3, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                }
+            }
+            CyclePlan.month(month, marks, today, firstDay).forEach { week ->
+                Row(Modifier.fillMaxWidth()) {
+                    week.forEach { cell ->
+                        Box(Modifier.weight(1f).aspectRatio(1f), contentAlignment = Alignment.Center) {
+                            if (cell != null) DayCell(cell, cell.date == selected && selected != today, ink,
+                                onPick?.takeIf { CyclePlan.canLog(cell.date, today) }?.let { pick -> { pick(cell.date) } })
+                        }
+                    }
+                }
+            }
+            Legend(ink, Modifier.padding(top = 12.dp, start = 4.dp, end = 4.dp))
+        }
+    }
+}
+
+@Composable
+private fun DayCell(cell: CalendarDay, selected: Boolean, ink: CycleInk, onClick: (() -> Unit)?) {
+    val colors = Heartpact.colors
+    val fmt = Dates.formatter("EEEE d MMMM")
+    val what = when (cell.mark) {
+        CycleMark.Period -> tr("Period")
+        CycleMark.PredictedPeriod -> tr("Predicted period")
+        CycleMark.Fertile -> tr("Fertile window, predicted")
+        CycleMark.Ovulation -> tr("Ovulation, predicted")
+        CycleMark.None -> null
+    }
+    val said = listOfNotNull(cell.date.format(fmt), if (cell.today) tr("Today") else null, what).joinToString(", ")
+    val number = when (cell.mark) {
+        CycleMark.Period, CycleMark.Ovulation -> ink.onMark
+        CycleMark.PredictedPeriod -> ink.period
+        CycleMark.Fertile -> ink.ovulation
+        CycleMark.None -> colors.ink
+    }
+    Box(
+        Modifier.fillMaxSize().padding(3.dp)
+            .then(if (onClick != null) Modifier.clip(CircleShape).clickable(onClick = onClick) else Modifier)
+            .semantics(mergeDescendants = true) { contentDescription = said }
+            .drawBehind {
+                val r = size.minDimension / 2f - 1.dp.toPx()
+                when (cell.mark) {
+                    CycleMark.Period -> drawCircle(ink.period, r)
+                    CycleMark.PredictedPeriod -> {
+                        drawCircle(ink.periodSoft, r)
+                        drawCircle(ink.period, r - 1.dp.toPx(), style = Stroke(1.6.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 2.6.dp.toPx()))))
+                    }
+                    CycleMark.Fertile -> drawCircle(ink.fertileSoft, r)
+                    CycleMark.Ovulation -> drawCircle(ink.fertile, r)
+                    CycleMark.None -> Unit
+                }
+                if (cell.today) drawCircle(colors.ink, r + 0.5.dp.toPx(), style = Stroke(2.2.dp.toPx()))
+                else if (selected) drawCircle(colors.ink3, r + 0.5.dp.toPx(), style = Stroke(1.5.dp.toPx()))
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(cell.date.dayOfMonth.toString(), style = if (cell.today) Heartpact.type.label else Heartpact.type.body, color = number)
+        if (cell.mark == CycleMark.Ovulation) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp).size(4.dp).clip(CircleShape).background(ink.onMark))
+    }
+}
+
+/** What each mark means; every one but a logged period is a prediction, and says so. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun Legend(ink: CycleInk, modifier: Modifier = Modifier) {
+    val colors = Heartpact.colors
+    FlowRow(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Key(tr("Period")) { drawCircle(ink.period) }
+        Key(tr("Predicted period")) {
+            drawCircle(ink.periodSoft)
+            drawCircle(ink.period, size.minDimension / 2f - 0.8.dp.toPx(), style = Stroke(1.4.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.4.dp.toPx(), 2.dp.toPx()))))
+        }
+        Key(tr("Fertile window, predicted")) { drawCircle(ink.fertileSoft) }
+        Key(tr("Ovulation, predicted")) {
+            drawCircle(ink.fertile)
+            drawCircle(ink.onMark, size.minDimension * 0.16f)
+        }
+        Key(tr("Today")) { drawCircle(colors.ink, size.minDimension / 2f - 1.dp.toPx(), style = Stroke(2.dp.toPx())) }
+    }
+}
+
+@Composable
+private fun Key(label: String, swatch: DrawScope.() -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        swatch()
+        Canvas(Modifier.size(14.dp), onDraw = swatch)
         Text(label, style = Heartpact.type.small, color = Heartpact.colors.ink2)
     }
 }

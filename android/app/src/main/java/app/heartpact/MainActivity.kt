@@ -11,6 +11,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.heartpact.album.AlbumNotices
 import app.heartpact.i18n.Tr
+import app.heartpact.push.AppForeground
+import app.heartpact.push.PushNotifier
 import app.heartpact.ui.AppViewModel
 import app.heartpact.ui.HeartpactApp
 import app.heartpact.ui.graphics.ProvideRive
@@ -35,8 +37,21 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        AppForeground.resumed = true
+    }
+
+    override fun onPause() {
+        AppForeground.resumed = false
+        super.onPause()
+    }
+
     private fun handleIntent(intent: Intent?) {
         intent?.getStringExtra(AlbumNotices.EXTRA_OPEN_TAB)?.let { appModel.openTab(it) }
+        // A screen over Home ("watch/{occurrenceId}" for a dare going live); one this app doesn't have opens the tab.
+        intent?.getStringExtra(PushNotifier.EXTRA_OPEN_ROUTE)?.let { appModel.openRoute(it) }
+        intent?.takeIf { it.hasExtra(PushNotifier.EXTRA_CLEAR) }?.let { PushNotifier.dismiss(this, it.getIntExtra(PushNotifier.EXTRA_CLEAR, 0)) }
         handleInvite(intent)
     }
 

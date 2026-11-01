@@ -53,6 +53,12 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     fun openTab(name: String) { _openTab.value = name }
     fun tabOpened() { _openTab.value = null }
 
+    private val _openRoute = MutableStateFlow<String?>(null)
+    /** A screen over Home a notification or banner asked for ("watch/{occurrenceId}"); AppNav opens it and consumes it. */
+    val openRoute: StateFlow<String?> = _openRoute.asStateFlow()
+    fun openRoute(route: String) { _openRoute.value = route }
+    fun routeOpened() { _openRoute.value = null }
+
     /** An invite link that opened the app; consumed by the pair screen. */
     var pendingInviteToken: String? = null
 

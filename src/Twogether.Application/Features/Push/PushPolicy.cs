@@ -14,6 +14,23 @@ public static class PushPolicy
     public const string GeneralChannel = "general";
     /// <summary>The app creates this channel with low importance: no sound, no vibration, no heads-up.</summary>
     public const string QuietChannel = "quiet";
+    /// <summary>
+    /// The app creates this channel with high importance, its own short vibration and light: the partner is waiting on
+    /// you (a message, a game, a call-off to answer) or just finished something worth cheering.
+    /// </summary>
+    public const string PartnerChannel = "partner";
+
+    /// <summary>Notices where the partner is waiting on an answer, or a cheer is worth sending at once.</summary>
+    public static bool IsPartnerAlert(NotificationType type) => type is NotificationType.Message or NotificationType.GameInvite
+        or NotificationType.GameTurn or NotificationType.ExerciseCompleted or NotificationType.ExerciseCallOffAsked;
+
+    /// <summary>The app's channel for a notice; the app picks the same one from the type and <c>quiet</c> (push/PushActions.kt).</summary>
+    public static string ChannelFor(NotificationType type, PushRoute route)
+    {
+        if (type == NotificationType.ExerciseDue) return AlarmChannel;
+        if (route == PushRoute.Quiet) return QuietChannel;
+        return IsPartnerAlert(type) ? PartnerChannel : GeneralChannel;
+    }
 
     /// <summary>
     /// How long a push is worth sending. An alarm push after its window closed would ring for
@@ -46,21 +63,23 @@ public static class PushPolicy
         var remaining = TimeToLive(notification.Type) - (utcNow - notification.CreatedAtUtc);
         if (remaining < TimeSpan.FromSeconds(1)) remaining = TimeSpan.FromSeconds(1);
         var alarm = notification.Type == NotificationType.ExerciseDue;
-        // The sync reminder prefers Wi-Fi: the app holds it until the phone is on an unmetered
-        // network (or the day ends) and shows it then, so it must not be shown by the system.
-        var dataOnly = alarm || notification.Type == NotificationType.AlbumSyncReminder;
         var quiet = route == PushRoute.Quiet && !alarm;
         if (quiet) data["quiet"] = "true";
+        // Every push is data only: the app draws each notification itself, so it can add its actions (reply, cheer,
+        // play, let off), the partner's picture and grouping, open the full-screen alarm, and hold the album nudge
+        // until Wi-Fi. A notification payload would be drawn by the system, plain, whenever the app is in the background.
+        // The alarm and a partner alert are high priority (shown at once, even in Doze); a quiet one never is.
+        var urgent = alarm || (!quiet && IsPartnerAlert(notification.Type));
         return new PushMessage(
             token,
             tokenKind,
             notification.Title,
             notification.Body,
             data,
-            alarm ? PushPriority.High : PushPriority.Normal,
-            alarm ? AlarmChannel : quiet ? QuietChannel : GeneralChannel,
+            urgent ? PushPriority.High : PushPriority.Normal,
+            ChannelFor(notification.Type, quiet ? PushRoute.Quiet : PushRoute.Normal),
             remaining,
-            DataOnly: dataOnly);
+            DataOnly: true);
     }
 
     /// <summary>

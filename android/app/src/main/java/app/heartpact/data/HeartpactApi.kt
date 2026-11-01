@@ -75,6 +75,10 @@ interface HeartpactApi {
     @POST("api/exercise/occurrences/{id}/ask-off")
     suspend fun askOff(@Path("id") id: String, @Body request: AskOffRequest): Response<ExerciseOccurrence>
 
+    /** A message to the partner; the app sends one from a notification (a reply, a heart, a cheer). */
+    @POST("api/message")
+    suspend fun sendMessage(@Body request: SendMessageRequest): Response<ChatMessage>
+
     @GET("api/memories")
     suspend fun memories(@Query("cursor") cursor: String?, @Query("limit") limit: Int = 30): Response<MemoryPage>
 

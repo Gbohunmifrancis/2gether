@@ -61,6 +61,13 @@ data class AuthResponse(val accessToken: String, val user: AuthUser)
 @Serializable
 data class CoupleMember(val userId: String, val displayName: String, val avatarUrl: String? = null, val avatarVersion: Long = 0, val side: CoupleSide = CoupleSide.Left)
 
+/** api/message: a few words to the partner, sent from a notification's reply, heart or cheer. */
+@Serializable
+data class SendMessageRequest(val body: String, val isPrivate: Boolean = false)
+
+@Serializable
+data class ChatMessage(val id: String = "", val senderUserId: String = "", val body: String = "", val createdAtUtc: String? = null)
+
 /** What the server says before anyone signs in: switches the admins can flip (`GET api/config`). */
 @Serializable
 data class AppConfig(val christmas: Boolean = false)

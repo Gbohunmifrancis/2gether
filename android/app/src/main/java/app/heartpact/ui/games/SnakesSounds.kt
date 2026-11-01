@@ -5,12 +5,14 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Build
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import app.heartpact.R
+import app.heartpact.ui.play.skills.ClearedSound
 
 /**
  * Snakes and ladders' sounds (res/raw/snakes_*.ogg, made by android/tools/snakes_sounds.py): the die rattling, a tick
@@ -53,7 +55,10 @@ internal class SnakesSounds(context: Context) {
 
     fun boost() = play(boost)
 
-    fun win() = play(win)
+    /** 100: the game's won. As soft as a level cleared, and once, through the same gate (ClearedSound). */
+    fun win() {
+        if (ClearedSound.gate.allow(SystemClock.elapsedRealtime())) play(win, volume = ClearedSound.VOLUME)
+    }
 
     fun release() = pool.release()
 }

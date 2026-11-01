@@ -74,8 +74,14 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     /** A push that changes what an open screen shows ("exerciseCompleted", "memoriesSynced"...). */
     val pushEvents = MutableSharedFlow<String>(extraBufferCapacity = 16)
 
+    /** Notices that arrive while the app is open (a push in the foreground, the hub's NotificationCreated): the in-app banner. */
+    val notices = MutableSharedFlow<app.heartpact.push.InAppNotice>(extraBufferCapacity = 16)
+
     /** The couple hub. Its "something changed" events join [pushEvents], so screens refresh either way. */
-    val live = LiveHub(baseUrl, session) { event -> pushEvents.tryEmit(LiveHub.appName(event.name)) }
+    val live = LiveHub(baseUrl, session) { event ->
+        pushEvents.tryEmit(LiveHub.appName(event.name))
+        if (event.name == "NotificationCreated") app.heartpact.push.InAppNotice.fromHub(event.json)?.let { notices.tryEmit(it) }
+    }
 
     val auth = AuthRepository(api, session, json)
     val couple = CoupleRepository(api, session, json)

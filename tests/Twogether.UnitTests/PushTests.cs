@@ -28,9 +28,41 @@ public sealed class PushTests
 
         var note = Note(NotificationType.DailyQuestionAnswered, Now);
         var normal = PushPolicy.Build(note, "tok", PushTokenKind.RegistrationToken, Now);
-        Assert.Equal((PushPriority.Normal, PushPolicy.GeneralChannel, false), (normal.Priority, normal.ChannelId, normal.DataOnly));
+        Assert.Equal((PushPriority.Normal, PushPolicy.GeneralChannel, true), (normal.Priority, normal.ChannelId, normal.DataOnly));
         Assert.Equal(note.Id.ToString(), normal.Data["notificationId"]);
+        Assert.Equal(note.Title, normal.Data["title"]);
+        Assert.Equal(note.Body, normal.Data["body"]);
         Assert.False(normal.Data.ContainsKey("data"));
+    }
+
+    [Theory]
+    [InlineData(NotificationType.Message)]
+    [InlineData(NotificationType.GameInvite)]
+    [InlineData(NotificationType.GameTurn)]
+    [InlineData(NotificationType.ExerciseCompleted)]
+    [InlineData(NotificationType.ExerciseCallOffAsked)]
+    public void Partner_alerts_are_urgent_data_messages_on_the_partner_channel_unless_quiet(NotificationType type)
+    {
+        var note = Note(type, Now);
+        var push = PushPolicy.Build(note, "tok", PushTokenKind.RegistrationToken, Now);
+        Assert.Equal((PushPriority.High, PushPolicy.PartnerChannel, true), (push.Priority, push.ChannelId, push.DataOnly));
+        // Quiet hours win: silent, and not urgent enough to wake the phone.
+        var quiet = PushPolicy.Build(note, "tok", PushTokenKind.RegistrationToken, Now, PushRoute.Quiet);
+        Assert.Equal((PushPriority.Normal, PushPolicy.QuietChannel, true), (quiet.Priority, quiet.ChannelId, quiet.DataOnly));
+    }
+
+    [Fact]
+    public void Every_push_is_data_only_so_the_app_draws_it_with_its_actions()
+    {
+        foreach (var type in Enum.GetValues<NotificationType>())
+        {
+            var push = PushPolicy.Build(Note(type, Now), "tok", PushTokenKind.RegistrationToken, Now);
+            Assert.True(push.DataOnly, type.ToString());
+            Assert.Equal(PushPolicy.ChannelFor(type, PushRoute.Normal), push.ChannelId);
+        }
+        Assert.Equal(PushPolicy.AlarmChannel, PushPolicy.ChannelFor(NotificationType.ExerciseDue, PushRoute.Quiet));
+        Assert.Equal(PushPolicy.GeneralChannel, PushPolicy.ChannelFor(NotificationType.ExerciseGoalChanged, PushRoute.Normal));
+        Assert.Equal(PushPolicy.GeneralChannel, PushPolicy.ChannelFor(NotificationType.Breakup, PushRoute.Normal));
     }
 
     [Fact]

@@ -15,6 +15,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -72,7 +76,8 @@ data class GameActions(
  * [bests] keeps Heart skills' best practice scores; without one, none are shown.
  */
 @Composable
-fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { ServerClock.now() }, bests: SkillBests = rememberSkillBests(), myName: String = "") {
+fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActions, now: () -> Instant = { ServerClock.now() }, bests: SkillBests = rememberSkillBests(), myName: String = "",
+                rulesSeen: RulesSeen = RulesSeen.All) {
     // A Heart skill being practiced opens over the hub, full screen; back comes home to the hub.
     var practicing by rememberSaveable { mutableStateOf<SkillKind?>(null) }
     practicing?.let { kind ->
@@ -90,14 +95,30 @@ fun GamesScreen(ui: GamesUi, me: String, partnerName: String, actions: GameActio
         )
     }
     val active = ui.active ?: ui.justFinished(now())
+    // How to play: by itself the first time each person opens a game, and from the "?" any time.
+    var rulesFor by rememberSaveable { mutableStateOf<GameType?>(null) }
+    LaunchedEffect(active?.id, active?.status) {
+        val game = active ?: return@LaunchedEffect
+        if (GameRules.autoShow(game.gameType, game.status, rulesSeen.seen(game.gameType))) {
+            rulesSeen.markSeen(game.gameType)
+            rulesFor = game.gameType
+        }
+    }
+    rulesFor?.let { type -> RulesSheet(type, active?.let(GamePlay::region) ?: ui.region) { rulesFor = null } }
     // The keyboard pushes the board up rather than covering the answer being typed.
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar(active?.let { GamePlay.title(it) } ?: tr("Games"), actions.onBack)
+        TopBar(active?.let { GamePlay.title(it) } ?: tr("Games"), actions.onBack, trailing = active?.takeIf { GameRules.of(it.gameType) != null }?.let { game ->
+            {
+                IconButton(onClick = { rulesFor = game.gameType }) {
+                    Icon(Icons.AutoMirrored.Rounded.HelpOutline, tr("How to play"), tint = Heartpact.colors.ink2)
+                }
+            }
+        })
         // On a tablet the boards keep a readable width, and the hub spreads its two grids side by side.
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).readable(if (active == null) TwoPaneWidth else ReadableWidth).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
             ui.note?.let { NoteCard(it, Modifier.padding(bottom = 12.dp)) }
             when {
-                active == null -> GamesHub(ui, me, partnerName, moves, bests) { practicing = it }
+                active == null -> GamesHub(ui, me, partnerName, moves, bests, onRules = { rulesFor = it }) { practicing = it }
                 active.status == GameStatus.Waiting -> Waiting(active, me, partnerName, ui.busy, moves)
                 else -> {
                     // A finished game leads with its result and what next; the final board stays under it. A game that

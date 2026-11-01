@@ -14,6 +14,23 @@ enum class DayKind { Period, Fertile, Plain, Predicted }
 
 data class StripDay(val date: LocalDate, val kind: DayKind, val today: Boolean)
 
+/** What a day is on the dial and the calendar. Everything but a logged (or owner-set) period is a prediction. */
+enum class CycleMark { Period, PredictedPeriod, Fertile, Ovulation, None }
+
+/**
+ * One day on the cycle dial: day [day] of the cycle (1 is the period's first day), drawn as an arc from
+ * [startDegrees] for [sweepDegrees] (0° is 3 o'clock and angles grow clockwise, as Compose draws arcs).
+ */
+data class RingDay(val day: Int, val date: LocalDate, val mark: CycleMark, val today: Boolean, val startDegrees: Float, val sweepDegrees: Float) {
+    val midDegrees: Float get() = startDegrees + sweepDegrees / 2f
+}
+
+/** The words in the middle of the dial: the big line, the line under it, and a small note for a fertile or ovulation day. */
+data class DialText(val big: String, val line: String?, val note: String? = null, val period: Boolean = false)
+
+/** One square of the month calendar; null squares pad the first and last weeks. */
+data class CalendarDay(val date: LocalDate, val mark: CycleMark, val today: Boolean)
+
 /** Pure: the cycle strip, the wording, and when a logged flow starts a new period. */
 object CyclePlan {
     /**
@@ -43,6 +60,98 @@ object CyclePlan {
         }.toList()
         val predicted = if (late) emptyList() else (0 until periodLength).map { StripDay(next.plusDays(it.toLong()), DayKind.Predicted, false) }
         return days + predicted
+    }
+
+    /** Ovulation is taken as the last day of the fertile window (docs/cycle.md: the five days before it and the day itself). */
+    fun ovulation(prediction: CyclePrediction): LocalDate? = prediction.fertileWindowEnd?.let(LocalDate::parse)
+
+    private fun mark(kind: DayKind, date: LocalDate, ovulation: LocalDate?): CycleMark = when (kind) {
+        DayKind.Period -> CycleMark.Period
+        DayKind.Predicted -> CycleMark.PredictedPeriod
+        DayKind.Fertile -> if (date == ovulation) CycleMark.Ovulation else CycleMark.Fertile
+        DayKind.Plain -> CycleMark.None
+    }
+
+    /**
+     * The dial: every day of the cycle containing today, from day 1 at the top, clockwise (counter-clockwise when the
+     * screen reads right to left, [clockwise] false). A late period runs the dial on to today. Each day gets an equal
+     * share of the circle less a small [gapDegrees] between days, so the segments and gaps make exactly 360°.
+     */
+    fun ring(prediction: CyclePrediction, logs: List<CycleDayLog>, periodLength: Int, today: LocalDate, clockwise: Boolean = true, gapDegrees: Float = 1.6f): List<RingDay> {
+        val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return emptyList()
+        val late = prediction.daysLate != null
+        val days = strip(prediction, logs, periodLength, today).filter { late || it.date.isBefore(next) }
+        if (days.isEmpty()) return emptyList()
+        val ovulation = ovulation(prediction)
+        val step = 360f / days.size
+        val gap = minOf(gapDegrees, step * 0.3f)
+        return days.mapIndexed { i, d ->
+            val start = if (clockwise) -90f + i * step + gap / 2f else -90f - (i + 1) * step + gap / 2f
+            RingDay(i + 1, d.date, mark(d.kind, d.date, ovulation), d.today, start, step - gap)
+        }
+    }
+
+    /**
+     * Every day the forecast marks, for the calendar: the cycle containing today and the predicted next period (as
+     * the dial and strip draw them), and earlier periods from the logs the reader may see.
+     */
+    fun marks(prediction: CyclePrediction, logs: List<CycleDayLog>, periodLength: Int, today: LocalDate): Map<LocalDate, CycleMark> {
+        val ovulation = ovulation(prediction)
+        val strip = strip(prediction, logs, periodLength, today)
+        val first = strip.firstOrNull()?.date
+        val marks = LinkedHashMap<LocalDate, CycleMark>()
+        logs.filter { it.flowLevel != FlowLevel.None }.map { LocalDate.parse(it.logDate) }
+            .filter { first == null || it.isBefore(first) }
+            .forEach { marks[it] = CycleMark.Period }
+        strip.forEach { d -> mark(d.kind, d.date, ovulation).takeIf { it != CycleMark.None }?.let { marks[d.date] = it } }
+        return marks
+    }
+
+    /** A month as weeks of seven, starting on [firstDay]; days outside the month are null. */
+    fun month(month: java.time.YearMonth, marks: Map<LocalDate, CycleMark>, today: LocalDate, firstDay: java.time.DayOfWeek = java.time.DayOfWeek.MONDAY): List<List<CalendarDay?>> {
+        val lead = (month.atDay(1).dayOfWeek.value - firstDay.value + 7) % 7
+        val cells = List<CalendarDay?>(lead) { null } + (1..month.lengthOfMonth()).map { n ->
+            val date = month.atDay(n)
+            CalendarDay(date, marks[date] ?: CycleMark.None, date == today)
+        }
+        return cells.chunked(7).map { week -> week + List(7 - week.size) { null } }
+    }
+
+    /** The months the calendar can step through: from the earliest mark (or today) to the last predicted day. */
+    fun months(marks: Map<LocalDate, CycleMark>, today: LocalDate): ClosedRange<java.time.YearMonth> {
+        val now = java.time.YearMonth.from(today)
+        val first = marks.keys.minOrNull()?.let(java.time.YearMonth::from)?.let { minOf(it, now) } ?: now
+        val last = marks.keys.maxOrNull()?.let(java.time.YearMonth::from)?.let { maxOf(it, now) } ?: now
+        return first..last
+    }
+
+    /**
+     * The middle of the dial. "Day 12" over "Period in 16 days" most of the time; "Period day 2" during a period;
+     * "Period may be late" when the server says so; a note on a predicted fertile or ovulation day.
+     */
+    fun dial(prediction: CyclePrediction, ring: List<RingDay>, periodLength: Int, today: LocalDate): DialText? {
+        val cycleDay = prediction.cycleDay ?: return null
+        val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return null
+        val now = ring.firstOrNull { it.today }
+        val note = when (now?.mark) {
+            CycleMark.Ovulation -> tr("Ovulation, predicted")
+            CycleMark.Fertile -> tr("Fertile window, predicted")
+            else -> null
+        }
+        prediction.daysLate?.let { late ->
+            return DialText(tr("Day {day}", "day" to cycleDay), if (late == 0) tr("Period due today") else tr("Period may be late"),
+                if (late == 0) null else trn(late, "{count} day past the predicted start", "{count} days past the predicted start"))
+        }
+        if (now?.mark == CycleMark.Period) {
+            return DialText(tr("Period day {day}", "day" to cycleDay), trn(periodLength, "Usually about {count} day", "Usually about {count} days"), period = true)
+        }
+        val until = java.time.temporal.ChronoUnit.DAYS.between(today, next).toInt()
+        val line = when {
+            now?.mark == CycleMark.PredictedPeriod -> tr("Period expected around now")
+            until <= 0 -> tr("Period due today")
+            else -> trn(until, "Period in {count} day", "Period in {count} days")
+        }
+        return DialText(tr("Day {day}", "day" to cycleDay), line, note)
     }
 
     private val dayMonth get() = Dates.formatter("d MMMM")

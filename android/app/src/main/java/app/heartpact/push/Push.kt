@@ -27,6 +27,13 @@ object Push {
     private const val TAG = "Push"
     const val GENERAL = "general"
     const val QUIET = "quiet"
+    /** High importance, its own short double buzz and light: the partner is waiting on you (PushActions.isPartnerAlert). */
+    const val PARTNER = "partner"
+
+    /** The app's indigo, for the notification accent and the light. */
+    const val ACCENT = 0xFF4D58BE.toInt()
+    /** Two short buzzes, like a heartbeat: shorter than a call, easy to tell from the alarm. */
+    val PARTNER_VIBRATION = longArrayOf(0, 90, 110, 140)
 
     val options: FirebaseOptions? by lazy {
         val id = BuildConfig.FIREBASE_APP_ID
@@ -51,12 +58,20 @@ object Push {
         ensureChannels(context)
     }
 
-    /** The alarm channel belongs to the alarm; these two carry everything else. */
+    /** The alarm channel belongs to the alarm; these three carry everything else. */
     fun ensureChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
         // Creating an existing channel only renames it (the person's own settings stay), so names follow the language.
+        // Its vibration and light are fixed when it's first made; after that they are the person's to change.
+        manager.createNotificationChannel(NotificationChannel(PARTNER, tr("Partner alerts"), NotificationManager.IMPORTANCE_HIGH).apply {
+            description = tr("Messages, game invites and turns, a call-off to answer, and a dare your partner just finished.")
+            enableVibration(true)
+            vibrationPattern = PARTNER_VIBRATION
+            enableLights(true)
+            lightColor = ACCENT
+        })
         manager.createNotificationChannel(NotificationChannel(GENERAL, tr("From your partner"), NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = tr("Dares done or missed, call-off requests, photos added, what your partner shares with you, and Plus.")
+            description = tr("Dares set, changed or missed, photos added, what your partner shares with you, and Plus.")
         })
         manager.createNotificationChannel(NotificationChannel(QUIET, tr("During quiet hours"), NotificationManager.IMPORTANCE_LOW).apply {
             description = tr("The same notifications, arriving silently during your quiet hours.")

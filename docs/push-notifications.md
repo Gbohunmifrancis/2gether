@@ -14,9 +14,15 @@ Every in-app notification is also pushed to the recipient's phones. Nothing that
 - **At least once.** Every push carries `notificationId`; the app drops ids it has already shown.
 - **The album sync reminder** (`albumSyncReminder`) is data-only at normal priority: it carries `preferWifi`, and the
   app holds it until the phone is on an unmetered network (or the day ends) before showing it.
-- **Alarms** (`exerciseDue`) go out as high-priority, data-only messages on the `alarms` channel so the app can open
-  its full-screen alarm, and only while the 30-minute window is open. Everything else is a normal notification on the
-  `general` channel; chat-like types expire after an hour, the rest after a day.
+- **Every push is data only** (`PushPolicy.Build`): the app draws each notification itself, so it can add its actions,
+  the partner's picture and grouping (below), open the full-screen alarm, and hold the album nudge until Wi-Fi. A
+  notification payload would be drawn by the system, plain and without actions, whenever the app is in the background.
+  Apps from before this read the same data (`title`, `body`) and show it as they always did.
+- **Alarms** (`exerciseDue`) are high priority on the `alarms` channel so the app can open its full-screen alarm, and go
+  out only while the 30-minute window is open. **Partner alerts** (`message`, `gameInvite`, `gameTurn`,
+  `exerciseCompleted`, `exerciseCallOffAsked`; `PushPolicy.IsPartnerAlert`) are high priority on the `partner` channel;
+  the rest are normal priority on `general`, and anything in quiet hours is normal priority on `quiet`. Chat-like
+  types expire after an hour, the rest after a day.
 - **Dead tokens** (FCM `UNREGISTERED`, `SENDER_ID_MISMATCH`) disable the device. `INVALID_ARGUMENT` fails the message
   without punishing the device. Quota, outage and network errors retry.
 - Rows that existed before this feature were marked `skipped` by the upgrade, and while push is off the worker settles
@@ -74,6 +80,34 @@ How each notification is routed:
   - Couple changes (`coupleConnected`, `breakup`). These cannot be switched off, but they do arrive quietly at night.
 
 Every notification type must be assigned a category in `NotificationRouting.CategoryOf`. A unit test fails when a new type is missing.
+
+## On the phone (`android/.../push`)
+
+- **Channels.** `alarms` (the dare alarm), `partner` ("Partner alerts": high importance, a short double buzz and the
+  app's indigo light, for the partner alerts above and `exerciseStarted`), `general` and `quiet` (low importance). The
+  app picks the same channel as the server from the type and `quiet` (`PushActions.channel`), and keeps the server's
+  categories (`PushActions.category` mirrors `NotificationRouting.CategoryOf`; a test checks it type by type).
+- **Actions, done from the shade where it's safe** (`PushActions.actions`, `PushActionReceiver`):
+
+  | Type | Actions |
+  |---|---|
+  | `message` | Reply (inline, sent with `POST api/message`), Send a heart (a ❤️ message) |
+  | `exerciseGoalChanged` (a dare set or changed) | Open, Got it |
+  | `exerciseCompleted` | Cheer (a 👏❤️ message), Open |
+  | `gameInvite`, `gameTurn`, `gameStarted` | Play (opens the game; accepting stays in the app) |
+  | `exerciseCallOffAsked` | Let them off (`POST .../cancel`, the same as "Call it off together": partner only, refused once the dare stops ringing), Keep it ringing (only clears it) |
+  | `exerciseStarted` | Watch live (opens `watch/{occurrenceId}`; an app without that screen opens Today) |
+
+  The notification then says how it went ("Cheer sent to Maya.", "You let Maya off today.", "That dare isn't ringing
+  any more.") and goes by itself; a failure stays with an Open button.
+- **Look.** Messages pile into one chat-style conversation (MessagingStyle) with the partner as a person, their
+  picture as the icon and a long-lived conversation shortcut; the message carries `senderUserId` and `senderName` in
+  its `data`. Everything else is big text with the heart app icon as the picture, in the app's indigo. Everything
+  from the partner is one group, with a quiet summary once there are two or more.
+- **While the app is open** (MainActivity resumed) a push doesn't go to the shade: it drops in as the app's own banner
+  (a message also waits quietly in the shade, where it can be answered). The couple hub's `NotificationCreated` feeds
+  the same banner; one notice shows once whichever comes first. Banners obey the person's switched-off categories,
+  queue one at a time, never cover the splash, and never show over the alarm or camera, which are their own screen.
 
 ## Partner notices
 

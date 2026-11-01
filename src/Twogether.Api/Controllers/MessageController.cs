@@ -41,7 +41,9 @@ public sealed class MessageController(IApplicationDbContext db, ICurrentUser cur
             using var _ = Loc.Use(await db.LanguageOfAsync(partnerId.Value, cancellationToken));
             notification = Notification.Create(partnerId.Value, message.CoupleId, NotificationType.Message,
                 request.IsPrivate ? Loc.T("A private message") : Loc.T("New message from {name}", ("name", senderName)),
-                request.IsPrivate ? Loc.T("{name} sent something just for you.", ("name", senderName)) : message.Body[..Math.Min(message.Body.Length, 140)], null, clock.UtcNow);
+                request.IsPrivate ? Loc.T("{name} sent something just for you.", ("name", senderName)) : message.Body[..Math.Min(message.Body.Length, 140)],
+                // Who sent it, so the phone shows the sender's picture and name in a chat-style notification it can reply to.
+                System.Text.Json.JsonSerializer.Serialize(new { messageId = message.Id, senderUserId = currentUser.UserId.Value, senderName }), clock.UtcNow);
             db.Notifications.Add(notification);
         }
         await db.SaveChangesAsync(cancellationToken);

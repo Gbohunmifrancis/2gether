@@ -1,13 +1,5 @@
 package app.heartpact.push
 
-import android.Manifest
-import android.app.PendingIntent
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
@@ -15,13 +7,10 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import app.heartpact.HeartpactApplication
-import app.heartpact.MainActivity
-import app.heartpact.R
 import app.heartpact.alarm.AlarmNotifier
 import app.heartpact.alarm.AlarmPlan
 import app.heartpact.alarm.AlarmScheduler
 import app.heartpact.alarm.AlarmStore
-import app.heartpact.album.AlbumNotices
 import app.heartpact.album.AlbumReminderWorker
 import app.heartpact.data.ApiResult
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -56,7 +45,10 @@ class HeartpactMessagingService : FirebaseMessagingService() {
         when (type) {
             "exerciseDue" -> ring(data["data"])
             "albumSyncReminder" -> remindOnWifi()
-            else -> show(id, type, data["title"] ?: message.notification?.title ?: return, data["body"] ?: message.notification?.body.orEmpty(), data["quiet"] == "true")
+            else -> {
+                val title = data["title"] ?: message.notification?.title ?: return
+                show(PushNotice(id, type, title, data["body"] ?: message.notification?.body.orEmpty(), data["quiet"] == "true", PushData.parse(data["data"])))
+            }
         }
         if (type == "memoriesSynced" || PushInbox.refreshesHome(type)) container.pushEvents.tryEmit(type!!)
         // The partner ended the pact: their dares must not ring here any more.
@@ -95,23 +87,20 @@ class HeartpactMessagingService : FirebaseMessagingService() {
         WorkManager.getInstance(this).enqueueUniqueWork("album-reminder-push", ExistingWorkPolicy.REPLACE, request)
     }
 
-    private fun show(id: String, type: String?, title: String, body: String, quiet: Boolean) {
-        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        Push.ensureChannels(this)
-        val open = PendingIntent.getActivity(
-            this, id.hashCode(),
-            Intent(this, MainActivity::class.java).putExtra(AlbumNotices.EXTRA_OPEN_TAB, PushInbox.tabFor(type)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
-        val notification = NotificationCompat.Builder(this, if (quiet) Push.QUIET else Push.GENERAL)
-            .setSmallIcon(R.drawable.ic_stat_heart)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setAutoCancel(true)
-            .setContentIntent(open)
-            .build()
-        NotificationManagerCompat.from(this).notify(id.hashCode(), notification)
+    /**
+     * The app open on screen: its banner drops in instead (a message also waits quietly in the shade, where it can be
+     * answered). Otherwise the notice is drawn with its actions, the partner's name and picture, and grouped.
+     */
+    private fun show(notice: PushNotice) {
+        if (AppForeground.resumed) {
+            container.notices.tryEmit(InAppNotice.from(notice))
+            if (notice.type != "message") return
+        }
+        // A message shows the partner's picture: ask for the couple (and the picture) briefly. The rest only need the name.
+        val chat = notice.type == "message" || PartnerCache.cached(container).userId == null
+        val partner = if (chat) runBlocking { withTimeoutOrNull(6_000) { PartnerCache.face(container) } } ?: PartnerCache.cached(container) else PartnerCache.cached(container)
+        val me = runBlocking { withTimeoutOrNull(1_000) { container.session.load()?.user?.id } }
+        PushNotifier.show(this, notice, partner, me, silent = AppForeground.resumed)
     }
 
     private companion object {

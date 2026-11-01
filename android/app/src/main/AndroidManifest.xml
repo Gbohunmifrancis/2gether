@@ -92,6 +92,9 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- A notification's reply, heart, cheer or "let them off", done from the shade. -->
+        <receiver android:name=".push.PushActionReceiver" android:exported="false" />
+
         <service
             android:name=".push.HeartpactMessagingService"
             android:exported="false">
