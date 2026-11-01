@@ -261,7 +261,9 @@ class PlusViewModelTest {
 
         val before = server.requestCount
         store.updates.emit(PurchaseUpdate.ChoseCard(listOf("heartpact_test_product"), "t"))
-        assertEquals("That plan can't be paid by card right now. Pay with Google Play instead.", model.ui.value.note)
+        // The choice is handled on the collector's thread: wait for its note rather than read it the moment it is sent.
+        val refused = "That plan can't be paid by card right now. Pay with Google Play instead."
+        assertEquals(refused, model.awaitUi { it.note == refused }.note)
         assertEquals(before, server.requestCount)
 
         // Already Plus (bought on the website meanwhile): say so and show the plan.
