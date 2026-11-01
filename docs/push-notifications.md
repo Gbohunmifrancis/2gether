@@ -16,7 +16,9 @@ Every in-app notification is also pushed to the recipient's phones. Nothing that
   app holds it until the phone is on an unmetered network (or the day ends) before showing it.
 - **Alarms** (`exerciseDue`) go out as high-priority, data-only messages on the `alarms` channel so the app can open
   its full-screen alarm, and only while the 30-minute window is open. Everything else is a normal notification on the
-  `general` channel; chat-like types expire after an hour, the rest after a day.
+  `general` channel; chat-like types expire after an hour, the rest after a day. `exerciseStarted` ("Maya started
+  their squats", data `{ occurrenceId, exercise }`, once per dare, not sent when the partner already has the live view
+  open) expires after 10 minutes, and a tap opens the live view of that dare (`docs/couple-goals.md`, Watching live).
 - **Dead tokens** (FCM `UNREGISTERED`, `SENDER_ID_MISMATCH`) disable the device. `INVALID_ARGUMENT` fails the message
   without punishing the device. Quota, outage and network errors retry.
 - Rows that existed before this feature were marked `skipped` by the upgrade, and while push is off the worker settles

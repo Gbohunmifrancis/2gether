@@ -24,7 +24,7 @@ One partner sets an exercise goal for the other. At the set time the phone rings
 
 ## Operating Context
 
-- **The goal alarm:** a full-screen alarm at the scheduled time. The person opens the camera, does the reps on screen, sees a live count, and the partner can watch progress live. A local dismiss is always available (Play policy). Ending early otherwise needs both partners to agree.
+- **The goal alarm:** a full-screen alarm at the scheduled time. The person opens the camera, does the reps on screen, sees a live count, and the partner can watch live: a stick figure of the joints and the count, never the camera picture. A local dismiss is always available (Play policy). Ending early otherwise needs both partners to agree.
 - **Shared goals:** fitness and diet goals; a food log with photo calorie estimates shown as ranges, not medical facts.
 - **Health tracking:** period tracking with per-person share levels, and a pregnancy mode with appointments and kick counts.
 - **Couple features:** a map both partners see only while both share (one-tap pause, visible indicator), daily questions where a partner's answer unlocks only after you answer, couple games (quiz, memory match, "I call on"), streaks, and a shared album with an on-this-day view. The album is offline-first: photos stay on the phone until the person taps Sync, and only then reach the partner. The app reminds at most once a day while photos are waiting, preferring Wi-Fi.
@@ -34,7 +34,7 @@ One partner sets an exercise goal for the other. At the set time the phone rings
 ## Capabilities and Constraints
 
 - **Platform:** Android first, iOS later. Exact alarms need a user grant on Android 14+, and the alarm must stay locally dismissible.
-- **Privacy:** location is mutual-only and never framed as "checking on" a partner (Play stalkerware policy). Health data follows explicit per-feature share levels. Anything the caller may not see is hidden entirely, not greyed out.
+- **Privacy:** the camera's picture never leaves the phone; the partner's live view of a workout gets only the stick figure's 13 joints and a few numbers, relayed and never stored. Location is mutual-only and never framed as "checking on" a partner (Play stalkerware policy). Health data follows explicit per-feature share levels. Anything the caller may not see is hidden entirely, not greyed out.
 - **Data rules:** the server owns timers, turns, scores, consent and streaks; the app renders server state.
 - **Plans:** Free and Plus. One partner's Plus covers both. Free has one active daily dare per partner; Plus has unlimited dares, 20 food scans a day instead of 3, 2 GB of album instead of 500 MB, and 90 days of question history instead of 7. Both are warned before a limit bites (album at 80% and 95%, Plus three days before it ends).
 - **Food estimates:** about ±30–40% error. Always shown as a range and labelled as an estimate.
