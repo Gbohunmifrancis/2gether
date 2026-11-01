@@ -63,6 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -343,8 +344,9 @@ private fun MonthCalendar(marks: Map<LocalDate, CycleMark>, today: LocalDate, se
                 Row(Modifier.fillMaxWidth()) {
                     week.forEach { cell ->
                         Box(Modifier.weight(1f).aspectRatio(1f), contentAlignment = Alignment.Center) {
-                            if (cell != null) DayCell(cell, cell.date == selected && selected != today, ink,
-                                onPick?.takeIf { CyclePlan.canLog(cell.date, today) }?.let { pick -> { pick(cell.date) } })
+                            DayCell(cell, cell.date == selected && selected != today, ink,
+                                onPick?.takeIf { cell.inMonth && CyclePlan.canLog(cell.date, today) }?.let { pick -> { pick(cell.date) } },
+                                Modifier.alpha(if (cell.inMonth) 1f else 0.38f))
                         }
                     }
                 }
@@ -355,7 +357,7 @@ private fun MonthCalendar(marks: Map<LocalDate, CycleMark>, today: LocalDate, se
 }
 
 @Composable
-private fun DayCell(cell: CalendarDay, selected: Boolean, ink: CycleInk, onClick: (() -> Unit)?) {
+private fun DayCell(cell: CalendarDay, selected: Boolean, ink: CycleInk, onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
     val colors = Heartpact.colors
     val fmt = Dates.formatter("EEEE d MMMM")
     val what = when (cell.mark) {
@@ -373,7 +375,7 @@ private fun DayCell(cell: CalendarDay, selected: Boolean, ink: CycleInk, onClick
         CycleMark.None -> colors.ink
     }
     Box(
-        Modifier.fillMaxSize().padding(3.dp)
+        modifier.fillMaxSize().padding(3.dp)
             .then(if (onClick != null) Modifier.clip(CircleShape).clickable(onClick = onClick) else Modifier)
             .semantics(mergeDescendants = true) { contentDescription = said }
             .drawBehind {

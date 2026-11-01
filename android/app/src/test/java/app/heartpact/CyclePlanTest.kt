@@ -166,15 +166,73 @@ class CyclePlanTest {
         assertEquals(java.time.YearMonth.of(2026, 9)..java.time.YearMonth.of(2026, 11), CyclePlan.months(marks, today))
     }
 
-    @Test fun `a month is whole weeks from the first day of the week`() {
+    @Test fun `a month is whole weeks from the first day of the week, edged with the months either side`() {
         val october = CyclePlan.month(java.time.YearMonth.of(2026, 10), emptyMap(), today, java.time.DayOfWeek.MONDAY)
-        // 1 October 2026 is a Thursday: three empty squares first.
-        assertEquals(listOf(null, null, null), october.first().take(3))
-        assertEquals(1, october.first()[3]?.date?.dayOfMonth)
+        // 1 October 2026 is a Thursday: the week starts with 28-30 September, faint.
+        assertEquals(listOf(28, 29, 30), october.first().take(3).map { it.date.dayOfMonth })
+        assertTrue(october.first().take(3).none { it.inMonth })
+        assertEquals(1, october.first()[3].date.dayOfMonth)
         assertTrue(october.all { it.size == 7 })
-        assertEquals(31, october.flatten().count { it != null })
-        assertTrue(october.flatten().single { it?.today == true }!!.date == today)
+        assertEquals(31, october.flatten().count { it.inMonth })
+        assertTrue(october.flatten().single { it.today }.date == today)
         val sundayFirst = CyclePlan.month(java.time.YearMonth.of(2026, 10), emptyMap(), today, java.time.DayOfWeek.SUNDAY)
-        assertEquals(4, sundayFirst.first().indexOfFirst { it != null })
+        assertEquals(4, sundayFirst.first().indexOfFirst { it.inMonth })
+        // A period that began on 30 September shows its first day in October's first week.
+        val marked = CyclePlan.month(java.time.YearMonth.of(2026, 10), CyclePlan.marks(prediction, emptyList(), 5, today), today, java.time.DayOfWeek.MONDAY)
+        assertEquals(CycleMark.Period, marked.first().first { it.date == LocalDate.of(2026, 9, 30) }.mark)
+    }
+
+    /** What a server forecast says for [date], counted from a cycle that started on [start]. */
+    private fun forecastFor(start: LocalDate, date: LocalDate) = CyclePrediction(
+        nextPeriodStart = start.plusDays(28).toString(), fertileWindowStart = start.plusDays(9).toString(), periodEnd = start.plusDays(32).toString(),
+        fertileWindowEnd = start.plusDays(14).toString(), cycleStart = start.toString(),
+        cycleDay = java.time.temporal.ChronoUnit.DAYS.between(start, date).toInt() + 1, lastPeriodStart = start.toString())
+
+    /** The dial's number, the knob and the calendar's ringed today are always one day. */
+    private fun assertAgree(prediction: CyclePrediction, today: LocalDate, clockwise: Boolean = true) {
+        val ring = CyclePlan.ring(prediction, emptyList(), 5, today, clockwise)
+        val knob = ring.single { it.today }
+        val start = LocalDate.parse(prediction.cycleStart)
+        // The knob is on today, today's day of the cycle (day 1 is the start), and sits at that day's angle.
+        assertEquals(today, knob.date)
+        assertEquals(java.time.temporal.ChronoUnit.DAYS.between(start, today).toInt() + 1, knob.day)
+        val step = 360f / ring.size
+        assertEquals(if (clockwise) -90f + (knob.day - 0.5f) * step else -90f - (knob.day - 0.5f) * step, knob.midDegrees, 0.01f)
+        // The middle names that same day.
+        val big = CyclePlan.dial(prediction, ring, 5, today)!!.big
+        assertTrue("$big for day ${knob.day}", big == "Day ${knob.day}" || big == "Period day ${knob.day}")
+        // The calendar rings that same date, and only it.
+        val month = CyclePlan.month(java.time.YearMonth.from(today), CyclePlan.marks(prediction, emptyList(), 5, today), today)
+        assertEquals(listOf(today), month.flatten().filter { it.today }.map { it.date })
+    }
+
+    @Test fun `the dial's day, the knob and the calendar's today always agree`() {
+        val start = LocalDate.of(2026, 9, 30)
+        (0L until 28L).forEach { assertAgree(forecastFor(start, start.plusDays(it)), start.plusDays(it)) }
+        (0L until 28L).forEach { assertAgree(forecastFor(start, start.plusDays(it)), start.plusDays(it), clockwise = false) }
+        // The fixture the screenshots use: 30 September is day 1, so 11 October is day 12, on the dial and the calendar.
+        assertAgree(prediction, today)
+        assertEquals("Day 12", CyclePlan.dial(prediction, CyclePlan.ring(prediction, emptyList(), 5, today), 5, today)!!.big)
+    }
+
+    @Test fun `a forecast asked for the day before or after still agrees with the phone's today`() {
+        val start = LocalDate.of(2026, 9, 30)
+        val day = LocalDate.of(2026, 10, 11)
+        // The screen left open past midnight (the forecast is yesterday's), or a server that read the date a day on.
+        assertAgree(forecastFor(start, day.minusDays(1)), day)
+        assertAgree(forecastFor(start, day.plusDays(1)), day)
+    }
+
+    @Test fun `near midnight in zones far from UTC, the phone's own date is the day everywhere on the screen`() {
+        val start = LocalDate.of(2026, 9, 30)
+        listOf("Pacific/Kiritimati", "America/Los_Angeles", "Asia/Kolkata", "Pacific/Pago_Pago", "Africa/Lagos").forEach { zone ->
+            listOf("2026-10-11T09:59:30Z", "2026-10-11T10:00:30Z", "2026-10-11T23:59:30Z", "2026-10-12T00:00:30Z", "2026-10-11T18:29:59Z", "2026-10-11T18:30:01Z").forEach { at ->
+                val clock = java.time.Clock.fixed(java.time.Instant.parse(at), java.time.ZoneId.of(zone))
+                val local = LocalDate.now(clock)
+                // The server answers for the caller's own date (docs/cycle.md); the UTC date may be a day off.
+                assertAgree(forecastFor(start, local), local)
+                assertAgree(forecastFor(start, LocalDate.now(java.time.Clock.fixed(clock.instant(), java.time.ZoneOffset.UTC))), local)
+            }
+        }
     }
 }

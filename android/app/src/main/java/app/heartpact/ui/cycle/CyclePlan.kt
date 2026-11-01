@@ -29,7 +29,7 @@ data class RingDay(val day: Int, val date: LocalDate, val mark: CycleMark, val t
 data class DialText(val big: String, val line: String?, val note: String? = null, val period: Boolean = false)
 
 /** One square of the month calendar; null squares pad the first and last weeks. */
-data class CalendarDay(val date: LocalDate, val mark: CycleMark, val today: Boolean)
+data class CalendarDay(val date: LocalDate, val mark: CycleMark, val today: Boolean, val inMonth: Boolean = true)
 
 /** Pure: the cycle strip, the wording, and when a logged flow starts a new period. */
 object CyclePlan {
@@ -107,14 +107,19 @@ object CyclePlan {
         return marks
     }
 
-    /** A month as weeks of seven, starting on [firstDay]; days outside the month are null. */
-    fun month(month: java.time.YearMonth, marks: Map<LocalDate, CycleMark>, today: LocalDate, firstDay: java.time.DayOfWeek = java.time.DayOfWeek.MONDAY): List<List<CalendarDay?>> {
-        val lead = (month.atDay(1).dayOfWeek.value - firstDay.value + 7) % 7
-        val cells = List<CalendarDay?>(lead) { null } + (1..month.lengthOfMonth()).map { n ->
-            val date = month.atDay(n)
-            CalendarDay(date, marks[date] ?: CycleMark.None, date == today)
-        }
-        return cells.chunked(7).map { week -> week + List(7 - week.size) { null } }
+    /**
+     * A month as whole weeks of seven, starting on [firstDay]. The first and last weeks are filled from the months
+     * either side ([CalendarDay.inMonth] false, drawn faintly), so a period that began on the 30th still shows its
+     * first day in the next month's first week.
+     */
+    fun month(month: java.time.YearMonth, marks: Map<LocalDate, CycleMark>, today: LocalDate, firstDay: java.time.DayOfWeek = java.time.DayOfWeek.MONDAY): List<List<CalendarDay>> {
+        val first = month.atDay(1)
+        val lead = (first.dayOfWeek.value - firstDay.value + 7) % 7
+        val weeks = (lead + month.lengthOfMonth() + 6) / 7
+        return (0 until weeks * 7).map { i ->
+            val date = first.plusDays((i - lead).toLong())
+            CalendarDay(date, marks[date] ?: CycleMark.None, date == today, java.time.YearMonth.from(date) == month)
+        }.chunked(7)
     }
 
     /** The months the calendar can step through: from the earliest mark (or today) to the last predicted day. */
@@ -130,9 +135,12 @@ object CyclePlan {
      * "Period may be late" when the server says so; a note on a predicted fertile or ovulation day.
      */
     fun dial(prediction: CyclePrediction, ring: List<RingDay>, periodLength: Int, today: LocalDate): DialText? {
-        val cycleDay = prediction.cycleDay ?: return null
         val next = prediction.nextPeriodStart?.let(LocalDate::parse) ?: return null
         val now = ring.firstOrNull { it.today }
+        // The number is the knob's day, counted on the phone's own today, like the ring and the calendar. The server's
+        // cycleDay is for the date the forecast was asked on: a screen left open past midnight, or a server that read
+        // the date as the day before or after, would put the middle a day away from the knob and the calendar.
+        val cycleDay = now?.day ?: prediction.cycleDay ?: return null
         val note = when (now?.mark) {
             CycleMark.Ovulation -> tr("Ovulation, predicted")
             CycleMark.Fertile -> tr("Fertile window, predicted")
