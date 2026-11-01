@@ -561,7 +561,8 @@ fun CameraRepScreen(
                 }.onFailure {
                     // The reason goes to the log (adb logcat -s PoseTracker): a phone that can't run the model, or a build problem.
                     android.util.Log.e("PoseTracker", "The pose model couldn't load", it)
-                    error = tr("The pose model couldn't load on this phone.")
+                    // The kind of failure (no message: it can be long) so a screenshot says what went wrong.
+                    error = tr("The pose model couldn't load on this phone.") + " (" + (it.javaClass.simpleName.ifEmpty { "error" }) + ")"
                 }.getOrNull()
                 val providerFuture = ProcessCameraProvider.getInstance(context)
                 providerFuture.addListener({

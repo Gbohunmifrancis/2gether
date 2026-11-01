@@ -25,7 +25,7 @@ class PoseTracker(context: Context, private val onPose: (Pose?) -> Unit, private
     private val landmarker: PoseLandmarker = PoseLandmarker.createFromOptions(
         context,
         PoseLandmarker.PoseLandmarkerOptions.builder()
-            .setBaseOptions(BaseOptions.builder().setModelAssetPath(MODEL).setDelegate(Delegate.CPU).build())
+            .setBaseOptions(BaseOptions.builder().setModelAssetBuffer(readModel(context)).setDelegate(Delegate.CPU).build())
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setNumPoses(1)
             .setMinPoseDetectionConfidence(0.5f)
@@ -60,5 +60,15 @@ class PoseTracker(context: Context, private val onPose: (Pose?) -> Unit, private
     private companion object {
         const val MODEL = "pose_landmarker_lite.task"
         const val TAG = "PoseTracker"
+
+        /**
+         * The model read into memory and handed over whole, rather than opened by path: an asset path needs the file
+         * stored uncompressed and addressable inside the APK, which the APKs Google Play builds from the app bundle
+         * don't always give, and "The pose model couldn't load" was the result on phones that installed from Play.
+         */
+        fun readModel(context: Context): java.nio.ByteBuffer {
+            val bytes = context.assets.open(MODEL).use { it.readBytes() }
+            return java.nio.ByteBuffer.allocateDirect(bytes.size).order(java.nio.ByteOrder.nativeOrder()).apply { put(bytes); rewind() }
+        }
     }
 }
