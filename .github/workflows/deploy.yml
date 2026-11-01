@@ -204,6 +204,7 @@ jobs:
             echo "Created the Pages project $PAGES_PROJECT."
           fi
           check="https://$(cf "$projects/$PAGES_PROJECT" | jq -r .result.subdomain)"
+          echo "pages_url=$check" >> "$GITHUB_OUTPUT"
           host="${ADMIN_URL#*://}"; host="${host%%/*}"
           status=$(cf "$projects/$PAGES_PROJECT/domains/$host" | jq -r '.result.status // empty')
           if [ -z "$status" ]; then
@@ -224,13 +225,15 @@ jobs:
         if: steps.ready.outputs.go == 'true'
         env:
           CHECK_URL: ${{ steps.pages.outputs.check_url }}
+          PAGES_URL: ${{ steps.pages.outputs.pages_url }}
         run: |
           # The script this build produced must be what the site serves, with the security headers on.
           script=$(grep -o '/assets/index-[A-Za-z0-9_-]*\.js' dist/index.html | head -1)
           for i in $(seq 1 30); do
             if curl -fsS --max-time 10 -o /dev/null "$CHECK_URL$script"; then
-              # On a custom domain the headers can reach the edge a little after the files: keep looking until they do.
-              headers=$(curl -sS -D - -o /dev/null "$CHECK_URL/users")
+              # The headers come from the Pages project (public/_headers), the same for its pages.dev address and the
+              # custom domain; read them at pages.dev, which answers the same from everywhere.
+              headers=$(curl -sS -D - -o /dev/null "${PAGES_URL:-$CHECK_URL}/users")
               if ! echo "$headers" | grep -iq "^x-frame-options: DENY" || ! echo "$headers" | grep -iq "^content-security-policy:"; then
                 missing="security headers (public/_headers)"
                 sleep 10
@@ -383,10 +386,21 @@ jobs:
             echo "present=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          # Tolerate a pasted line break or spaces in the base64.
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/release.jks"
           echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          # Check the key before an eight-minute build finds out. Fingerprints only, never the secrets: compare them with
+          # KEY-README.txt's (docs/deploy.md, Google Play) to see which secret differs.
+          pw=$(printf '%s' "$ANDROID_KEYSTORE_PASSWORD" | tr -d '\r\n' | sed -e 's/^ *//' -e 's/ *$//')
+          alias=$(printf '%s' "$ANDROID_KEY_ALIAS" | tr -d '\r\n' | sed -e 's/^ *//' -e 's/ *$//')
+          echo "Keystore: sha256 $(sha256sum < "$RUNNER_TEMP/release.jks" | cut -c1-12), $(stat -c %s "$RUNNER_TEMP/release.jks") bytes. Password: sha256 $(printf '%s' "$pw" | sha256sum | cut -c1-12), ${#pw} characters. Alias: ${#alias} characters."
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$pw" -alias "$alias" >/dev/null 2>&1; then
+            echo "::error title=Signing key::The keystore doesn't open with ANDROID_KEYSTORE_PASSWORD and alias ANDROID_KEY_ALIAS. Compare the fingerprints above with the ones in docs/deploy.md; check Settings → Environments → production-android for secrets that override the repository ones."
+            exit 1
+          fi
           # Play needs every upload's version code higher than the last; a re-run counts up too.
-          echo "ANDROID_VERSION_CODE=$((100000 + GITHUB_RUN_NUMBER * 10 + GITHUB_RUN_ATTEMPT))" >> "$GITHUB_ENV"
+          # 101000 and up: above the 0.2.0 build made by hand (100200).
+          echo "ANDROID_VERSION_CODE=$((101000 + GITHUB_RUN_NUMBER * 10 + GITHUB_RUN_ATTEMPT))" >> "$GITHUB_ENV"
           echo "ANDROID_VERSION_NAME=0.1.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
           echo "present=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v4

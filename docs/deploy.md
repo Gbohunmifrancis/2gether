@@ -89,11 +89,17 @@ written to be additive, so the old build keeps working while the new one starts.
 3. Upload the very first bundle by hand in Play Console. Google requires that once. Download it from the
    `heartpact-release-aab` artifact of a Deploy run. Until the app is published, set `PLAY_RELEASE_STATUS=draft`.
 
+The Signing key step checks the keystore opens before building and prints fingerprints, never the secrets. For the
+upload key made on 31 October 2026 (alias `heartpact-upload`) they are: keystore sha256 `7da2cdd14900`, 4316 bytes;
+password sha256 `93325df65b8f`, 32 characters; alias 16 characters. A different keystore fingerprint means
+`ANDROID_KEYSTORE_BASE64` holds another file; a different password fingerprint means `ANDROID_KEYSTORE_PASSWORD` does.
+An environment (`production-android`) secret overrides a repository secret of the same name.
+
 Every run also attaches `heartpact-release-apk`: the same production build as an APK, signed with the release key,
 to install directly (Actions → the Deploy run → Artifacts). To build one without touching the Play track, run Deploy
 by hand with only Android ticked and no `PLAY_SERVICE_ACCOUNT_JSON`, or ignore the upload.
 
-Each build is numbered by the pipeline: version code `100000 + run × 10 + attempt`, name `0.1.<run>`. A re-run
+Each build is numbered by the pipeline: version code `101000 + run × 10 + attempt` (above the hand-built 0.2.0, 100200), name `0.1.<run>`. A re-run
 counts up, as Play requires. Release notes are the commit's first line.
 
 **Roll back:** Play Console → the track → halt the release, or promote an earlier one.
