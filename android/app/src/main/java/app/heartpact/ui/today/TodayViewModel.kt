@@ -3,6 +3,8 @@ package app.heartpact.ui.today
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.heartpact.ui.ai.CoachLoader
+import app.heartpact.ui.ai.CoachUi
 import app.heartpact.HeartpactApplication
 import app.heartpact.alarm.AlarmPlan
 import app.heartpact.alarm.AlarmReadiness
@@ -32,6 +34,8 @@ data class TodayUi(
     val kept: Set<String> = emptySet(),
     /** I have a dare and this phone may not set exact alarms: explain and ask, once. */
     val askExactAlarms: Boolean = false,
+    /** The coach's note on my partner's dare finished today, by its occurrence id (docs/ai.md). */
+    val partnerCoach: Pair<String, CoachUi>? = null,
 )
 
 /**
@@ -82,9 +86,19 @@ class TodayViewModel(application: Application, private val me: String, private v
                 val view = TodayBuilder.build(today.value, history, me, now)
                 val ask = view.mine != null && !_ui.value.readiness.exactAlarms && !AlarmStore(getApplication()).exactAlarmsAsked
                 _ui.update { it.copy(view = view, loading = false, note = null, askExactAlarms = ask) }
+                view.partnerDone?.let { coach(it.id) }
             }
             ApiResult.Offline -> _ui.update { it.copy(loading = false, note = OFFLINE_MESSAGE) }
             is ApiResult.Failure -> _ui.update { it.copy(loading = false, note = today.message) }
+        }
+    }
+
+    /** Asked once per finished dare; a later refresh keeps what came back. */
+    private fun coach(occurrenceId: String) {
+        if (_ui.value.partnerCoach?.first == occurrenceId) return
+        _ui.update { it.copy(partnerCoach = occurrenceId to CoachUi.Writing) }
+        viewModelScope.launch {
+            CoachLoader.load({ app.ai.coach(occurrenceId) }, { coach -> _ui.update { it.copy(partnerCoach = occurrenceId to coach) } })
         }
     }
 

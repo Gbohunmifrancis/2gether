@@ -97,7 +97,7 @@ class AlarmActivity : ComponentActivity() {
                                 )
                             }
                         }
-                        is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::done, mySide = side)
+                        is AlarmPhase.Sealed -> HeartComplete(phase.occurrence, ui.partnerName, onDone = ::done, mySide = side, coach = ui.coach)
                         is AlarmPhase.Ended -> AlarmEnded(phase.reason, ui.partnerName, onDone = ::done)
                     }
                 }

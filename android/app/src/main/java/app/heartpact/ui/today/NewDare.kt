@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.heartpact.data.AiRepository
 import app.heartpact.data.ApiResult
 import app.heartpact.data.CreateGoalRequest
 import app.heartpact.data.ExerciseRepository
@@ -81,6 +82,8 @@ data class NewDareState(
     val partnerZone: String? = null,
     /** The partner already has as many active dares as the plan allows (Free: one each): pause one or get Plus. */
     val atLimit: Boolean = false,
+    /** "Suggest a dare" (docs/ai.md): hidden unless the server offers it. */
+    val ideas: app.heartpact.ui.ai.DareIdeasUi = app.heartpact.ui.ai.DareIdeasUi(),
 )
 
 /** The partner's zone when it is known and keeps a different clock from this phone's right now; else null (nothing to say). */
@@ -89,7 +92,7 @@ fun otherZone(partnerZone: String?, mine: ZoneId = ZoneId.systemDefault(), now: 
     return zone.takeIf { it.rules.getOffset(now) != mine.rules.getOffset(now) }
 }
 
-class NewDareViewModel(private val exercise: ExerciseRepository, private val partnerId: String, private val plus: PlusRepository? = null) : ViewModel() {
+class NewDareViewModel(private val exercise: ExerciseRepository, private val partnerId: String, private val plus: PlusRepository? = null, private val ai: AiRepository? = null) : ViewModel() {
     private val _state = MutableStateFlow(NewDareState())
     val state: StateFlow<NewDareState> = _state.asStateFlow()
 
@@ -104,6 +107,39 @@ class NewDareViewModel(private val exercise: ExerciseRepository, private val par
                 if (goals.count { it.assignedUserId == partnerId && it.isActive } >= limit) _state.update { it.copy(atLimit = true) }
             }
         }
+    }
+
+    init {
+        // Offered only when the server has it switched on; a failed check hides it.
+        ai?.let { repository ->
+            viewModelScope.launch {
+                val status = (repository.status() as? ApiResult.Ok)?.value ?: return@launch
+                if (status.dareIdeas) _state.update { it.copy(ideas = it.ideas.copy(available = true, left = status.dareIdeasLeft)) }
+            }
+        }
+    }
+
+    /** Three ideas for the partner from the server; the cards replace any shown before. */
+    fun suggest() {
+        val repository = ai ?: return
+        if (_state.value.ideas.busy) return
+        _state.update { it.copy(ideas = it.ideas.copy(busy = true, note = null)) }
+        viewModelScope.launch {
+            when (val result = repository.dareIdeas(partnerId)) {
+                is ApiResult.Ok -> _state.update { it.copy(ideas = it.ideas.copy(busy = false, ideas = result.value.ideas, picked = null, left = result.value.left)) }
+                is ApiResult.Failure -> _state.update {
+                    it.copy(ideas = it.ideas.copy(busy = false, note = result.message, left = if (result.status == 429) 0 else it.ideas.left,
+                        available = result.code != "ai.off"))
+                }
+                ApiResult.Offline -> _state.update { it.copy(ideas = it.ideas.copy(busy = false, note = OFFLINE_MESSAGE)) }
+            }
+        }
+    }
+
+    /** Puts the idea in the form; everything stays editable. */
+    fun pick(index: Int) = _state.update { state ->
+        val idea = state.ideas.ideas.getOrNull(index) ?: return@update state
+        app.heartpact.ui.ai.DareIdeaPick.apply(state, idea).copy(ideas = state.ideas.copy(picked = index))
     }
 
     fun type(type: ExerciseType) = _state.update { it.copy(type = type, target = type.defaultTarget) }
@@ -141,7 +177,7 @@ private val STEP = mapOf(Measure.Reps to 5, Measure.Seconds to 10)
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun NewDareScreen(state: NewDareState, partnerName: String, onType: (ExerciseType) -> Unit, onStep: (Int) -> Unit, onTime: (LocalTime) -> Unit, onWindow: (Int) -> Unit, onSend: () -> Unit, onBack: () -> Unit,
-                  onGetPlus: (() -> Unit)? = null) {
+                  onGetPlus: (() -> Unit)? = null, onSuggest: () -> Unit = {}, onPickIdea: (Int) -> Unit = {}) {
     val colors = Heartpact.colors
     var picking by remember { mutableStateOf(false) }
     val step = STEP.getValue(state.type.measure)
@@ -150,6 +186,7 @@ fun NewDareScreen(state: NewDareState, partnerName: String, onType: (ExerciseTyp
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
         TopBar(tr("New dare for {partner}", "partner" to partnerName), onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            app.heartpact.ui.ai.DareIdeasSection(state.ideas, partnerName, onSuggest, onPickIdea, Modifier.padding(bottom = 6.dp))
             Text(tr("Exercise"), style = Heartpact.type.label, color = colors.ink)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 ExerciseType.entries.forEach { HeartChip(it.displayName, state.type == it, { onType(it) }) }

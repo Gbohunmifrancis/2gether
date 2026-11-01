@@ -39,8 +39,8 @@
   "uses": [
    "app/heartpact/alarm/AlarmNotifier.kt:79",
    "app/heartpact/alarm/AlarmScreens.kt:152",
-   "app/heartpact/alarm/AlarmScreens.kt:246",
-   "app/heartpact/ui/camera/CameraRep.kt:362"
+   "app/heartpact/alarm/AlarmScreens.kt:248",
+   "app/heartpact/ui/camera/CameraRep.kt:405"
   ],
   "code": ".addAction(0, tr(\"Silence on this phone\"), silence)"
  },
@@ -165,96 +165,103 @@
    "app/heartpact/ui/games/GamesScreen.kt:155",
    "app/heartpact/ui/home/Connect.kt:53",
    "app/heartpact/ui/today/TodayGames.kt:194",
-   "app/heartpact/ui/today/TodayTab.kt:268"
+   "app/heartpact/ui/today/TodayTab.kt:270"
   ],
   "code": "dismissButton = { TextButton(onClick = onDismiss) { Text(tr(\"Not now\")) } },"
  },
  "{progress} at {time},\nwhile it was ringing.": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:190"
+   "app/heartpact/alarm/AlarmScreens.kt:191"
   ],
   "code": "else -> tr(\"{progress} at {time},\\nwhile it was ringing.\", \"progress\" to progress, \"time\" to localTime(done.toString()))"
  },
  "Heart complete": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:202"
+   "app/heartpact/alarm/AlarmScreens.kt:203"
   ],
   "code": "Text(tr(\"Heart complete\"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.padding(top = 12.dp))"
  },
  "The same heart goes on {partner}'s page.": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:205"
+   "app/heartpact/alarm/AlarmScreens.kt:206"
   ],
   "code": "Text(tr(\"The same heart goes on {partner}'s page.\", \"partner\" to partnerName), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 18.dp))"
+ },
+ "From your coach": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/alarm/AlarmScreens.kt:207"
+  ],
+  "code": "app.heartpact.ui.ai.CoachNoteCard(coach, tr(\"From your coach\"), Modifier.padding(top = 18.dp))"
  },
  "Done": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:208",
-   "app/heartpact/alarm/AlarmScreens.kt:231",
+   "app/heartpact/alarm/AlarmScreens.kt:210",
+   "app/heartpact/alarm/AlarmScreens.kt:233",
    "app/heartpact/ui/auth/SignUp.kt:132",
    "app/heartpact/ui/games/TruthOrDareBoard.kt:101",
-   "app/heartpact/ui/plus/PlusScreen.kt:193",
-   "app/heartpact/ui/today/NewDare.kt:195"
+   "app/heartpact/ui/plus/PlusScreen.kt:210",
+   "app/heartpact/ui/today/NewDare.kt:232"
   ],
   "code": "HeartButton(tr(\"Done\"), onDone, Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp, bottom = 12.dp))"
  },
  "Called off together": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:222"
+   "app/heartpact/alarm/AlarmScreens.kt:224"
   ],
   "code": "EndReason.LetOff -> tr(\"Called off together\")"
  },
  "The window closed": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:223"
+   "app/heartpact/alarm/AlarmScreens.kt:225"
   ],
   "code": "EndReason.Missed -> tr(\"The window closed\")"
  },
  "Nothing is ringing": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:224"
+   "app/heartpact/alarm/AlarmScreens.kt:226"
   ],
   "code": "EndReason.Gone -> tr(\"Nothing is ringing\")"
  },
  "{partner} agreed. Today goes on your page as a peeled heart.": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:227"
+   "app/heartpact/alarm/AlarmScreens.kt:229"
   ],
   "code": "EndReason.LetOff -> tr(\"{partner} agreed. Today goes on your page as a peeled heart.\", \"partner\" to partnerName)"
  },
  "Today's dare wasn't done in time. Tomorrow is a new page.": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:228"
+   "app/heartpact/alarm/AlarmScreens.kt:230"
   ],
   "code": "EndReason.Missed -> tr(\"Today's dare wasn't done in time. Tomorrow is a new page.\")"
  },
  "This dare was changed or already finished.": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:229"
+   "app/heartpact/alarm/AlarmScreens.kt:231"
   ],
   "code": "EndReason.Gone -> tr(\"This dare was changed or already finished.\")"
  },
  "Checking today's dare…": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:244"
+   "app/heartpact/alarm/AlarmScreens.kt:246"
   ],
   "code": "Text(note ?: tr(\"Checking today's dare…\"), style = Heartpact.type.body, color = OnInk, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 16.dp))"
  },
  "{progress} at {time},\n{count} minute before it would ring.|{progress} at {time},\n{count} minutes before it would ring.": {
   "plural": true,
   "uses": [
-   "app/heartpact/alarm/AlarmScreens.kt:187"
+   "app/heartpact/alarm/AlarmScreens.kt:188"
   ],
   "code": "trn(early, \"{progress} at {time},\\n{count} minute before it would ring.\", \"{progress} at {time},\\n{count} minutes before it would ring.\",",
   "one": "{progress} at {time},\n{count} minute before it would ring.",
@@ -263,17 +270,19 @@
  "your partner": {
   "plural": false,
   "uses": [
-   "app/heartpact/alarm/AlarmViewModel.kt:39",
-   "app/heartpact/alarm/AlarmViewModel.kt:48",
+   "app/heartpact/alarm/AlarmViewModel.kt:41",
+   "app/heartpact/alarm/AlarmViewModel.kt:52",
    "app/heartpact/location/LocationShareService.kt:89",
-   "app/heartpact/ui/AppNav.kt:309",
-   "app/heartpact/ui/AppNav.kt:484",
-   "app/heartpact/ui/AppNav.kt:506",
-   "app/heartpact/ui/AppNav.kt:526",
-   "app/heartpact/ui/AppNav.kt:536",
-   "app/heartpact/ui/AppNav.kt:556",
-   "app/heartpact/ui/AppNav.kt:571",
-   "app/heartpact/ui/AppNav.kt:586",
+   "app/heartpact/ui/AppNav.kt:316",
+   "app/heartpact/ui/AppNav.kt:497",
+   "app/heartpact/ui/AppNav.kt:519",
+   "app/heartpact/ui/AppNav.kt:539",
+   "app/heartpact/ui/AppNav.kt:549",
+   "app/heartpact/ui/AppNav.kt:569",
+   "app/heartpact/ui/AppNav.kt:584",
+   "app/heartpact/ui/AppNav.kt:599",
+   "app/heartpact/ui/AppNav.kt:655",
+   "app/heartpact/ui/AppNav.kt:666",
    "app/heartpact/ui/games/GamesViewModel.kt:105"
   ],
   "code": "val partnerName: String = tr(\"your partner\"),"
@@ -398,7 +407,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/billing/PlayStore.kt:86",
-   "app/heartpact/ui/plus/PlusViewModel.kt:134"
+   "app/heartpact/ui/plus/PlusViewModel.kt:136"
   ],
   "code": "val UNREACHABLE get() = tr(\"Can't reach Google Play. Check your connection and try again.\")"
  },
@@ -406,7 +415,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/billing/PlayStore.kt:87",
-   "app/heartpact/ui/plus/PlusViewModel.kt:107"
+   "app/heartpact/ui/plus/PlusViewModel.kt:109"
   ],
   "code": "val NOT_ON_SALE get() = tr(\"Plus isn't on sale in your country yet.\")"
  },
@@ -434,14 +443,16 @@
  "Yearly": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:48"
+   "app/heartpact/billing/PlusOffers.kt:48",
+   "app/heartpact/billing/PlusOffers.kt:140"
   ],
   "code": "0 -> tr(\"Yearly\")"
  },
  "Monthly": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:49"
+   "app/heartpact/billing/PlusOffers.kt:49",
+   "app/heartpact/billing/PlusOffers.kt:141"
   ],
   "code": "1 -> tr(\"Monthly\")"
  },
@@ -523,6 +534,27 @@
    "app/heartpact/billing/PlusOffers.kt:132"
   ],
   "code": "fun dares(limit: Int?): String = limit?.let { trn(it, \"{count} each\", \"{count} each\") } ?: tr(\"Unlimited\")"
+ },
+ "{price} a year": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlusOffers.kt:140"
+  ],
+  "code": "PlanOption(\"card:yearly\", tr(\"Yearly\"), tr(\"{price} a year\", \"price\" to prices.yearly), \"\", null, \"\", savings = tr(\"Best value\")),"
+ },
+ "Best value": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlusOffers.kt:140"
+  ],
+  "code": "PlanOption(\"card:yearly\", tr(\"Yearly\"), tr(\"{price} a year\", \"price\" to prices.yearly), \"\", null, \"\", savings = tr(\"Best value\")),"
+ },
+ "{price} a month": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/billing/PlusOffers.kt:141"
+  ],
+  "code": "PlanOption(\"card:monthly\", tr(\"Monthly\"), tr(\"{price} a month\", \"price\" to prices.monthly), \"\", null, \"\"),"
  },
  "{count} day|{count} days": {
   "plural": true,
@@ -634,8 +666,8 @@
   "plural": false,
   "uses": [
    "app/heartpact/data/ApiResult.kt:32",
-   "app/heartpact/ui/plus/PlusViewModel.kt:202",
-   "app/heartpact/ui/plus/PlusViewModel.kt:250"
+   "app/heartpact/ui/plus/PlusViewModel.kt:216",
+   "app/heartpact/ui/plus/PlusViewModel.kt:264"
   ],
   "code": "else -> tr(\"That didn't work. Try again.\")"
  },
@@ -1059,14 +1091,16 @@
  "Lift your hips into a straight line.": {
   "plural": false,
   "uses": [
-   "app/heartpact/exercise/Form.kt:33"
+   "app/heartpact/exercise/Form.kt:33",
+   "app/heartpact/exercise/PoseCoach.kt:178"
   ],
   "code": "FaultKind.HipsLow -> tr(\"Lift your hips into a straight line.\")"
  },
  "Lower your hips into a straight line.": {
   "plural": false,
   "uses": [
-   "app/heartpact/exercise/Form.kt:34"
+   "app/heartpact/exercise/Form.kt:34",
+   "app/heartpact/exercise/PoseCoach.kt:179"
   ],
   "code": "FaultKind.HipsHigh -> tr(\"Lower your hips into a straight line.\")"
  },
@@ -1080,7 +1114,8 @@
  "Lie on your back with your knees bent.": {
   "plural": false,
   "uses": [
-   "app/heartpact/exercise/Form.kt:37"
+   "app/heartpact/exercise/Form.kt:37",
+   "app/heartpact/exercise/PoseCoach.kt:187"
   ],
   "code": "ExerciseType.SitUp -> tr(\"Lie on your back with your knees bent.\")"
  },
@@ -1199,6 +1234,133 @@
   ],
   "code": "else -> tr(\"Keep your body steady.\")"
  },
+ "Perfect. Hold it there.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:88",
+   "app/heartpact/exercise/PoseCoach.kt:88"
+  ],
+  "code": "return CoachTick(CoachState(CoachPhase.Countdown, tr(\"Perfect. Hold it there.\"), COUNT_FROM, inFrame = true), say(tr(\"Perfect. Hold it there.\"), nowMs))"
+ },
+ "That's it. Hold still.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:90"
+  ],
+  "code": "return CoachTick(CoachState(CoachPhase.Setup, tr(\"That's it. Hold still.\"), inFrame = true))"
+ },
+ "Go! Hold the line.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:113"
+  ],
+  "code": "return CoachTick(CoachState(CoachPhase.Counting), say(if (type.measure == Measure.Seconds) tr(\"Go! Hold the line.\") else tr(\"Go!\"), nowMs))"
+ },
+ "Go!": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:113"
+  ],
+  "code": "return CoachTick(CoachState(CoachPhase.Counting), say(if (type.measure == Measure.Seconds) tr(\"Go! Hold the line.\") else tr(\"Go!\"), nowMs))"
+ },
+ "Hold it there.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:117"
+  ],
+  "code": "return CoachTick(CoachState(CoachPhase.Countdown, tr(\"Hold it there.\"), shown, inFrame = issue?.inFrame ?: true), speak)"
+ },
+ "Done! Well done.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:125"
+  ],
+  "code": "return CoachTick(state, say(tr(\"Done! Well done.\"), nowMs))"
+ },
+ "Prop the phone on the floor a couple of metres away, side-on, and get in the picture.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:166"
+  ],
+  "code": "SetupIssue.NoBody -> if (type.onFloor) tr(\"Prop the phone on the floor a couple of metres away, side-on, and get in the picture.\")"
+ },
+ "Step in front of the camera so it can see you.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:167"
+  ],
+  "code": "else tr(\"Step in front of the camera so it can see you.\")"
+ },
+ "Move the phone further away so your whole body is in the picture.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:168"
+  ],
+  "code": "SetupIssue.StepBack -> if (type.onFloor) tr(\"Move the phone further away so your whole body is in the picture.\")"
+ },
+ "Step back so your whole body is in the picture.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:169"
+  ],
+  "code": "else tr(\"Step back so your whole body is in the picture.\")"
+ },
+ "Turn side-on to the camera.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:170"
+  ],
+  "code": "SetupIssue.TurnSideways -> tr(\"Turn side-on to the camera.\")"
+ },
+ "Turn to face the camera.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:171"
+  ],
+  "code": "SetupIssue.FaceCamera -> tr(\"Turn to face the camera.\")"
+ },
+ "Stand up tall with your feet apart.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:184"
+  ],
+  "code": "ExerciseType.Squat -> tr(\"Stand up tall with your feet apart.\")"
+ },
+ "Get into the top of a push-up: arms straight, body in one line.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:185"
+  ],
+  "code": "ExerciseType.PushUp -> tr(\"Get into the top of a push-up: arms straight, body in one line.\")"
+ },
+ "Get into a plank on your elbows, body in one straight line.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:186"
+  ],
+  "code": "ExerciseType.Plank -> tr(\"Get into a plank on your elbows, body in one straight line.\")"
+ },
+ "Stand tall with your arms down by your sides.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:188"
+  ],
+  "code": "ExerciseType.ArmRaise -> tr(\"Stand tall with your arms down by your sides.\")"
+ },
+ "Stand tall, feet together and arms by your sides.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:189"
+  ],
+  "code": "ExerciseType.JumpingJack -> tr(\"Stand tall, feet together and arms by your sides.\")"
+ },
+ "Stand tall with both feet on the floor.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/exercise/PoseCoach.kt:190"
+  ],
+  "code": "ExerciseType.HighKnees -> tr(\"Stand tall with both feet on the floor.\")"
+ },
  "Location sharing": {
   "plural": false,
   "uses": [
@@ -1280,7 +1442,7 @@
  "{partner}'s cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:425",
+   "app/heartpact/ui/AppNav.kt:438",
    "app/heartpact/ui/cycle/CycleScreen.kt:98"
   ],
   "code": "CardRow(if (cycleMode == CycleMode.Partner) tr(\"{partner}'s cycle\", \"partner\" to partner) else tr(\"Your cycle\"),"
@@ -1288,7 +1450,7 @@
  "Your cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:425",
+   "app/heartpact/ui/AppNav.kt:438",
    "app/heartpact/ui/cycle/CycleScreen.kt:98"
   ],
   "code": "CardRow(if (cycleMode == CycleMode.Partner) tr(\"{partner}'s cycle\", \"partner\" to partner) else tr(\"Your cycle\"),"
@@ -1296,7 +1458,7 @@
  "Pregnancy mode": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:431",
+   "app/heartpact/ui/AppNav.kt:444",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:246"
   ],
   "code": "CardRow(tr(\"Pregnancy mode\"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),"
@@ -1304,7 +1466,7 @@
  "You": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:563",
+   "app/heartpact/ui/AppNav.kt:576",
    "app/heartpact/ui/games/GameLife.kt:175",
    "app/heartpact/ui/games/GameLife.kt:322",
    "app/heartpact/ui/games/ICallOnBoard.kt:173",
@@ -1318,9 +1480,369 @@
    "app/heartpact/ui/map/MapScreen.kt:178",
    "app/heartpact/ui/map/MapScreen.kt:223",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:225",
-   "app/heartpact/ui/us/UsScreens.kt:187"
+   "app/heartpact/ui/us/UsScreens.kt:197"
   ],
   "code": "val meFace = Face(session?.user?.id ?: \"\", session?.user?.displayName ?: tr(\"You\"), session?.user?.avatarVersion ?: 0, side)"
+ },
+ "Your coach is writing a note": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Coach.kt:68"
+  ],
+  "code": "val writing = tr(\"Your coach is writing a note\")"
+ },
+ "Thinking up three dares for {partner}…": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:68"
+  ],
+  "code": "Text(tr(\"Thinking up three dares for {partner}…\", \"partner\" to partnerName), style = Heartpact.type.label, color = colors.ink)"
+ },
+ "Ideas for {partner}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:74"
+  ],
+  "code": "Text(tr(\"Ideas for {partner}\", \"partner\" to partnerName), style = Heartpact.type.label, color = colors.ink)"
+ },
+ "Tap one to put it in the dare.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:75"
+  ],
+  "code": "Text(tr(\"Tap one to put it in the dare.\"), style = Heartpact.type.small, color = colors.ink2)"
+ },
+ "New ideas": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:77"
+  ],
+  "code": "if (ui.left != 0) HeartButton(tr(\"New ideas\"), onSuggest, kind = ButtonKind.Text, fillWidth = false, height = 40.dp)"
+ },
+ "That's all the ideas for today.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:81",
+   "app/heartpact/ui/ai/DareIdeas.kt:87"
+  ],
+  "code": "Text(if (it == 0) tr(\"That's all the ideas for today.\") else trn(it, \"{count} more round of ideas today\", \"{count} more rounds of ideas today\"),"
+ },
+ "Suggest a dare": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:86"
+  ],
+  "code": "HeartButton(tr(\"Suggest a dare\"), onSuggest, kind = ButtonKind.Tonal, icon = Icons.Rounded.Lightbulb, enabled = ui.left != 0)"
+ },
+ "Three ideas from {partner}'s recent dares and streak.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:87"
+  ],
+  "code": "Text(if (ui.left == 0) tr(\"That's all the ideas for today.\") else tr(\"Three ideas from {partner}'s recent dares and streak.\", \"partner\" to partnerName),"
+ },
+ "In the dare": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:102"
+  ],
+  "code": "val pickedWords = tr(\"In the dare\")"
+ },
+ "{dare} at {time}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:114"
+  ],
+  "code": "Text(tr(\"{dare} at {time}\", \"dare\" to label, \"time\" to time), style = Heartpact.type.titleSmall, color = colors.ink)"
+ },
+ "{count} more round of ideas today|{count} more rounds of ideas today": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/DareIdeas.kt:81"
+  ],
+  "code": "Text(if (it == 0) tr(\"That's all the ideas for today.\") else trn(it, \"{count} more round of ideas today\", \"{count} more rounds of ideas today\"),",
+  "one": "{count} more round of ideas today",
+  "other": "{count} more rounds of ideas today"
+ },
+ "Cosy": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:118"
+  ],
+  "code": "PlanMood.Cosy -> tr(\"Cosy\")"
+ },
+ "Active": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:119"
+  ],
+  "code": "PlanMood.Active -> tr(\"Active\")"
+ },
+ "Adventurous": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:120"
+  ],
+  "code": "PlanMood.Adventurous -> tr(\"Adventurous\")"
+ },
+ "Romantic": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:121"
+  ],
+  "code": "PlanMood.Romantic -> tr(\"Romantic\")"
+ },
+ "Free": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:125",
+   "app/heartpact/ui/plus/PlusScreen.kt:229"
+  ],
+  "code": "PlanBudget.Free -> tr(\"Free\")"
+ },
+ "Low cost": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:126"
+  ],
+  "code": "PlanBudget.Low -> tr(\"Low cost\")"
+ },
+ "A treat": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:127"
+  ],
+  "code": "PlanBudget.Treat -> tr(\"A treat\")"
+ },
+ "Stay in": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:131"
+  ],
+  "code": "PlanSetting.In -> tr(\"Stay in\")"
+ },
+ "Go out": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:132"
+  ],
+  "code": "PlanSetting.Out -> tr(\"Go out\")"
+ },
+ "Plan something": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:150",
+   "app/heartpact/ui/us/UsScreens.kt:150"
+  ],
+  "code": "TopBar(tr(\"Plan something\"), onBack)"
+ },
+ "Pick a mood and a budget, and get three date ideas and two games for tonight with {partner}.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:152"
+  ],
+  "code": "Text(tr(\"Pick a mood and a budget, and get three date ideas and two games for tonight with {partner}.\", \"partner\" to partnerName),"
+ },
+ "Mood": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:154",
+   "app/heartpact/ui/cycle/CycleScreen.kt:149"
+  ],
+  "code": "Label(tr(\"Mood\"))"
+ },
+ "Budget": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:158"
+  ],
+  "code": "Label(tr(\"Budget\"))"
+ },
+ "Where": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:162"
+  ],
+  "code": "Label(tr(\"Where\"))"
+ },
+ "City (optional)": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:167"
+  ],
+  "code": "HeartField(tr(\"City (optional)\"), ui.city, onCity, Modifier.padding(top = 4.dp), maxLength = PlanForm.MAX_CITY,"
+ },
+ "Only the city is sent, never where you are.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:168"
+  ],
+  "code": "hint = tr(\"Only the city is sent, never where you are.\"),"
+ },
+ "Suggest": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:171"
+  ],
+  "code": "HeartButton(if (ui.plan == null) tr(\"Suggest\") else tr(\"Suggest again\"), onSuggest, Modifier.padding(top = 8.dp), icon = Icons.Rounded.Lightbulb,"
+ },
+ "Suggest again": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:171"
+  ],
+  "code": "HeartButton(if (ui.plan == null) tr(\"Suggest\") else tr(\"Suggest again\"), onSuggest, Modifier.padding(top = 8.dp), icon = Icons.Rounded.Lightbulb,"
+ },
+ "That's all the plans for today.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:174"
+  ],
+  "code": "Text(if (it == 0) tr(\"That's all the plans for today.\") else trn(it, \"{count} plan left today\", \"{count} plans left today\"),"
+ },
+ "Date ideas": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:192"
+  ],
+  "code": "Text(tr(\"Date ideas\"), style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(top = 12.dp))"
+ },
+ "Play tonight": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:197"
+  ],
+  "code": "Text(tr(\"Play tonight\"), style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(top = 12.dp))"
+ },
+ "Open the games": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:227"
+  ],
+  "code": "Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, tr(\"Open the games\"), tint = colors.ink2)"
+ },
+ "{count} plan left today|{count} plans left today": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/Plan.kt:174"
+  ],
+  "code": "Text(if (it == 0) tr(\"That's all the plans for today.\") else trn(it, \"{count} plan left today\", \"{count} plans left today\"),",
+  "one": "{count} plan left today",
+  "other": "{count} plans left today"
+ },
+ "Your week together · {dates}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:74"
+  ],
+  "code": "Text(tr(\"Your week together · {dates}\", \"dates\" to RecapText.range(recap)), style = Heartpact.type.labelSmall, color = colors.ink2)"
+ },
+ "See your week": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:78"
+  ],
+  "code": "Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, tr(\"See your week\"), tint = colors.ink2)"
+ },
+ "Your week together": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:89"
+  ],
+  "code": "TopBar(tr(\"Your week together\"), onBack)"
+ },
+ "For next week": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:105"
+  ],
+  "code": "Text(tr(\"For next week\"), style = Heartpact.type.labelSmall, color = actor.onSoft)"
+ },
+ "Your week in numbers": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:109"
+  ],
+  "code": "Text(tr(\"Your week in numbers\"), style = Heartpact.type.titleSmall, color = colors.ink, modifier = Modifier.padding(top = 22.dp, bottom = 10.dp))"
+ },
+ "Plan something together": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:121"
+  ],
+  "code": "onPlan?.let { HeartButton(tr(\"Plan something together\"), it, Modifier.padding(top = 8.dp), kind = ButtonKind.Tonal) }"
+ },
+ "heart made|hearts made": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:52"
+  ],
+  "code": "add(\"${stats.heartsMade}\" to trn(stats.heartsMade, \"heart made\", \"hearts made\"))",
+  "one": "heart made",
+  "other": "hearts made"
+ },
+ "dare you did|dares you did": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:54"
+  ],
+  "code": "add(\"${stats.myDaresDone}\" to trn(stats.myDaresDone, \"dare you did\", \"dares you did\"))",
+  "one": "dare you did",
+  "other": "dares you did"
+ },
+ "dare {partner} did|dares {partner} did": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:55"
+  ],
+  "code": "add(\"${stats.partnerDaresDone}\" to trn(stats.partnerDaresDone, \"dare {partner} did\", \"dares {partner} did\", \"partner\" to partnerName))",
+  "one": "dare {partner} did",
+  "other": "dares {partner} did"
+ },
+ "day in your streak|days in your streak": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:57"
+  ],
+  "code": "if (stats.myStreakDays > 0) add(\"${stats.myStreakDays}\" to trn(stats.myStreakDays, \"day in your streak\", \"days in your streak\"))",
+  "one": "day in your streak",
+  "other": "days in your streak"
+ },
+ "day in {partner}'s streak|days in {partner}'s streak": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:58"
+  ],
+  "code": "if (stats.partnerStreakDays > 0) add(\"${stats.partnerStreakDays}\" to trn(stats.partnerStreakDays, \"day in {partner}'s streak\", \"days in {partner}'s streak\", \"partner\" to partnerName))",
+  "one": "day in {partner}'s streak",
+  "other": "days in {partner}'s streak"
+ },
+ "game played|games played": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:59"
+  ],
+  "code": "if (stats.gamesPlayed > 0) add(\"${stats.gamesPlayed}\" to trn(stats.gamesPlayed, \"game played\", \"games played\"))",
+  "one": "game played",
+  "other": "games played"
+ },
+ "photo added|photos added": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:60"
+  ],
+  "code": "if (stats.photosAdded > 0) add(\"${stats.photosAdded}\" to trn(stats.photosAdded, \"photo added\", \"photos added\"))",
+  "one": "photo added",
+  "other": "photos added"
+ },
+ "question answered|questions answered": {
+  "plural": true,
+  "uses": [
+   "app/heartpact/ui/ai/WeeklyRecap.kt:61"
+  ],
+  "code": "if (stats.questionsAnswered > 0) add(\"${stats.questionsAnswered}\" to trn(stats.questionsAnswered, \"question answered\", \"questions answered\"))",
+  "one": "question answered",
+  "other": "questions answered"
  },
  "{size} B": {
   "plural": false,
@@ -1482,7 +2004,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/album/AlbumTab.kt:193",
-   "app/heartpact/ui/camera/CameraRep.kt:351",
+   "app/heartpact/ui/camera/CameraRep.kt:394",
    "app/heartpact/ui/food/FoodScan.kt:164",
    "app/heartpact/ui/pair/Pair.kt:107",
    "app/heartpact/ui/play/skills/Practice.kt:138"
@@ -1496,7 +2018,7 @@
    "app/heartpact/ui/album/AlbumTab.kt:512",
    "app/heartpact/ui/pacts/Pacts.kt:135",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:130",
-   "app/heartpact/ui/today/TodayTab.kt:243",
+   "app/heartpact/ui/today/TodayTab.kt:245",
    "app/heartpact/ui/us/ProfileScreen.kt:173"
   ],
   "code": "else TextButton(onClick = { openLocal = null }) { Text(tr(\"Keep it\")) }"
@@ -1515,7 +2037,7 @@
    "app/heartpact/ui/home/Home.kt:78",
    "app/heartpact/ui/home/Home.kt:117",
    "app/heartpact/ui/tour/Tour.kt:72",
-   "app/heartpact/ui/us/UsScreens.kt:290"
+   "app/heartpact/ui/us/UsScreens.kt:300"
   ],
   "code": "Text(tr(\"Album\"), style = Heartpact.type.headline, color = Heartpact.colors.ink)"
  },
@@ -1772,7 +2294,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/album/AlbumTab.kt:471",
-   "app/heartpact/ui/plus/PlusScreen.kt:151",
+   "app/heartpact/ui/plus/PlusScreen.kt:155",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:232",
    "app/heartpact/ui/us/ProfileScreen.kt:166"
   ],
@@ -1848,10 +2370,10 @@
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:293",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:300",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:309",
-   "app/heartpact/ui/today/NewDare.kt:196",
+   "app/heartpact/ui/today/NewDare.kt:233",
    "app/heartpact/ui/us/ProfileScreen.kt:151",
    "app/heartpact/ui/us/ProfileScreen.kt:188",
-   "app/heartpact/ui/us/UsScreens.kt:311"
+   "app/heartpact/ui/us/UsScreens.kt:321"
   ],
   "code": "dismissButton = { TextButton(onClick = { editing = false }, enabled = !busy) { Text(tr(\"Cancel\")) } },"
  },
@@ -2406,7 +2928,7 @@
  "{partner}'s dare": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:166",
+   "app/heartpact/ui/camera/CameraRep.kt:175",
    "app/heartpact/ui/games/TruthOrDareBoard.kt:82"
   ],
   "code": "fun whose(setBy: String?): String = setBy?.let { tr(\"{partner}'s dare\", \"partner\" to it) } ?: tr(\"Your dare\")"
@@ -2414,7 +2936,7 @@
  "Your dare": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:166",
+   "app/heartpact/ui/camera/CameraRep.kt:175",
    "app/heartpact/ui/games/TruthOrDareBoard.kt:80"
   ],
   "code": "fun whose(setBy: String?): String = setBy?.let { tr(\"{partner}'s dare\", \"partner\" to it) } ?: tr(\"Your dare\")"
@@ -2422,14 +2944,14 @@
  "of {total}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:169"
+   "app/heartpact/ui/camera/CameraRep.kt:178"
   ],
   "code": "fun of(type: ExerciseType, target: Int): String = if (type.measure == Measure.Seconds) trn(target, \"of {count} second\", \"of {count} seconds\") else tr(\"of {total}\", \"total\" to type.label(target))"
  },
  "{seconds}s": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:173",
+   "app/heartpact/ui/camera/CameraRep.kt:182",
    "app/heartpact/ui/games/GameLife.kt:451"
   ],
   "code": "return if (ui.type.measure == Measure.Seconds) tr(\"{seconds}s\", \"seconds\" to left) else \"$left\""
@@ -2437,126 +2959,154 @@
  "Whole body in frame": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:176"
+   "app/heartpact/ui/camera/CameraRep.kt:185"
   ],
   "code": "fun frame(inFrame: Boolean): String = if (inFrame) tr(\"Whole body in frame\") else tr(\"Step back so all of you is in frame\")"
  },
  "Step back so all of you is in frame": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:176"
+   "app/heartpact/ui/camera/CameraRep.kt:185"
   ],
   "code": "fun frame(inFrame: Boolean): String = if (inFrame) tr(\"Whole body in frame\") else tr(\"Step back so all of you is in frame\")"
  },
  "Switch camera": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:238"
+   "app/heartpact/ui/camera/CameraRep.kt:249"
   ],
   "code": "Icon(Icons.Rounded.Cameraswitch, tr(\"Switch camera\"), tint = Color.White)"
+ },
+ "Voice coach on": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/camera/CameraRep.kt:255"
+  ],
+  "code": "if (on) tr(\"Voice coach on\") else tr(\"Voice coach off\"),"
+ },
+ "Voice coach off": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/camera/CameraRep.kt:255"
+  ],
+  "code": "if (on) tr(\"Voice coach on\") else tr(\"Voice coach off\"),"
  },
  "{partner} is watching": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:253"
+   "app/heartpact/ui/camera/CameraRep.kt:276"
   ],
   "code": "Text(tr(\"{partner} is watching\", \"partner\" to partner), style = Heartpact.type.labelSmall, color = Color.White)"
  },
  "{count} of {target}, {left} to go": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:271"
+   "app/heartpact/ui/camera/CameraRep.kt:294"
   ],
   "code": ".semantics(mergeDescendants = true) { contentDescription = tr(\"{count} of {target}, {left} to go\", \"count\" to ui.counter.count, \"target\" to ui.target, \"left\" to CameraText.toGo(ui)) },"
  },
  "to go": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:281"
+   "app/heartpact/ui/camera/CameraRep.kt:304"
   ],
   "code": "Text(tr(\"to go\"), style = Heartpact.type.small.copy(fontSize = 11.sp, lineHeight = 13.sp), color = colors.ink2)"
+ },
+ "Get set": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/camera/CameraRep.kt:319"
+  ],
+  "code": "} ?: Text(tr(\"Get set\"), style = Heartpact.type.labelSmall, color = Bone, textAlign = TextAlign.Center)"
+ },
+ "Counting starts when you're in position.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/camera/CameraRep.kt:324"
+  ],
+  "code": "Text(tr(\"Counting starts when you're in position.\"), style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f), textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))"
  },
  "{seconds}s left": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:301"
+   "app/heartpact/ui/camera/CameraRep.kt:344"
   ],
   "code": "Text(tr(\"{seconds}s left\", \"seconds\" to (challenge.msLeft + 999) / 1_000), style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f), modifier = Modifier.padding(top = 6.dp))"
  },
  "Elapsed": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:325"
+   "app/heartpact/ui/camera/CameraRep.kt:368"
   ],
   "code": "val elapsed = @Composable { align: Alignment.Horizontal -> Stat(tr(\"Elapsed\"), CameraText.clock(ui.elapsedSeconds), align) }"
  },
  "Left to ring": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:327"
+   "app/heartpact/ui/camera/CameraRep.kt:370"
   ],
   "code": "ui.secondsLeft?.let { Stat(tr(\"Left to ring\"), CameraText.clock(it), align) } ?: Stat(tr(\"To go\"), CameraText.toGo(ui), align)"
  },
  "To go": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:327"
+   "app/heartpact/ui/camera/CameraRep.kt:370"
   ],
   "code": "ui.secondsLeft?.let { Stat(tr(\"Left to ring\"), CameraText.clock(it), align) } ?: Stat(tr(\"To go\"), CameraText.toGo(ui), align)"
  },
  "Couldn't save, retrying. Your reps are kept.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:342"
+   "app/heartpact/ui/camera/CameraRep.kt:385"
   ],
   "code": "val unsaved = ui.unsaved?.let { if (it.retrying) tr(\"Couldn't save, retrying. Your reps are kept.\") else it.message }"
  },
  "Sticking your half…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:343"
+   "app/heartpact/ui/camera/CameraRep.kt:386"
   ],
   "code": "val note = ui.note ?: unsaved ?: if (ui.sealing) tr(\"Sticking your half…\") else ui.counter.cue"
  },
  "Silenced on this phone": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:362"
+   "app/heartpact/ui/camera/CameraRep.kt:405"
   ],
   "code": "if (silenced) tr(\"Silenced on this phone\") else tr(\"Silence on this phone\"),"
  },
  "Stop counting": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:367"
+   "app/heartpact/ui/camera/CameraRep.kt:410"
   ],
   "code": "HeartButton(tr(\"Stop counting\"), onStop, Modifier.weight(1f), icon = Icons.Rounded.Stop, height = 52.dp)"
  },
  "Heartpact needs the camera to count your reps. Nothing is recorded or sent.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:477"
+   "app/heartpact/ui/camera/CameraRep.kt:531"
   ],
   "code": "note = error ?: note ?: if (!granted) tr(\"Heartpact needs the camera to count your reps. Nothing is recorded or sent.\") else null,"
  },
  "The pose model couldn't load on this phone.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:501"
+   "app/heartpact/ui/camera/CameraRep.kt:565"
   ],
-  "code": "error = tr(\"The pose model couldn't load on this phone.\")"
+  "code": "error = tr(\"The pose model couldn't load on this phone.\") + \" (\" + (it.javaClass.simpleName.ifEmpty { \"error\" }) + \")\""
  },
  "This phone's camera couldn't start.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:515"
+   "app/heartpact/ui/camera/CameraRep.kt:579"
   ],
   "code": "}.onFailure { error = tr(\"This phone's camera couldn't start.\") }"
  },
  "of {count} second|of {count} seconds": {
   "plural": true,
   "uses": [
-   "app/heartpact/ui/camera/CameraRep.kt:169"
+   "app/heartpact/ui/camera/CameraRep.kt:178"
   ],
   "code": "fun of(type: ExerciseType, target: Int): String = if (type.measure == Measure.Seconds) trn(target, \"of {count} second\", \"of {count} seconds\") else tr(\"of {total}\", \"total\" to type.label(target))",
   "one": "of {count} second",
@@ -2848,16 +3398,9 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/cycle/CycleScreen.kt:139",
-   "app/heartpact/ui/today/NewDare.kt:161"
+   "app/heartpact/ui/today/NewDare.kt:198"
   ],
   "code": "Text(if (more) tr(\"Less\") else tr(\"More\"), style = Heartpact.type.label, color = Heartpact.actor.onSoft, modifier = Modifier.clickable { more = !more })"
- },
- "Mood": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/cycle/CycleScreen.kt:149"
-  ],
-  "code": "Text(tr(\"Mood\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))"
  },
  "Notes, just for you and {partner}": {
   "plural": false,
@@ -2927,7 +3470,7 @@
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:264",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:299",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:308",
-   "app/heartpact/ui/us/UsScreens.kt:309"
+   "app/heartpact/ui/us/UsScreens.kt:319"
   ],
   "code": "confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { onPick(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) } ?: onDismiss() }) { Text(tr(\"Set\")) } },"
  },
@@ -4743,7 +5286,7 @@
   "uses": [
    "app/heartpact/ui/games/GamesHub.kt:200",
    "app/heartpact/ui/today/TodayTab.kt:142",
-   "app/heartpact/ui/us/UsScreens.kt:141"
+   "app/heartpact/ui/us/UsScreens.kt:148"
   ],
   "code": "SectionHead(tr(\"Play together\"), tr(\"Live, the two of you, each on your own phone.\"))"
  },
@@ -4853,7 +5396,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/games/GamesScreen.kt:95",
-   "app/heartpact/ui/us/UsScreens.kt:292"
+   "app/heartpact/ui/us/UsScreens.kt:302"
   ],
   "code": "TopBar(active?.let { GamePlay.title(it) } ?: tr(\"Games\"), actions.onBack)"
  },
@@ -5136,7 +5679,7 @@
    "app/heartpact/ui/games/SameAnswerBoard.kt:270",
    "app/heartpact/ui/games/TriviaBoard.kt:168",
    "app/heartpact/ui/games/WouldYouRatherBoard.kt:148",
-   "app/heartpact/ui/us/UsScreens.kt:254"
+   "app/heartpact/ui/us/UsScreens.kt:264"
   ],
   "code": "if (aboutMe) tr(\"You: {answer}\", \"answer\" to answer) else tr(\"{partner}: {answer}\", \"partner\" to partnerName, \"answer\" to answer),"
  },
@@ -5406,7 +5949,7 @@
   "uses": [
    "app/heartpact/ui/games/SameAnswerBoard.kt:120",
    "app/heartpact/ui/games/SameAnswerBoard.kt:149",
-   "app/heartpact/ui/us/UsScreens.kt:191"
+   "app/heartpact/ui/us/UsScreens.kt:201"
   ],
   "code": "HeartField(tr(\"Your answer\"), answer, { answer = it.take(MAX_ANSWER) }, Modifier.padding(top = 10.dp),"
  },
@@ -6788,7 +7331,7 @@
    "app/heartpact/ui/home/Home.kt:77",
    "app/heartpact/ui/home/Home.kt:109",
    "app/heartpact/ui/tour/Tour.kt:70",
-   "app/heartpact/ui/us/UsScreens.kt:121"
+   "app/heartpact/ui/us/UsScreens.kt:126"
   ],
   "code": "Us -> tr(\"Us\")"
  },
@@ -6838,7 +7381,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/home/Home.kt:109",
-   "app/heartpact/ui/us/UsScreens.kt:125"
+   "app/heartpact/ui/us/UsScreens.kt:130"
   ],
   "code": "Tab.Us -> us?.invoke() ?: TabPage(tr(\"Us\"), tr(\"{me} and {partner}\", \"me\" to myName, \"partner\" to partnerName)) {"
  },
@@ -7227,7 +7770,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/pacts/Pacts.kt:112",
-   "app/heartpact/ui/today/NewDare.kt:151",
+   "app/heartpact/ui/today/NewDare.kt:187",
    "app/heartpact/ui/today/TodayTab.kt:123"
   ],
   "code": "HeartButton(tr(\"New dare for {partner}\", \"partner\" to partnerName), onNewDare, Modifier.padding(horizontal = 12.dp).padding(top = 14.dp), kind = ButtonKind.Tonal, icon = Icons.Rounded.Add)"
@@ -9397,133 +9940,147 @@
  "Welcome to Plus. {partner} has it too, from now on.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:161"
+   "app/heartpact/ui/plus/PlusScreen.kt:165"
   ],
   "code": "if (ui.welcomed) NoteCard(tr(\"Welcome to Plus. {partner} has it too, from now on.\", \"partner\" to partnerName), Modifier.padding(top = 16.dp))"
  },
  "Choose a plan": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:176"
+   "app/heartpact/ui/plus/PlusScreen.kt:180"
   ],
   "code": "Text(tr(\"Choose a plan\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))"
  },
  "Loading plans from Google Play…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:178"
+   "app/heartpact/ui/plus/PlusScreen.kt:182"
   ],
   "code": "Text(ui.storeMessage ?: tr(\"Loading plans from Google Play…\"), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))"
+ },
+ "Or pay by card": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:188"
+  ],
+  "code": "if (ui.options.isNotEmpty()) Text(tr(\"Or pay by card\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))"
  },
  "Manage in Google Play": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:189"
+   "app/heartpact/ui/plus/PlusScreen.kt:200"
   ],
   "code": "PlusAction.ManageInPlay -> HeartButton(tr(\"Manage in Google Play\"), onClick = { subscription?.let { onManage(it.productId) } }, kind = ButtonKind.Tonal)"
  },
  "Manage billing": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:190"
+   "app/heartpact/ui/plus/PlusScreen.kt:201"
   ],
   "code": "PlusAction.ManageBilling -> HeartButton(tr(\"Manage billing\"), onClick = onManageBilling, kind = ButtonKind.Tonal, busy = ui.busy)"
  },
  "Continue with Google Play": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:192"
+   "app/heartpact/ui/plus/PlusScreen.kt:204"
   ],
-  "code": "PlusAction.Buy -> HeartButton(tr(\"Continue with Google Play\"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending && !ui.awaitingCard, busy = ui.busy)"
+  "code": "if (!cardOnly) HeartButton(tr(\"Continue with Google Play\"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending && !ui.awaitingCard, busy = ui.busy)"
+ },
+ "Pay by card": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:206"
+  ],
+  "code": "HeartButton(tr(\"Pay by card\"), onClick = onPayByCard, kind = if (cardOnly) ButtonKind.Filled else ButtonKind.Text,"
+ },
+ "Card payments are handled securely by Bachs. Cancel anytime under Manage billing.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:213"
+  ],
+  "code": "Text(tr(\"Card payments are handled securely by Bachs. Cancel anytime under Manage billing.\"), style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillM"
  },
  "Restore a purchase": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:197"
+   "app/heartpact/ui/plus/PlusScreen.kt:217"
   ],
   "code": "HeartButton(tr(\"Restore a purchase\"), onClick = onRestore, kind = ButtonKind.Text, enabled = !ui.busy, height = 40.dp)"
  },
  "What you both get": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:208"
+   "app/heartpact/ui/plus/PlusScreen.kt:228"
   ],
   "code": "CardRow(tr(\"What you both get\"), trailing = {"
- },
- "Free": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:209"
-  ],
-  "code": "Text(tr(\"Free\"), style = Heartpact.type.labelSmall, color = colors.ink3, textAlign = TextAlign.End, modifier = Modifier.width(66.dp))"
  },
  "This Google account has no Plus subscription for you.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:132"
+   "app/heartpact/ui/plus/PlusViewModel.kt:134"
   ],
   "code": "is RestoreResult.NothingToRestore -> if (result.pending) PENDING else tr(\"This Google account has no Plus subscription for you.\")"
  },
  "Your payment went through, but we couldn't switch Plus on yet. {serverMessage}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:156"
+   "app/heartpact/ui/plus/PlusViewModel.kt:158"
   ],
   "code": "is ApiResult.Failure -> _ui.update { it.copy(note = tr(\"Your payment went through, but we couldn't switch Plus on yet. {serverMessage}\", \"serverMessage\" to result.message)) }"
  },
  "Your payment went through. Plus switches on as soon as you're back online.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:157"
+   "app/heartpact/ui/plus/PlusViewModel.kt:159"
   ],
   "code": "ApiResult.Offline -> _ui.update { it.copy(note = tr(\"Your payment went through. Plus switches on as soon as you're back online.\")) }"
  },
  "We haven't heard about your card payment yet. If you paid, Plus switches on by itself in a few minutes.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:226"
+   "app/heartpact/ui/plus/PlusViewModel.kt:240"
   ],
   "code": "_ui.update { it.copy(awaitingCard = false, note = tr(\"We haven't heard about your card payment yet. If you paid, Plus switches on by itself in a few minutes.\")) }"
  },
  "Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:241"
+   "app/heartpact/ui/plus/PlusViewModel.kt:255"
   ],
   "code": "val PENDING get() = tr(\"Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.\")"
  },
  "Waiting for your payment to be confirmed…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:242"
+   "app/heartpact/ui/plus/PlusViewModel.kt:256"
   ],
   "code": "val AWAITING_CARD get() = tr(\"Waiting for your payment to be confirmed…\")"
  },
  "Paying by card isn't available right now. Try again later, or pay with Google Play.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:246"
+   "app/heartpact/ui/plus/PlusViewModel.kt:260"
   ],
   "code": "\"billing.bachs_unavailable\", \"billing.card_in_app_unavailable\" -> tr(\"Paying by card isn't available right now. Try again later, or pay with Google Play.\")"
  },
  "That plan can't be paid by card right now. Pay with Google Play instead.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:247"
+   "app/heartpact/ui/plus/PlusViewModel.kt:261"
   ],
   "code": "\"billing.unknown_plan\" -> tr(\"That plan can't be paid by card right now. Pay with Google Play instead.\")"
  },
  "You already have Plus, so there's nothing to pay.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:248"
+   "app/heartpact/ui/plus/PlusViewModel.kt:262"
   ],
   "code": "\"billing.already_plus\" -> tr(\"You already have Plus, so there's nothing to pay.\")"
  },
  "We couldn't find card billing for your account. If that's wrong, write to support@heartpact.me.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:249"
+   "app/heartpact/ui/plus/PlusViewModel.kt:263"
   ],
   "code": "\"billing.no_bachs_customer\" -> tr(\"We couldn't find card billing for your account. If that's wrong, write to support@heartpact.me.\")"
  },
@@ -9531,7 +10088,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:101",
-   "app/heartpact/ui/us/UsScreens.kt:294"
+   "app/heartpact/ui/us/UsScreens.kt:304"
   ],
   "code": "Box(Modifier.weight(1f)) { TopBar(tr(\"Pregnancy\"), actions.onBack) }"
  },
@@ -9853,91 +10410,91 @@
  "Exercise": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:153"
+   "app/heartpact/ui/today/NewDare.kt:190"
   ],
   "code": "Text(tr(\"Exercise\"), style = Heartpact.type.label, color = colors.ink)"
  },
  "Seconds": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:157"
+   "app/heartpact/ui/today/NewDare.kt:194"
   ],
   "code": "Text(if (state.type.measure == Measure.Seconds) tr(\"Seconds\") else tr(\"Reps\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "Reps": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:157"
+   "app/heartpact/ui/today/NewDare.kt:194"
   ],
   "code": "Text(if (state.type.measure == Measure.Seconds) tr(\"Seconds\") else tr(\"Reps\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "Fewer": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:159"
+   "app/heartpact/ui/today/NewDare.kt:196"
   ],
   "code": "IconButton(onClick = { onStep(-step) }, modifier = Modifier.clip(Shapes.Pill).background(colors.sticker)) { Icon(Icons.Rounded.Remove, tr(\"Fewer\"), tint = colors.ink) }"
  },
  "Rings every day at": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:163"
+   "app/heartpact/ui/today/NewDare.kt:200"
   ],
   "code": "Text(tr(\"Rings every day at\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "That's {partner}'s time ({zone}), where it's {time} now.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:166"
+   "app/heartpact/ui/today/NewDare.kt:203"
   ],
   "code": "Text(tr(\"That's {partner}'s time ({zone}), where it's {time} now.\", \"partner\" to partnerName,"
  },
  "Rings for up to": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:170"
+   "app/heartpact/ui/today/NewDare.kt:207"
   ],
   "code": "Text(tr(\"Rings for up to\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))"
  },
  "{minutes} min": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:172"
+   "app/heartpact/ui/today/NewDare.kt:209"
   ],
   "code": "listOf(10, 20, 30).forEach { HeartChip(tr(\"{minutes} min\", \"minutes\" to it), state.window == it, { onWindow(it) }) }"
  },
  "If it isn't done by {start}, {partner}'s phone rings until the camera counts {target}, you both call it off, or {end} passes. {partner} can always silence it on their phone.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:174"
+   "app/heartpact/ui/today/NewDare.kt:211"
   ],
   "code": "Text(tr(\"If it isn't done by {start}, {partner}'s phone rings until the camera counts {target}, you both call it off, or {end} passes. {partner} can always silence it on their phone.\","
  },
  "Your half sticks when you send it. {partner}'s sticks when the camera counts {target}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:180"
+   "app/heartpact/ui/today/NewDare.kt:217"
   ],
   "code": "Text(tr(\"Your half sticks when you send it. {partner}'s sticks when the camera counts {target}.\", \"partner\" to partnerName, \"target\" to state.target), style = Heartpact.type.body.copy(fontSize = 13.sp"
  },
  "{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:185"
+   "app/heartpact/ui/today/NewDare.kt:222"
   ],
   "code": "state.atLimit -> NoteCard(tr(\"{partner} already has their free daily dare. Pause or stop it first, or get Heartpact Plus for unlimited dares.\", \"partner\" to partnerName))"
  },
  "See Heartpact Plus": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:187"
+   "app/heartpact/ui/today/NewDare.kt:224"
   ],
   "code": "if (state.atLimit && onGetPlus != null) HeartButton(tr(\"See Heartpact Plus\"), onGetPlus, kind = ButtonKind.Tonal)"
  },
  "Stick my half and send": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/NewDare.kt:189"
+   "app/heartpact/ui/today/NewDare.kt:226"
   ],
   "code": "HeartButton(tr(\"Stick my half and send\"), onSend, Modifier.padding(horizontal = 20.dp, vertical = 14.dp), busy = state.busy, enabled = !state.atLimit)"
  },
@@ -10029,7 +10586,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/today/TodayTab.kt:142",
-   "app/heartpact/ui/us/UsScreens.kt:141"
+   "app/heartpact/ui/us/UsScreens.kt:148"
   ],
   "code": "CardRow(tr(\"Play together\"), subtitle = tr(\"Heart to heart, Spot the difference, trivia and more\"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }"
  },
@@ -10117,94 +10674,101 @@
   ],
   "code": "subtitle = listOfNotNull(done.completedAtUtc?.let { tr(\"at {time}\", \"time\" to time(utc(it))) }, line).joinToString(\" · \"),"
  },
+ "The coach's note to {partner}": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/today/TodayTab.kt:205"
+  ],
+  "code": "app.heartpact.ui.ai.CoachNoteCard(coach, tr(\"The coach's note to {partner}\", \"partner\" to partnerName), Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp))"
+ },
  "{partner} asks to call off today's {exercise}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:233"
+   "app/heartpact/ui/today/TodayTab.kt:235"
   ],
   "code": "Text(tr(\"{partner} asks to call off today's {exercise}\", \"partner\" to partnerName, \"exercise\" to occurrence.exerciseType.titleOf(occurrence.title).lowercase()), style = Heartpact.type.title, color = c"
  },
  "If you agree, the alarm stops and today goes on both your pages as a peeled heart.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:240"
+   "app/heartpact/ui/today/TodayTab.kt:242"
   ],
   "code": "Text(tr(\"If you agree, the alarm stops and today goes on both your pages as a peeled heart.\"), style = Heartpact.type.small, color = colors.ink2)"
  },
  "Call it off together": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:244"
+   "app/heartpact/ui/today/TodayTab.kt:246"
   ],
   "code": "HeartButton(tr(\"Call it off together\"), { onCallOff(occurrence.id) }, Modifier.weight(1f), busy = busy)"
  },
  "Let your dares ring on time": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:260"
+   "app/heartpact/ui/today/TodayTab.kt:262"
   ],
   "code": "title = { Text(tr(\"Let your dares ring on time\")) },"
  },
  "A dare rings at the minute it's due only if Heartpact may set alarms. Without that, Android can hold it back by up to an hour. Turn on \"Alarms & reminders\" for Heartpact on the next screen.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:261"
+   "app/heartpact/ui/today/TodayTab.kt:263"
   ],
   "code": "text = { Text(tr(\"A dare rings at the minute it's due only if Heartpact may set alarms. Without that, Android can hold it back by up to an hour. Turn on \\\"Alarms & reminders\\\" for Heartpact on the nex"
  },
  "Allow": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:266"
+   "app/heartpact/ui/today/TodayTab.kt:268"
   ],
   "code": "}) { Text(tr(\"Allow\")) }"
  },
  "Get your alarm ready": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:278"
+   "app/heartpact/ui/today/TodayTab.kt:280"
   ],
   "code": "Text(tr(\"Get your alarm ready\"), style = Heartpact.type.titleSmall, color = Heartpact.colors.ink, modifier = Modifier.padding(start = 18.dp, top = 14.dp))"
  },
  "Allow notifications": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:279"
+   "app/heartpact/ui/today/TodayTab.kt:281"
   ],
   "code": "if (!r.notifications) CardRow(tr(\"Allow notifications\"), subtitle = tr(\"So a dare can ring at all\"), icon = Icons.Rounded.Notifications, onClick = {"
  },
  "So a dare can ring at all": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:279"
+   "app/heartpact/ui/today/TodayTab.kt:281"
   ],
   "code": "if (!r.notifications) CardRow(tr(\"Allow notifications\"), subtitle = tr(\"So a dare can ring at all\"), icon = Icons.Rounded.Notifications, onClick = {"
  },
  "Ring on time": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:282"
+   "app/heartpact/ui/today/TodayTab.kt:284"
   ],
   "code": "if (!r.exactAlarms) CardRow(tr(\"Ring on time\"), subtitle = tr(\"Allow exact alarms, or Android may ring it up to an hour late\"), icon = Icons.Rounded.Alarm, divider = !r.notifications, onClick = {"
  },
  "Allow exact alarms, or Android may ring it up to an hour late": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:282"
+   "app/heartpact/ui/today/TodayTab.kt:284"
   ],
   "code": "if (!r.exactAlarms) CardRow(tr(\"Ring on time\"), subtitle = tr(\"Allow exact alarms, or Android may ring it up to an hour late\"), icon = Icons.Rounded.Alarm, divider = !r.notifications, onClick = {"
  },
  "Ring over the lock screen": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:285"
+   "app/heartpact/ui/today/TodayTab.kt:287"
   ],
   "code": "if (!r.fullScreen) CardRow(tr(\"Ring over the lock screen\"), subtitle = tr(\"Allow full-screen alarms, or it shows as a notification\"), icon = Icons.Rounded.FullscreenExit, divider = true, onClick = {"
  },
  "Allow full-screen alarms, or it shows as a notification": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/today/TodayTab.kt:285"
+   "app/heartpact/ui/today/TodayTab.kt:287"
   ],
   "code": "if (!r.fullScreen) CardRow(tr(\"Ring over the lock screen\"), subtitle = tr(\"Allow full-screen alarms, or it shows as a notification\"), icon = Icons.Rounded.FullscreenExit, divider = true, onClick = {"
  },
@@ -10388,7 +10952,7 @@
   "uses": [
    "app/heartpact/ui/us/ProfileScreen.kt:129",
    "app/heartpact/ui/us/ProfileScreen.kt:131",
-   "app/heartpact/ui/us/UsScreens.kt:268"
+   "app/heartpact/ui/us/UsScreens.kt:278"
   ],
   "code": "SectionHeader(tr(\"Notifications\"))"
  },
@@ -10479,220 +11043,227 @@
  "Your profile, picture and settings": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:135"
+   "app/heartpact/ui/us/UsScreens.kt:142"
   ],
   "code": "Text(tr(\"Your profile, picture and settings\"), style = Heartpact.type.small, color = colors.ink2)"
+ },
+ "Date ideas and a game for tonight": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/us/UsScreens.kt:150"
+  ],
+  "code": "CardRow(tr(\"Plan something\"), subtitle = tr(\"Date ideas and a game for tonight\"), icon = Icons.Rounded.Lightbulb, divider = true, onClick = it) { Chevron() }"
  },
  "Today's question": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:146",
-   "app/heartpact/ui/us/UsScreens.kt:176",
-   "app/heartpact/ui/us/UsScreens.kt:289"
+   "app/heartpact/ui/us/UsScreens.kt:156",
+   "app/heartpact/ui/us/UsScreens.kt:186",
+   "app/heartpact/ui/us/UsScreens.kt:299"
   ],
   "code": "CardRow(tr(\"Today's question\"), subtitle = UsText.questionStatus(ui.question, partner.name), icon3d = Icon3D.Question, onClick = onQuestion) { Chevron() }"
  },
  "Opens in your browser": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:156"
+   "app/heartpact/ui/us/UsScreens.kt:166"
   ],
   "code": "val opens = tr(\"Opens in your browser\")"
  },
  "Privacy policy": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:158"
+   "app/heartpact/ui/us/UsScreens.kt:168"
   ],
   "code": "CardRow(tr(\"Privacy policy\"), subtitle = tr(\"What we keep and who can see it\"), icon = Icons.Outlined.PrivacyTip,"
  },
  "What we keep and who can see it": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:158"
+   "app/heartpact/ui/us/UsScreens.kt:168"
   ],
   "code": "CardRow(tr(\"Privacy policy\"), subtitle = tr(\"What we keep and who can see it\"), icon = Icons.Outlined.PrivacyTip,"
  },
  "Terms of use": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:160"
+   "app/heartpact/ui/us/UsScreens.kt:170"
   ],
   "code": "CardRow(tr(\"Terms of use\"), subtitle = tr(\"The rules for using Heartpact\"), icon = Icons.Outlined.Description, divider = true,"
  },
  "The rules for using Heartpact": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:160"
+   "app/heartpact/ui/us/UsScreens.kt:170"
   ],
   "code": "CardRow(tr(\"Terms of use\"), subtitle = tr(\"The rules for using Heartpact\"), icon = Icons.Outlined.Description, divider = true,"
  },
  "Finding today's question…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:179"
+   "app/heartpact/ui/us/UsScreens.kt:189"
   ],
   "code": "ui.note?.let { NoteCard(it) } ?: Text(tr(\"Finding today's question…\"), style = Heartpact.type.body, color = colors.ink2)"
  },
  "Change my answer": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:189"
+   "app/heartpact/ui/us/UsScreens.kt:199"
   ],
   "code": "HeartButton(tr(\"Change my answer\"), onEdit, Modifier.padding(top = 4.dp), kind = ButtonKind.Text, fillWidth = false, height = 44.dp)"
  },
  "Save my answer": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:194"
+   "app/heartpact/ui/us/UsScreens.kt:204"
   ],
   "code": "HeartButton(if (q.myAnswer != null) tr(\"Save my answer\") else tr(\"Send my answer\"), onSend, Modifier.padding(top = 14.dp), enabled = ui.draft.isNotBlank(), busy = ui.busy)"
  },
  "Send my answer": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:194"
+   "app/heartpact/ui/us/UsScreens.kt:204"
   ],
   "code": "HeartButton(if (q.myAnswer != null) tr(\"Save my answer\") else tr(\"Send my answer\"), onSend, Modifier.padding(top = 14.dp), enabled = ui.draft.isNotBlank(), busy = ui.busy)"
  },
  "Earlier": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:197"
+   "app/heartpact/ui/us/UsScreens.kt:207"
   ],
   "code": "Heading(tr(\"Earlier\"))"
  },
  "{partner} answered at {time}. Send yours and you'll both see each other's.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:211"
+   "app/heartpact/ui/us/UsScreens.kt:221"
   ],
   "code": "if (at != null) tr(\"{partner} answered at {time}. Send yours and you'll both see each other's.\", \"partner\" to partner,"
  },
  "{partner} answered. Send yours and you'll both see each other's.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:213"
+   "app/heartpact/ui/us/UsScreens.kt:223"
   ],
   "code": "else tr(\"{partner} answered. Send yours and you'll both see each other's.\", \"partner\" to partner)"
  },
  "Neither of you has answered yet. Whoever goes first sees the other's when they answer too.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:215"
+   "app/heartpact/ui/us/UsScreens.kt:225"
   ],
   "code": "q.myAnswer == null -> tr(\"Neither of you has answered yet. Whoever goes first sees the other's when they answer too.\")"
  },
  "You've both answered.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:216"
+   "app/heartpact/ui/us/UsScreens.kt:226"
   ],
   "code": "q.partnerAnswer != null -> tr(\"You've both answered.\")"
  },
  "Sent. You'll see {partner}'s when they answer.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:217"
+   "app/heartpact/ui/us/UsScreens.kt:227"
   ],
   "code": "else -> tr(\"Sent. You'll see {partner}'s when they answer.\", \"partner\" to partner)"
  },
  "{partner}'s answer stays hidden: you didn't answer that day.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:256"
+   "app/heartpact/ui/us/UsScreens.kt:266"
   ],
   "code": "if (q.myAnswer == null && q.partnerAnswered) Text(tr(\"{partner}'s answer stays hidden: you didn't answer that day.\", \"partner\" to partner), style = Heartpact.type.small, color = Heartpact.colors.ink2)"
  },
  "A dare's alarm always rings, and you'll always hear if your pact changes. You can still silence an alarm on your phone.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:275"
+   "app/heartpact/ui/us/UsScreens.kt:285"
   ],
   "code": "Text(tr(\"A dare's alarm always rings, and you'll always hear if your pact changes. You can still silence an alarm on your phone.\"), style = Heartpact.type.body, color = colors.ink)"
  },
  "Quiet hours": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:278",
-   "app/heartpact/ui/us/UsScreens.kt:280"
+   "app/heartpact/ui/us/UsScreens.kt:288",
+   "app/heartpact/ui/us/UsScreens.kt:290"
   ],
   "code": "Heading(tr(\"Quiet hours\"), Modifier.padding(horizontal = 8.dp))"
  },
  "On now: notifications arrive silently": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:280"
+   "app/heartpact/ui/us/UsScreens.kt:290"
   ],
   "code": "Toggle(tr(\"Quiet hours\"), if (prefs.quietNow) tr(\"On now: notifications arrive silently\") else tr(\"Notifications arrive silently, without sound\"), prefs.quietHoursEnabled) { v -> onChange { it.copy(qu"
  },
  "Notifications arrive silently, without sound": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:280"
+   "app/heartpact/ui/us/UsScreens.kt:290"
   ],
   "code": "Toggle(tr(\"Quiet hours\"), if (prefs.quietNow) tr(\"On now: notifications arrive silently\") else tr(\"Notifications arrive silently, without sound\"), prefs.quietHoursEnabled) { v -> onChange { it.copy(qu"
  },
  "From": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:282"
+   "app/heartpact/ui/us/UsScreens.kt:292"
   ],
   "code": "CardRow(tr(\"From\"), subtitle = prefs.quietStart, divider = true, onClick = { picking = \"start\" }) { Chevron() }"
  },
  "Until": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:283"
+   "app/heartpact/ui/us/UsScreens.kt:293"
   ],
   "code": "CardRow(tr(\"Until\"), subtitle = prefs.quietEnd, divider = true, onClick = { picking = \"end\" }) { Chevron() }"
  },
  "What reaches your phone": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:286"
+   "app/heartpact/ui/us/UsScreens.kt:296"
   ],
   "code": "Heading(tr(\"What reaches your phone\"), Modifier.padding(horizontal = 8.dp))"
  },
  "Dares": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:288"
+   "app/heartpact/ui/us/UsScreens.kt:298"
   ],
   "code": "Toggle(tr(\"Dares\"), tr(\"Done, missed, called off or changed\"), prefs.exercise) { v -> onChange { it.copy(exercise = v) } }"
  },
  "Done, missed, called off or changed": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:288"
+   "app/heartpact/ui/us/UsScreens.kt:298"
   ],
   "code": "Toggle(tr(\"Dares\"), tr(\"Done, missed, called off or changed\"), prefs.exercise) { v -> onChange { it.copy(exercise = v) } }"
  },
  "When your partner answers": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:289"
+   "app/heartpact/ui/us/UsScreens.kt:299"
   ],
   "code": "Toggle(tr(\"Today's question\"), tr(\"When your partner answers\"), prefs.dailyQuestions, divider = true) { v -> onChange { it.copy(dailyQuestions = v) } }"
  },
  "Photos added, and a daily nudge when yours are waiting": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:290"
+   "app/heartpact/ui/us/UsScreens.kt:300"
   ],
   "code": "Toggle(tr(\"Album\"), tr(\"Photos added, and a daily nudge when yours are waiting\"), prefs.album, divider = true) { v -> onChange { it.copy(album = v) } }"
  },
  "Messages": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:291"
+   "app/heartpact/ui/us/UsScreens.kt:301"
   ],
   "code": "Toggle(tr(\"Messages\"), null, prefs.messages, divider = true) { v -> onChange { it.copy(messages = v) } }"
  },
  "Cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/us/UsScreens.kt:293"
+   "app/heartpact/ui/us/UsScreens.kt:303"
   ],
   "code": "Toggle(tr(\"Cycle\"), null, prefs.cycle, divider = true) { v -> onChange { it.copy(cycle = v) } }"
  },
