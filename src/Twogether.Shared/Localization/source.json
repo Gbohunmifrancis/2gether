@@ -292,36 +292,36 @@
  "Too many checkouts started. Wait a few minutes and try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/BachsBillingController.cs:41"
+   "Twogether.Api/Controllers/BachsBillingController.cs:45"
   ],
   "code": "return TooManyAttempts(wait, Loc.T(\"Too many checkouts started. Wait a few minutes and try again.\"));"
  },
  "Too many tries. Wait a few minutes and try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/BachsBillingController.cs:60"
+   "Twogether.Api/Controllers/BachsBillingController.cs:64"
   ],
   "code": "return TooManyAttempts(wait, Loc.T(\"Too many tries. Wait a few minutes and try again.\"));"
  },
  "Purchases are not set up on this server.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/BillingController.cs:46"
+   "Twogether.Api/Controllers/BillingController.cs:50"
   ],
   "code": "if (!store.IsConfigured) return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiError(\"billing.unavailable\", Loc.T(\"Purchases are not set up on this server.\")));"
  },
  "The purchase token is missing.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/BillingController.cs:47"
+   "Twogether.Api/Controllers/BillingController.cs:51"
   ],
   "code": "if (string.IsNullOrWhiteSpace(request.PurchaseToken)) return UnprocessableEntity(new ApiError(\"billing.invalid_token\", Loc.T(\"The purchase token is missing.\")));"
  },
  "That product does not unlock Heartpact Plus.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/BillingController.cs:49",
-   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:28"
+   "Twogether.Api/Controllers/BillingController.cs:53",
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:29"
   ],
   "code": "return UnprocessableEntity(new ApiError(\"billing.unknown_product\", Loc.T(\"That product does not unlock Heartpact Plus.\")));"
  },
@@ -393,9 +393,23 @@
  "Cycle tracking isn't available on this account.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CycleController.cs:38"
+   "Twogether.Api/Controllers/CycleController.cs:42"
   ],
   "code": "return Conflict(new ApiError(\"cycle.unavailable\", Loc.T(\"Cycle tracking isn't available on this account.\")));"
+ },
+ "{name} is sharing their cycle with you": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CycleController.cs:166"
+  ],
+  "code": "return Notification.Create(partner, coupleId, NotificationType.CycleShared, Loc.T(\"{name} is sharing their cycle with you\", name),"
+ },
+ "You'll see what {name} chose to share in Us → {name}'s cycle.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CycleController.cs:167"
+  ],
+  "code": "Loc.T(\"You'll see what {name} chose to share in Us → {name}'s cycle.\", name),"
  },
  "The push token is missing or too long.": {
   "plural": false,
@@ -946,19 +960,33 @@
  "Link your partner before sharing location.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/LocationController.cs:55",
-   "Twogether.Api/Controllers/LocationController.cs:106",
-   "Twogether.Api/Controllers/LocationController.cs:131"
+   "Twogether.Api/Controllers/LocationController.cs:56",
+   "Twogether.Api/Controllers/LocationController.cs:112",
+   "Twogether.Api/Controllers/LocationController.cs:137"
   ],
   "code": "if (context is null) return BadRequest(new ApiError(\"location.no_couple\", Loc.T(\"Link your partner before sharing location.\")));"
  },
  "You are not sharing your location.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/LocationController.cs:110",
-   "Twogether.Api/Controllers/LocationController.cs:133"
+   "Twogether.Api/Controllers/LocationController.cs:116",
+   "Twogether.Api/Controllers/LocationController.cs:139"
   ],
   "code": "if (context.Mine is null || !context.Mine.IsLiveAt(now)) return Conflict(new ApiError(\"location.not_sharing\", Loc.T(\"You are not sharing your location.\")));"
+ },
+ "{name} is sharing their location": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/LocationController.cs:177"
+  ],
+  "code": "Loc.T(\"{name} is sharing their location\", (\"name\", context.Me.DisplayName)),"
+ },
+ "Open the map to see each other. Share yours too, and you can both pause any time.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/LocationController.cs:178"
+  ],
+  "code": "Loc.T(\"Open the map to see each other. Share yours too, and you can both pause any time.\"),"
  },
  "Another sync from your account is running. Try again in a moment.": {
   "plural": false,
@@ -1368,7 +1396,7 @@
   "plural": false,
   "uses": [
    "Twogether.Application/Features/Billing/BachsCheckoutService.cs:55",
-   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:43"
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:44"
   ],
   "code": "if (user is null) return Error.NotFound(\"billing.unknown_user\", Loc.T(\"No Heartpact account matches this purchase.\"));"
  },
@@ -1405,23 +1433,65 @@
  "The purchase token is missing or too long.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:23"
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:24"
   ],
   "code": "if (token.Length is 0 or > StoreSubscription.MaxTokenLength) return Error.Validation(\"billing.invalid_token\", Loc.T(\"The purchase token is missing or too long.\"));"
  },
  "This purchase was not made from Heartpact. Update the app and try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:36"
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:37"
   ],
   "code": "if (accountUser is null) return Error.Validation(\"billing.account_missing\", Loc.T(\"This purchase was not made from Heartpact. Update the app and try again.\"));"
  },
  "This purchase belongs to another account.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:38"
+   "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:39"
   ],
   "code": "return Error.Forbidden(\"billing.not_your_purchase\", Loc.T(\"This purchase belongs to another account.\"));"
+ },
+ "Welcome to Heartpact Plus": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/PlusStartedNotices.cs:75"
+  ],
+  "code": "notices.Add(Notification.Create(buyerId, coupleId, NotificationType.PlusStarted, Loc.T(\"Welcome to Heartpact Plus\"),"
+ },
+ "Plus is on for both of you: unlimited dares, more photo estimates, a bigger album and longer question history.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/PlusStartedNotices.cs:76"
+  ],
+  "code": "Loc.T(\"Plus is on for both of you: unlimited dares, more photo estimates, a bigger album and longer question history.\"),"
+ },
+ "{name} got you Heartpact Plus": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/PlusStartedNotices.cs:83"
+  ],
+  "code": "notices.Add(Notification.Create(partnerId, coupleId, NotificationType.PlusStarted, Loc.T(\"{name} got you Heartpact Plus\", name),"
+ },
+ "{name} got Plus for both of you: unlimited dares, more photo estimates, a bigger album and longer question history.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/PlusStartedNotices.cs:84"
+  ],
+  "code": "Loc.T(\"{name} got Plus for both of you: unlimited dares, more photo estimates, a bigger album and longer question history.\", name),"
+ },
+ "A gift from Heartpact": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/PlusStartedNotices.cs:101"
+  ],
+  "code": "notices.Add(Notification.Create(person.Id, couple.Id, NotificationType.PlusStarted, Loc.T(\"A gift from Heartpact\"),"
+ },
+ "You both have Heartpact Plus until {date}. Enjoy it together.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Billing/PlusStartedNotices.cs:102"
+  ],
+  "code": "Loc.T(\"You both have Heartpact Plus until {date}. Enjoy it together.\", (\"date\", ShortDate(untilUtc, person.TimeZoneId, person.CountryCode))),"
  },
  "Cycle lengths are outside the supported range.": {
   "plural": false,
@@ -9099,7 +9169,7 @@
  "Your card subscription couldn't be cancelled just now, so nothing was deleted. Try again in a few minutes.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsSubscriptionSync.cs:265"
+   "Twogether.Infrastructure/Billing/BachsSubscriptionSync.cs:282"
   ],
   "code": "return Error.Failure(\"account.subscription_cancel_failed\", Loc.T(\"Your card subscription couldn't be cancelled just now, so nothing was deleted. Try again in a few minutes.\"));"
  },

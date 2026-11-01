@@ -7,6 +7,7 @@ using Twogether.Api.Hubs;
 using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Location;
+using Twogether.Application.Features.Notifications;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Localization;
@@ -56,6 +57,8 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
         var now = clock.UtcNow;
         var mine = context.Mine;
         var wasSharing = LocationSharingRules.StatusOf(mine, now) == LocationSharingStatus.Sharing;
+        // Ending a pause or confirming a running share is not a new start: only a share that was off tells the partner.
+        var wasOff = mine is null || !mine.IsLiveAt(now);
         if (mine is null)
         {
             mine = CoupleLocation.Start(currentUser.CoupleId!.Value, context.Me.Id, now);
@@ -63,8 +66,11 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
             context = context with { Mine = mine };
         }
         else mine.StartSharing(now);
+        var notice = wasOff ? await SharedNoticeAsync(context, mine.CoupleId, now, cancellationToken) : null;
+        if (notice is not null) db.Notifications.Add(notice);
         await db.SaveChangesAsync(cancellationToken);
         if (!wasSharing) await AnnounceAsync(context, now, cancellationToken);
+        if (notice is not null) await ExerciseEvents.NotificationAsync(hub, notice, cancellationToken);
         return Ok(StatusOf(context, now));
     }
 
@@ -149,6 +155,28 @@ public sealed class LocationController(IApplicationDbContext db, ICurrentUser cu
         await LocationEvents.SharingChangedAsync(hub, context.Mine!.CoupleId, LocationSharingRules.State(context.Me.Id, context.Me.DisplayName, context.Mine, now, withLastFix: mutual), cancellationToken);
         if (mutual && context.Partner is { } partner)
             await LocationEvents.ExchangeAsync(hub.Clients, context.Mine, context.Me, context.Theirs!, partner, cancellationToken);
+    }
+
+    /// <summary>How long a partner isn't told again that the same person started sharing.</summary>
+    public static readonly TimeSpan SharedNoticeQuiet = TimeSpan.FromHours(12);
+
+    /// <summary>
+    /// "Maya is sharing their location", to the partner, so they can share theirs too: sharing is mutual, so this is an
+    /// invitation, never a report. Not again within 12 hours (stop and start again, a lapsed phone), read back from the
+    /// notifications. Written in the partner's language. Not added.
+    /// </summary>
+    private async Task<Notification?> SharedNoticeAsync(SharingContext context, Guid coupleId, DateTime now, CancellationToken cancellationToken)
+    {
+        if (context.Partner is not { } partner) return null;
+        var since = now - SharedNoticeQuiet;
+        if (await db.Notifications.AsNoTracking().AnyAsync(item => item.CoupleId == coupleId && item.UserId == partner.Id
+                && item.Type == NotificationType.LocationShared && item.CreatedAtUtc >= since, cancellationToken))
+            return null;
+        using var _ = Loc.Use(await db.LanguageOfAsync(partner.Id, cancellationToken));
+        return Notification.Create(partner.Id, coupleId, NotificationType.LocationShared,
+            Loc.T("{name} is sharing their location", ("name", context.Me.DisplayName)),
+            Loc.T("Open the map to see each other. Share yours too, and you can both pause any time."),
+            System.Text.Json.JsonSerializer.Serialize(new { userId = context.Me.Id }), now);
     }
 
     private async Task<LocationSharingStatusDto> UnlinkedStatusAsync(CancellationToken cancellationToken)

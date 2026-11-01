@@ -10,7 +10,8 @@ stalkerware policies require of a two-person app.
   with its end time), without coordinates.
 - **Pause** lasts 15 minutes to 24 hours and ends on its own. Fixes sent during a pause are dropped, not stored.
 - **Starting is explicit.** `POST start` starts a share; a fix on a stopped share is dropped, so a stale tab or a
-  late fix can never turn sharing back on.
+  late fix can never turn sharing back on. A start on a share that was off tells the partner, as an invitation to
+  share too (`locationShared`, not again within 12 hours; `docs/push-notifications.md`).
 - **A share lapses when its phone goes quiet.** A share with no fix or heartbeat for 10 minutes counts as `off`,
   for both partners and for the mutual rule. The sharing phone sends `POST heartbeat` about every 4 minutes,
   moving or not.

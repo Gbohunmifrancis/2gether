@@ -29,5 +29,11 @@ public enum NotificationType
     /// <summary>To both: the shared album passed 80% or 95% of the plan's room.</summary>
     AlbumAlmostFull,
     /// <summary>To both: Plus ends in a few days and won't renew (cancelled, or a complimentary grant running out).</summary>
-    PlusEnding
+    PlusEnding,
+    /// <summary>To both, once: Plus newly started for the couple (a first purchase, or a gift from Heartpact). Never for a renewal.</summary>
+    PlusStarted,
+    /// <summary>To the partner: the other started sharing their location (not a resume or heartbeat); at most once per 12 hours.</summary>
+    LocationShared,
+    /// <summary>To the partner: the cycle owner went from sharing nothing to sharing something with them.</summary>
+    CycleShared
 }

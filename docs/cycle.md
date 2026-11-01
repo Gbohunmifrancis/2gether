@@ -7,7 +7,8 @@ shares: `none`, `predictionsOnly` or `fullDetail` (predictions plus the logs).
 ## Sharing
 
 - A new profile shares `none`. Claiming never changes a level that was already chosen; only `PUT api/cycle/profile`
-  does, and the app asks for it at setup.
+  does, and the app asks for it at setup. Going from `none` to a visible level tells the partner once
+  (`cycleShared`: "{name} is sharing their cycle with you"); other saves say nothing.
 - The share level is chosen for one partner. A breakup, a new link, and the partner's account deletion all set it back
   to `none` (`CycleSharing.StopSharingAsync`), so a new partner never inherits it. Breakups from before that left
   the level as it was; on boot, `DatabaseSchemaUpgrade.StopCycleSharingAfterOldBreakupsSql` sets it to `none` for

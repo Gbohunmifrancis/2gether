@@ -24,6 +24,11 @@ public sealed class BachsSubscriptionSync(
     IDateTimeProvider clock,
     ILogger<BachsSubscriptionSync> logger)
 {
+    private readonly List<Notification> notices = [];
+
+    /// <summary>The "Plus is on" notices the last call saved (a subscription's first grant), for the caller to send live.</summary>
+    public IReadOnlyList<Notification> Notices => notices;
+
     /// <summary>A verified webhook body. A failure means "answer 5xx so Bachs retries".</summary>
     public async Task<Result<BachsWebhookOutcome>> HandleAsync(string rawBody, CancellationToken cancellationToken)
     {
@@ -33,12 +38,14 @@ public sealed class BachsSubscriptionSync(
             logger.LogError("A signed Bachs webhook had no usable id, type or created_at.");
             return Error.Failure("billing.bachs_event_unreadable", "The event could not be read.");
         }
+        notices.Clear();
         try
         {
             return await HandleOnceAsync(evt, cancellationToken);
         }
         catch (DbUpdateException)
         {
+            notices.Clear();
             // The same event delivered twice at once: the other delivery recorded it. Anything else is retried by Bachs.
             if (await IsRecordedAsync(evt.Id, cancellationToken)) return BachsWebhookOutcome.Duplicate;
             throw;
@@ -115,6 +122,7 @@ public sealed class BachsSubscriptionSync(
 
     private async Task<Result<StoreSubscription>> ApplyNowAsync(BachsSubscriptionSnapshot snapshot, Guid rowId, CancellationToken cancellationToken)
     {
+        notices.Clear();
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         await db.Database.LockAsync(LockScope.BachsSubscription, DatabaseLocks.KeyFor(snapshot.SubscriptionId), cancellationToken);
         await ApplyAsync(snapshot, clock.UtcNow, eventId: null, cancellationToken);
@@ -153,6 +161,15 @@ public sealed class BachsSubscriptionSync(
 
         var now = clock.UtcNow;
         var state = BachsStatusMapping.Map(snapshot, eventAtUtc);
+        // "Plus is on", once: when the subscription is created granting, or first moves to trialing or active; not for
+        // a renewal, and not when the couple already had Plus (the partner pays, a gift). Saved with the state.
+        if (PlusStartedNotices.IsFirstGrant(existing?.Status, state.Status, state.ExpiresAtUtc, now)
+            && !await PlusStartedNotices.CoupleHasPlusAsync(db, ownerId, existing?.Id, now, cancellationToken))
+        {
+            var told = await PlusStartedNotices.ForPurchaseAsync(db, ownerId, state.AutoRenewing ? null : state.ExpiresAtUtc, now, cancellationToken);
+            foreach (var notice in told) db.Notifications.Add(notice);
+            notices.AddRange(told);
+        }
         var subscription = existing;
         if (subscription is null)
         {
@@ -161,7 +178,7 @@ public sealed class BachsSubscriptionSync(
         }
         var wasGranting = existing?.GrantsAccess(now) == true;
         subscription.ApplyBachsState(productId, state.Status, state.ExpiresAtUtc, state.AutoRenewing, snapshot.CustomerId, eventAtUtc, now);
-        // The admin live feed and journey read "Plus started" from the new row, as for Google Play; nothing else to send.
+        // The admin live feed and journey read "Plus started" from the new row, as for Google Play.
         if (!wasGranting && subscription.GrantsAccess(now))
             logger.LogInformation("Bachs subscription {SubscriptionId} gives user {UserId} Plus until {ExpiresAtUtc}.", snapshot.SubscriptionId, ownerId, state.ExpiresAtUtc);
         else

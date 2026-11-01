@@ -8,7 +8,8 @@ using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Billing;
 
-public sealed record SyncOutcome(StoreSubscription Subscription, bool AcknowledgeFailed);
+/// <param name="Notices">"Plus is on" notices saved with this sync (the first grant only), for the caller to send live.</param>
+public sealed record SyncOutcome(StoreSubscription Subscription, bool AcknowledgeFailed, IReadOnlyList<Notification>? Notices = null);
 
 /// <summary>
 /// One path for both the app's "I just bought" call and Google's real-time notifications: fetch
@@ -43,6 +44,13 @@ public sealed class GooglePlaySubscriptionSync(IApplicationDbContext db, IGoogle
             return Error.NotFound("billing.unknown_purchase", Loc.T("No Heartpact account matches this purchase."));
 
         var now = clock.UtcNow;
+        // Told once, the first time this purchase grants, and only when the couple didn't have Plus already (the
+        // partner pays, a gift, or the plan this one replaces). Saved with the state, so a failed save tells nobody.
+        IReadOnlyList<Notification> notices = [];
+        if (PlusStartedNotices.IsFirstGrant(existing?.Status, state.Status, state.ExpiresAtUtc, now)
+            && !await PlusStartedNotices.CoupleHasPlusAsync(db, ownerId, existing?.Id, now, cancellationToken))
+            notices = await PlusStartedNotices.ForPurchaseAsync(db, ownerId, state.AutoRenewing ? null : state.ExpiresAtUtc, now, cancellationToken);
+
         var subscription = existing;
         if (subscription is null)
         {
@@ -50,6 +58,7 @@ public sealed class GooglePlaySubscriptionSync(IApplicationDbContext db, IGoogle
             db.StoreSubscriptions.Add(subscription);
         }
         subscription.ApplyStoreState(state.ProductId, state.Status, state.ExpiresAtUtc, state.AutoRenewing, state.Acknowledged, state.LinkedPurchaseToken, now);
+        foreach (var notice in notices) db.Notifications.Add(notice);
         await db.SaveChangesAsync(cancellationToken);
 
         // Google refunds a purchase that is not acknowledged within three days.
@@ -64,6 +73,6 @@ public sealed class GooglePlaySubscriptionSync(IApplicationDbContext db, IGoogle
             }
             else acknowledgeFailed = true;
         }
-        return new SyncOutcome(subscription, acknowledgeFailed);
+        return new SyncOutcome(subscription, acknowledgeFailed, notices);
     }
 }

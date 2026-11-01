@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Twogether.Api.Common;
+using Twogether.Api.Hubs;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Cycle;
+using Twogether.Application.Features.Notifications;
 using Twogether.Core.Entities;
 using Twogether.Core.Enums;
 using Twogether.Shared.Localization;
@@ -12,7 +16,7 @@ using Twogether.Shared.Localization;
 namespace Twogether.Api.Controllers;
 
 [Authorize]
-public sealed class CycleController(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock) : ApiControllerBase
+public sealed class CycleController(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, IHubContext<CoupleHub>? hub = null) : ApiControllerBase
 {
     [HttpGet("profile")]
     public async Task<ActionResult<CycleProfileDto>> GetProfile(CancellationToken cancellationToken)
@@ -53,9 +57,14 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
         if (rules.IsFailure) return UnprocessableEntity(new ApiError(rules.Error.Code, rules.Error.Message));
         var profile = await db.CycleProfiles.SingleOrDefaultAsync(item => item.UserId == currentUser.UserId.Value, cancellationToken);
         if (profile is null) { profile = CycleProfile.Create(currentUser.UserId.Value, clock.UtcNow); db.CycleProfiles.Add(profile); }
+        var wasShared = profile.ShareLevelWithPartner != ShareLevel.None;
         profile.SetCycleSettings(request.AverageCycleLengthDays, request.AveragePeriodLengthDays, request.LastPeriodStartDate, clock.UtcNow);
         profile.SetShareLevel(request.ShareLevel, clock.UtcNow);
+        // The partner hears once, when sharing goes from nothing to something; other saves and level changes say nothing.
+        var notice = !wasShared && profile.ShareLevelWithPartner != ShareLevel.None ? await SharedNoticeAsync(actor, cancellationToken) : null;
+        if (notice is not null) db.Notifications.Add(notice);
         await db.SaveChangesAsync(cancellationToken);
+        if (notice is not null && hub is not null) await ExerciseEvents.NotificationAsync(hub, notice, cancellationToken);
         return Ok(ToProfile(profile));
     }
 
@@ -143,6 +152,20 @@ public sealed class CycleController(IApplicationDbContext db, ICurrentUser curre
             : [];
         var logs = sharedLogs.Select(ToSharedLog).ToList();
         return Ok(new SharedCycleDto(ToProfile(profile), prediction, logs));
+    }
+
+    /// <summary>"Maya is sharing their cycle with you", to the owner's current partner, in their language. Not added.</summary>
+    private async Task<Notification?> SharedNoticeAsync(User owner, CancellationToken cancellationToken)
+    {
+        if (owner.CoupleId is not { } coupleId) return null;
+        var couple = await db.Couples.AsNoTracking().SingleOrDefaultAsync(item => item.Id == coupleId && item.Status == CoupleStatus.Active, cancellationToken);
+        var partnerId = couple is null ? null : couple.UserAId == owner.Id ? couple.UserBId : couple.UserBId == owner.Id ? couple.UserAId : null;
+        if (partnerId is not { } partner) return null;
+        using var _ = Loc.Use(await db.LanguageOfAsync(partner, cancellationToken));
+        (string, object?) name = ("name", owner.DisplayName);
+        return Notification.Create(partner, coupleId, NotificationType.CycleShared, Loc.T("{name} is sharing their cycle with you", name),
+            Loc.T("You'll see what {name} chose to share in Us → {name}'s cycle.", name),
+            System.Text.Json.JsonSerializer.Serialize(new { userId = owner.Id }), clock.UtcNow);
     }
 
     /// <summary>The caller's own calendar date when the app sends it (time zones differ); otherwise today in UTC.</summary>

@@ -227,7 +227,8 @@ public sealed class AdminSubscriptionsController(
     IGooglePlayBilling billing,
     GooglePlaySubscriptionSync sync,
     IBachsBilling bachs,
-    BachsSubscriptionSync bachsSync) : ApiControllerBase
+    BachsSubscriptionSync bachsSync,
+    IHubContext<CoupleHub>? hub = null) : ApiControllerBase
 {
     internal static AdminSubscriptionRow Row(StoreSubscription item, string? buyerEmail) => new(
         item.Id, item.Store, item.ProductId, item.UserId, buyerEmail, item.Status, item.ExpiresAtUtc, item.AutoRenewing, item.Acknowledged,
@@ -328,13 +329,20 @@ public sealed class AdminSubscriptionsController(
     {
         if (request.Days is < 1 or > 366) return UnprocessableEntity(new ApiError("admin.invalid_days", "Grant between 1 and 366 days."));
         if (string.IsNullOrWhiteSpace(request.Reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));
-        if (!await db.Couples.AnyAsync(item => item.Id == coupleId, ct)) return NotFound();
+        var couple = await db.Couples.AsNoTracking().SingleOrDefaultAsync(item => item.Id == coupleId, ct);
+        if (couple is null) return NotFound();
         var now = clock.UtcNow;
         var adminId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
         var grant = PlusGrant.Create(coupleId, now.AddDays(request.Days), request.Reason.Trim(), adminId, now);
+        // A gift is celebrated only when it switches Plus on; extending Plus they already have says nothing.
+        var notices = await PlusStartedNotices.CoupleHasPlusAsync(db, couple, now, ct)
+            ? [] : await PlusStartedNotices.ForGrantAsync(db, couple, grant.ExpiresAtUtc, now, ct);
         db.PlusGrants.Add(grant);
+        foreach (var notice in notices) db.Notifications.Add(notice);
         audit.Record(User, "plus.granted", "couple", coupleId.ToString(), $"{request.Days} days: {request.Reason.Trim()}");
         await db.SaveChangesAsync(ct);
+        if (hub is not null)
+            foreach (var notice in notices) await ExerciseEvents.NotificationAsync(hub, notice, ct);
         return Ok(new AdminGrant(grant.Id, grant.CoupleId, grant.ExpiresAtUtc, grant.Reason, grant.RevokedAtUtc, grant.CreatedAtUtc));
     }
 

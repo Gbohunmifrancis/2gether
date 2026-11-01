@@ -3,9 +3,12 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Twogether.Api.Common;
+using Twogether.Api.Hubs;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Features.Billing;
 using Twogether.Shared.Results;
@@ -24,7 +27,8 @@ public sealed class BillingController(
     IGooglePlayBilling store,
     BillingSettings settings,
     ILogger<BillingController> logger,
-    Twogether.Application.Features.Admin.Ops.OpsSignals? signals = null) : ApiControllerBase
+    Twogether.Application.Features.Admin.Ops.OpsSignals? signals = null,
+    IHubContext<CoupleHub>? hub = null) : ApiControllerBase
 {
     [Authorize]
     [HttpGet("entitlement")]
@@ -67,6 +71,7 @@ public sealed class BillingController(
             logger.LogWarning("Purchase {SubscriptionId} is not acknowledged yet; the next verify or notification retries.", result.Value.Subscription.Id);
         logger.LogInformation("Purchase {SubscriptionId} verified for user {UserId}: {Status} until {ExpiresAtUtc}.",
             result.Value.Subscription.Id, currentUser.UserId, result.Value.Subscription.Status, result.Value.Subscription.ExpiresAtUtc);
+        await SendLiveAsync(result.Value, cancellationToken);
         return Ok(await entitlements.ForUserAsync(currentUser.UserId.Value, cancellationToken));
     }
 
@@ -95,13 +100,24 @@ public sealed class BillingController(
             var result = await sync.SyncAsync(token, callerUserId: null, cancellationToken);
             if (result.IsFailure && result.Error.Type == ErrorType.Network) return StatusCode(StatusCodes.Status503ServiceUnavailable);
             if (result.IsFailure) logger.LogWarning("Play notification for an unusable purchase: {Code}.", result.Error.Code);
-            else logger.LogInformation("Play notification {Kind} applied to subscription {SubscriptionId}: {Status}.", kind, result.Value.Subscription.Id, result.Value.Subscription.Status);
+            else
+            {
+                logger.LogInformation("Play notification {Kind} applied to subscription {SubscriptionId}: {Status}.", kind, result.Value.Subscription.Id, result.Value.Subscription.Status);
+                await SendLiveAsync(result.Value, cancellationToken);
+            }
         }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" })
         {
             logger.LogInformation("Play notification raced a verify for the same purchase; the stored row wins.");
         }
         return NoContent();
+    }
+
+    /// <summary>The "Plus is on" notices are saved (and pushed) already; this shows them in an open app too.</summary>
+    private async Task SendLiveAsync(SyncOutcome outcome, CancellationToken cancellationToken)
+    {
+        if (hub is null || outcome.Notices is not { Count: > 0 } notices) return;
+        foreach (var notice in notices) await ExerciseEvents.NotificationAsync(hub, notice, cancellationToken);
     }
 
     private ActionResult Problem(Error error) => error.Type switch

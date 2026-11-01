@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Twogether.Api.Common;
+using Twogether.Api.Hubs;
+using Twogether.Api.Realtime;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Application.Common.Security;
 using Twogether.Application.Features.Billing;
@@ -22,7 +25,8 @@ public sealed class BachsBillingController(
     BachsSettings settings,
     IDateTimeProvider clock,
     AttemptLimiter limiter,
-    ILogger<BachsBillingController> logger) : ApiControllerBase
+    ILogger<BachsBillingController> logger,
+    IHubContext<CoupleHub>? hub = null) : ApiControllerBase
 {
     /// <summary>Bachs's events are a few kilobytes; anything near this is not one of them.</summary>
     public const int MaxWebhookBytes = 256 * 1024;
@@ -90,6 +94,9 @@ public sealed class BachsBillingController(
             logger.LogWarning("Bachs webhook not handled ({Code}); Bachs will deliver it again.", result.Error.Code);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
+        // A first grant's "Plus is on" is saved (and pushed) already; this shows it in an open app too.
+        if (hub is not null)
+            foreach (var notice in sync.Notices) await ExerciseEvents.NotificationAsync(hub, notice, cancellationToken);
         return Ok();
     }
 

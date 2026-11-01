@@ -81,8 +81,8 @@ dashboard and the revenue estimate treat both stores alike. Bachs bills USD card
    is only a display: **Plus comes only from the webhook**, so it should say "Activating your plan..." until the
    entitlement shows it.
 3. Bachs sends `customer.subscription.created`; the server stores the subscription and both partners have Plus. The
-   admin live feed and journey show "Plus started" from the new row, exactly as for Google Play (no push is sent for
-   a Play purchase either).
+   admin live feed and journey show "Plus started" from the new row, exactly as for Google Play, and both partners get
+   the `plusStarted` notification (see Alerts).
 4. Renewals, failed payments, card changes and cancellations arrive as the same webhooks. "Manage billing" calls
    `POST api/billing/bachs/portal` and opens the URL it returns (Bachs's customer portal: cancel, update the card,
    invoices). Mint a new one on every tap; the URL signs the customer in, so it is never logged or stored.
@@ -243,6 +243,15 @@ pausing another.
 |---|---|---|
 | Album filling up / almost full | the shared album passes 80%, then 95%, of the plan's room (not again for 30 days at the same level) | `albumAlmostFull`, Album |
 | Plus ends soon | 3 days before a cancelled subscription or a complimentary grant ends (not again for 7 days) | `plusEnding`, Couple (always delivered) |
+
+When Plus starts, both partners hear it once (`plusStarted`, Couple, `PlusStartedNotices`): the buyer "Welcome to
+Heartpact Plus" (`source: "bought"`), the partner "{name} got you Heartpact Plus" (`"partner"`), and for an admin's
+complimentary grant both "A gift from Heartpact" with its end date in their own language and time zone (`"gift"`). A
+store subscription tells it on its first grant only: a new row that grants, or one that was `pending` (a Play payment
+waiting, a Bachs subscription created `incomplete`) moving to a granting state, so renewals, recoveries from hold and
+renewals arriving after the old period ended say nothing. It is skipped when the couple already had Plus (the partner's
+subscription, the buyer's own other one, a live grant), and a buyer with no partner yet hears it alone. The notices
+are saved with the subscription or grant, in the same transaction. List in `docs/push-notifications.md`.
 
 In the app, the album offers Plus from 80% full, the food tab shows the photo estimates left today, and the new-dare
 screen shows when the partner's free dare is taken.

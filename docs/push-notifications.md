@@ -75,6 +75,20 @@ How each notification is routed:
 
 Every notification type must be assigned a category in `NotificationRouting.CategoryOf`. A unit test fails when a new type is missing.
 
+## Partner notices
+
+Types the app receives as camelCase strings in `data.type` (with `data.notificationId`); `dataJson` is the
+notification's `data` in the in-app list.
+
+| Type | To | When | Category | `dataJson` |
+|---|---|---|---|---|
+| `plusStarted` | both partners (only the buyer while unlinked) | Plus newly starts for the couple: a store subscription's first grant (Google Play `google/verify` or RTDN, a Bachs webhook or admin sync), or an admin's complimentary grant. Never for a renewal, a recovery from hold or a late renewal; never when the couple already had Plus (the partner pays, a gift, the plan being replaced) | Couple (always delivered) | `{ "source": "bought" \| "partner" \| "gift", "untilUtc": iso or null }`: `source` from the reader's side; `untilUtc` is the gift's end, or a subscription's end when it won't renew, else null |
+| `locationShared` | the other partner | a partner starts sharing (`POST api/location/start` on a share that was off or had lapsed; not a resume, a pause ending or a heartbeat). Not again for the same sharer within 12 hours | Couple | `{ "userId": sharer }` |
+| `cycleShared` | the owner's partner | `PUT api/cycle/profile` moves the share level from `none` to `predictionsOnly` or `fullDetail` (not other saves, nor a change between the two visible levels) | Cycle | `{ "userId": owner }` |
+
+The location text invites rather than reports ("Open the map to see each other. Share yours too, and you can both
+pause any time."): sharing is mutual, and nothing may read as tracking someone (PRODUCT.md, Play policy).
+
 ## Not done yet
 
 iOS. APNs through FCM works the same way once an iOS app exists.
