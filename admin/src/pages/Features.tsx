@@ -33,7 +33,8 @@ const switches: Switch[] = [
     hint:
       "Shows Pay by card (Bachs) on the Android app's Plus screen, everywhere. In the US, the UK, the EU, Iceland, Liechtenstein and " +
       "Norway, Google Play's own sheet offers card too, reported to Google. Elsewhere Google Play's payments policy doesn't allow it, so off is the safe setting there.",
-    turnOn: "Everyone sees Pay by card on the Plus screen, from app version 0.2.22. Payments made through Google's choice screen are reported to Google within 24 hours.",
+    turnOn:
+      "Everyone sees Pay by card on the Plus screen, from app version 0.2.22. Payments made through Google's choice screen are reported to Google within 24 hours.",
     turnOff: "The app offers Google Play only. Card subscriptions already running carry on, and so do their reports to Google.",
     saved: ["Card payments in the app are on.", "Card payments in the app are off."],
   },
