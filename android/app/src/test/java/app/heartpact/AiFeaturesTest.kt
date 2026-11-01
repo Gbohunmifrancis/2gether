@@ -71,7 +71,7 @@ class AiFeaturesTest {
     }
 
     @Test fun `ideas for an exercise this app doesn't know are left out`() = runTest {
-        server.enqueue(MockResponse().setBody("""{"ideas":[{"exerciseType":"burpee","target":10,"measure":"reps","scheduledTime":"08:00","reason":"new"},
+        server.enqueue(MockResponse().setBody("""{"ideas":[{"exerciseType":"pullUp","target":10,"measure":"reps","scheduledTime":"08:00","reason":"new"},
             {"exerciseType":"sitUp","target":12,"measure":"reps","scheduledTime":"07:05","reason":"Wake up those abs."}],"left":7}"""))
         val ideas = (ai.dareIdeas("theo") as ApiResult.Ok).value
         assertEquals(listOf(ExerciseType.SitUp), ideas.ideas.map { it.exerciseType })
