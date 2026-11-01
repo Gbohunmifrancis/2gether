@@ -142,9 +142,24 @@ public sealed class BillingCheckService(
     BillingSettings billing,
     BachsSettings bachsSettings,
     FeatureFlagService flags,
-    IDateTimeProvider clock)
+    IDateTimeProvider clock,
+    Microsoft.Extensions.Logging.ILogger<BillingCheckService>? logger = null)
 {
     public const string DefaultCountry = "NG";
+
+    /// <summary>The innermost frame of ours or Google's where an unexpected error was thrown, as "Type.Method".</summary>
+    public static string? Where(Exception exception)
+    {
+        var frames = new System.Diagnostics.StackTrace(exception, false).GetFrames();
+        var method = frames.Select(frame => frame.GetMethod()).FirstOrDefault(item => item?.DeclaringType?.Namespace is { } ns && (ns.StartsWith("Twogether", StringComparison.Ordinal) || ns.StartsWith("Google", StringComparison.Ordinal)))
+            ?? frames.FirstOrDefault()?.GetMethod();
+        if (method is null) return null;
+        var type = method.DeclaringType;
+        // Async methods run in a generated state machine named "<ReadAsync>d__7": report the method it belongs to.
+        var name = type?.Name is { } n && n.StartsWith('<') ? n[1..n.IndexOf('>')] : method.Name;
+        var owner = type?.Name is { } t && t.StartsWith('<') ? type.DeclaringType?.Name : type?.Name;
+        return $"{owner}.{name}";
+    }
     public static readonly TimeSpan CallTimeout = TimeSpan.FromSeconds(15);
 
     /// <summary>"ng" → "NG"; anything that isn't two letters → <see cref="DefaultCountry"/>.</summary>
@@ -174,7 +189,10 @@ public sealed class BillingCheckService(
         }
         catch (Exception exception) when (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
-            read = new PlayCatalogRead([], new StoreReadError("google.failed_" + exception.GetType().Name.ToLowerInvariant()));
+            // The stack only, never the message (it can quote a key file): where it broke is what the next fix needs.
+            var at = Where(exception);
+            Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(logger ?? (Microsoft.Extensions.Logging.ILogger)Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance, "Billing check: reading Google Play failed with {Error} at {At}. Stack: {Stack}", exception.GetType().Name, at, exception.StackTrace);
+            read = new PlayCatalogRead([], new StoreReadError("google.failed_" + exception.GetType().Name.ToLowerInvariant(), null, at));
         }
         if (read.Error is { } error)
             return new GooglePlayCheckDto(true, provider, packageName, productIds, BillingCheckHints.Explain(error), productIds.Select(Missing).ToList(), []);

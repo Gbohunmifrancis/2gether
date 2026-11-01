@@ -423,3 +423,16 @@ public sealed class BillingCheckTests : IDisposable
         }
     }
 }
+
+public sealed class BillingCheckWhereTests
+{
+    [Fact]
+    public async Task An_unexpected_error_says_which_method_it_came_from()
+    {
+        static async Task<int> ReadCatalogAsync() { await Task.Yield(); string? missing = null; return missing!.Length; }
+        var thrown = await Assert.ThrowsAsync<NullReferenceException>(ReadCatalogAsync);
+        var at = Twogether.Application.Features.Admin.Ops.BillingCheckService.Where(thrown);
+        Assert.NotNull(at);
+        Assert.Contains("BillingCheckWhereTests", at);
+    }
+}

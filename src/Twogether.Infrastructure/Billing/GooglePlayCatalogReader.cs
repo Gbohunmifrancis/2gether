@@ -67,7 +67,9 @@ public sealed class GooglePlayCatalogReader : IPlayCatalogReader, IDisposable
             request.PageToken = pageToken;
             var (page, error) = await CallAsync("subscriptions", request.ExecuteAsync, cancellationToken);
             if (error is not null) return new PlayCatalogRead([], error);
-            subscriptions.AddRange(page!.Subscriptions ?? []);
+            // An app with no subscriptions can answer with an empty body.
+            if (page is null) break;
+            subscriptions.AddRange((page.Subscriptions ?? []).Where(item => item is not null));
             pageToken = page.NextPageToken;
         }
         while (!string.IsNullOrEmpty(pageToken) && subscriptions.Count < MaxSubscriptions);
@@ -83,7 +85,7 @@ public sealed class GooglePlayCatalogReader : IPlayCatalogReader, IDisposable
             result.Add(new PlaySubscriptionInfo(
                 subscription.ProductId,
                 subscription.Archived == true,
-                (subscription.BasePlans ?? []).Select(BasePlan).ToList(),
+                (subscription.BasePlans ?? []).Where(plan => plan is not null).Select(BasePlan).ToList(),
                 offers,
                 offersError));
         }
@@ -102,7 +104,8 @@ public sealed class GooglePlayCatalogReader : IPlayCatalogReader, IDisposable
             request.PageToken = pageToken;
             var (page, error) = await CallAsync("offers", request.ExecuteAsync, cancellationToken);
             if (error is not null) return (offers, error);
-            offers.AddRange((page!.SubscriptionOffers ?? []).Select(offer => new PlayOfferInfo(offer.BasePlanId ?? "?", offer.OfferId ?? "?", offer.State ?? "STATE_UNSPECIFIED")));
+            if (page is null) break;
+            offers.AddRange((page.SubscriptionOffers ?? []).Where(offer => offer is not null).Select(offer => new PlayOfferInfo(offer.BasePlanId ?? "?", offer.OfferId ?? "?", offer.State ?? "STATE_UNSPECIFIED")));
             pageToken = page.NextPageToken;
         }
         while (!string.IsNullOrEmpty(pageToken) && offers.Count < MaxSubscriptions);
@@ -119,7 +122,7 @@ public sealed class GooglePlayCatalogReader : IPlayCatalogReader, IDisposable
             _ => ("unknown", null),
         };
         var regions = (plan.RegionalConfigs ?? [])
-            .Where(config => !string.IsNullOrEmpty(config.RegionCode))
+            .Where(config => config is not null && !string.IsNullOrEmpty(config.RegionCode))
             .Select(config => new PlayRegionInfo(
                 config.RegionCode.ToUpperInvariant(),
                 config.NewSubscriberAvailability == true,
