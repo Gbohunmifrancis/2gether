@@ -37,5 +37,7 @@ public enum NotificationType
     /// <summary>To the partner: the cycle owner went from sharing nothing to sharing something with them.</summary>
     CycleShared,
     /// <summary>To both, Sunday evening in the couple's time zone: the week's recap is ready (docs/ai.md). Once per couple per week.</summary>
-    WeeklyRecap
+    WeeklyRecap,
+    /// <summary>To the partner, once per dare: the camera started counting ("Maya started their squats"); opens the live view.</summary>
+    ExerciseStarted
 }

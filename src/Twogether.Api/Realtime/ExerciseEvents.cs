@@ -21,6 +21,12 @@ public static class ExerciseEvents
     public const string CallOffAsked = "ExerciseCallOffAsked";
     public const string GoalsChanged = "ExerciseGoalsChanged";
     public const string NotificationCreated = "NotificationCreated";
+    /// <summary>Watching live: a frame of the stick figure, to the partner only (docs/couple-goals.md).</summary>
+    public const string Live = "ExerciseLive";
+    /// <summary>Watching live: the partner opened or closed the view, to the exerciser only.</summary>
+    public const string Watching = "ExerciseWatching";
+    /// <summary>Watching live: a cheer, to the exerciser only.</summary>
+    public const string Cheer = "ExerciseCheer";
 
     public static Task OccurrenceAsync(IHubContext<CoupleHub> hub, string eventName, ExerciseOccurrenceDto occurrence, CancellationToken cancellationToken)
         => hub.Clients.Group(CoupleHub.GroupName(occurrence.CoupleId)).SendAsync(eventName, occurrence, cancellationToken);

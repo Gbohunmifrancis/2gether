@@ -22,7 +22,8 @@ public static class PushPolicy
 
     /// <summary>Notices where the partner is waiting on an answer, or a cheer is worth sending at once.</summary>
     public static bool IsPartnerAlert(NotificationType type) => type is NotificationType.Message or NotificationType.GameInvite
-        or NotificationType.GameTurn or NotificationType.ExerciseCompleted or NotificationType.ExerciseCallOffAsked;
+        or NotificationType.GameTurn or NotificationType.ExerciseCompleted or NotificationType.ExerciseCallOffAsked
+        or NotificationType.ExerciseStarted;
 
     /// <summary>The app's channel for a notice; the app picks the same one from the type and <c>quiet</c> (push/PushActions.kt).</summary>
     public static string ChannelFor(NotificationType type, PushRoute route)
@@ -39,6 +40,8 @@ public static class PushPolicy
     public static TimeSpan TimeToLive(NotificationType type) => type switch
     {
         NotificationType.ExerciseDue => TimeSpan.FromMinutes(30),
+        // "Watch live" is worth a tap only while the workout lasts.
+        NotificationType.ExerciseStarted => TimeSpan.FromMinutes(10),
         // A call-off request only matters while the alarm window is open.
         NotificationType.Message or NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.ExerciseCallOffAsked => TimeSpan.FromHours(1),
         _ => TimeSpan.FromDays(1)

@@ -62,6 +62,7 @@ builder.Services.AddScoped<Twogether.Application.Features.Admin.People.AdminJour
 builder.Services.AddSingleton<CouplePresenceTracker>();
 builder.Services.AddSingleton<HubConnectionRegistry>();
 builder.Services.AddSingleton<Twogether.Api.Realtime.GameInkGate>();
+builder.Services.AddSingleton<Twogether.Api.Realtime.ExerciseLiveGate>();
 builder.Services.AddSingleton<GameLiveState>();
 builder.Services.AddSingleton<Twogether.Application.Features.Location.LocationFixThrottle>();
 builder.Services.AddScoped<Twogether.Api.Realtime.LocationSharingStopper>();

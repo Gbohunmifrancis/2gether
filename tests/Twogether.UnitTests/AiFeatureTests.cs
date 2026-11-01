@@ -179,7 +179,7 @@ public sealed class AiFeatureTests : IDisposable
         var pair = await CoupleAsync();
         claude.Answer = _ => FakeClaude.Reply("""
             {"ideas":[
-              {"exercise_type":"burpee","target":10,"time":"18:00","reason":"Not in the catalog."},
+              {"exercise_type":"pullUp","target":10,"time":"18:00","reason":"Not in the catalog."},
               {"exercise_type":"pushUp","target":999,"time":"18:00","reason":"Too many."},
               {"exercise_type":"plank","target":2,"time":"18:00","reason":"Too short a hold."},
               {"exercise_type":"squat","target":20,"time":"25:99","reason":"No such time."},
@@ -204,7 +204,7 @@ public sealed class AiFeatureTests : IDisposable
     public async Task An_answer_with_nothing_usable_is_an_error_and_still_counts()
     {
         var pair = await CoupleAsync();
-        claude.Answer = _ => FakeClaude.Reply("""{"ideas":[{"exercise_type":"burpee","target":10,"time":"18:00","reason":"nope"}]}""");
+        claude.Answer = _ => FakeClaude.Reply("""{"ideas":[{"exercise_type":"pullUp","target":10,"time":"18:00","reason":"nope"}]}""");
         await using var db = database.CreateContext();
         var result = (await Controller(db, pair.TheoId, pair.CoupleId).DareIdeas(new DareIdeasRequest(pair.MayaId), default)).Result;
         Assert.Equal(502, StatusOf(result));

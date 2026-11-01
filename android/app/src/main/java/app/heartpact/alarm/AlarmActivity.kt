@@ -94,6 +94,9 @@ class AlarmActivity : ComponentActivity() {
                                     // Done early, the alarm still rings at the due time: Silence shows from then on.
                                     silenced = if (ui.dueNow) ui.silenced else null,
                                     onSilence = model::silence,
+                                    onLive = model::live,
+                                    watching = ui.watching,
+                                    cheer = ui.cheer,
                                 )
                             }
                         }

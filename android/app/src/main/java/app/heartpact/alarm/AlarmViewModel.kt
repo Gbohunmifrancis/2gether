@@ -11,7 +11,11 @@ import app.heartpact.data.ExerciseOccurrence
 import app.heartpact.data.OFFLINE_MESSAGE
 import app.heartpact.data.OccurrenceStatus
 import app.heartpact.data.PlayIntegrity
+import app.heartpact.exercise.Cheer
+import app.heartpact.exercise.CheerShown
 import app.heartpact.exercise.ExerciseChecks
+import app.heartpact.exercise.LiveCodec
+import app.heartpact.exercise.LiveFrame
 import app.heartpact.i18n.tr
 import app.heartpact.ui.camera.FinishOutcome
 import kotlinx.coroutines.Job
@@ -45,6 +49,10 @@ data class AlarmUi(
     val dueNow: Boolean = true,
     /** The coach's note under Heart complete (docs/ai.md); hidden unless the server writes one. */
     val coach: CoachUi = CoachUi.Hidden,
+    /** The partner has the live view open: their name, for "{partner} is watching". */
+    val watching: String? = null,
+    /** The latest cheer from the live view, for the camera to show once. */
+    val cheer: CheerShown? = null,
 )
 
 class AlarmViewModel(application: Application, private val slot: AlarmSlot) : AndroidViewModel(application) {
@@ -60,6 +68,38 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
         if (!_ui.value.dueNow) viewModelScope.launch { delay(slot.dueAtEpochMs - System.currentTimeMillis()); _ui.update { it.copy(dueNow = true) } }
         // Warm Play Integrity up while the person exercises, so the token at the finish is quick.
         viewModelScope.launch { app.integrity.prepare() }
+        // The partner's live view: whether it's open, and the cheers it sends.
+        viewModelScope.launch { app.live.events.collect(::partnerLive) }
+    }
+
+    private var watchTimeout: Job? = null
+
+    private fun partnerLive(event: app.heartpact.live.LiveEvent) {
+        if (event.name != "ExerciseWatching" && event.name != "ExerciseCheer") return
+        val occurrence = currentOccurrence() ?: return
+        val reply = runCatching { app.json.decodeFromString(LiveReply.serializer(), event.json) }.getOrNull() ?: return
+        if (reply.occurrenceId != occurrence.id) return
+        val name = reply.userName.ifBlank { _ui.value.partnerName }
+        if (event.name == "ExerciseCheer") {
+            val cheer = Cheer.of(reply.cheer) ?: return
+            _ui.update { it.copy(cheer = CheerShown(cheer, name, (it.cheer?.id ?: 0) + 1), watching = name) }
+            expireWatching()
+            return
+        }
+        _ui.update { it.copy(watching = if (reply.watching) name else null) }
+        if (reply.watching) expireWatching() else watchTimeout?.cancel()
+    }
+
+    /** The live view says it's open every few seconds; without that for a while, it was closed without saying so. */
+    private fun expireWatching() {
+        watchTimeout?.cancel()
+        watchTimeout = viewModelScope.launch { delay(WATCHING_FOR_MS); _ui.update { it.copy(watching = null) } }
+    }
+
+    /** One moment of the workout for the partner's live view: only the stick figure's joints and the numbers. */
+    fun live(frame: LiveFrame) {
+        val occurrence = (_ui.value.phase as? AlarmPhase.Camera)?.occurrence ?: return
+        app.live.exerciseLive(occurrence.id, frame.count, frame.phase.wire, frame.cue, LiveCodec.aspect(frame.aspect), LiveCodec.encode(frame.joints))
     }
 
     val early get() = slot.early
@@ -222,5 +262,11 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
 
     private companion object {
         const val APPEAR_WITHIN_MS = 60_000L
+        /** The live view repeats "watching" every 10 seconds. */
+        const val WATCHING_FOR_MS = 25_000L
     }
 }
+
+/** "ExerciseWatching" and "ExerciseCheer" from the couple hub. */
+@kotlinx.serialization.Serializable
+private data class LiveReply(val occurrenceId: String, val userId: String = "", val userName: String = "", val watching: Boolean = false, val cheer: String? = null)

@@ -30,7 +30,15 @@ public static class ExerciseCatalog
         new(ExerciseType.Plank, Loc.N("Plank hold"), ExerciseMeasure.Seconds, 30, 5, 600, 0.9, "Turn sideways. Keep a straight line from shoulders to ankles."),
         new(ExerciseType.ArmRaise, Loc.N("Overhead arm raises"), ExerciseMeasure.Reps, 15, 1, 300, 0.5, "Face the camera. Both hands above your head, then down to your sides."),
         new(ExerciseType.HighKnees, Loc.N("High knees"), ExerciseMeasure.Reps, 30, 1, 400, 0.25, "Face the camera. Drive each knee up to hip height."),
-        new(ExerciseType.SitUp, Loc.N("Sit-ups"), ExerciseMeasure.Reps, 10, 1, 200, 0.8, "Turn sideways. Sit all the way up, then lower back down.")
+        new(ExerciseType.SitUp, Loc.N("Sit-ups"), ExerciseMeasure.Reps, 10, 1, 200, 0.8, "Turn sideways. Sit all the way up, then lower back down."),
+        // Each leg's lunge is one rep.
+        new(ExerciseType.Lunge, Loc.N("Lunges"), ExerciseMeasure.Reps, 20, 1, 200, 0.8, "Step forward and lower until both knees bend, then push back up. Each leg counts."),
+        new(ExerciseType.GluteBridge, Loc.N("Glute bridges"), ExerciseMeasure.Reps, 15, 1, 200, 0.8, "Turn sideways, lying on your back with knees bent. Lift your hips into a line, then lower."),
+        // Each knee drive is one rep.
+        new(ExerciseType.MountainClimber, Loc.N("Mountain climbers"), ExerciseMeasure.Reps, 30, 1, 400, 0.25, "Turn sideways in a high plank. Drive each knee toward your chest."),
+        new(ExerciseType.Burpee, Loc.N("Burpees"), ExerciseMeasure.Reps, 10, 1, 100, 1.2, "Turn sideways. Drop into a plank, then jump back up to standing."),
+        new(ExerciseType.WallSit, Loc.N("Wall sit"), ExerciseMeasure.Seconds, 30, 5, 600, 0.9, "Back against a wall, thighs level with the floor. Hold."),
+        new(ExerciseType.SidePlank, Loc.N("Side plank"), ExerciseMeasure.Seconds, 20, 5, 300, 0.9, "On your side facing the camera, up on one forearm, body in a straight line. Hold.")
     ];
 
     private static readonly Dictionary<ExerciseType, ExerciseDefinition> ByType = All.ToDictionary(item => item.Type);

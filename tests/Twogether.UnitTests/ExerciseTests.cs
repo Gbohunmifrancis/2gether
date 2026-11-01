@@ -369,7 +369,7 @@ public sealed class ExerciseTests
         Assert.Equal(ExerciseMeasure.Reps, dto.Measure);
         var occurrence = ExerciseOccurrence.Open(goal, new DateOnly(2026, 2, 3), goal.NextDueAtUtc, now);
         Assert.Equal("2026-02-03", ExerciseMapper.ToDto(occurrence, "Femi").LocalDate);
-        Assert.Equal(7, ExerciseCatalog.All.Count);
+        Assert.Equal(13, ExerciseCatalog.All.Count);
     }
 
     [Fact]

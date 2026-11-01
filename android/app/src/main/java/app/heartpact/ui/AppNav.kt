@@ -105,6 +105,8 @@ import app.heartpact.ui.today.TodayGames
 import app.heartpact.ui.today.TodayGamesViewModel
 import app.heartpact.ui.today.TodayTab
 import app.heartpact.ui.today.TodayViewModel
+import app.heartpact.ui.watch.WatchLiveScreen
+import app.heartpact.ui.watch.WatchLiveViewModel
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -162,6 +164,8 @@ private object Routes {
     const val PAIR = "pair"
     const val HOME = "home"
     const val NEW_DARE = "newdare"
+    const val WATCH = "watch/{id}"
+    fun watch(occurrenceId: String) = "watch/$occurrenceId"
     const val FORGOT = "forgot?email={email}"
     fun forgot(email: String) = "forgot?email=" + Uri.encode(email)
     const val QUESTION = "question"
@@ -214,6 +218,16 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
             if (route == Routes.SPLASH) return@LaunchedEffect
             appModel.tabOpened()
             if (route != Routes.GAMES) nav.navigate(Routes.GAMES) { launchSingleTop = true }
+        }
+
+        // "{partner} started their squats" (an exerciseStarted push): the live view opens over home, once the app is in.
+        LaunchedEffect(requested, splashDone, destination, entry?.destination?.route) {
+            val occurrence = PushInbox.watchedOccurrence(requested) ?: return@LaunchedEffect
+            if (!splashDone || destination != Destination.Home) return@LaunchedEffect
+            val route = entry?.destination?.route ?: return@LaunchedEffect
+            if (route == Routes.SPLASH) return@LaunchedEffect
+            appModel.tabOpened()
+            nav.navigate(Routes.watch(occurrence)) { launchSingleTop = true }
         }
 
         // A screen over Home a notification asked for ("watch/{occurrenceId}" when a dare goes live). An app without that
@@ -519,6 +533,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             onAcceptGame = { id -> todayGames.accept(id) { nav.navigate(Routes.GAMES) { launchSingleTop = true } } },
                             onDeclineGame = todayGames::decline,
                             isPlus = isPlus,
+                            onWatch = { nav.navigate(Routes.watch(it)) { launchSingleTop = true } },
                         )
                     })
                 }
@@ -669,6 +684,19 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         FoodEntryScreen(state, model::description, model::meal, model::calories,
                             onSave = { model.save { nav.popBackStack() } }, onDelete = { model.delete { nav.popBackStack() } }, onBack = { nav.popBackStack() })
                     }
+                }
+                composable(Routes.WATCH, arguments = listOf(navArgument("id") { type = NavType.StringType })) { entry ->
+                    val id = entry.arguments?.getString("id") ?: return@composable
+                    val couple by appModel.couple.collectAsStateWithLifecycle()
+                    val session by appModel.session.collectAsStateWithLifecycle()
+                    val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }
+                    val application = LocalContext.current.applicationContext as Application
+                    val partnerSide = if (side == Side.Left) Side.Right else Side.Left
+                    val model: WatchLiveViewModel = viewModel(key = "watch-$id", factory = viewModelFactory {
+                        initializer { WatchLiveViewModel(application, id, partner?.displayName ?: tr("your partner"), partnerSide) }
+                    })
+                    val state by model.ui.collectAsStateWithLifecycle()
+                    ReadableScreen { WatchLiveScreen(state, model::cheer, onBack = { nav.popBackStack() }) }
                 }
                 composable(Routes.NEW_DARE) {
                     ReadableScreen {

@@ -14,14 +14,18 @@ import app.heartpact.exercise.Pose.Companion.R_HIP
 import app.heartpact.exercise.Pose.Companion.R_KNEE
 import app.heartpact.exercise.Pose.Companion.R_SHOULDER
 import app.heartpact.exercise.Pose.Companion.R_WRIST
+import app.heartpact.exercise.CounterState
+import app.heartpact.exercise.PoseSmoother
 import app.heartpact.exercise.RepCounter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 
 /**
  * Synthetic skeletons with exact joint angles, played through the counter as real movement would be:
@@ -285,6 +289,17 @@ class RepCounterTest {
     @Test fun `minimum time matches the server's plausibility rule`() {
         assertEquals(8_000L, ExerciseType.SitUp.minimumMillis(10))
         assertEquals(27_000L, ExerciseType.Plank.minimumMillis(30))
+        // Pinned on both sides: the server's ExerciseLiveTests holds the same catalog paces.
+        val paces = ExerciseType.entries.associateWith { it.minSecondsPerUnit }
+        assertEquals(mapOf(
+            ExerciseType.Squat to 0.8, ExerciseType.PushUp to 0.7, ExerciseType.JumpingJack to 0.4, ExerciseType.Plank to 0.9, ExerciseType.ArmRaise to 0.5,
+            ExerciseType.HighKnees to 0.25, ExerciseType.SitUp to 0.8, ExerciseType.Lunge to 0.8, ExerciseType.GluteBridge to 0.8,
+            ExerciseType.MountainClimber to 0.25, ExerciseType.Burpee to 1.2, ExerciseType.WallSit to 0.9, ExerciseType.SidePlank to 0.9,
+        ), paces)
+        assertEquals(16_000L, ExerciseType.Lunge.minimumMillis(20))
+        assertEquals(12_000L, ExerciseType.Burpee.minimumMillis(10))
+        assertEquals(18_000L, ExerciseType.SidePlank.minimumMillis(20))
+        assertEquals(listOf("Lunges", "Glute bridges", "Mountain climbers", "Burpees", "Wall sit", "Side plank"), ExerciseType.entries.drop(7).map { it.serverName })
     }
 
     @Test fun `the counter favours the side the camera sees`() {
@@ -373,5 +388,95 @@ class RepCounterTest {
         assertEquals(1, sag.formFaults)
         val pike = plankFrame(true, hipY = 0.48f)
         assertEquals("Lower your hips into a straight line.", counter.update(Pose(pike, 5_000L)).cue)
+    }
+
+    // Measured in space: MediaPipe's world landmarks, as real phones give them (Bodies builds them), and real noise.
+
+    private fun playBody(
+        type: ExerciseType, bodies: List<Map<Int, Bodies.P>>, yaw: Float, depth: Boolean = true, stepMs: Long = frameMs,
+        counter: RepCounter = RepCounter(type), smoother: PoseSmoother? = null, noise: Float = 0f,
+    ): CounterState {
+        val random = Random(7)
+        var state = CounterState()
+        bodies.forEachIndexed { i, b ->
+            val raw = Bodies.pose(b, i * stepMs, yaw, depth, noise = noise, random = random)
+            state = counter.update(smoother?.smooth(raw) ?: raw)
+        }
+        return state
+    }
+
+    @Test fun `a squat seen from the front counts when measured in space, and never did across the picture`() {
+        val frames = cycles(178f, 90f, 5).map(Bodies::squat)
+        assertEquals(5, playBody(ExerciseType.Squat, frames, yaw = 0f).count)
+        // Across the picture the knees come toward the camera and the legs look straight: nothing counted.
+        assertEquals(0, playBody(ExerciseType.Squat, frames, yaw = 0f, depth = false).count)
+    }
+
+    @Test fun `squats count the same side-on and at 45 degrees either way`() {
+        val frames = cycles(178f, 92f, 4).map(Bodies::squat)
+        listOf(90f, 45f, -45f, 135f).forEach { yaw -> assertEquals("yaw $yaw", 4, playBody(ExerciseType.Squat, frames, yaw).count) }
+    }
+
+    @Test fun `a half squat seen from the front doesn't count, and says go lower`() {
+        val state = playBody(ExerciseType.Squat, cycles(178f, 128f, 3).map(Bodies::squat), yaw = 0f)
+        assertEquals(0, state.count)
+        assertEquals(3, state.formFaults)
+        assertEquals("Go lower: hips down toward knee height.", state.cue)
+    }
+
+    @Test fun `swinging a leg on a chair is still not a squat, from the front, the side or at an angle`() {
+        val frames = cycles(172f, 90f, 4).map(Bodies::chair)
+        listOf(0f, 45f, 90f).forEach { yaw -> assertEquals("yaw $yaw", 0, playBody(ExerciseType.Squat, frames, yaw).count) }
+    }
+
+    @Test fun `jitter in the model doesn't fake or drop reps once smoothed`() {
+        // Thirty frames a second, every joint shaking by up to 2.5 cm a frame. Two-second squats, a hold at the bottom
+        // hovering around the active edge, and a pause standing that hovers around the rest edge.
+        fun rep(): List<Float> = (0 until 30).map { 178f - 86f * (1 - cos(PI * it / 30)).toFloat() / 2 } + List(20) { 98f + 6f * sin(it.toFloat()) } +
+            (0 until 30).map { 92f + 86f * (1 - cos(PI * it / 30)).toFloat() / 2 } + List(20) { 162f + 5f * sin(it * 1.7f) }
+        val frames = (List(10) { 178f } + List(6) { rep() }.flatten() + List(15) { 178f }).map(Bodies::squat)
+        val smoothed = playBody(ExerciseType.Squat, frames, yaw = 30f, stepMs = 33, smoother = PoseSmoother(), noise = 0.025f)
+        assertEquals(6, smoothed.count)
+        assertEquals(0, smoothed.fastReps)
+        // The smoother keeps a still body still: standing jitter never crosses into a rep.
+        val still = playBody(ExerciseType.Squat, List(300) { Bodies.standing() }, yaw = 0f, stepMs = 33, smoother = PoseSmoother(), noise = 0.03f)
+        assertEquals(0, still.count + still.formFaults)
+    }
+
+    @Test fun `the smoother follows a quick movement without shaving its depth`() {
+        val smoother = PoseSmoother()
+        // A wrist dropping 0.4 of the picture in a quarter of a second, at 30 frames a second.
+        val ys = (0..20).map { if (it < 5) 0.2f else if (it < 13) 0.2f + 0.05f * (it - 5) else 0.6f }
+        val out = ys.mapIndexed { i, y ->
+            val points = MutableList(Pose.COUNT) { Landmark(0.5f, 0.5f) }.also { it[L_WRIST] = Landmark(0.5f, y) }
+            smoother.smooth(Pose(points, i * 33L))!![L_WRIST].y
+        }
+        assertTrue("caught up: ${out.last()}", out.last() > 0.58f)
+        // And it still steadies a twitching joint.
+        val twitch = (0..60).map { i -> smoother.smooth(Pose(MutableList(Pose.COUNT) { Landmark(0.5f, if (i % 2 == 0) 0.60f else 0.62f) }, 700 + i * 33L))!![0].y }
+        val spread = twitch.drop(30).let { it.max() - it.min() }
+        assertTrue("spread $spread", spread < 0.01f)
+    }
+
+    @Test fun `someone whose legs never read straight counts once calibrated, and a quarter squat never does`() {
+        // Standing with soft knees: 152 degrees, never back in the default rest zone (160).
+        val soft = cycles(152f, 92f, 4).map(Bodies::squat)
+        assertEquals(0, playBody(ExerciseType.Squat, soft, yaw = 90f).count)
+        assertEquals(4, playBody(ExerciseType.Squat, soft, yaw = 90f, counter = RepCounter(ExerciseType.Squat).apply { calibrate(152f) }).count)
+        // Calibrated to very straight legs, a squat to 120 still isn't deep enough; the edges stay within bounds.
+        val tall = RepCounter(ExerciseType.Squat).apply { calibrate(179f) }
+        assertEquals(108f, tall.zones.active)
+        assertEquals(165f, tall.zones.rest)
+        assertEquals(0, playBody(ExerciseType.Squat, cycles(179f, 120f, 3).map(Bodies::squat), yaw = 90f, counter = tall).count)
+        assertEquals(148f, RepCounter(ExerciseType.Squat).apply { calibrate(110f) }.zones.rest)
+        // Holds don't move.
+        assertEquals(1f, RepCounter(ExerciseType.Plank).apply { calibrate(0.3f) }.zones.active)
+    }
+
+    @Test fun `a push-up with elbows that don't lock out counts once calibrated`() {
+        // Top of the push-up at 142 degrees: under the default rest edge (150).
+        val frames = cycles(142f, 82f, 3).map(::pushingUp)
+        assertEquals(0, play(RepCounter(ExerciseType.PushUp), frames).count)
+        assertEquals(3, play(RepCounter(ExerciseType.PushUp).apply { calibrate(142f) }, frames).count)
     }
 }

@@ -20,9 +20,12 @@ Every in-app notification is also pushed to the recipient's phones. Nothing that
   Apps from before this read the same data (`title`, `body`) and show it as they always did.
 - **Alarms** (`exerciseDue`) are high priority on the `alarms` channel so the app can open its full-screen alarm, and go
   out only while the 30-minute window is open. **Partner alerts** (`message`, `gameInvite`, `gameTurn`,
-  `exerciseCompleted`, `exerciseCallOffAsked`; `PushPolicy.IsPartnerAlert`) are high priority on the `partner` channel;
+  `exerciseCompleted`, `exerciseCallOffAsked`, `exerciseStarted`; `PushPolicy.IsPartnerAlert`) are high priority on the `partner` channel;
   the rest are normal priority on `general`, and anything in quiet hours is normal priority on `quiet`. Chat-like
   types expire after an hour, the rest after a day.
+- `exerciseStarted` ("Maya started their squats", data `{ occurrenceId, exercise }`, once per dare, not sent when the
+  partner already has the live view open) is a partner alert that expires after 10 minutes; a tap or its Watch live
+  action opens the live view of that dare (`docs/couple-goals.md`, Watching live).
 - **Dead tokens** (FCM `UNREGISTERED`, `SENDER_ID_MISMATCH`) disable the device. `INVALID_ARGUMENT` fails the message
   without punishing the device. Quota, outage and network errors retry.
 - Rows that existed before this feature were marked `skipped` by the upgrade, and while push is off the worker settles

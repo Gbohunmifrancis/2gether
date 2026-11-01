@@ -15,7 +15,7 @@ using Twogether.Shared.Localization;
 namespace Twogether.Api.Hubs;
 
 [Authorize]
-public sealed class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections, LocationSharingStopper locationStopper, LocationFixThrottle fixThrottle, GameInkGate inkGate) : Hub
+public sealed partial class CoupleHub(IApplicationDbContext db, ICurrentUser currentUser, IDateTimeProvider clock, CouplePresenceTracker presence, GameLiveState liveState, HubConnectionRegistry connections, LocationSharingStopper locationStopper, LocationFixThrottle fixThrottle, GameInkGate inkGate, ExerciseLiveGate exerciseLive) : Hub
 {
     public static string GroupName(Guid coupleId) => $"couple-{coupleId:N}";
     public static string UserGroupName(Guid userId) => $"user-{userId:N}";

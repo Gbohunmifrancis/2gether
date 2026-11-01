@@ -56,14 +56,15 @@ midnight. The single exception is the offline rule in the frontend section.
 ### Enums (`Enums/`)
 
 ```csharp
-public enum ExerciseType { Squat, PushUp, JumpingJack, Plank, ArmRaise, HighKnees, SitUp }
+public enum ExerciseType { Squat, PushUp, JumpingJack, Plank, ArmRaise, HighKnees, SitUp, Lunge, GluteBridge, MountainClimber, Burpee, WallSit, SidePlank }
 public enum ExerciseMeasure { Reps, Seconds }
 public enum ExerciseOccurrenceStatus { Alarming, InProgress, Completed, Missed, Cancelled }
 ```
 
-`NotificationType` gains: `ExerciseDue, ExerciseCompleted, ExerciseMissed, ExerciseCancelled, ExerciseGoalChanged, ExerciseCallOffAsked`. `ExerciseCallOffAsked` is in the `Exercise` category (can be muted, general channel, 1-hour push TTL); only `ExerciseDue` is an alarm.
+`NotificationType` gains: `ExerciseDue, ExerciseCompleted, ExerciseMissed, ExerciseCancelled, ExerciseGoalChanged, ExerciseCallOffAsked` and, at the end of the enum, `ExerciseStarted`. `ExerciseCallOffAsked` is in the `Exercise` category (can be muted, general channel, 1-hour push TTL); `ExerciseStarted` too, with a 10-minute TTL (see Watching live); only `ExerciseDue` is an alarm.
 
-Wire form (camelCase strings): `squat, pushUp, jumpingJack, plank, armRaise, highKnees, sitUp`;
+Wire form (camelCase strings): `squat, pushUp, jumpingJack, plank, armRaise, highKnees, sitUp, lunge, gluteBridge, mountainClimber, burpee, wallSit, sidePlank`
+(stored as strings, so new values need no migration);
 `reps, seconds`; `alarming, inProgress, completed, missed, cancelled`.
 
 ### `Exercise/ExerciseCatalog.cs` (pure, static)
@@ -89,6 +90,12 @@ Values (the client mirrors these exactly in `lib/exercise/catalog.ts`):
 | ArmRaise | Overhead arm raises | Reps | 15 | 1 | 300 | 0.5 |
 | HighKnees | High knees | Reps | 30 | 1 | 400 | 0.25 |
 | SitUp | Sit-ups | Reps | 10 | 1 | 200 | 0.8 |
+| Lunge | Lunges | Reps (each leg) | 20 | 1 | 200 | 0.8 |
+| GluteBridge | Glute bridges | Reps | 15 | 1 | 200 | 0.8 |
+| MountainClimber | Mountain climbers | Reps (each knee) | 30 | 1 | 400 | 0.25 |
+| Burpee | Burpees | Reps | 10 | 1 | 100 | 1.2 |
+| WallSit | Wall sit | Seconds | 30 | 5 | 600 | 0.9 |
+| SidePlank | Side plank | Seconds | 20 | 5 | 300 | 0.9 |
 
 Rep minimums are deliberately at or below what the client counter can physically
 produce (two debounced phase changes per rep), so the server never rejects a count
@@ -343,6 +350,43 @@ Caller must be the occurrence's assigned user and the occurrence must be `InProg
 `RecordProgress`, swallows `DbUpdateConcurrencyException`, then sends `ExerciseProgress`
 (`ExerciseProgressDto`) to `OthersInGroup(couple)`.
 
+### Watching live (`Hubs/CoupleHub.ExerciseLive.cs`, `Realtime/ExerciseLiveGate.cs`)
+
+While one partner does a dare on camera, the other can watch it: a stick figure, never video.
+
+```csharp
+public Task<bool> ExerciseLive(Guid occurrenceId, int count, string phase, string? cue, int aspect, int[] joints)
+public Task<bool> WatchExercise(Guid occurrenceId, bool watching)
+public Task<bool> CheerExercise(Guid occurrenceId, string cheer)
+public sealed record ExerciseLiveDto(Guid OccurrenceId, Guid UserId, ExerciseType ExerciseType, int Target, int Count, string Phase, string? Cue, int Aspect, int[] Joints);
+public sealed record ExerciseWatchingDto(Guid OccurrenceId, Guid UserId, string UserName, bool Watching);
+public sealed record ExerciseCheerDto(Guid OccurrenceId, Guid UserId, string UserName, string Cheer);
+```
+
+- **What leaves the phone.** While getting set and counting, about 8 times a second: the 13 joints the stick figure
+  is drawn from (nose, shoulders, elbows, wrists, hips, knees, ankles) in the picture, as whole numbers (x then y in
+  thousandths, -1 for a joint the camera can't see; none at all when nobody is in the picture), the count, the
+  coach's phase (`setup`, `countdown`, `counting`, `done`), a cue code (`setup.TurnSideways`, `count.2`,
+  `tip.Shallow`, `checkIn.RaiseLeft`: letters, digits and dots only, never free text; the partner's phone says it in
+  its own language) and the picture's width over height in thousandths. No picture, no world landmarks, no face.
+- **`ExerciseLive`.** The caller must be the dare's assignee in their own active couple, with the occurrence
+  `inProgress` (the camera started it) and `CompleteByUtc` still ahead. The frame is relayed to the partner's user
+  group only, with the exercise and target taken from the server's occurrence. Malformed frames are dropped
+  (`ExerciseLiveRules.IsValid`: count 0..10000, a known phase, a cue code of at most 48 characters, aspect 200..5000,
+  0 or 26 numbers each -1..1000 in pairs). At most 10 frames a second per person (the app sends 8); who may send for
+  which dare is remembered for 3 seconds so frames don't each query the database. **Frames are never stored or
+  logged.**
+- **`WatchExercise`.** From the partner of the assignee, while the dare rings or is in progress (closing is always
+  passed on); relayed to the assignee only, so their camera shows "{partner} is watching". The live view repeats it
+  every 10 seconds; the camera forgets a watcher after 25 seconds without one. At most 6 per person in 10 seconds.
+- **`CheerExercise`.** `heart`, `gotThis` or `almostThere`, from the partner while the dare is in progress, to the
+  assignee only; at most 5 per person in 10 seconds (the app allows one a second).
+- **`ExerciseStarted` push.** The first `counting` frame of a dare creates `Notification(ExerciseStarted)` for the
+  partner, in their language: "{name} started their {exercise}", "Watch live and cheer them on.", data
+  `{ occurrenceId, exercise }`. At most once per occurrence (remembered in memory and checked against the
+  notifications table), and not at all when the partner already has the live view open. The app opens the live view
+  from it.
+
 ### `Background/ExerciseAlarmWorker.cs`
 
 Same shape as `GameTimeoutWorker`, 1-second `PeriodicTimer`. Database guard: on startup
@@ -384,6 +428,9 @@ Register with `AddHostedService<ExerciseAlarmWorker>()` in `Program.cs`.
 | `ExerciseCancelled` | `ExerciseOccurrenceDto` |
 | `ExerciseCallOffAsked` | `ExerciseOccurrenceDto` |
 | `ExerciseGoalsChanged` | `ExerciseGoalDto[]` (active goals) |
+| `ExerciseLive` | `ExerciseLiveDto` (the partner's user group only; see Watching live) |
+| `ExerciseWatching` | `ExerciseWatchingDto` (the exerciser's user group only) |
+| `ExerciseCheer` | `ExerciseCheerDto` (the exerciser's user group only) |
 | `NotificationCreated` | existing `NotificationDto` (user group) |
 
 ## Frontend (`frontend/src`)
@@ -587,4 +634,5 @@ The Android app (`android/`) keeps the server in charge of timers and state:
 - "Silence on this phone" is local only: the occurrence stays open until its deadline, as Play policy requires a local dismiss.
 - From Today, before a dare rings, the app calls `POST goals/{id}/start-early` to do it early; completing it (or the partner's call-off) moves `NextDueAtUtc` to tomorrow, so the next refresh drops today's alarm.
 - Rep counting runs on the device. The app calls `start`, counts with the pose model, holds the finish until `MinSecondsPerUnit × target` has passed, then calls `complete` with the count and the mean landmark visibility as `confidence`.
+- Watching live: while the camera runs the app sends the stick figure (above) through the hub; the partner's Today offers "Watch live" on the ringing or in-progress dare, and the live view draws the figure gliding between frames, the count, the phase, the coach's cue, and sends cheers. Both screens say "Only the stick figure is shared, never the camera".
 

@@ -8,5 +8,11 @@ public enum ExerciseType
     Plank,
     ArmRaise,
     HighKnees,
-    SitUp
+    SitUp,
+    Lunge,
+    GluteBridge,
+    MountainClimber,
+    Burpee,
+    WallSit,
+    SidePlank
 }

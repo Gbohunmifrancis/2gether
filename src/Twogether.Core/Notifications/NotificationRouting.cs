@@ -17,7 +17,7 @@ public static class NotificationRouting
         NotificationType.Message => NotificationCategory.Messages,
         NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.GameEnded or NotificationType.GameTurn => NotificationCategory.Games,
         NotificationType.ExerciseCompleted or NotificationType.ExerciseMissed or NotificationType.ExerciseCancelled or NotificationType.ExerciseGoalChanged
-            or NotificationType.ExerciseCallOffAsked or NotificationType.ExercisePausedByPlan => NotificationCategory.Exercise,
+            or NotificationType.ExerciseCallOffAsked or NotificationType.ExercisePausedByPlan or NotificationType.ExerciseStarted => NotificationCategory.Exercise,
         // The weekly recap leads with the week's hearts and dares, so it goes (and is switched off) with exercise updates.
         NotificationType.WeeklyRecap => NotificationCategory.Exercise,
         NotificationType.CycleUpdated or NotificationType.CycleShared => NotificationCategory.Cycle,

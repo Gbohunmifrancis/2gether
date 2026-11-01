@@ -1,6 +1,7 @@
 package app.heartpact.exercise
 
 import app.heartpact.i18n.tr
+import kotlin.math.hypot
 
 /** Where a workout is: getting into the start position, counting down, or counting. */
 enum class CoachPhase { Setup, Countdown, Counting }
@@ -16,6 +17,8 @@ data class CoachState(
     val countdown: Int? = null,
     /** While getting set: whether the whole body is in the picture. */
     val inFrame: Boolean = false,
+    /** [cue] as a [LiveCues] code, for the partner's live view to say in their own language. */
+    val code: String? = null,
 )
 
 /** One frame's coaching: the state to show, and a line to say out loud now, if any. */
@@ -23,10 +26,12 @@ data class CoachTick(val state: CoachState, val speak: String? = null)
 
 /**
  * The voice coach (docs/exercise-checks.md, Getting set). Before anything counts it talks the person into the exercise's start
- * position: in the picture, turned the right way for the camera (side-on for squats, push-ups, sit-ups and planks; facing
- * it for the rest) and in the start pose. Held there for a moment, it counts down "3, 2, 1, Go!" and only then does the
- * rep counter start. While counting it says each rep (every ten seconds of a plank), a form tip when one comes up, and
- * asks the person back into the picture if they leave it.
+ * position: in the picture, turned the right way for the camera ([ExerciseType.view]: side-on for push-ups, sit-ups and
+ * planks; facing it for arm raises and jumping jacks; any angle for squats and lunges when the model measures in space)
+ * and in the start pose. Held there for a moment, it counts down "3, 2, 1, Go!" and only then does the rep counter
+ * start. While the person holds still for the countdown it reads their own start position ([calibration]), which the
+ * counter's zones are fitted to. While counting it says each rep (every five of fast ones, every ten seconds of a hold),
+ * a form tip when one comes up, and asks the person back into the picture if they leave it.
  *
  * Pure and driven by frame time, so it can be played through in tests; the screen speaks [CoachTick.speak].
  */
@@ -46,6 +51,8 @@ class PoseCoach(
     private var lastSaidAtMs = Long.MIN_VALUE / 2
     private var pendingCue: String? = null
     private var pendingSinceMs = 0L
+    // The start position as the person holds it, for calibrating the counter.
+    private val starts = ArrayList<Float>()
     // Counting.
     private var lastCount = 0
     private var lastTip: String? = null
@@ -54,6 +61,13 @@ class PoseCoach(
     private var finished = false
 
     val counting: Boolean get() = phase == CoachPhase.Counting
+
+    /**
+     * What this person's body read in the start position, held still through the countdown (the median, so a blurred
+     * frame doesn't move it). Null until "Go!", and for exercises whose zones don't move. Hand it to [RepCounter.calibrate].
+     */
+    var calibration: Float? = null
+        private set
 
     /** Straight to counting, as if "Go!" had been said: for tests of what it says while counting. */
     internal fun skipToCounting() { phase = CoachPhase.Counting }
@@ -70,28 +84,36 @@ class PoseCoach(
         if (pose == null) return SetupIssue.NoBody
         val check = probe.readiness(pose)
         if (check.readiness == Readiness.OutOfView) return SetupIssue.StepBack
-        val turn = turn(pose)
-        if (type.sideOn && turn > SIDE_ON_MAX) return SetupIssue.TurnSideways
-        if (!type.sideOn && turn < FACING_MIN) return SetupIssue.FaceCamera
+        turnIssue(pose)?.let { return it }
         return if (check.readiness == Readiness.Ready) null else SetupIssue.StartPosition
+    }
+
+    private fun turnIssue(pose: Pose): SetupIssue? = when (type.view) {
+        CameraView.SideOn -> if (sideOn(pose)) null else SetupIssue.TurnSideways
+        CameraView.Facing -> if (facing(pose)) null else SetupIssue.FaceCamera
+        // Measured in space, any angle shows the knees bend; across the picture only side-on does.
+        CameraView.Either -> if (pose.hasDepth || sideOn(pose)) null else SetupIssue.TurnSideways
     }
 
     private fun setup(pose: Pose?, nowMs: Long): CoachTick {
         val issue = issue(pose)
         if (issue == null) {
-            val since = readySinceMs ?: nowMs.also { readySinceMs = it }
+            val since = readySinceMs ?: nowMs.also { readySinceMs = it; starts.clear() }
+            remember(pose)
             if (nowMs - since >= readyHoldMs) {
                 phase = CoachPhase.Countdown
                 countdownStartMs = nowMs
                 lastCountdownSaid = -1
                 missSinceMs = null
-                return CoachTick(CoachState(CoachPhase.Countdown, tr("Perfect. Hold it there."), COUNT_FROM, inFrame = true), say(tr("Perfect. Hold it there."), nowMs))
+                val cue = tr("Perfect. Hold it there.")
+                return CoachTick(CoachState(CoachPhase.Countdown, cue, COUNT_FROM, inFrame = true, code = LiveCues.countdown(COUNT_FROM)), say(cue, nowMs))
             }
-            return CoachTick(CoachState(CoachPhase.Setup, tr("That's it. Hold still."), inFrame = true))
+            return CoachTick(CoachState(CoachPhase.Setup, tr("That's it. Hold still."), inFrame = true, code = LiveCues.READY))
         }
         readySinceMs = null
-        val cue = message(issue, pose)
-        return CoachTick(CoachState(CoachPhase.Setup, cue, inFrame = issue.inFrame), settle(cue, nowMs))
+        val fault = startFault(issue, pose)
+        val cue = message(issue, fault)
+        return CoachTick(CoachState(CoachPhase.Setup, cue, inFrame = issue.inFrame, code = LiveCues.setup(issue, fault)), settle(cue, nowMs))
     }
 
     private fun countdown(pose: Pose?, nowMs: Long): CoachTick {
@@ -102,19 +124,36 @@ class PoseCoach(
                 // Moved out of position before "Go": back to getting set, saying what to fix.
                 phase = CoachPhase.Setup
                 readySinceMs = null
-                val cue = message(issue, pose)
+                starts.clear()
+                val fault = startFault(issue, pose)
+                val cue = message(issue, fault)
                 pendingCue = cue; pendingSinceMs = nowMs
-                return CoachTick(CoachState(CoachPhase.Setup, cue, inFrame = issue.inFrame), say(cue, nowMs))
+                return CoachTick(CoachState(CoachPhase.Setup, cue, inFrame = issue.inFrame, code = LiveCues.setup(issue, fault)), say(cue, nowMs))
             }
-        } else missSinceMs = null
+        } else {
+            missSinceMs = null
+            remember(pose)
+        }
         val elapsed = nowMs - countdownStartMs - LEAD_MS
         if (elapsed >= COUNT_FROM * TICK_MS) {
             phase = CoachPhase.Counting
-            return CoachTick(CoachState(CoachPhase.Counting), say(if (type.measure == Measure.Seconds) tr("Go! Hold the line.") else tr("Go!"), nowMs))
+            calibration = starts.takeIf { it.isNotEmpty() }?.sorted()?.let { it[it.size / 2] }
+            return CoachTick(CoachState(CoachPhase.Counting), say(go(), nowMs))
         }
         val shown = if (elapsed < 0) COUNT_FROM else COUNT_FROM - (elapsed / TICK_MS).toInt()
         val speak = if (elapsed >= 0 && shown != lastCountdownSaid) { lastCountdownSaid = shown; say("$shown", nowMs) } else null
-        return CoachTick(CoachState(CoachPhase.Countdown, tr("Hold it there."), shown, inFrame = issue?.inFrame ?: true), speak)
+        return CoachTick(CoachState(CoachPhase.Countdown, tr("Hold it there."), shown, inFrame = issue?.inFrame ?: true, code = LiveCues.countdown(shown)), speak)
+    }
+
+    private fun remember(pose: Pose?) {
+        if (pose == null || starts.size >= MAX_STARTS) return
+        probe.startReading(pose)?.let { starts += it }
+    }
+
+    private fun go(): String = when (type) {
+        ExerciseType.Plank, ExerciseType.SidePlank -> tr("Go! Hold the line.")
+        ExerciseType.WallSit -> tr("Go! Hold it.")
+        else -> tr("Go!")
     }
 
     private fun count(counter: CounterState, nowMs: Long): CoachTick {
@@ -127,9 +166,9 @@ class PoseCoach(
         if (counter.count > lastCount) {
             val previous = lastCount
             lastCount = counter.count
-            val say = if (type.measure == Measure.Seconds) {
-                (counter.count / 10).takeIf { it > previous / 10 }?.let { "${it * 10}" }
-            } else "${counter.count}"
+            // Out loud: every rep; every few of the quick ones (high knees, mountain climbers), which a voice can't keep up with; every ten seconds of a hold.
+            val every = if (type.measure == Measure.Seconds) 10 else if (type.minSecondsPerUnit < FAST_PACE) 5 else 1
+            val say = (counter.count / every).takeIf { it > previous / every }?.let { "${it * every}" }
             if (say != null) return CoachTick(state, say(say, nowMs))
         }
         val tip = counter.cue
@@ -143,7 +182,7 @@ class PoseCoach(
             val since = outSinceMs ?: nowMs.also { outSinceMs = it }
             if (!askedBack && nowMs - since >= OUT_MS) {
                 askedBack = true
-                return CoachTick(state, say(message(SetupIssue.StepBack, null), nowMs))
+                return CoachTick(state, say(message(SetupIssue.StepBack), nowMs))
             }
         }
         return CoachTick(state)
@@ -161,25 +200,24 @@ class PoseCoach(
 
     private fun say(text: String, nowMs: Long): String { lastSaid = text; lastSaidAtMs = nowMs; return text }
 
-    /** The instruction for [issue], in the person's language. */
-    fun message(issue: SetupIssue, pose: Pose?): String = when (issue) {
+    /** The fault behind a start-position instruction (a plank's hips too low), when there is one. */
+    private fun startFault(issue: SetupIssue, pose: Pose?): FaultKind? =
+        if (issue == SetupIssue.StartPosition && pose != null) probe.readiness(pose).fault else null
+
+    /** The instruction for [issue], in the person's language; [fault] says what's off about the start position. */
+    fun message(issue: SetupIssue, fault: FaultKind? = null): String = when (issue) {
         SetupIssue.NoBody -> if (type.onFloor) tr("Prop the phone on the floor a couple of metres away, side-on, and get in the picture.")
             else tr("Step in front of the camera so it can see you.")
         SetupIssue.StepBack -> if (type.onFloor) tr("Move the phone further away so your whole body is in the picture.")
             else tr("Step back so your whole body is in the picture.")
         SetupIssue.TurnSideways -> tr("Turn side-on to the camera.")
         SetupIssue.FaceCamera -> tr("Turn to face the camera.")
-        SetupIssue.StartPosition -> start(pose)
+        SetupIssue.StartPosition -> start(fault)
     }
 
-    private fun start(pose: Pose?): String {
-        if (type == ExerciseType.Plank) {
-            when (pose?.let { probe.readiness(it).fault }) {
-                FaultKind.HipsLow -> return tr("Lift your hips into a straight line.")
-                FaultKind.HipsHigh -> return tr("Lower your hips into a straight line.")
-                else -> Unit
-            }
-        }
+    private fun start(fault: FaultKind?): String {
+        // A hold's start is the hold itself: say which way to move (hips up or down, down to level, back to the wall).
+        if (fault == FaultKind.HipsLow || fault == FaultKind.HipsHigh || (type == ExerciseType.WallSit && fault == FaultKind.Posture)) return FormCues.message(type, fault)
         return when (type) {
             ExerciseType.Squat -> tr("Stand up tall with your feet apart.")
             ExerciseType.PushUp -> tr("Get into the top of a push-up: arms straight, body in one line.")
@@ -188,19 +226,13 @@ class PoseCoach(
             ExerciseType.ArmRaise -> tr("Stand tall with your arms down by your sides.")
             ExerciseType.JumpingJack -> tr("Stand tall, feet together and arms by your sides.")
             ExerciseType.HighKnees -> tr("Stand tall with both feet on the floor.")
+            ExerciseType.Lunge -> tr("Stand tall with your feet together.")
+            ExerciseType.GluteBridge -> tr("Lie on your back, knees bent and feet flat on the floor.")
+            ExerciseType.MountainClimber -> tr("Get into a high plank: arms straight, body in one line.")
+            ExerciseType.Burpee -> tr("Stand up tall, feet apart.")
+            ExerciseType.WallSit -> tr("Back against a wall, then slide down until your thighs are level.")
+            ExerciseType.SidePlank -> tr("Lie on your side facing the camera, up on one forearm, hips lifted.")
         }
-    }
-
-    /**
-     * How square to the camera the body is: shoulder width over torso length. Facing the camera it is about 0.7; side-on
-     * the shoulders line up and it falls toward 0.
-     */
-    private fun turn(pose: Pose): Float {
-        val shoulders = pose.distance(Pose.L_SHOULDER, Pose.R_SHOULDER)
-        val midShoulder = Landmark((pose[Pose.L_SHOULDER].x + pose[Pose.R_SHOULDER].x) / 2, (pose[Pose.L_SHOULDER].y + pose[Pose.R_SHOULDER].y) / 2)
-        val midHip = Landmark((pose[Pose.L_HIP].x + pose[Pose.R_HIP].x) / 2, (pose[Pose.L_HIP].y + pose[Pose.R_HIP].y) / 2)
-        val torso = Pose(listOf(midShoulder, midHip), 0, pose.aspect).distance(0, 1).coerceAtLeast(1e-3f)
-        return shoulders / torso
     }
 
     companion object {
@@ -218,17 +250,49 @@ class PoseCoach(
         const val TIP_GAP_MS = 1_200L
         /** Out of the picture this long while counting, the coach asks the person back. */
         const val OUT_MS = 2_500L
-        /** Side-on exercises: at most this much shoulder width per torso length (about 45 degrees from side-on). */
+        /** Exercises quicker than this many seconds a rep are counted aloud every five. */
+        const val FAST_PACE = 0.3
+        /** Readings of the start position kept for the median. */
+        const val MAX_STARTS = 120
+        /** Measured across the picture, side-on: at most this much shoulder width per torso length (about 45 degrees from side-on). */
         const val SIDE_ON_MAX = 0.5f
         /** Facing exercises: at least this much. */
         const val FACING_MIN = 0.35f
+        /** Measured in space, side-on: at most this share of the shoulder line lies across the picture (45 degrees). */
+        const val SIDE_ON_SQUARE_MAX = 0.71f
+        /** Facing: at least this share (60 degrees). */
+        const val FACING_SQUARE_MIN = 0.5f
+        /** Facing, in space: at least this share of the trunk lies across the picture. */
+        const val TRUNK_ACROSS_MIN = 0.6f
+
+        /**
+         * How square to the camera the body is. In space: the share of the line between the shoulders that lies across the
+         * picture rather than toward the camera (1 facing it, 0 side-on), whatever the body's height or whether it lies
+         * down. Across the picture: shoulder width over torso length (facing about 0.7, falling toward 0 side-on).
+         */
+        fun squareness(pose: Pose): Float {
+            if (pose.hasDepth) {
+                val d = pose.at(Pose.R_SHOULDER) - pose.at(Pose.L_SHOULDER)
+                return if (d.length < 1e-6f) 0f else hypot(d.x, d.y) / d.length
+            }
+            val shoulders = pose.pictureDistance(Pose.L_SHOULDER, Pose.R_SHOULDER)
+            val mx = (pose[Pose.L_SHOULDER].x + pose[Pose.R_SHOULDER].x - pose[Pose.L_HIP].x - pose[Pose.R_HIP].x) / 2 * pose.aspect
+            val my = (pose[Pose.L_SHOULDER].y + pose[Pose.R_SHOULDER].y - pose[Pose.L_HIP].y - pose[Pose.R_HIP].y) / 2
+            return shoulders / hypot(mx, my).coerceAtLeast(1e-3f)
+        }
+
+        fun sideOn(pose: Pose) = squareness(pose) <= if (pose.hasDepth) SIDE_ON_SQUARE_MAX else SIDE_ON_MAX
+
+        /**
+         * Square to the camera, and (measured in space) with the trunk across the picture rather than pointing at the
+         * camera: a side plank lying head-first toward the phone has its shoulders stacked like one facing it.
+         */
+        fun facing(pose: Pose): Boolean {
+            if (!pose.hasDepth) return squareness(pose) >= FACING_MIN
+            val trunk = pose.mid(Pose.L_SHOULDER, Pose.R_SHOULDER) - pose.mid(Pose.L_HIP, Pose.R_HIP)
+            return squareness(pose) >= FACING_SQUARE_MIN && (trunk.length < 1e-6f || hypot(trunk.x, trunk.y) / trunk.length >= TRUNK_ACROSS_MIN)
+        }
     }
 }
 
 private val SetupIssue.inFrame: Boolean get() = this != SetupIssue.NoBody && this != SetupIssue.StepBack
-
-/** Whether the camera should see this exercise from the side: its angles are only visible that way. */
-val ExerciseType.sideOn: Boolean get() = this == ExerciseType.Squat || this == ExerciseType.PushUp || this == ExerciseType.Plank || this == ExerciseType.SitUp
-
-/** Done on the floor, with the phone propped low. */
-val ExerciseType.onFloor: Boolean get() = this == ExerciseType.PushUp || this == ExerciseType.Plank || this == ExerciseType.SitUp

@@ -36,5 +36,28 @@ object PushInbox {
     fun refreshesHome(type: String?) = type == "plusStarted" || type == "locationShared" || type == "cycleShared" || type == "weeklyRecap"
 
     /** Kinds that change what Today shows, so an open Today refreshes at once. */
-    fun refreshesToday(type: String?) = type != null && type.startsWith("exercise") && type != "exerciseProgress"
+    fun refreshesToday(type: String?) = type != null && type.startsWith("exercise") && type != "exerciseProgress" && type !in LIVE
+
+    /** The live view's stream and its replies (hub only): nothing to refresh. */
+    private val LIVE = setOf("exerciseLive", "exerciseWatching", "exerciseCheer")
+
+    /** Not a tab: the partner's live view of a dare, `watch/{occurrenceId}`. */
+    const val WATCH = "watch/"
+
+    /**
+     * Where a tap on a notification goes: the live view for "exerciseStarted" (the partner started counting) when its data
+     * names the dare, else [tabFor].
+     */
+    fun openFor(type: String?, data: String?): String {
+        if (type == "exerciseStarted") occurrenceIdIn(data)?.let { return WATCH + it }
+        return tabFor(type)
+    }
+
+    /** The live view's dare from a [WATCH] target, or null for any other. */
+    fun watchedOccurrence(target: String?): String? = target?.takeIf { it.startsWith(WATCH) }?.removePrefix(WATCH)?.takeIf { ID.matches(it) }
+
+    private val ID = Regex("[0-9a-fA-F-]{36}")
+    private val OCCURRENCE = Regex("\"occurrenceId\"\\s*:\\s*\"([0-9a-fA-F-]{36})\"")
+
+    private fun occurrenceIdIn(data: String?): String? = data?.let { OCCURRENCE.find(it)?.groupValues?.get(1) }
 }

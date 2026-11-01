@@ -79,7 +79,8 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
 
     /** The couple hub. Its "something changed" events join [pushEvents], so screens refresh either way. */
     val live = LiveHub(baseUrl, session) { event ->
-        pushEvents.tryEmit(LiveHub.appName(event.name))
+        // The live view's frames are a stream of their own, never a reason to refresh.
+        if (event.name !in LiveHub.STREAM) pushEvents.tryEmit(LiveHub.appName(event.name))
         if (event.name == "NotificationCreated") app.heartpact.push.InAppNotice.fromHub(event.json)?.let { notices.tryEmit(it) }
     }
 

@@ -161,4 +161,56 @@ class PoseCoachTest {
         val said = (0..60).mapNotNull { coach.update(null, CounterState(count = 2, inFrame = false), it * 100L).speak }
         assertEquals(listOf("2", coach.message(SetupIssue.StepBack, null)), said)
     }
+
+    // Measured in space (world landmarks), the camera angle matters less.
+
+    @Test fun `measured in space, a squat or a lunge can be done facing the camera, floor exercises still turn side-on`() {
+        val front = Bodies.pose(Bodies.standing(), 0, yawDeg = 0f)
+        assertNull(PoseCoach(ExerciseType.Squat, 10).issue(front))
+        assertNull(PoseCoach(ExerciseType.Lunge, 10).issue(front))
+        // Across the picture alone, the squat still asks to turn.
+        assertEquals(SetupIssue.TurnSideways, PoseCoach(ExerciseType.Squat, 10).issue(Bodies.pose(Bodies.standing(), 0, yawDeg = 0f, depth = false)))
+        // A bridge seen from its feet, a plank seen head-on: turn side-on.
+        assertEquals(SetupIssue.TurnSideways, PoseCoach(ExerciseType.GluteBridge, 10).issue(Bodies.pose(Bodies.bridge(0f), 0, yawDeg = 0f)))
+        assertNull(PoseCoach(ExerciseType.GluteBridge, 10).issue(Bodies.pose(Bodies.bridge(0f), 0, yawDeg = 90f)))
+        assertNull(PoseCoach(ExerciseType.MountainClimber, 10).issue(Bodies.pose(Bodies.climber(175f, 175f), 0, yawDeg = 90f)))
+        // A side plank faces the camera.
+        assertNull(PoseCoach(ExerciseType.SidePlank, 20).issue(Bodies.pose(Bodies.sidePlank(), 0, yawDeg = 90f)))
+        assertNull(PoseCoach(ExerciseType.SidePlank, 20).issue(Bodies.pose(Bodies.sidePlank(), 0, yawDeg = 90f, depth = false)))
+        assertEquals(SetupIssue.FaceCamera, PoseCoach(ExerciseType.SidePlank, 20).issue(Bodies.pose(Bodies.sidePlank(), 0, yawDeg = 0f)))
+    }
+
+    @Test fun `the coach reads the start position while the person holds still, and the counter fits it`() {
+        // Soft knees: 152 degrees standing, under the default rest edge, still a fine start.
+        val coach = PoseCoach(ExerciseType.Squat, 4)
+        val counter = RepCounter(ExerciseType.Squat)
+        val soft = { at: Long -> Bodies.pose(Bodies.squat(152f), at, yawDeg = 30f) }
+        var t = 0L
+        while (!coach.counting && t < 10_000) { coach.update(soft(t), CounterState(), t); t += frameMs }
+        assertTrue(coach.counting)
+        assertEquals(152f, coach.calibration!!, 0.5f)
+        counter.calibrate(coach.calibration)
+        // Then four squats from that stance count.
+        val knees = List(4) { (0..8).map { 152f - 60f * it / 8f } + listOf(92f, 92f) + (8 downTo 0).map { 152f - 60f * it / 8f } + listOf(152f, 152f) }.flatten()
+        knees.forEach { knee -> counter.update(Bodies.pose(Bodies.squat(knee), t, yawDeg = 30f)); t += frameMs }
+        assertEquals(4, counter.state.count)
+    }
+
+    @Test fun `quick exercises are counted aloud every five, holds every ten seconds`() {
+        val coach = PoseCoach(ExerciseType.MountainClimber, 12)
+        coach.skipToCounting()
+        val said = (1..12).mapNotNull { coach.update(null, CounterState(count = it, inFrame = true), it * 300L).speak }
+        assertEquals(listOf("5", "10", "Done! Well done."), said)
+        val wall = PoseCoach(ExerciseType.WallSit, 25)
+        wall.skipToCounting()
+        assertEquals(listOf("10", "20", "Done! Well done."), (0..26).mapNotNull { wall.update(null, CounterState(count = it, inFrame = true), it * 1_000L).speak })
+    }
+
+    @Test fun `every new exercise has its own start line, and hold faults say which way to move`() {
+        val lines = ExerciseType.entries.map { PoseCoach(it, 10).message(SetupIssue.StartPosition) }
+        assertEquals(lines.size, lines.toSet().size)
+        assertEquals("Slide down until your thighs are level.", PoseCoach(ExerciseType.WallSit, 30).message(SetupIssue.StartPosition, app.heartpact.exercise.FaultKind.HipsHigh))
+        assertEquals("Keep your back flat against the wall.", PoseCoach(ExerciseType.WallSit, 30).message(SetupIssue.StartPosition, app.heartpact.exercise.FaultKind.Posture))
+        assertEquals("Lift your hips into a straight line.", PoseCoach(ExerciseType.SidePlank, 30).message(SetupIssue.StartPosition, app.heartpact.exercise.FaultKind.HipsLow))
+    }
 }
