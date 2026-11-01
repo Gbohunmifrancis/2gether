@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { actions, queries } from "../api/queries";
+import { BillingCheckCard } from "../components/BillingCheck";
 import { useConfirm, useToast } from "../components/feedback";
 import { useSession } from "../components/Shell";
 import { Badge, Card, ErrorState, LoadingCards, PageHead, Stat } from "../components/ui";
@@ -15,7 +16,7 @@ export function SystemPage() {
 
   return (
     <>
-      <PageHead title="System" sub="What's switched on, whether background work is keeping up, and who can sign in here." />
+      <PageHead title="System" sub="What's switched on, whether Plus can be sold, whether background work is keeping up, and who can sign in here." />
       {system.error ? (
         <ErrorState error={system.error} retry={() => void system.refetch()} />
       ) : system.isPending ? (
@@ -67,6 +68,8 @@ export function SystemPage() {
           </div>
         </>
       )}
+
+      <BillingCheckCard />
 
       <Card flush title="Admins" aside="Set by Admin__Emails on the server">
         {admins.error ? (

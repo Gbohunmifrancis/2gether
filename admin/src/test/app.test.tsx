@@ -3,7 +3,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
-import type { AdminSession, GameInsights, Page, UserDetail, UserRow } from "../api/types";
+import type { AdminSession, BillingCheck, GameInsights, Page, SystemStatus, UserDetail, UserRow } from "../api/types";
 import { getSession, setSession } from "../auth/session";
 
 type Handler = (method: string, path: string, body: unknown) => { status: number; body?: unknown } | undefined;
@@ -329,5 +329,94 @@ describe("the dashboard", () => {
     expect(await screen.findByRole("heading", { name: "Sign in" })).toBeTruthy();
     expect(app.router.state.location.pathname).toBe("/sign-in");
     expect(getSession()).toBeNull();
+  });
+
+  it("runs the billing check only on its button, shows the hints and the products, and re-runs for another country", async () => {
+    const user = userEvent.setup();
+    const system: SystemStatus = {
+      nowUtc: "2026-11-01T10:00:00Z",
+      features: [],
+      pushPending: 0,
+      pushSentToday: 0,
+      pushFailedToday: 0,
+      photosBeingDeleted: 0,
+      openGames: 0,
+      adminCount: 1,
+      tokenHours: 4,
+      currency: "USD",
+      monthlyPrices: {},
+    };
+    const check = (country: string): BillingCheck => ({
+      checkedAtUtc: "2026-11-01T10:00:00Z",
+      country,
+      googlePlay: {
+        configured: true,
+        provider: "googleplay",
+        packageName: "app.heartpact",
+        productIds: ["heartpact_plus_monthly", "heartpact_plus_yearly"],
+        error: null,
+        products: [
+          {
+            productId: "heartpact_plus_monthly",
+            found: true,
+            archived: false,
+            basePlans: [
+              {
+                basePlanId: "monthly",
+                state: "ACTIVE",
+                type: "autoRenewing",
+                billingPeriod: "P1M",
+                regionCount: 2,
+                regions: ["GB", "US"],
+                closedRegions: [],
+                prices: [
+                  { region: "GB", price: "GBP 3.99" },
+                  { region: "US", price: "USD 4.99" },
+                ],
+              },
+            ],
+            offers: [],
+            offersError: null,
+          },
+          { productId: "heartpact_plus_yearly", found: false, archived: false, basePlans: [], offers: [], offersError: null },
+        ],
+        extraProducts: ["heartpact_plus_yearley"],
+      },
+      bachs: { configured: false, mode: null, missing: ["Bachs__ApiKey"], bachsInApp: false, products: [] },
+      hints: [
+        { area: "googlePlay", level: "problem", text: `heartpact_plus_monthly isn't available in ${country === "NG" ? "Nigeria (NG)" : "the US"}.` },
+        { area: "bachs", level: "info", text: "Card payments (Bachs) are off until Bachs__ApiKey is set." },
+      ],
+    });
+    const calls = mockApi((method, path) => {
+      if (method !== "GET") return undefined;
+      if (path === "/api/admin/system") return { status: 200, body: system };
+      if (path === "/api/admin/admins") return { status: 200, body: [] };
+      const match = /^\/api\/admin\/billing\/check\?country=([A-Z]{2})$/.exec(path);
+      return match ? { status: 200, body: check(match[1]!) } : undefined;
+    });
+    act(() => setSession(admin));
+    start("/system");
+
+    const run = await screen.findByRole("button", { name: "Run check" });
+    expect(calls.some((call) => call.path.startsWith("/api/admin/billing"))).toBe(false);
+    await user.click(run);
+
+    const hints = await screen.findByRole("list", { name: "What to do" });
+    expect(hints.textContent).toContain("heartpact_plus_monthly isn't available in Nigeria (NG).");
+    expect(hints.textContent).toContain("Card payments (Bachs) are off");
+    expect(screen.getAllByRole("img", { name: "On sale in Nigeria: no" })).toHaveLength(2);
+    expect(screen.getAllByRole("img", { name: "Exists in Play Console: yes" })).toHaveLength(1);
+    expect(screen.getAllByRole("img", { name: "Exists in Play Console: no" })).toHaveLength(1);
+    expect(screen.getByText("heartpact_plus_yearley")).toBeTruthy();
+    expect(screen.getByText(/US USD 4\.99/)).toBeTruthy();
+
+    await user.selectOptions(screen.getByLabelText("Country"), "US");
+    expect(await screen.findByRole("img", { name: "On sale in United States: yes" })).toBeTruthy();
+    expect(screen.getByText("USD 4.99")).toBeTruthy();
+    expect(calls.filter((call) => call.path.startsWith("/api/admin/billing")).map((call) => call.path)).toEqual([
+      "/api/admin/billing/check?country=NG",
+      "/api/admin/billing/check?country=US",
+    ]);
   });
 });

@@ -215,6 +215,80 @@ export interface SystemStatus {
   monthlyPrices: Record<string, number>;
 }
 
+/** Why a store read failed: our short code, Google's HTTP status and one-word reason, and what to do. */
+export interface CheckError {
+  code: string;
+  httpStatus: number | null;
+  reason: string | null;
+  hint: string;
+}
+
+export interface PlayBasePlanCheck {
+  basePlanId: string;
+  /** ACTIVE, DRAFT or INACTIVE, as Google says it. */
+  state: string;
+  type: "autoRenewing" | "prepaid" | "installments" | "unknown";
+  /** ISO 8601: P1M, P1Y. */
+  billingPeriod: string | null;
+  /** Regions new subscribers can buy it in. */
+  regionCount: number;
+  regions: string[];
+  /** Priced there, but closed to new subscribers. */
+  closedRegions: string[];
+  /** "NGN 4,500", per region it's on sale in. */
+  prices: { region: string; price: string }[];
+}
+
+export interface PlayProductCheck {
+  productId: string;
+  found: boolean;
+  archived: boolean;
+  basePlans: PlayBasePlanCheck[];
+  offers: { basePlanId: string; offerId: string; state: string }[];
+  offersError: CheckError | null;
+}
+
+export interface BachsProductCheck {
+  plan: "monthly" | "yearly";
+  productId: string | null;
+  /** False when Bachs isn't set up, so nothing was asked. */
+  checked: boolean;
+  found: boolean;
+  active: boolean;
+  name: string | null;
+  price: string | null;
+  interval: string | null;
+  trial: string | null;
+  error: CheckError | null;
+}
+
+export type HintLevel = "problem" | "todo" | "info" | "ok";
+
+/** GET /api/admin/billing/check?country=NG: what Play Console and Bachs hold for Plus, and what to fix. */
+export interface BillingCheck {
+  checkedAtUtc: string;
+  country: string;
+  googlePlay: {
+    configured: boolean;
+    provider: string | null;
+    packageName: string | null;
+    productIds: string[];
+    error: CheckError | null;
+    products: PlayProductCheck[];
+    /** In Play Console but not in Billing__ProductIds: a likely id typo. */
+    extraProducts: string[];
+  };
+  bachs: {
+    configured: boolean;
+    mode: "live" | "sandbox" | null;
+    /** Setting names, never values. */
+    missing: string[];
+    bachsInApp: boolean;
+    products: BachsProductCheck[];
+  };
+  hints: { area: "googlePlay" | "bachs"; level: HintLevel; text: string }[];
+}
+
 export interface AdminRow {
   email: string;
   userId: string | null;

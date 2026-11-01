@@ -95,6 +95,16 @@ public sealed class BachsBilling : IBachsBilling, IDisposable
         return response.IsFailure ? Result.Failure<BachsSubscriptionSnapshot>(response.Error) : Subscription(response.Value);
     }
 
+    public async Task<Result<BachsProductSnapshot>> GetProductAsync(string productId, CancellationToken cancellationToken)
+    {
+        if (!IsConfigured) return Unavailable();
+        var response = await SendAsync(HttpMethod.Get, $"v1/products/{Uri.EscapeDataString(productId)}", null, null, "product lookup", cancellationToken);
+        if (response.IsFailure) return Result.Failure<BachsProductSnapshot>(response.Error);
+        if (BachsEvents.ReadProduct(response.Value) is { } product) return product;
+        logger.LogWarning("Bachs answered a product without an id.");
+        return Failed();
+    }
+
     private Result<BachsSubscriptionSnapshot> Subscription(JsonElement root)
     {
         var snapshot = BachsEvents.ReadSubscription(root);
@@ -166,5 +176,6 @@ public sealed class DisabledBachsBilling : IBachsBilling
     public Task<Result<string>> CreatePortalSessionAsync(string customerId, CancellationToken cancellationToken) => Off<string>();
     public Task<Result<BachsSubscriptionSnapshot>> GetSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken) => Off<BachsSubscriptionSnapshot>();
     public Task<Result<BachsSubscriptionSnapshot>> CancelSubscriptionAsync(string subscriptionId, bool atPeriodEnd, CancellationToken cancellationToken) => Off<BachsSubscriptionSnapshot>();
+    public Task<Result<BachsProductSnapshot>> GetProductAsync(string productId, CancellationToken cancellationToken) => Off<BachsProductSnapshot>();
     private static Task<Result<T>> Off<T>() => Task.FromResult(Result.Failure<T>(Error.Failure(BachsCheckoutService.Unavailable, Loc.T("Card payments are not set up on this server."))));
 }

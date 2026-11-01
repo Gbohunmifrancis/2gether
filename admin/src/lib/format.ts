@@ -120,6 +120,7 @@ const actionLabels: Record<string, string> = {
   "plus.granted": "Granted Plus",
   "plus.revoked": "Revoked Plus grant",
   "features.updated": "Changed a feature",
+  "billing.checked": "Ran the billing check",
 };
 
 export const actionLabel = (action: string) => actionLabels[action] ?? humanize(action);

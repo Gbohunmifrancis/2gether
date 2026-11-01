@@ -5,6 +5,7 @@ import type {
   AdminRow,
   Alert,
   AuditRow,
+  BillingCheck,
   DareInsights,
   Engagement,
   Features,
@@ -89,6 +90,16 @@ export const queries = {
   system: () => queryOptions({ queryKey: ["system"], queryFn: () => api<SystemStatus>("/api/admin/system"), refetchInterval: 60_000 }),
   admins: () => queryOptions({ queryKey: ["admins"], queryFn: () => api<AdminRow[]>("/api/admin/admins") }),
   features: () => queryOptions({ queryKey: ["features"], queryFn: () => api<Features>("/api/admin/features") }),
+  /** Asks Google Play and Bachs on every run (and is audited), so it only runs when the admin presses the button. */
+  billingCheck: (country: string) =>
+    queryOptions({
+      queryKey: ["billing", "check", country],
+      queryFn: () => api<BillingCheck>(`/api/admin/billing/check${qs({ country })}`),
+      staleTime: Infinity,
+      gcTime: 10 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: false,
+    }),
 };
 
 const post = <T = void>(path: string, body: unknown = {}) => api<T>(path, { method: "POST", body });

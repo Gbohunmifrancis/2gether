@@ -164,6 +164,7 @@ public sealed class FakeBachsBilling : IBachsBilling
     public List<(string SubscriptionId, bool AtPeriodEnd)> Cancels { get; } = [];
     public Func<string, bool, Result<BachsSubscriptionSnapshot>>? OnCancel { get; set; }
     public Func<string, Result<BachsSubscriptionSnapshot>>? OnGet { get; set; }
+    public Func<string, Result<BachsProductSnapshot>>? OnGetProduct { get; set; }
 
     public Task<Result<BachsCheckout>> CreateCheckoutAsync(BachsCheckoutRequest request, string idempotencyKey, CancellationToken cancellationToken)
     {
@@ -185,6 +186,9 @@ public sealed class FakeBachsBilling : IBachsBilling
         Cancels.Add((subscriptionId, atPeriodEnd));
         return Task.FromResult(OnCancel?.Invoke(subscriptionId, atPeriodEnd) ?? Result.Failure<BachsSubscriptionSnapshot>(Error.NotFound("billing.bachs_not_found", "not found")));
     }
+
+    public Task<Result<BachsProductSnapshot>> GetProductAsync(string productId, CancellationToken cancellationToken)
+        => Task.FromResult(OnGetProduct?.Invoke(productId) ?? Result.Failure<BachsProductSnapshot>(Error.NotFound("billing.bachs_not_found", "not found")));
 }
 
 /// <summary>Answers every HTTP request from a function and keeps what was sent, body included.</summary>

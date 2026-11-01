@@ -51,6 +51,16 @@ const PAGES = [
   ["health", "/health", "Health"],
   ["features", "/features", "Features"],
   ["system", "/system", "System"],
+  // The billing check runs only on its button.
+  [
+    "billing-check",
+    "/system",
+    "System",
+    async (page) => {
+      await page.getByRole("button", { name: "Run check" }).click();
+      await page.getByRole("list", { name: "What to do" }).waitFor();
+    },
+  ],
 ];
 const only = process.env.ONLY?.split(",");
 
@@ -96,10 +106,11 @@ async function context(width, scheme) {
   return ctx;
 }
 
-async function shoot(page, name, path, heading) {
+async function shoot(page, name, path, heading, then) {
   await page.goto(`${base}${path}`);
   if (heading) await page.getByRole("heading", { name: heading, level: 1 }).waitFor();
   else await page.getByRole("heading", { name: "Journey", level: 2 }).waitFor();
+  if (then) await then(page);
   await page.waitForLoadState("networkidle").catch(() => {});
   // Let the entrance animations land (charts drawing on, numbers counting up).
   await page.waitForTimeout(2200);
@@ -114,9 +125,9 @@ for (const [width, label] of [
   for (const scheme of ["light", "dark"]) {
     const ctx = await context(width, scheme);
     const page = await ctx.newPage();
-    for (const [name, path, heading] of PAGES) {
+    for (const [name, path, heading, then] of PAGES) {
       if (only && !only.includes(name)) continue;
-      await shoot(page, `${name}-${label}-${scheme}`, path ?? `/users/${userId}`, heading);
+      await shoot(page, `${name}-${label}-${scheme}`, path ?? `/users/${userId}`, heading, then);
     }
     await ctx.close();
   }

@@ -67,7 +67,7 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | Audit log | Every admin sign-in (and failure) and action, who, when, on what, from which IP. Kept two years (`AdminAuditSweepWorker`, daily), as the privacy policy says |
 | Health | Probes (database, storage, push, email, food scans) with latency; background workers as beating hearts that go still when late and red when failing; queues; album storage; food scan cost; an honest list of what nothing monitors |
 | Features | Switches that change every app without a release. Today: **Christmas theme**, which turns the festive look on for every app (within about a minute), and **Card payments in the app** (`bachsInApp`, Google Play billing choice). See `docs/feature-flags.md` |
-| System | Which services are configured, push and clean-up queues, list prices, and the admins |
+| System | Which services are configured, push and clean-up queues, list prices, the **Billing check** (below), and the admins |
 
 Analytics windows are 7, 30, 90 or 365 days; filters, pages and windows are in the URL, so a view can be shared.
 Every chart leaves out internal (test and team) accounts and the admins, and couples with one of them in. "Active"
@@ -174,6 +174,29 @@ Pages and Netlify. Elsewhere, set the same headers on the host.
 Put it on its own hostname, add that origin to `Frontend__Origin`, and consider putting it behind your host's
 access control (Cloudflare Access, an IP allowlist) as well: the sign-in is strong, but an admin URL nobody else
 can reach is stronger.
+
+## Billing check
+
+System → **Billing check** answers "why does the app say Plus isn't on sale?" (`GET api/admin/billing/check?country=NG`).
+It runs only when an admin presses **Run check** (it asks Google Play and Bachs each time, caches nothing, and is audited
+as `billing.checked` with the country and the number of problems); after a first run, picking another country runs it
+again for that country. It is store configuration only, nothing about any person.
+
+- **Hints** at the top, as a checklist: what stops Plus selling (✗), things to do, notes, and what's fine, in plain
+  words with where to click in Play Console or Bachs. The hints are computed on the server (`BillingCheckHints`).
+- **Google Play**: the package, whether the service account is set and the provider, then one row per
+  `Billing__ProductIds` entry with ✓/✗ for exists, has an active base plan and on sale in the chosen country (with its
+  price there), each base plan (state, renewing or prepaid, period, how many countries, a few prices) and the offers.
+  Subscriptions Play Console has that aren't in `Billing__ProductIds` are listed as a likely id typo. A failed read
+  shows Google's HTTP status and one-word reason with what to do (401/403: the service account has no access in Play
+  Console; 404: no such app or no subscriptions; the API switched off in Google Cloud; a broken key).
+- **Card payments (Bachs)**: live or sandbox (from the key), the settings that aren't set (names only), the
+  `bachsInApp` flag, and each plan's product: exists, active, price, billing period, trial.
+
+Each call to Google or Bachs has 15 seconds; a failure is a field of the answer, never a 500. The billing service account
+needs access to the app in Play Console (View app information, plus View financial data and Manage orders and
+subscriptions for purchases). See `docs/billing.md`, "Why Plus isn't on
+sale".
 
 ## Live, health and alerts
 

@@ -108,6 +108,26 @@ public sealed record BachsRefundSnapshot(string RefundId, string? ChargeId, stri
 
 public sealed record BachsEvent(string Id, string Type, DateTime CreatedAtUtc, JsonElement Data);
 
+/// <summary>
+/// A catalog product as the admin billing check reads it: whether it sells, its price ("USD 7.99") and its cadence
+/// (<c>billing_cycle</c>: "month" × 1). Nothing personal.
+/// </summary>
+public sealed record BachsProductSnapshot(
+    string ProductId,
+    string? Name,
+    string? Status,
+    bool Archived,
+    string? Price,
+    string? IntervalUnit,
+    int? IntervalCount,
+    string? Trial)
+{
+    public bool Active => !Archived && string.Equals(Status ?? "active", "active", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>"1 month", "12 months", or null when the product isn't recurring.</summary>
+    public string? Interval => IntervalUnit is null ? null : $"{IntervalCount ?? 1} {IntervalUnit}{((IntervalCount ?? 1) == 1 ? string.Empty : "s")}";
+}
+
 /// <summary>Outbound port to the Bachs API.</summary>
 public interface IBachsBilling
 {
@@ -118,6 +138,8 @@ public interface IBachsBilling
     Task<Result<BachsSubscriptionSnapshot>> GetSubscriptionAsync(string subscriptionId, CancellationToken cancellationToken);
     /// <summary>At period end: access lasts until it, then the subscription ends. Otherwise now, with no refund.</summary>
     Task<Result<BachsSubscriptionSnapshot>> CancelSubscriptionAsync(string subscriptionId, bool atPeriodEnd, CancellationToken cancellationToken);
+    /// <summary>A catalog product (<c>GET v1/products/{id}</c>), for the admin billing check. Not found is a NotFound error.</summary>
+    Task<Result<BachsProductSnapshot>> GetProductAsync(string productId, CancellationToken cancellationToken);
 }
 
 public static class BachsEvents
@@ -174,6 +196,31 @@ public static class BachsEvents
         var cancelAtPeriodEnd = data.TryGetProperty("cancel_at_period_end", out var cancel) && cancel.ValueKind == JsonValueKind.True;
         return new BachsSubscriptionSnapshot(id, customer, product, status.ToLowerInvariant(), Time(data, "current_period_end"), Time(data, "trial_end"),
             cancelAtPeriodEnd, Time(data, "canceled_at"), userId, externalRef, Micros(Text(data, "amount")), Text(data, "currency"), Time(data, "created_at"));
+    }
+
+    /// <summary>A product object; null without an id.</summary>
+    public static BachsProductSnapshot? ReadProduct(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Object) return null;
+        var id = Text(data, "product_id") ?? Text(data, "id");
+        if (id is null) return null;
+        string? price = null;
+        if (data.TryGetProperty("price", out var priceElement) && priceElement.ValueKind == JsonValueKind.Object
+            && Text(priceElement, "amount") is { } amount && decimal.TryParse(amount, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value))
+            price = $"{(Text(priceElement, "currency") ?? "?").ToUpperInvariant()} {value.ToString(value == decimal.Truncate(value) ? "N0" : "N2", CultureInfo.InvariantCulture)}";
+        var (unit, count) = Duration(data, "billing_cycle");
+        var (trialUnit, trialCount) = Duration(data, "trial_period");
+        var trial = trialUnit is null ? null : $"{trialCount ?? 1} {trialUnit}{((trialCount ?? 1) == 1 ? string.Empty : "s")}";
+        var archived = Text(data, "archived_at") is not null || string.Equals(Text(data, "status"), "archived", StringComparison.OrdinalIgnoreCase);
+        return new BachsProductSnapshot(id, Text(data, "name"), Text(data, "status")?.ToLowerInvariant(), archived, price, unit, count, trial);
+    }
+
+    private static (string? Unit, int? Count) Duration(JsonElement data, string name)
+    {
+        if (!data.TryGetProperty(name, out var element) || element.ValueKind != JsonValueKind.Object) return (null, null);
+        var unit = Text(element, "interval")?.ToLowerInvariant();
+        var count = int.TryParse(Text(element, "frequency"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : (int?)null;
+        return (unit, count);
     }
 
     public static BachsInvoiceSnapshot? ReadInvoice(JsonElement data)

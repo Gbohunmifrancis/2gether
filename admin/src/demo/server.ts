@@ -1,5 +1,6 @@
 import type { Alert, AuditRow, Features, Grant, LiveEvent, LiveKind, Page, SubscriptionRow, UserDetail, UserRow } from "../api/types";
 import * as build from "./analytics";
+import { billingCheck } from "./billing";
 import { rng, uuid, weighted } from "./random";
 import { buildWorld, DAY, iso, LIVE_MIX, liveEvent, NOW, type DemoUser, type DemoWorld } from "./world";
 
@@ -265,6 +266,12 @@ class DemoServer {
         return json(200, build.system(w));
       case "admins":
         return json(200, w.admins);
+      case "billing/check": {
+        const check = billingCheck(params.get("country"), this.features.bachsInApp);
+        const problems = check.hints.filter((hint) => hint.level === "problem").length;
+        this.audit("billing.checked", "billing", null, `${check.country}: ${problems} problem(s)`);
+        return json(200, check);
+      }
       case "features":
         if (method === "PUT") {
           const named = (["christmas", "bachsInApp"] as const).filter((key) => typeof body[key] === "boolean");

@@ -88,6 +88,8 @@ public static class DependencyInjection
             services.AddSingleton<IGoogleExternalTransactionReporter>(provider => new GoogleExternalTransactionReporter(
                 billing, provider.GetRequiredService<HttpClient>(), provider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<GoogleExternalTransactionReporter>>()));
         else services.AddSingleton<IGoogleExternalTransactionReporter, DisabledGoogleExternalTransactionReporter>();
+        // The admin billing check reads Play Console with the same service account, whatever the provider.
+        services.AddSingleton<Twogether.Application.Features.Admin.Ops.IPlayCatalogReader, GooglePlayCatalogReader>();
 
         var bachs = BuildBachsSettings(configuration);
         services.AddSingleton(bachs);

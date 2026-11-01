@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<Twogether.Application.Features.Config.FeatureFlagService>();
         services.AddScoped<Twogether.Application.Features.Admin.AdminAnalytics>();
         services.AddScoped<Twogether.Application.Features.Admin.Insights.AdminInsights>();
+        services.AddScoped<Twogether.Application.Features.Admin.Ops.BillingCheckService>();
         return services;
     }
 }

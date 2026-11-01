@@ -61,6 +61,33 @@ Testing: create `heartpact_plus_monthly` and `heartpact_plus_yearly` (each with 
 offer) in Play Console, add license testers, and install from an internal testing track. Play only sells to an app it knows: a build with
 another package name or an unknown signing key gets "Google Play isn't available".
 
+## Why Plus isn't on sale
+
+The app says "Plus isn't on sale in your country yet" when Google Play's `queryProductDetails` returns nothing for
+`productIds`. The server isn't asked anything at that point, so a correct server config doesn't rule it out. Run
+**System → Billing check** in the admin dashboard (`GET api/admin/billing/check?country=NG`): it lists the app's
+subscriptions in Play Console with the billing service account (`monetization.subscriptions.list` with archived ones,
+and `basePlans.offers.list`), compares them with `Billing:ProductIds`, and says what to fix. In order of likelihood:
+
+1. **The product doesn't exist, or its id differs.** Monetize with Play → Products → Subscriptions → Create
+   subscription with exactly `heartpact_plus_monthly` / `heartpact_plus_yearly`. Ids can't be renamed; the check
+   points out a near miss (`heartpact_plus_montly`) among the subscriptions Play has.
+2. **No active base plan.** A new base plan is a draft: open it and press **Activate**. An archived subscription isn't
+   sold either.
+3. **Not available in the country.** Edit the base plan's prices and countries and add the country (Nigeria, for a
+   tester in Lagos); a country can also be listed but closed to new subscribers.
+4. **The service account can't see the app.** Play Console → Users and permissions → invite the service account's
+   email with View app information and View financial data, Manage orders and subscriptions (401/403). If Google
+   says the API is off, enable the Google Play Android Developer API in the service account's Cloud project. A 404
+   means no app with `Billing:GooglePlayPackageName`, or no subscriptions at all.
+5. **Everything above is fine.** Then it's the phone: the Google account on it must be a tester who opened the internal
+   testing opt-in link and installed the app from Play (not a sideloaded or debug build with another signing key), and
+   it should be under License testing too. Play can take a few hours to serve a newly activated product.
+
+The same check reports Bachs: live or sandbox key, which settings are missing, whether both products exist
+(`GET v1/products/{id}`), are active and bill monthly and yearly, and whether `bachsInApp` is on. Turn on Card payments
+in the app under Features only once the build with Google's choice screen is live.
+
 ## Bachs (web and card checkout)
 
 Bachs (bachs.io) sells the same two plans by card: on the website, and in the Android app where Google Play's billing
