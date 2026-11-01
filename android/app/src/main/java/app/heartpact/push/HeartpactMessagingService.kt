@@ -58,7 +58,7 @@ class HeartpactMessagingService : FirebaseMessagingService() {
             "albumSyncReminder" -> remindOnWifi()
             else -> show(id, type, data["title"] ?: message.notification?.title ?: return, data["body"] ?: message.notification?.body.orEmpty(), data["quiet"] == "true")
         }
-        if (type == "memoriesSynced") container.pushEvents.tryEmit(type)
+        if (type == "memoriesSynced" || PushInbox.refreshesHome(type)) container.pushEvents.tryEmit(type!!)
         // The partner ended the pact: their dares must not ring here any more.
         if (type == "breakup") AlarmScheduler.apply(this, emptyList())
     }

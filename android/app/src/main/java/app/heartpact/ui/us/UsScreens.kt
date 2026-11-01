@@ -69,6 +69,7 @@ import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.components.LegalPages
 import app.heartpact.ui.components.NoteCard
+import app.heartpact.ui.components.PlusBadge
 import app.heartpact.ui.components.openInBrowser
 import app.heartpact.ui.components.SectionHeader
 import app.heartpact.ui.components.StickerCard
@@ -110,12 +111,17 @@ fun UsTab(
     onGames: () -> Unit,
     extraRows: @Composable () -> Unit = {},
     location: @Composable () -> Unit = {},
+    /** The couple has Heartpact Plus: a gold badge by the title and a thin gold ring around the two of you. */
+    isPlus: Boolean = false,
 ) {
     val colors = Heartpact.colors
     AdaptivePage(header = {
         Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(tr("Us"), style = Heartpact.type.headline, color = colors.ink, modifier = Modifier.align(Alignment.Start))
-            AvatarPair(me, partner, 92.dp, Modifier.padding(top = 10.dp))
+            Row(Modifier.align(Alignment.Start), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(tr("Us"), style = Heartpact.type.headline, color = colors.ink)
+                if (isPlus) PlusBadge()
+            }
+            AvatarPair(me, partner, 92.dp, Modifier.padding(top = 10.dp), gold = isPlus)
             Text(tr("{me} and {partner}", "me" to me.name, "partner" to partner.name), style = Heartpact.type.title, color = colors.ink, modifier = Modifier.padding(top = 12.dp), textAlign = TextAlign.Center)
             togetherSince?.let { Text(it, style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 2.dp)) }
         }

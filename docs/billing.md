@@ -56,6 +56,20 @@ reached) follows mockup 18:
   app's own.
 - A card subscription I bought (`subscription.store == "bachs"`) gets "Manage billing" instead of "Manage in Google
   Play": `bachs/portal` is called on tap and its page opens in the browser.
+- Celebration (`ui/plus/PlusCelebration.kt`, `PlusCelebrationScreen.kt`): when the couple goes from Free to Plus,
+  each partner gets a full-screen celebration once, the next time Home shows (or at once on the Plus screen after a
+  purchase or a confirmed card payment). It is decided from the entitlement, not the `plusStarted` push (which only
+  makes an open Home ask again): the app's prefs remember, per signed-in person, the last "Plus key" seen
+  (`sub:{store}:{productId}:me|partner`, `gift:{complimentaryUntilUtc}`, or `free`), and a Plus whose key differs is
+  celebrated. Never on Free; Free is remembered, so a later Plus is new. On a person's first look with this version an
+  existing Plus is remembered silently. Three variants: bought by me ("Welcome to Heartpact Plus"), by my partner
+  ("{partner} got you Heartpact Plus"), and a gift ("A gift from Heartpact", with its end date), each listing what
+  `plusLimits` unlocks. Still with animations off; the level-up chime only with the ringer on.
+- The Plus look: on Plus, a gold "PLUS" badge (`ui/components/PlusBadge.kt`, a slow shine, still with animations
+  off) by the titles of Today and Us, a thin gold ring around the two avatars on Us, and gold on the Us Plus row.
+  The gold is `PlusGold` / `colors.gold` in the theme. Free couples see none of it.
+- Pushes `plusStarted`, `locationShared` and `cycleShared` open the Us tab (`PushInbox.tabFor`) and refresh an open
+  Home at once (`PushInbox.refreshesHome`).
 
 Testing: create `heartpact_plus_monthly` and `heartpact_plus_yearly` (each with one base plan, optionally a trial
 offer) in Play Console, add license testers, and install from an internal testing track. Play only sells to an app it knows: a build with

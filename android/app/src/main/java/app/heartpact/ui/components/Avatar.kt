@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -66,12 +67,15 @@ fun Avatar(face: Face, size: Dp, modifier: Modifier = Modifier) {
     }
 }
 
-/** Two faces side by side, a little overlapped, with a heart between them when [heart] is set. */
+/** Two faces side by side, a little overlapped. On Plus ([gold]), each wears a thin gold ring. */
 @Composable
-fun AvatarPair(left: Face, right: Face, size: Dp, modifier: Modifier = Modifier) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy((-size.value * 0.18f).dp), verticalAlignment = Alignment.CenterVertically) {
-        Avatar(left, size)
-        Avatar(right, size)
+fun AvatarPair(left: Face, right: Face, size: Dp, modifier: Modifier = Modifier, gold: Boolean = false) {
+    val ring = 3.dp
+    val inset = if (gold) ring + 1.dp else 0.dp
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy((-size.value * 0.18f).dp - inset * 2), verticalAlignment = Alignment.CenterVertically) {
+        for (face in listOf(left, right)) {
+            if (gold) Box(Modifier.goldRing(ring).padding(inset)) { Avatar(face, size) } else Avatar(face, size)
+        }
     }
 }
 

@@ -96,6 +96,9 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val games = GameRepository(api, json)
     val plus = PlusRepository(api, json)
 
+    /** The Plus last celebrated on this phone, per person (ui/plus/PlusCelebration.kt). */
+    val plusCelebrations = app.heartpact.ui.plus.PlusCelebrationStore(context)
+
     /** Proves completions come from this app on a genuine phone, when a project number is set. */
     val integrity = PlayIntegrity(appContext, BuildConfig.PLAY_INTEGRITY_PROJECT_NUMBER.toLongOrNull())
 

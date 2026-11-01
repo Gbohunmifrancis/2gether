@@ -25,6 +25,7 @@
  "A few seconds. The photo isn't kept.": "Só alguns segundos. A foto não fica guardada.",
  "A food starting with {letter}": "Uma comida com {letter}",
  "a gift box": "uma caixa de presente",
+ "A gift from Heartpact": "Um presente do Heartpact",
  "A gummy, squished out of shape.": "Uma bala de gelatina, toda amassada.",
  "a heart": "um coração",
  "A heart cookie, iced pink.": "Um biscoito de coração com glacê rosa.",
@@ -247,7 +248,7 @@
  "Dare each other to move.": "Desafiem um ao outro a se mexer.",
  "Dare each other to move. The camera counts the reps, and every promise you keep becomes a heart on your page.": "Desafiem um ao outro a se mexer. A câmera conta as repetições, e cada promessa cumprida vira um coração na sua página.",
  "Dares": "Desafios",
- "Dares done or missed, call-off requests, photos added.": "Desafios feitos ou perdidos, pedidos de cancelamento, fotos adicionadas.",
+ "Dares done or missed, call-off requests, photos added, what your partner shares with you, and Plus.": "Desafios feitos ou perdidos, pedidos de cancelamento, fotos adicionadas, o que seu par compartilha com você, e o Plus.",
  "Dares for you": "Para você",
  "Dares you set": "Que você criou",
  "Dares you set each other live here, with every heart you've kept.": "Os desafios que vocês fazem um ao outro ficam aqui, com cada coração conquistado.",
@@ -468,6 +469,8 @@
  "Invite {partner}": "Convidar {partner}",
  "Irritable": "Irritada",
  "It counts": "Vale",
+ "It covers you both. Here's what you get now.": "Ele vale para vocês dois. Veja o que você ganha agora.",
+ "It covers {partner} too. Here's what you both get now.": "Ele vale para {partner} também. Veja o que vocês dois ganham agora.",
  "It ends for {partner} too, and the scores so far aren't kept.": "O jogo acaba para {partner} também, e a pontuação até aqui não fica salva.",
  "It hides once the love runs.": "Ela some assim que o amor começa a cair.",
  "It joins your shared album the next time you sync. Removing it here never touches the original in your gallery.": "Ela vai para o álbum compartilhado na próxima sincronização. Remover aqui nunca mexe no original da sua galeria.",
@@ -833,7 +836,9 @@
  "Played": "Jogado",
  "Playing now": "Jogando agora",
  "Plus gives you both more space. Or delete a few shared photos to make room.": "O Plus dá mais espaço para vocês dois. Ou apague algumas fotos compartilhadas para liberar espaço.",
+ "Plus is on us until {date}. Here's what you both get.": "O Plus é por nossa conta até {date}. Veja o que vocês dois ganham.",
  "Plus is on us until {date}. Subscribe to keep it after that.": "O Plus é por nossa conta até {date}. Assine para continuar depois disso.",
+ "Plus is on us. Here's what you both get.": "O Plus é por nossa conta. Veja o que vocês dois ganham.",
  "Plus is on us. It covers you both.": "O Plus é por nossa conta. Ele vale para vocês dois.",
  "Plus isn't on sale in your country yet.": "O Plus ainda não está à venda no seu país.",
  "Plus · on us": "Plus · por nossa conta",
@@ -1175,10 +1180,15 @@
  "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "Duas imagens, sete diferenças, vocês dois procurando ao mesmo tempo. Toque primeiro numa diferença para ficar com ela; quem achar mais ganha.",
  "Undo": "Desfazer",
  "Unlimited": "Ilimitados",
+ "Unlimited daily dares": "Desafios diários ilimitados",
  "Unlinks you both and stops every dare": "Desconecta vocês dois e para todos os desafios",
  "Until": "Até",
  "Until tomorrow": "Até amanhã",
  "Up the ladder!": "Escada acima!",
+ "Up to {count} daily dare each|Up to {count} daily dares each": {
+  "one": "Até {count} desafio diário para cada um",
+  "other": "Até {count} desafios diários para cada um"
+ },
  "Update the app to play this round": "Atualize o app para jogar esta rodada",
  "updated just now": "atualizado agora",
  "updated over a day ago": "atualizado há mais de um dia",
@@ -1212,6 +1222,7 @@
  "Week {week} · due {date}": "Semana {week} · previsão {date}",
  "Weeks and kick counts stop, cycle predictions come back, and {partner} no longer sees it. It stays with you until you delete it.": "As semanas e a contagem de chutes param, as previsões do ciclo voltam e {partner} deixa de ver. Ela fica com você até você apagar.",
  "Welcome back": "Que bom te ver de novo",
+ "Welcome to Heartpact Plus": "Boas-vindas ao Heartpact Plus",
  "Welcome to Plus. {partner} has it too, from now on.": "Boas-vindas ao Plus. A partir de agora, {partner} também tem.",
  "Well matched!": "Bela dupla!",
  "Well played!": "Bem jogado!",
@@ -1383,6 +1394,10 @@
   "one": "{count} elevação de braço",
   "other": "{count} elevações de braço"
  },
+ "{count} day of question history|{count} days of question history": {
+  "one": "{count} dia de histórico de perguntas",
+  "other": "{count} dias de histórico de perguntas"
+ },
  "{count} day|{count} days": {
   "one": "{count} dia",
   "other": "{count} dias"
@@ -1398,6 +1413,10 @@
  "{count} each|{count} each": {
   "one": "{count} para cada um",
   "other": "{count} para cada um"
+ },
+ "{count} food photo estimate a day|{count} food photo estimates a day": {
+  "one": "{count} estimativa por foto de comida por dia",
+  "other": "{count} estimativas por foto de comida por dia"
  },
  "{count} guess left|{count} guesses left": {
   "one": "Resta {count} chute",
@@ -1584,6 +1603,7 @@
  "{partner} found a pair and goes again": "{partner} achou um par e joga de novo",
  "{partner} got it right": "{partner} acertou",
  "{partner} got that one": "{partner} achou essa primeiro",
+ "{partner} got you Heartpact Plus": "{partner} te deu o Heartpact Plus",
  "{partner} guessed it": "{partner} acertou",
  "{partner} guessed it. A heart each!": "{partner} acertou. Um coração para cada!",
  "{partner} guessed it: {answer}. A point for {partner}.": "{partner} acertou: {answer}. Um ponto para {partner}.",
@@ -1723,6 +1743,7 @@
  "{size} GB": "{size} GB",
  "{size} KB": "{size} KB",
  "{size} MB": "{size} MB",
+ "{size} of shared album space": "{size} de espaço no álbum compartilhado",
  "{size} TB": "{size} TB",
  "{size} to send": "{size} para enviar",
  "{size} to send, which may count against your data": "{size} para enviar, o que pode gastar seu plano de dados",

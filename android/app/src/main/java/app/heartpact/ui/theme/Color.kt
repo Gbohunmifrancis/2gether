@@ -27,6 +27,10 @@ data class HeartpactColors(
     val onAction: Color,
     val error: Color,
     val isNight: Boolean,
+    /** Heartpact Plus: a little gold, only for couples on Plus (badge, avatar ring, the Plus row). See [PlusGold]. */
+    val gold: Color = PlusGold.Bright,
+    /** Gold that reads as text on the page and stickers: deep by day, the bright gold at night. */
+    val goldInk: Color = PlusGold.InkDay,
 )
 
 /** One partner's colours. Art is for stickers and characters; action carries labels. */
@@ -39,6 +43,17 @@ data class PartnerColors(
     /** Text on soft and tint fills (the action value fails small text there). */
     val onSoft: Color,
 )
+
+/** The gold of Heartpact Plus, the same warm gold as the practice levels' stars, with a deeper edge. */
+object PlusGold {
+    val Bright = Color(0xFFFFC23D)
+    val Deep = Color(0xFFE09A12)
+    /** A pale shine for highlights and the shimmer's band. */
+    val Pale = Color(0xFFFFE7A8)
+    /** Text on a gold fill. */
+    val OnGold = Color(0xFF3D2A00)
+    val InkDay = Color(0xFF8A5A00)
+}
 
 /** Christmas accents: the gold of the lights' caps and ornaments, and the bulbs' colours. */
 object Festive {
@@ -94,6 +109,7 @@ val NightColors = HeartpactColors(
     onAction = Color(0xFF10142A),
     error = Color(0xFFFFB4AB),
     isNight = true,
+    goldInk = PlusGold.Bright,
 )
 
 private val Holly = Color(0xFFA61B29)

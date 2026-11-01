@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -86,6 +87,8 @@ fun CardRow(
     divider: Boolean = false,
     onClick: (() -> Unit)? = null,
     icon3d: Icon3D? = null,
+    /** The subtitle's colour, when it carries an accent (the Plus row's gold on Plus). */
+    subtitleColor: Color? = null,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = Heartpact.colors
@@ -99,7 +102,7 @@ fun CardRow(
         if (icon3d != null) Icon3DStill(icon3d, 44.dp) else icon?.let { Icon(it, null, Modifier.size(22.dp), tint = colors.ink2) }
         Column(Modifier.weight(1f)) {
             Text(title, style = Heartpact.type.label.copy(fontSize = Heartpact.type.label.fontSize * 1.035f), color = colors.ink)
-            subtitle?.let { Text(it, style = Heartpact.type.small, color = colors.ink2) }
+            subtitle?.let { Text(it, style = Heartpact.type.small, color = subtitleColor ?: colors.ink2) }
         }
         trailing()
     }

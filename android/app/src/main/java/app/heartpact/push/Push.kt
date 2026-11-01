@@ -56,7 +56,7 @@ object Push {
         val manager = context.getSystemService(NotificationManager::class.java)
         // Creating an existing channel only renames it (the person's own settings stay), so names follow the language.
         manager.createNotificationChannel(NotificationChannel(GENERAL, tr("From your partner"), NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = tr("Dares done or missed, call-off requests, photos added.")
+            description = tr("Dares done or missed, call-off requests, photos added, what your partner shares with you, and Plus.")
         })
         manager.createNotificationChannel(NotificationChannel(QUIET, tr("During quiet hours"), NotificationManager.IMPORTANCE_LOW).apply {
             description = tr("The same notifications, arriving silently during your quiet hours.")

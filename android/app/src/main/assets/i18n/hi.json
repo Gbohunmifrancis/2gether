@@ -25,6 +25,7 @@
  "A few seconds. The photo isn't kept.": "बस कुछ सेकंड। फ़ोटो रखी नहीं जाती।",
  "A food starting with {letter}": "{letter} से कोई खाना",
  "a gift box": "गिफ़्ट बॉक्स",
+ "A gift from Heartpact": "Heartpact की तरफ़ से एक तोहफ़ा",
  "A gummy, squished out of shape.": "गमी, दबकर टेढ़ी-मेढ़ी।",
  "a heart": "दिल",
  "A heart cookie, iced pink.": "दिल वाली कुकी, गुलाबी आइसिंग के साथ।",
@@ -247,7 +248,7 @@
  "Dare each other to move.": "एक-दूसरे को कसरत की चुनौती दो।",
  "Dare each other to move. The camera counts the reps, and every promise you keep becomes a heart on your page.": "एक-दूसरे को कसरत की चुनौती दो। कैमरा रेप गिनता है, और निभाया हुआ हर वादा तुम्हारे पेज पर एक दिल बन जाता है।",
  "Dares": "चुनौतियाँ",
- "Dares done or missed, call-off requests, photos added.": "चुनौतियाँ पूरी हुईं या छूटीं, छूट की माँगें, नई फ़ोटो।",
+ "Dares done or missed, call-off requests, photos added, what your partner shares with you, and Plus.": "चुनौतियाँ पूरी हुईं या छूटीं, छूट की माँगें, नई फ़ोटो, तुम्हारा पार्टनर तुमसे क्या शेयर करता है, और Plus।",
  "Dares for you": "मिली चुनौतियाँ",
  "Dares you set": "दी चुनौतियाँ",
  "Dares you set each other live here, with every heart you've kept.": "एक-दूसरे को दी चुनौतियाँ यहाँ रहती हैं, साथ में तुम्हारा निभाया हर दिल।",
@@ -468,6 +469,8 @@
  "Invite {partner}": "{partner} को बुलाओ",
  "Irritable": "चिड़चिड़ापन",
  "It counts": "चलेगा",
+ "It covers you both. Here's what you get now.": "यह तुम दोनों के लिए है। अब तुम्हें यह मिलता है।",
+ "It covers {partner} too. Here's what you both get now.": "यह {partner} के लिए भी है। अब तुम दोनों को यह मिलता है।",
  "It ends for {partner} too, and the scores so far aren't kept.": "{partner} के लिए भी गेम खत्म हो जाएगा, और अब तक के स्कोर नहीं रखे जाएँगे।",
  "It hides once the love runs.": "प्यार बहते ही यह छिप जाती है।",
  "It joins your shared album the next time you sync. Removing it here never touches the original in your gallery.": "अगली बार सिंक करने पर इसे तुम्हारे साझा एल्बम में जोड़ दिया जाएगा। यहाँ से हटाने पर गैलरी की असली फ़ाइल को कुछ नहीं होता।",
@@ -833,7 +836,9 @@
  "Played": "खेला गया",
  "Playing now": "अभी खेल रहे हैं",
  "Plus gives you both more space. Or delete a few shared photos to make room.": "Plus से तुम दोनों को ज़्यादा जगह मिलती है। या जगह बनाने के लिए कुछ साझा फ़ोटो हटा दो।",
+ "Plus is on us until {date}. Here's what you both get.": "{date} तक Plus हमारी तरफ़ से। तुम दोनों को यह मिलता है।",
  "Plus is on us until {date}. Subscribe to keep it after that.": "{date} तक Plus हमारी तरफ़ से। उसके बाद भी चाहिए तो सब्सक्राइब करो।",
+ "Plus is on us. Here's what you both get.": "Plus हमारी तरफ़ से। तुम दोनों को यह मिलता है।",
  "Plus is on us. It covers you both.": "Plus हमारी तरफ़ से। यह तुम दोनों के लिए है।",
  "Plus isn't on sale in your country yet.": "Plus अभी तुम्हारे देश में नहीं मिलता।",
  "Plus · on us": "Plus · हमारी तरफ़ से",
@@ -1175,10 +1180,15 @@
  "Two pictures, seven differences, both of you hunting at once. Tap one first to claim it; most spots wins.": "दो तस्वीरें, सात अंतर, तुम दोनों एक साथ ढूँढो। जो अंतर पहले टैप करेगा, वो उसका; जिसके ज़्यादा, वो जीता।",
  "Undo": "अनडू",
  "Unlimited": "असीमित",
+ "Unlimited daily dares": "असीमित रोज़ की चुनौतियाँ",
  "Unlinks you both and stops every dare": "दोनों का लिंक हटेगा और हर चुनौती बंद होगी",
  "Until": "कब तक",
  "Until tomorrow": "कल तक",
  "Up the ladder!": "सीढ़ी से ऊपर!",
+ "Up to {count} daily dare each|Up to {count} daily dares each": {
+  "one": "हर किसी के लिए {count} तक रोज़ की चुनौती",
+  "other": "हर किसी के लिए {count} तक रोज़ की चुनौतियाँ"
+ },
  "Update the app to play this round": "यह राउंड खेलने के लिए ऐप अपडेट करो",
  "updated just now": "अभी-अभी अपडेट",
  "updated over a day ago": "एक दिन से ज़्यादा पहले अपडेट",
@@ -1212,6 +1222,7 @@
  "Week {week} · due {date}": "हफ़्ता {week} · ड्यू {date}",
  "Weeks and kick counts stop, cycle predictions come back, and {partner} no longer sees it. It stays with you until you delete it.": "हफ्ते और किक की गिनती रुक जाती है, चक्र के अनुमान लौट आते हैं, और {partner} इसे अब नहीं देखेगा। जब तक तुम इसे मिटाओ नहीं, यह तुम्हारे पास रहता है।",
  "Welcome back": "फिर से स्वागत है",
+ "Welcome to Heartpact Plus": "Heartpact Plus में स्वागत है",
  "Welcome to Plus. {partner} has it too, from now on.": "Plus में स्वागत है। अब से {partner} के पास भी है।",
  "Well matched!": "बराबर की टक्कर!",
  "Well played!": "बढ़िया खेले!",
@@ -1383,6 +1394,10 @@
   "one": "{count} आर्म रेज़",
   "other": "{count} आर्म रेज़"
  },
+ "{count} day of question history|{count} days of question history": {
+  "one": "{count} दिन के पुराने सवाल",
+  "other": "{count} दिनों के पुराने सवाल"
+ },
  "{count} day|{count} days": {
   "one": "{count} दिन",
   "other": "{count} दिन"
@@ -1398,6 +1413,10 @@
  "{count} each|{count} each": {
   "one": "हर किसी की {count}",
   "other": "हर किसी की {count}"
+ },
+ "{count} food photo estimate a day|{count} food photo estimates a day": {
+  "one": "रोज़ {count} फ़ूड फ़ोटो अनुमान",
+  "other": "रोज़ {count} फ़ूड फ़ोटो अनुमान"
  },
  "{count} guess left|{count} guesses left": {
   "one": "{count} अंदाज़ा बचा",
@@ -1584,6 +1603,7 @@
  "{partner} found a pair and goes again": "{partner} को जोड़ा मिला, फिर उनकी बारी",
  "{partner} got it right": "{partner} का जवाब सही",
  "{partner} got that one": "ये {partner} ने पहले ढूँढ लिया",
+ "{partner} got you Heartpact Plus": "{partner} ने तुम्हें Heartpact Plus दिलाया",
  "{partner} guessed it": "{partner} ने सही अंदाज़ा लगाया",
  "{partner} guessed it. A heart each!": "{partner} ने बूझ लिया। दोनों को एक-एक दिल!",
  "{partner} guessed it: {answer}. A point for {partner}.": "{partner} ने सही बूझा: {answer}। {partner} को एक पॉइंट।",
@@ -1723,6 +1743,7 @@
  "{size} GB": "{size} GB",
  "{size} KB": "{size} KB",
  "{size} MB": "{size} MB",
+ "{size} of shared album space": "शेयर्ड एल्बम में {size} स्पेस",
  "{size} TB": "{size} TB",
  "{size} to send": "{size} भेजना है",
  "{size} to send, which may count against your data": "{size} भेजना है, इसमें तुम्हारा डेटा खर्च हो सकता है",
