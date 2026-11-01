@@ -61,7 +61,7 @@
  "<em>04</em><b>Games for two</b><span>Turn by turn, on both phones.</span>": "<em>04</em><b>ألعاب لشخصين</b><span>دورًا بدور، على الهاتفين.</span>",
  "<em>05</em><b>Cycle and pregnancy</b><span>Share only what you choose.</span>": "<em>05</em><b>الدورة والحمل</b><span>المشاركة باختيارك فقط.</span>",
  "<em>06</em><b>Location</b><span>Live only while you both have it on.</span>": "<em>06</em><b>الموقع</b><span>مباشر فقط ما دام مفعّلًا لدى كليكما.</span>",
- "<input id=\"renew-ack\" type=\"checkbox\"> Delete anyway. I know my Plus subscription keeps renewing until I <a href=\"https://play.google.com/store/account/subscriptions\">cancel it in Google Play</a>.": "<input id=\"renew-ack\" type=\"checkbox\"> احذف على أي حال. أعلم أن اشتراك Plus سيستمر في التجدد إلى أن <a href=\"https://play.google.com/store/account/subscriptions\">ألغيه من Google Play</a>.",
+ "<input id=\"renew-ack\" type=\"checkbox\"> Delete anyway. I've read what happens to my Plus subscription above.": "<input id=\"renew-ack\" type=\"checkbox\"> احذف على أي حال. قرأت أعلاه ما سيحدث لاشتراكي في Plus.",
  "<input name=\"sure\" type=\"checkbox\"> I understand my account and everything in it will be deleted for good.": "<input name=\"sure\" type=\"checkbox\"> أفهم أن حسابي وكل ما فيه سيُحذف نهائيًا.",
  "<span class=\"line\"><span>Half</span></span><span class=\"line\"><span>theirs.</span></span>": "<span class=\"line\"><span>ونصفٌ</span></span><span class=\"line\"><span>للشريك.</span></span>",
  "<span class=\"line\"><span>Half</span></span><span class=\"line\"><span>yours.</span></span><span class=\"visually-hidden\"> Half theirs.</span>": "<span class=\"line\"><span>نصفٌ</span></span><span class=\"line\"><span>لك.</span></span><span class=\"visually-hidden\"> ونصفٌ للشريك.</span>",

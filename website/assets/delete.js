@@ -44,7 +44,8 @@
       }
       if (result.status === 409 && result.data && result.data.code === "account.subscription_renews") {
         renewBox.hidden = false;
-        show(T("You have a Heartpact Plus subscription that will keep renewing. Cancel it in Google Play first, or tick the box below and delete anyway."), "error");
+        // The server's warning fits the subscription: Google Play keeps renewing, a card one ends with the account.
+        show(result.data.message || T("You have a Heartpact Plus subscription that will keep renewing. Cancel it in Google Play first, or tick the box below and delete anyway."), "error");
         return;
       }
       show((result.data && result.data.message) || T("Something went wrong. Try again, or email support@heartpact.me."), "error");

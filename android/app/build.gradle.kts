@@ -80,6 +80,8 @@ android {
             // Plain JVM tests (the live hub client) may call android.util.Log; let the stubs return defaults.
             isReturnDefaultValues = true
             all {
+                // Robolectric screenshots in six languages outgrew the default 512 MB test heap.
+                it.maxHeapSize = "2g"
                 it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
                 // Robolectric fetches its Android runtime jars itself; use the same Central mirror as the build.
                 it.systemProperty("robolectric.dependency.repo.url", "https://maven-central.storage-download.googleapis.com/maven2")

@@ -631,6 +631,8 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "plus/index.html",
+   "plus/thanks/index.html",
    "privacy/index.html",
    "terms/index.html"
   ]
@@ -2717,7 +2719,7 @@
    "delete-account/index.html"
   ]
  },
- "<input id=\"renew-ack\" type=\"checkbox\"> Delete anyway. I know my Plus subscription keeps renewing until I <a href=\"https://play.google.com/store/account/subscriptions\">cancel it in Google Play</a>.": {
+ "<input id=\"renew-ack\" type=\"checkbox\"> Delete anyway. I've read what happens to my Plus subscription above.": {
   "kind": "text",
   "pages": [
    "delete-account/index.html"
