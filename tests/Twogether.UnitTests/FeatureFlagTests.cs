@@ -135,7 +135,9 @@ public sealed class FeatureFlagTests : IDisposable
         var on = Assert.IsType<FeatureFlagsDto>(Assert.IsType<OkObjectResult>((await admin.Put(new AdminFeaturesRequest(BachsInApp: true), default)).Result).Value);
 
         Assert.Equal(new FeatureFlagsDto(Christmas: true, BachsInApp: true), on);
-        Assert.Equal("{\"christmas\":true,\"bachsInApp\":true}", JsonSerializer.Serialize(on, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        // The AI switches (docs/ai.md) come along, on until an admin turns them off.
+        Assert.Equal("{\"christmas\":true,\"bachsInApp\":true,\"aiDareIdeas\":true,\"aiCoach\":true,\"aiWeeklyRecap\":true,\"aiPlanner\":true}",
+            JsonSerializer.Serialize(on, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         await using var check = database.CreateContext();
         Assert.Equal("true", (await check.AppSettings.AsNoTracking().SingleAsync(item => item.Key == "feature.bachsInApp")).Value);
         var events = (await check.AdminAuditEvents.AsNoTracking().ToListAsync()).Select(item => (item.Action, item.TargetId, item.Details)).ToList();
@@ -165,5 +167,24 @@ public sealed class FeatureFlagTests : IDisposable
         Assert.Empty(put.GetCustomAttributes(typeof(RequireStepUpAttribute), false));
         var authorize = Assert.IsType<AuthorizeAttribute>(typeof(AdminFeaturesController).GetCustomAttributes(typeof(AuthorizeAttribute), true).Single());
         Assert.Equal(AdminAuth.Policy, authorize.Policy);
+    }
+
+    [Fact]
+    public async Task An_AI_switch_is_on_until_turned_off_and_its_change_is_audited()
+    {
+        await using var db = database.CreateContext();
+        var admin = Admin(db);
+        var before = Assert.IsType<FeatureFlagsDto>(Assert.IsType<OkObjectResult>((await admin.Get(default)).Result).Value);
+        Assert.True(before.AiDareIdeas && before.AiCoach && before.AiWeeklyRecap && before.AiPlanner);
+
+        var after = Assert.IsType<FeatureFlagsDto>(Assert.IsType<OkObjectResult>((await admin.Put(new AdminFeaturesRequest(AiCoach: false), default)).Result).Value);
+        Assert.Equal((true, false, true, true), (after.AiDareIdeas, after.AiCoach, after.AiWeeklyRecap, after.AiPlanner));
+        await using var check = database.CreateContext();
+        Assert.Equal("false", (await check.AppSettings.AsNoTracking().SingleAsync(item => item.Key == FeatureFlagService.AiCoachKey)).Value);
+        var events = (await check.AdminAuditEvents.AsNoTracking().ToListAsync()).Select(item => (item.Action, item.TargetId, item.Details)).ToList();
+        Assert.Equal([("features.updated", "aiCoach", "aiCoach: on -> off")], events);
+        // Anything but "true" stored for a switch that starts on reads as off, like the others.
+        Assert.False(FeatureFlagService.IsOnByDefault("yes please"));
+        Assert.True(FeatureFlagService.IsOnByDefault(null));
     }
 }

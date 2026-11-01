@@ -379,7 +379,7 @@
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/CoupleController.cs:203",
-   "Twogether.Infrastructure/Account/AccountEraser.cs:173"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:179"
   ],
   "code": "var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T(\"Your couple space was ended\"),"
  },
@@ -1314,6 +1314,22 @@
   ],
   "code": "if (changed == 0) return Error.NotFound(\"avatar.user_not_found\", Loc.T(\"Account not found.\"));"
  },
+ "Type just the name of a city or town.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Ai/AiParsers.cs:115"
+  ],
+  "code": "return fits ? clean : Result.Failure<string?>(Error.Validation(\"ai.city_invalid\", Loc.T(\"Type just the name of a city or town.\")));"
+ },
+ "That didn't come out right. Try again in a moment.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Ai/AiParsers.cs:162",
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:74",
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:80"
+  ],
+  "code": "=> Result.Failure<T>(Error.Failure(\"ai.unreadable\", Loc.T(\"That didn't come out right. Try again in a moment.\")));"
+ },
  "Your Heartpact code: {code}": {
   "plural": false,
   "uses": [
@@ -1425,8 +1441,8 @@
   "plural": false,
   "uses": [
    "Twogether.Application/Features/Billing/BachsCheckoutService.cs:115",
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:156",
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:169"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:166",
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:180"
   ],
   "code": "private static Error NotSetUp() => Error.Failure(Unavailable, Loc.T(\"Card payments are not set up on this server.\"));"
  },
@@ -9134,35 +9150,125 @@
  "Appointment": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Account/AccountEraser.cs:103"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:109"
   ],
   "code": "using (Loc.Use(await db.LanguageOfAsync(ownerId, cancellationToken))) title = Loc.T(\"Appointment\");"
  },
  "{name} deleted their account.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Account/AccountEraser.cs:174"
+   "Twogether.Infrastructure/Account/AccountEraser.cs:180"
   ],
   "code": "Loc.T(\"{name} deleted their account.\", (\"name\", user.DisplayName)), null, now);"
+ },
+ "Suggestions are switched off right now.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:36"
+  ],
+  "code": "private static Error Off => Error.NotFound(\"ai.off\", Loc.T(\"Suggestions are switched off right now.\"));"
+ },
+ "Link your partner first.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:37"
+  ],
+  "code": "private static Error NoCouple => Error.Validation(\"ai.no_couple\", Loc.T(\"Link your partner first.\"));"
+ },
+ "Dares can only be for you or your partner.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:56"
+  ],
+  "code": "return Error.Validation(\"ai.invalid_assignee\", Loc.T(\"Dares can only be for you or your partner.\"));"
+ },
+ "Pick a mood, a budget, and in or out.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:113"
+  ],
+  "code": "return Error.Validation(\"ai.plan_invalid\", Loc.T(\"Pick a mood, a budget, and in or out.\"));"
+ },
+ "There's no note for this dare.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:159"
+  ],
+  "code": "return Error.NotFound(\"ai.coach_none\", Loc.T(\"There's no note for this dare.\"));"
+ },
+ "You've had today's {count} plan. More tomorrow!|You've had today's {count} plans. More tomorrow!": {
+  "plural": true,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:341"
+  ],
+  "code": "? Loc.Plural(cap, \"You've had today's {count} plan. More tomorrow!\", \"You've had today's {count} plans. More tomorrow!\")",
+  "one": "You've had today's {count} plan. More tomorrow!",
+  "other": "You've had today's {count} plans. More tomorrow!"
+ },
+ "You've had today's {count} suggestion. More tomorrow!|You've had today's {count} suggestions. More tomorrow!": {
+  "plural": true,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AiAssistant.cs:342"
+  ],
+  "code": ": Loc.Plural(cap, \"You've had today's {count} suggestion. More tomorrow!\", \"You've had today's {count} suggestions. More tomorrow!\"), ErrorType.Conflict);",
+  "one": "You've had today's {count} suggestion. More tomorrow!",
+  "other": "You've had today's {count} suggestions. More tomorrow!"
+ },
+ "Suggestions aren't available right now.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:38"
+  ],
+  "code": "if (_client is null) return Error.Failure(\"ai.unavailable\", Loc.T(\"Suggestions aren't available right now.\"));"
+ },
+ "Lots of people are asking right now. Try again in a minute.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:89"
+  ],
+  "code": "return new Error(\"ai.busy\", Loc.T(\"Lots of people are asking right now. Try again in a minute.\"), ErrorType.Network);"
+ },
+ "Suggestions aren't available right now. Try again later.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:94",
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:100",
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:105"
+  ],
+  "code": "return new Error(\"ai.failed\", Loc.T(\"Suggestions aren't available right now. Try again later.\"), ErrorType.Network);"
+ },
+ "That took too long. Try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/AnthropicClaudeClient.cs:110"
+  ],
+  "code": "return new Error(\"ai.timeout\", Loc.T(\"That took too long. Try again.\"), ErrorType.Network);"
+ },
+ "Your week together": {
+  "plural": false,
+  "uses": [
+   "Twogether.Infrastructure/Ai/WeeklyRecapWriter.cs:176"
+  ],
+  "code": "var notice = Notification.Create(note.UserId, recap.CoupleId, NotificationType.WeeklyRecap, Loc.T(\"Your week together\"), note.Title,"
  },
  "Card payments couldn't find this subscription.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:123"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:133"
   ],
   "code": "HttpStatusCode.NotFound => Error.NotFound(\"billing.bachs_not_found\", Loc.T(\"Card payments couldn't find this subscription.\")),"
  },
  "Card payments refused this request.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:125"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:135"
   ],
   "code": "=> Error.Conflict(\"billing.bachs_refused\", Loc.T(\"Card payments refused this request.\")),"
  },
  "Card payments couldn't be reached. Try again shortly.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:155"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:165"
   ],
   "code": "private static Error Failed() => new(\"billing.bachs_failed\", Loc.T(\"Card payments couldn't be reached. Try again shortly.\"), ErrorType.Network);"
  },
@@ -9216,56 +9322,56 @@
  "Photo estimates are not configured.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:49"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:45"
   ],
   "code": "if (_client is null) return Error.Failure(\"food.estimation_unavailable\", Loc.T(\"Photo estimates are not configured.\"));"
  },
  "Unsupported image type.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:51"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:47"
   ],
   "code": "if (mediaType is null) return Error.Validation(\"food.image_type\", Loc.T(\"Unsupported image type.\"));"
  },
  "The estimate could not be produced for this photo. Try a clearer photo of the meal.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:85"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:81"
   ],
   "code": "return Error.Failure(\"food.estimation_refused\", Loc.T(\"The estimate could not be produced for this photo. Try a clearer photo of the meal.\"));"
  },
  "The estimator is busy. Try again in a moment.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:97"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:93"
   ],
   "code": "return new Error(\"food.estimation_busy\", Loc.T(\"The estimator is busy. Try again in a moment.\"), ErrorType.Network);"
  },
  "The estimator is unavailable right now. Try again later.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:102"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:98"
   ],
   "code": "return new Error(\"food.estimation_failed\", Loc.T(\"The estimator is unavailable right now. Try again later.\"), ErrorType.Network);"
  },
  "The estimate could not be produced. Log the meal by hand.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:108"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:104"
   ],
   "code": "return Error.Failure(\"food.estimation_failed\", Loc.T(\"The estimate could not be produced. Log the meal by hand.\"));"
  },
  "The estimator could not be reached. Try again later.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:113"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:109"
   ],
   "code": "return new Error(\"food.estimation_failed\", Loc.T(\"The estimator could not be reached. Try again later.\"), ErrorType.Network);"
  },
  "The estimate took too long. Try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:118"
+   "Twogether.Infrastructure/Food/AnthropicFoodPhotoEstimator.cs:114"
   ],
   "code": "return new Error(\"food.estimation_timeout\", Loc.T(\"The estimate took too long. Try again.\"), ErrorType.Network);"
  }

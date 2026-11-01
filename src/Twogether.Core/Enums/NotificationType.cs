@@ -35,5 +35,7 @@ public enum NotificationType
     /// <summary>To the partner: the other started sharing their location (not a resume or heartbeat); at most once per 12 hours.</summary>
     LocationShared,
     /// <summary>To the partner: the cycle owner went from sharing nothing to sharing something with them.</summary>
-    CycleShared
+    CycleShared,
+    /// <summary>To both, Sunday evening in the couple's time zone: the week's recap is ready (docs/ai.md). Once per couple per week.</summary>
+    WeeklyRecap
 }

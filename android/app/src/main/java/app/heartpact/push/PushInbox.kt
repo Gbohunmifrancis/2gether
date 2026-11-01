@@ -23,15 +23,17 @@ object PushInbox {
         type.startsWith("exercise") -> "today"
         type == "memoriesSynced" || type == "albumSyncReminder" || type == "albumAlmostFull" -> "album"
         type.startsWith("game") -> GAMES
+        // The weekly recap is the card at the top of Us.
+        type == "weeklyRecap" -> "us"
         // Plus, the map card, the cycle row, today's question, and anything newer than this app.
         else -> "us"
     }
 
     /**
      * Kinds that change what Home shows beyond Today, so it asks again at once: "plusStarted" the entitlement (and so
-     * the Plus celebration), "locationShared" the map card, "cycleShared" the cycle row.
+     * the Plus celebration), "locationShared" the map card, "cycleShared" the cycle row, "weeklyRecap" the recap card.
      */
-    fun refreshesHome(type: String?) = type == "plusStarted" || type == "locationShared" || type == "cycleShared"
+    fun refreshesHome(type: String?) = type == "plusStarted" || type == "locationShared" || type == "cycleShared" || type == "weeklyRecap"
 
     /** Kinds that change what Today shows, so an open Today refreshes at once. */
     fun refreshesToday(type: String?) = type != null && type.startsWith("exercise") && type != "exerciseProgress"

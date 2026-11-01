@@ -269,6 +269,51 @@ describe("the dashboard", () => {
     expect(await screen.findByText("Card payments in the app are on.")).toBeTruthy();
   });
 
+  it("shows the four AI switches on when the API has never stored them, and turns one off alone", async () => {
+    const user = userEvent.setup();
+    const puts: unknown[] = [];
+    // An API that knows the switches sends them; their default is on.
+    let state: Record<string, boolean> = { christmas: false, bachsInApp: false, aiDareIdeas: true, aiCoach: true, aiWeeklyRecap: true, aiPlanner: true };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = new URL(String(input), "http://admin.test");
+      const reply = (status: number, body?: unknown) => new Response(body === undefined ? null : JSON.stringify(body), { status });
+      if (url.pathname !== "/api/admin/features") return reply(404);
+      if ((init?.method ?? "GET") === "GET") return reply(200, state);
+      if (init?.method === "PUT") {
+        const body = JSON.parse(String(init.body)) as Record<string, boolean>;
+        puts.push(body);
+        state = { ...state, ...body };
+        return reply(200, state);
+      }
+      return reply(405);
+    });
+    act(() => setSession(admin));
+    start("/features");
+
+    for (const name of ["Dare ideas", "After-workout coach", "Weekly recap", "Plan something"])
+      expect((await screen.findByRole("switch", { name })).getAttribute("aria-checked")).toBe("true");
+
+    await user.click(screen.getByRole("switch", { name: "Weekly recap" }));
+    expect(await screen.findByText("Turn the weekly recap off?")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Turn off" }));
+
+    await waitFor(() => expect(screen.getByRole("switch", { name: "Weekly recap" }).getAttribute("aria-checked")).toBe("false"));
+    expect(puts).toEqual([{ aiWeeklyRecap: false }]);
+    expect(screen.getByRole("switch", { name: "Dare ideas" }).getAttribute("aria-checked")).toBe("true");
+    expect(await screen.findByText("The weekly recap is off.")).toBeTruthy();
+  });
+
+  it("reads the AI switches as on when an older API leaves them out", async () => {
+    mockApi((method, path) =>
+      method === "GET" && path === "/api/admin/features" ? { status: 200, body: { christmas: false, bachsInApp: false } } : undefined,
+    );
+    act(() => setSession(admin));
+    start("/features");
+
+    expect((await screen.findByRole("switch", { name: "Plan something" })).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("switch", { name: "Christmas theme" }).getAttribute("aria-checked")).toBe("false");
+  });
+
   it("lists Features in the navigation", async () => {
     mockApi((method, path) => (method === "GET" && path === "/api/admin/features" ? { status: 200, body: { christmas: true } } : undefined));
     act(() => setSession(admin));

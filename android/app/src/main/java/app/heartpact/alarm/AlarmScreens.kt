@@ -175,7 +175,8 @@ private fun AskOffDialog(partnerName: String, onSend: (String?) -> Unit, onDismi
 
 /** Heart complete (mockup 07): both halves stuck, both characters cheer. */
 @Composable
-fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: () -> Unit, mySide: Side = Side.Left, frozenAtMs: Float? = null) {
+fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: () -> Unit, mySide: Side = Side.Left, frozenAtMs: Float? = null,
+                  coach: app.heartpact.ui.ai.CoachUi = app.heartpact.ui.ai.CoachUi.Hidden) {
     val colors = Heartpact.colors
     val done = occurrence.completedAtUtc?.let { utc(it) }
     val scheduled = utc(occurrence.scheduledAtUtc)
@@ -203,6 +204,7 @@ fun HeartComplete(occurrence: ExerciseOccurrence, partnerName: String, onDone: (
                 Text(summary,
                     style = Heartpact.type.bodyLarge, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))
                 Text(tr("The same heart goes on {partner}'s page.", "partner" to partnerName), style = Heartpact.type.small, color = colors.ink2, modifier = Modifier.padding(top = 18.dp))
+                app.heartpact.ui.ai.CoachNoteCard(coach, tr("From your coach"), Modifier.padding(top = 18.dp))
             }
         }
         HeartButton(tr("Done"), onDone, Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp, bottom = 12.dp))

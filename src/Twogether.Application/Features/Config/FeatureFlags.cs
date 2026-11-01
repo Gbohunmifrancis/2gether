@@ -1,39 +1,66 @@
 using Microsoft.EntityFrameworkCore;
 using Twogether.Application.Common.Interfaces;
 using Twogether.Core.Entities;
+using Twogether.Core.Enums;
 
 namespace Twogether.Application.Features.Config;
 
 /// <summary>
-/// Every flag, as the admin dashboard reads and switches them: <c>{ "christmas": true, "bachsInApp": false }</c>.
-/// BachsInApp lets the app offer card payment (Bachs) next to Google Play where Google's billing choice allows it.
+/// Every flag, as the admin dashboard reads and switches them: <c>{ "christmas": true, "bachsInApp": false, ... }</c>.
+/// BachsInApp lets the app offer card payment (Bachs) next to Google Play where Google's billing choice allows it. The
+/// four AI switches (docs/ai.md) start on: a switch nobody has touched is on.
 /// </summary>
-public sealed record FeatureFlagsDto(bool Christmas, bool BachsInApp = false);
+public sealed record FeatureFlagsDto(bool Christmas, bool BachsInApp = false, bool AiDareIdeas = true, bool AiCoach = true, bool AiWeeklyRecap = true, bool AiPlanner = true);
 
 /// <summary>What the apps ask for at start (<c>GET api/config</c>): only what changes how every app looks, nothing personal.</summary>
 public sealed record PublicConfigDto(bool Christmas);
 
 /// <summary>A change to some flags; a flag left null stays as it is.</summary>
-public sealed record FeatureFlagsUpdate(bool? Christmas = null, bool? BachsInApp = null)
+public sealed record FeatureFlagsUpdate(bool? Christmas = null, bool? BachsInApp = null, bool? AiDareIdeas = null, bool? AiCoach = null, bool? AiWeeklyRecap = null, bool? AiPlanner = null)
 {
-    public bool IsEmpty => Christmas is null && BachsInApp is null;
+    public bool IsEmpty => Christmas is null && BachsInApp is null && AiDareIdeas is null && AiCoach is null && AiWeeklyRecap is null && AiPlanner is null;
+}
+
+/// <summary>The AI switches alone, as the AI features read them.</summary>
+public sealed record AiSwitches(bool DareIdeas, bool Coach, bool WeeklyRecap, bool Planner)
+{
+    public bool IsOn(AiFeature feature) => feature switch
+    {
+        AiFeature.DareIdeas => DareIdeas,
+        AiFeature.Coach => Coach,
+        AiFeature.WeeklyRecap => WeeklyRecap,
+        AiFeature.Plan => Planner,
+        _ => false
+    };
 }
 
 /// <summary>
-/// Server-wide feature flags, one <c>app_settings</c> row each. A flag nobody has ever set has no row and is off, so
-/// nothing needs seeding and a new database starts with everything off.
+/// Server-wide feature flags, one <c>app_settings</c> row each. A flag nobody has ever set has no row: off, except the AI
+/// switches, which are on until an admin turns them off. Nothing needs seeding.
 /// </summary>
 public sealed class FeatureFlagService(IApplicationDbContext db, IDateTimeProvider clock)
 {
     public const string ChristmasKey = "feature.christmas";
     public const string BachsInAppKey = "feature.bachsInApp";
+    public const string AiDareIdeasKey = "feature.aiDareIdeas";
+    public const string AiCoachKey = "feature.aiCoach";
+    public const string AiWeeklyRecapKey = "feature.aiWeeklyRecap";
+    public const string AiPlannerKey = "feature.aiPlanner";
+
+    private static readonly string[] AllKeys = [ChristmasKey, BachsInAppKey, AiDareIdeasKey, AiCoachKey, AiWeeklyRecapKey, AiPlannerKey];
+    private static readonly string[] AiKeys = [AiDareIdeasKey, AiCoachKey, AiWeeklyRecapKey, AiPlannerKey];
 
     public async Task<FeatureFlagsDto> GetAsync(CancellationToken cancellationToken)
     {
-        var rows = await db.AppSettings.AsNoTracking().Where(item => item.Key == ChristmasKey || item.Key == BachsInAppKey)
-            .Select(item => new { item.Key, item.Value }).ToListAsync(cancellationToken);
-        return new FeatureFlagsDto(IsOn(rows.FirstOrDefault(row => row.Key == ChristmasKey)?.Value), IsOn(rows.FirstOrDefault(row => row.Key == BachsInAppKey)?.Value));
+        var rows = await db.AppSettings.AsNoTracking().Where(item => AllKeys.Contains(item.Key))
+            .ToDictionaryAsync(item => item.Key, item => item.Value, cancellationToken);
+        var ai = Ai(rows);
+        return new FeatureFlagsDto(IsOn(rows.GetValueOrDefault(ChristmasKey)), IsOn(rows.GetValueOrDefault(BachsInAppKey)), ai.DareIdeas, ai.Coach, ai.WeeklyRecap, ai.Planner);
     }
+
+    /// <summary>The four AI switches in one read.</summary>
+    public async Task<AiSwitches> GetAiAsync(CancellationToken cancellationToken)
+        => Ai(await db.AppSettings.AsNoTracking().Where(item => AiKeys.Contains(item.Key)).ToDictionaryAsync(item => item.Key, item => item.Value, cancellationToken));
 
     public async Task<PublicConfigDto> GetPublicAsync(CancellationToken cancellationToken)
     {
@@ -44,11 +71,22 @@ public sealed class FeatureFlagService(IApplicationDbContext db, IDateTimeProvid
 
     public async Task SetAsync(FeatureFlagsUpdate update, CancellationToken cancellationToken)
     {
-        if (update.Christmas is { } christmas) await UpsertAsync(ChristmasKey, christmas ? "true" : "false", cancellationToken);
-        if (update.BachsInApp is { } bachsInApp) await UpsertAsync(BachsInAppKey, bachsInApp ? "true" : "false", cancellationToken);
+        foreach (var (key, value) in new (string, bool?)[]
+                 {
+                     (ChristmasKey, update.Christmas), (BachsInAppKey, update.BachsInApp), (AiDareIdeasKey, update.AiDareIdeas),
+                     (AiCoachKey, update.AiCoach), (AiWeeklyRecapKey, update.AiWeeklyRecap), (AiPlannerKey, update.AiPlanner)
+                 })
+            if (value is { } on) await UpsertAsync(key, on ? "true" : "false", cancellationToken);
     }
 
     public static bool IsOn(string? stored) => string.Equals(stored, "true", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>A switch that starts on: only a stored "false" (or anything but "true") turns it off.</summary>
+    public static bool IsOnByDefault(string? stored) => stored is null || IsOn(stored);
+
+    private static AiSwitches Ai(IReadOnlyDictionary<string, string> rows) => new(
+        IsOnByDefault(rows.GetValueOrDefault(AiDareIdeasKey)), IsOnByDefault(rows.GetValueOrDefault(AiCoachKey)),
+        IsOnByDefault(rows.GetValueOrDefault(AiWeeklyRecapKey)), IsOnByDefault(rows.GetValueOrDefault(AiPlannerKey)));
 
     private async Task UpsertAsync(string key, string value, CancellationToken cancellationToken)
     {

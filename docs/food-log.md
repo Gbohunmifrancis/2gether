@@ -55,4 +55,6 @@ any entry change, unless the user's share level is `none`.
 `Food:Model` (default `claude-opus-5-5`), `Food:AnthropicApiKey` or the `ANTHROPIC_API_KEY` environment variable,
 `Food:MaxImageBytes`, `Food:TimeoutSeconds`. The scan limit is a plan limit (`Billing:Free:FoodScansPerDay`,
 `Billing:Plus:FoodScansPerDay`). The estimator uses the official Anthropic C# SDK
-with a schema-constrained JSON output (`FoodEstimateParser.JsonSchema`) at low effort.
+with a schema-constrained JSON output (`FoodEstimateParser.JsonSchema`) at low effort. Its client is made by
+`AnthropicClients`, as the AI features' is (`docs/ai.md`): the same key and model, and the SDK's retries with backoff
+on 429 and 5xx.

@@ -38,6 +38,42 @@ const switches: Switch[] = [
     turnOff: "The app offers Google Play only. Card subscriptions already running carry on, and so do their reports to Google.",
     saved: ["Card payments in the app are on.", "Card payments in the app are off."],
   },
+  {
+    key: "aiDareIdeas",
+    label: "Dare ideas",
+    name: "dare ideas",
+    hint: '"Suggest a dare" on the New dare screen: Claude offers three dares from the partner\'s recent dares and streak. ' + "Up to 10 a day per person.",
+    turnOn: '"Suggest a dare" comes back on the New dare screen in every app.',
+    turnOff: '"Suggest a dare" disappears from the New dare screen. Setting dares by hand works as always.',
+    saved: ["Dare ideas are on.", "Dare ideas are off."],
+  },
+  {
+    key: "aiCoach",
+    label: "After-workout coach",
+    name: "the after-workout coach",
+    hint: "A short note from Claude on each finished dare: pace, what the camera noticed, the streak, one tip. Written once per dare.",
+    turnOn: "Finished dares get a coach's note again, on the Heart complete screen and the partner's Today.",
+    turnOff: "No new coach's notes, and the ones already written stop showing.",
+    saved: ["The after-workout coach is on.", "The after-workout coach is off."],
+  },
+  {
+    key: "aiWeeklyRecap",
+    label: "Weekly recap",
+    name: "the weekly recap",
+    hint: "Sunday at 18:00 in each couple's time zone: a warm recap of their week at the top of Us, with a notification. Quiet weeks are skipped.",
+    turnOn: "Recaps are written again from the next Sunday evening, and this week's shows on Us if it was written.",
+    turnOff: "No recaps are written or sent, and the card on Us disappears.",
+    saved: ["The weekly recap is on.", "The weekly recap is off."],
+  },
+  {
+    key: "aiPlanner",
+    label: "Plan something",
+    name: "Plan something",
+    hint: "On Us: pick a mood, budget, in or out and maybe a city, and Claude suggests three date ideas and two games. Up to 5 a day per person.",
+    turnOn: '"Plan something" comes back on Us in every app.',
+    turnOff: '"Plan something" disappears from Us.',
+    saved: ["Plan something is on.", "Plan something is off."],
+  },
 ];
 
 export function FeaturesPage() {
@@ -56,7 +92,8 @@ export function FeaturesPage() {
       ) : (
         <Card>
           {switches.map((item) => {
-            const on = features.data?.[item.key] ?? false;
+            // The AI switches start on, so an older API that doesn't send them reads as on.
+            const on = features.data?.[item.key] ?? item.key.startsWith("ai");
             return (
               <div className="list-row feature-row" key={item.key}>
                 <div>

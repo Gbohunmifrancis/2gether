@@ -73,12 +73,7 @@ export function HealthPage() {
                   hint={`${data.workers.length} background loops`}
                 />
                 <KpiSticker label="Album storage" value={null} text={bytes(data.storageBytes)} hint="Counted from the database" />
-                <KpiSticker
-                  label={`Food scans, ${data.foodScanCost.days} days`}
-                  value={null}
-                  text={data.foodScanCost.estimatedCost === null ? "—" : money(data.foodScanCost.estimatedCost, data.foodScanCost.currency)}
-                  hint={`${compact(data.foodScanCost.inputTokens)} in · ${compact(data.foodScanCost.outputTokens)} out tokens`}
-                />
+                <ClaudeCost food={data.foodScanCost} ai={data.aiCost ?? null} />
               </div>
               <div className="grid cols-2">
                 <Card title="Probes" aside={`Checked ${dateTime(data.nowUtc)}`}>
@@ -154,5 +149,34 @@ export function HealthPage() {
         })()
       )}
     </>
+  );
+}
+
+type Cost = Health["foodScanCost"];
+
+/** What Claude cost in the window: food scans and the AI features (same model, same prices), as one tile. */
+function ClaudeCost({ food, ai }: { food: Cost; ai: Cost | null }) {
+  if (!ai) {
+    return (
+      <KpiSticker
+        label={`Food scans, ${food.days} days`}
+        value={null}
+        text={food.estimatedCost === null ? "—" : money(food.estimatedCost, food.currency)}
+        hint={`${compact(food.inputTokens)} in · ${compact(food.outputTokens)} out tokens`}
+      />
+    );
+  }
+  const priced = food.estimatedCost !== null && ai.estimatedCost !== null;
+  return (
+    <KpiSticker
+      label={`Claude, ${food.days} days`}
+      value={null}
+      text={priced ? money((food.estimatedCost ?? 0) + (ai.estimatedCost ?? 0), food.currency) : "—"}
+      hint={
+        priced
+          ? `Food scans ${money(food.estimatedCost ?? 0, food.currency)} · AI features ${money(ai.estimatedCost ?? 0, ai.currency)}`
+          : `${compact(food.inputTokens + ai.inputTokens)} in · ${compact(food.outputTokens + ai.outputTokens)} out tokens`
+      }
+    />
   );
 }

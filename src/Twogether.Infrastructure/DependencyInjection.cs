@@ -47,6 +47,12 @@ public static class DependencyInjection
         services.AddSingleton<IGameQuestionProvider, OpenTriviaQuestionProvider>();
         services.AddSingleton(BuildFoodSettings(configuration));
         services.AddSingleton<IFoodPhotoEstimator, AnthropicFoodPhotoEstimator>();
+        // The AI features (docs/ai.md) share the food estimator's key and model.
+        services.AddSingleton(BuildAiSettings(configuration));
+        services.AddSingleton<Twogether.Application.Features.Ai.IClaudeClient, Twogether.Infrastructure.Ai.AnthropicClaudeClient>();
+        services.AddScoped<Twogether.Infrastructure.Ai.AiUsage>();
+        services.AddScoped<Twogether.Infrastructure.Ai.AiAssistant>();
+        services.AddScoped<Twogether.Infrastructure.Ai.WeeklyRecapWriter>();
         services.AddSingleton(BuildMediaSettings(configuration));
         services.AddSingleton<IMediaStorage, S3MediaStorage>();
         var push = BuildPushSettings(configuration);
@@ -185,6 +191,21 @@ public static class DependencyInjection
             BreakupRetention = int.TryParse(configuration["Media:BreakupRetentionDays"], out var days) && days is >= 1 and <= 365
                 ? TimeSpan.FromDays(days)
                 : defaults.BreakupRetention
+        };
+    }
+
+    private static Twogether.Application.Features.Ai.AiSettings BuildAiSettings(IConfiguration configuration)
+    {
+        var defaults = new Twogether.Application.Features.Ai.AiSettings();
+        int Int(string key, int fallback, int min = 1) => int.TryParse(configuration[key], out var value) && value >= min ? value : fallback;
+        return new Twogether.Application.Features.Ai.AiSettings
+        {
+            DareIdeasPerDay = Int("Ai:DareIdeasPerDay", defaults.DareIdeasPerDay, 0),
+            PlansPerDay = Int("Ai:PlansPerDay", defaults.PlansPerDay, 0),
+            CoachNotesPerDay = Int("Ai:CoachNotesPerDay", defaults.CoachNotesPerDay, 0),
+            TimeoutSeconds = Int("Ai:TimeoutSeconds", defaults.TimeoutSeconds),
+            MaxRetries = Int("Ai:MaxRetries", defaults.MaxRetries, 0),
+            CoachMaxAgeDays = Int("Ai:CoachMaxAgeDays", defaults.CoachMaxAgeDays)
         };
     }
 

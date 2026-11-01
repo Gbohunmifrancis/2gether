@@ -667,11 +667,10 @@
    "privacy/index.html"
   ]
  },
- "Last updated: 26 October 2026": {
+ "Last updated: 1 November 2026": {
   "kind": "text",
   "pages": [
-   "privacy/index.html",
-   "terms/index.html"
+   "privacy/index.html"
   ]
  },
  "Heartpact is a private space for two people. You link phones with your partner, set each other exercise dares, share an album, and keep track of the things that matter to you both. A lot of what you put into Heartpact is personal, and some of it is very personal. This policy explains, in plain English, what we collect, why, who can see it, and how you stay in control.": {
@@ -872,6 +871,24 @@
    "privacy/index.html"
   ]
  },
+ "<strong>AI suggestions and notes:</strong> the after-workout coach's note on each dare you finish, the weekly recap of your week together written for you, and a record of each request to the AI (when, which feature, the AI model used, how much processing it took, how long it took and whether it worked). For dare ideas and Plan something we keep only that record, not the ideas; the mood, budget and city you pick are sent, not kept.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "To suggest dares and plans for the two of you, write a short note after a dare and a recap of your week, apply the daily limits, and keep an eye on what it costs.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "<strong>You.</strong> <strong>Your partner:</strong> the coach's note on your finished dares (the same note you see), and their own recap of your week together. <strong>Us:</strong> never what was written; only what the requests cost, as totals across everyone.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
  "<strong>Cycle tracking (health data):</strong> period start dates, average cycle and period length, and daily logs of flow, symptoms, mood, whether you had sex and used protection, and notes.": {
   "kind": "text",
   "pages": [
@@ -1028,7 +1045,7 @@
    "privacy/index.html"
   ]
  },
- "<strong>To provide the service you signed up for (contract).</strong> Most of the table above: your account, couple link, dares, album, questions, games, food log, notifications and subscription.": {
+ "<strong>To provide the service you signed up for (contract).</strong> Most of the table above: your account, couple link, dares, album, questions, games, food log, AI suggestions and notes, notifications and subscription.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1125,6 +1142,12 @@
   ]
  },
  "Dares set for either of you, and how each one went, including the counts and any \"worth a look\" flags (for example, a missed check-in or a lot of time out of frame). While you are doing a dare, your partner can watch your count go up live.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "The after-workout coach's note on each dare you finish.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1328,13 +1351,13 @@
    "privacy/index.html"
   ]
  },
- "Estimates calories and nutrients from a meal photo, when you choose to scan one.": {
+ "Estimates calories and nutrients from a meal photo, when you choose to scan one. Writes dare ideas, date plans, the after-workout coach's notes and the weekly recap.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
   ]
  },
- "The meal photo (shrunk to at most 1600 pixels and re-encoded, which removes embedded details such as location), any notes you add about the meal, and the country on your account so it can think of local dishes first, sent from our server. It is not sent with your name or email, and we do not store the photo.": {
+ "The meal photo (shrunk to at most 1600 pixels and re-encoded, which removes embedded details such as location), any notes you add about the meal, and the country on your account so it can think of local dishes first, sent from our server. It is not sent with your name or email, and we do not store the photo. For the AI suggestions and notes, only: counts (dares done, missed or called off, hearts, games played and won, photos added, questions answered), exercise names, targets, times, the camera's check counts and streaks, your and your partner's first names, the language of your app and the country on your account, and for Plan something the mood, budget, in or out and the city you type. Never your photos, captions, messages, answers, drawings, meals, cycle, pregnancy or location, your email or full name, or a dare's title or note.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1664,6 +1687,12 @@
    "privacy/index.html"
   ]
  },
+ "<strong>AI notes and recaps:</strong> the coach's notes and weekly recaps until you delete your account (a recap of your week together goes when either of you deletes theirs). The record of each AI request, which holds nothing of what was sent or written, likewise.": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
  "<strong>Location:</strong> only the latest point, wiped when you stop sharing and deleted after 7 days without use, as described in section 8.": {
   "kind": "text",
   "pages": [
@@ -1809,7 +1838,7 @@
    "privacy/index.html"
   ]
  },
- "Your account and everything that is yours is erased: profile, cycle and pregnancy data, food log and scan records, dares and their attempts, location, devices, notifications, subscription records, invites, messages and daily answers.": {
+ "Your account and everything that is yours is erased: profile, cycle and pregnancy data, food log and scan records, dares and their attempts, the coach's notes and weekly recaps, the record of your AI requests, location, devices, notifications, subscription records, invites, messages and daily answers.": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -1887,7 +1916,13 @@
    "privacy/index.html"
   ]
  },
- "dares and every attempt;": {
+ "dares and every attempt, with the coach's notes on them;": {
+  "kind": "text",
+  "pages": [
+   "privacy/index.html"
+  ]
+ },
+ "the weekly recaps written for you;": {
   "kind": "text",
   "pages": [
    "privacy/index.html"
@@ -2112,6 +2147,12 @@
   ]
  },
  "Terms of Use": {
+  "kind": "text",
+  "pages": [
+   "terms/index.html"
+  ]
+ },
+ "Last updated: 26 October 2026": {
   "kind": "text",
   "pages": [
    "terms/index.html"

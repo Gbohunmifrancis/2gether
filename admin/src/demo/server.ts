@@ -36,7 +36,7 @@ class DemoServer {
   /** When a code was last accepted (the five minutes it covers). */
   private steppedUpAt = 0;
   private paused = false;
-  private features: Features = { christmas: false, bachsInApp: false };
+  private features: Features = { christmas: false, bachsInApp: false, aiDareIdeas: true, aiCoach: true, aiWeeklyRecap: true, aiPlanner: true };
 
   /** Starts the pretend world ticking: an event every few seconds. */
   pause() {
@@ -279,7 +279,9 @@ class DemoServer {
       }
       case "features":
         if (method === "PUT") {
-          const named = (["christmas", "bachsInApp"] as const).filter((key) => typeof body[key] === "boolean");
+          const named = (["christmas", "bachsInApp", "aiDareIdeas", "aiCoach", "aiWeeklyRecap", "aiPlanner"] as const).filter(
+            (key) => typeof body[key] === "boolean",
+          );
           if (named.length === 0) return error(422, "admin.features_invalid", "Say which switch to turn on or off.");
           for (const key of named) {
             const next = body[key] as boolean;

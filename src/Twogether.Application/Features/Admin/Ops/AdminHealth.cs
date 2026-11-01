@@ -23,7 +23,9 @@ public sealed record HealthDto(
     IReadOnlyList<QueueDto> Queues,
     long StorageBytes,
     FoodScanCostDto FoodScanCost,
-    IReadOnlyList<string> NotMonitored);
+    IReadOnlyList<string> NotMonitored,
+    /// <summary>The AI features' calls to Claude (docs/ai.md), priced like food scans: they use the same model.</summary>
+    FoodScanCostDto? AiCost = null);
 
 /// <summary>
 /// Is everything up, and is the background work keeping up. Probes are cheap and bounded by
@@ -83,6 +85,9 @@ public sealed class AdminHealth(
         var tokens = await db.FoodScans.AsNoTracking().Where(item => item.CreatedAtUtc >= costFrom)
             .GroupBy(_ => 1).Select(group => new { Input = group.Sum(item => (long)item.InputTokens), Output = group.Sum(item => (long)item.OutputTokens) })
             .SingleOrDefaultAsync(ct);
+        var aiTokens = await db.AiRequests.AsNoTracking().Where(item => item.CreatedAtUtc >= costFrom)
+            .GroupBy(_ => 1).Select(group => new { Input = group.Sum(item => (long)item.InputTokens), Output = group.Sum(item => (long)item.OutputTokens) })
+            .SingleOrDefaultAsync(ct);
 
         return new HealthDto(
             now,
@@ -91,7 +96,8 @@ public sealed class AdminHealth(
             await QueuesAsync(now, ct),
             await StorageBytesAsync(db, ct),
             Cost(days, tokens?.Input ?? 0, tokens?.Output ?? 0, settings),
-            NotMonitored);
+            NotMonitored,
+            Cost(days, aiTokens?.Input ?? 0, aiTokens?.Output ?? 0, settings));
     }
 
     public static FoodScanCostDto Cost(int days, long input, long output, AdminSettings settings)

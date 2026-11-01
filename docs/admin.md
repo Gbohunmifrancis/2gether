@@ -66,8 +66,8 @@ an admin, or is disabled. Attempts are rate-limited per email (5 per 15 minutes)
 | A user | Account, couple and partner, activity counts, their journey (each day's counts as a sticker strip), devices, subscriptions, grants and admin history. Disable or re-enable, sign out everywhere, email a reset code, mark as internal, give the couple Plus, delete the account |
 | Payments | Every Play subscription: sync with Google, stop renewal, refund the latest payment, or revoke (refund and end now). Card (Bachs) subscriptions, marked "Card": sync with Bachs and stop renewal (Bachs cancels at the period end); refunds and ending one now are done in the Bachs dashboard, and the API refuses them with `409 admin.bachs_dashboard`. Complimentary Plus grants, with end |
 | Audit log | Every admin sign-in (and failure) and action, who, when, on what, from which IP. Kept two years (`AdminAuditSweepWorker`, daily), as the privacy policy says |
-| Health | Probes (database, storage, push, email, food scans) with latency; background workers as beating hearts that go still when late and red when failing; queues; album storage; food scan cost; an honest list of what nothing monitors |
-| Features | Switches that change every app without a release. Today: **Christmas theme**, which turns the festive look on for every app (within about a minute), and **Card payments in the app** (`bachsInApp`, Google Play billing choice). See `docs/feature-flags.md` |
+| Health | Probes (database, storage, push, email, food scans) with latency; background workers as beating hearts that go still when late and red when failing; queues; album storage; what Claude cost (food scans and the AI features, `docs/ai.md`); an honest list of what nothing monitors |
+| Features | Switches that change every app without a release: **Christmas theme**, which turns the festive look on for every app (within about a minute), **Card payments in the app** (`bachsInApp`, Google Play billing choice), and the four AI features, on until switched off: **Dare ideas**, **After-workout coach**, **Weekly recap** and **Plan something** (`docs/ai.md`). See `docs/feature-flags.md` |
 | System | Which services are configured, push and clean-up queues, list prices, the **Billing check** (below), and the admins |
 
 Analytics windows are 7, 30, 90 or 365 days; filters, pages and windows are in the URL, so a view can be shared.
@@ -122,7 +122,7 @@ alone, and another admin resets their authenticator. Changing `Jwt__SigningKey` 
 | `Admin__TokenHours` | Admin session length in hours, default 168 (a week), at most 168 |
 | `Admin__MonthlyPrices__heartpact_plus_monthly`, `Admin__MonthlyPrices__heartpact_plus_yearly` | Monthly list price per product, for the revenue estimate |
 | `Admin__Currency` | Currency of those prices (and of the food scan cost), default `USD` |
-| `Admin__FoodScanPricePerMillionInput`, `Admin__FoodScanPricePerMillionOutput` | Food photo estimate price per million input and output tokens, for the cost on System → Health. Without both, the cost shows "—" |
+| `Admin__FoodScanPricePerMillionInput`, `Admin__FoodScanPricePerMillionOutput` | Price per million input and output tokens of the model `Food:Model` names, for the cost on System → Health: food scans and the AI features use the same model. Without both, the cost shows "—" |
 | `Admin__StorageBudgetGb` | Album storage budget in GB (10^9 bytes): an alert is raised at 80% and turns red at 100%. Unset: no storage alert |
 | `Admin__SecretKey` | Encrypts admins' authenticator secrets in the database. Any long random string. Without it, a key derived from `Jwt__SigningKey` is used |
 | `Admin__PreviousSecretKey` | The key before the last change, so existing secrets still open; they are re-encrypted under the new key at start-up |

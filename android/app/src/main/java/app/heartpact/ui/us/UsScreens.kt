@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.outlined.HeartBroken
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonRemove
@@ -113,6 +114,10 @@ fun UsTab(
     location: @Composable () -> Unit = {},
     /** The couple has Heartpact Plus: a gold badge by the title and a thin gold ring around the two of you. */
     isPlus: Boolean = false,
+    /** This week's recap card ("Your week together"), first on the page when there is one. */
+    recap: (@Composable () -> Unit)? = null,
+    /** Plan something, when the server offers it. */
+    onPlan: (() -> Unit)? = null,
 ) {
     val colors = Heartpact.colors
     AdaptivePage(header = {
@@ -126,7 +131,9 @@ fun UsTab(
             togetherSince?.let { Text(it, style = Heartpact.type.body.copy(fontSize = 13.5.sp), color = colors.ink2, modifier = Modifier.padding(top = 2.dp)) }
         }
     }, second = null) {
-        // Your own corner first: it is the one thing on this page that is only about you.
+        // The week's recap leads while it's fresh: it is about the two of you.
+        recap?.let { Box(Modifier.padding(horizontal = 12.dp).padding(bottom = 14.dp)) { it() } }
+        // Your own corner next: it is the one thing on this page that is only about you.
         StickerCard(Modifier.padding(horizontal = 12.dp)) {
             Row(Modifier.fillMaxWidth().clickable(onClick = onProfile).padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 Avatar(me, 52.dp)
@@ -139,6 +146,9 @@ fun UsTab(
         }
         StickerCard(Modifier.padding(horizontal = 12.dp).padding(top = 14.dp)) {
             CardRow(tr("Play together"), subtitle = tr("Heart to heart, Spot the difference, trivia and more"), icon3d = Icon3D.Games, onClick = onGames) { Chevron() }
+            onPlan?.let {
+                CardRow(tr("Plan something"), subtitle = tr("Date ideas and a game for tonight"), icon = Icons.Rounded.Lightbulb, divider = true, onClick = it) { Chevron() }
+            }
         }
         ui.note?.let { NoteCard(it, Modifier.padding(horizontal = 12.dp).padding(top = 12.dp)) }
         Box(Modifier.padding(top = 14.dp)) { location() }

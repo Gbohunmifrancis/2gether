@@ -101,6 +101,8 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val location = LocationRepository(api, json)
     val games = GameRepository(api, json)
     val plus = PlusRepository(api, json)
+    /** The AI features (docs/ai.md); each hides itself when the server says it's off. */
+    val ai = AiRepository(api, json)
 
     /** The Plus last celebrated on this phone, per person (ui/plus/PlusCelebration.kt). */
     val plusCelebrations = app.heartpact.ui.plus.PlusCelebrationStore(context)

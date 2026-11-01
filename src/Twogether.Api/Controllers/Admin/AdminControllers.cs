@@ -464,16 +464,22 @@ public sealed class AdminFeaturesController(FeatureFlagService flags, AdminAudit
     [HttpPut]
     public async Task<ActionResult<FeatureFlagsDto>> Put(AdminFeaturesRequest request, CancellationToken ct)
     {
-        var update = new FeatureFlagsUpdate(request.Christmas, request.BachsInApp);
+        var update = new FeatureFlagsUpdate(request.Christmas, request.BachsInApp, request.AiDareIdeas, request.AiCoach, request.AiWeeklyRecap, request.AiPlanner);
         if (update.IsEmpty) return UnprocessableEntity(new ApiError("admin.features_invalid", "Say which switch to turn on or off."));
         var before = await flags.GetAsync(ct);
         await flags.SetAsync(update, ct);
         var after = await flags.GetAsync(ct);
         static string State(bool on) => on ? "on" : "off";
-        if (request.Christmas is not null)
-            audit.Record(User, "features.updated", "feature", "christmas", $"christmas: {State(before.Christmas)} -> {State(after.Christmas)}");
-        if (request.BachsInApp is not null)
-            audit.Record(User, "features.updated", "feature", "bachsInApp", $"bachsInApp: {State(before.BachsInApp)} -> {State(after.BachsInApp)}");
+        foreach (var (name, asked, was, now) in new (string, bool?, bool, bool)[]
+                 {
+                     ("christmas", request.Christmas, before.Christmas, after.Christmas),
+                     ("bachsInApp", request.BachsInApp, before.BachsInApp, after.BachsInApp),
+                     ("aiDareIdeas", request.AiDareIdeas, before.AiDareIdeas, after.AiDareIdeas),
+                     ("aiCoach", request.AiCoach, before.AiCoach, after.AiCoach),
+                     ("aiWeeklyRecap", request.AiWeeklyRecap, before.AiWeeklyRecap, after.AiWeeklyRecap),
+                     ("aiPlanner", request.AiPlanner, before.AiPlanner, after.AiPlanner),
+                 })
+            if (asked is not null) audit.Record(User, "features.updated", "feature", name, $"{name}: {State(was)} -> {State(now)}");
         await db.SaveChangesAsync(ct);
         return Ok(after);
     }
@@ -483,7 +489,7 @@ public sealed class AdminFeaturesController(FeatureFlagService flags, AdminAudit
 /// Each switch is optional, so a body names only what it changes; one that names none is refused, and a switch left
 /// out is never turned off by omission.
 /// </summary>
-public sealed record AdminFeaturesRequest(bool? Christmas = null, bool? BachsInApp = null);
+public sealed record AdminFeaturesRequest(bool? Christmas = null, bool? BachsInApp = null, bool? AiDareIdeas = null, bool? AiCoach = null, bool? AiWeeklyRecap = null, bool? AiPlanner = null);
 public sealed record AdminPage<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
 public sealed record AdminUserRow(Guid Id, string Email, string DisplayName, DateTime CreatedAtUtc, DateTime? LastActiveAtUtc, DateTime? DisabledAtUtc, bool Google, bool Password, CoupleStatus? CoupleStatus, bool Paying, bool Internal = false);
 public sealed record AdminPersonRef(Guid Id, string Email, string DisplayName);

@@ -79,6 +79,12 @@ public sealed class AccountEraser(ApplicationDbContext db, IDateTimeProvider clo
             .Where(item => item.AssignedUserId == userId || item.CreatedByUserId == userId || orphaned.Contains(item.CoupleId))
             .Select(item => item.Id)
             .ToListAsync(cancellationToken);
+        // The coach's notes on those dares (they also cascade with the occurrences), and every weekly recap of a couple
+        // the person was in: both are written about them. What their AI requests cost goes too.
+        await db.AiCoachNotes.Where(item => item.UserId == userId || db.ExerciseOccurrences.Any(occurrence => occurrence.Id == item.OccurrenceId
+            && (occurrence.UserId == userId || goalIds.Contains(occurrence.GoalId)))).ExecuteDeleteAsync(cancellationToken);
+        await db.WeeklyRecaps.Where(item => coupleIds.Contains(item.CoupleId)).ExecuteDeleteAsync(cancellationToken);
+        await db.AiRequests.Where(item => item.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await db.ExerciseOccurrences.Where(item => item.UserId == userId || goalIds.Contains(item.GoalId)).ExecuteDeleteAsync(cancellationToken);
         await db.ExerciseGoals.Where(item => goalIds.Contains(item.Id)).ExecuteDeleteAsync(cancellationToken);
 

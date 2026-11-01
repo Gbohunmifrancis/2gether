@@ -1,11 +1,15 @@
 # Feature flags
 
-Server-wide switches an admin can flip without a deploy. They live in the `app_settings` table (`Key`, `Value`, `UpdatedAtUtc`), created by `CREATE TABLE IF NOT EXISTS` in `DatabaseSchemaUpgrade.cs`. Nothing is seeded: a flag with no row is off.
+Server-wide switches an admin can flip without a deploy. They live in the `app_settings` table (`Key`, `Value`, `UpdatedAtUtc`), created by `CREATE TABLE IF NOT EXISTS` in `DatabaseSchemaUpgrade.cs`. Nothing is seeded: a flag with no row is off, except the four AI switches, which are on until an admin turns them off.
 
 | Flag | Row key | Meaning |
 |---|---|---|
 | `christmas` | `feature.christmas` (`"true"` / `"false"`) | Turns the festive look on in every app |
 | `bachsInApp` | `feature.bachsInApp` (`"true"` / `"false"`) | Lets the Android app offer card payment (Bachs) next to Google Play, under Google Play's billing choice ("alternative billing with user choice"). Off by default |
+| `aiDareIdeas` | `feature.aiDareIdeas` | "Suggest a dare" on New dare (`docs/ai.md`). **On by default**: only a stored `"false"` turns it off |
+| `aiCoach` | `feature.aiCoach` | The coach's note on a finished dare. On by default |
+| `aiWeeklyRecap` | `feature.aiWeeklyRecap` | The Sunday recap on Us and its push. On by default |
+| `aiPlanner` | `feature.aiPlanner` | Plan something on Us. On by default |
 
 ## `bachsInApp`: card payments in the app
 
@@ -44,7 +48,10 @@ Under the admin session (see `docs/admin.md`). Same body both ways; in a `PUT` e
 flags named change:
 
 ```json
-{ "christmas": true, "bachsInApp": false }
+{ "christmas": true, "bachsInApp": false, "aiDareIdeas": true, "aiCoach": true, "aiWeeklyRecap": true, "aiPlanner": true }
 ```
 
-`PUT` needs a fresh authenticator code in `X-Admin-Code` like other changes that reach every user, answers `200` with the new state of every flag, and writes one audit log entry per flag named, as `features.updated` (target `feature` / `christmas` or `bachsInApp`, details such as `christmas: off -> on`). A body that names no flag is `422 admin.features_invalid`; a flag left out is never switched off by omission.
+The app doesn't read the AI switches here: it asks `GET api/ai/status` (signed in), which is true for a feature only
+when the switch is on and the server has an Anthropic key (`docs/ai.md`).
+
+`PUT` needs a fresh authenticator code in `X-Admin-Code` like other changes that reach every user, answers `200` with the new state of every flag, and writes one audit log entry per flag named, as `features.updated` (target `feature` / the flag's name, details such as `christmas: off -> on`). A body that names no flag is `422 admin.features_invalid`; a flag left out is never switched off by omission.

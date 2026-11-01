@@ -34,11 +34,7 @@ public sealed class AnthropicFoodPhotoEstimator : IFoodPhotoEstimator
     {
         _settings = settings;
         _logger = logger;
-        var apiKey = string.IsNullOrWhiteSpace(settings.AnthropicApiKey) ? Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") : settings.AnthropicApiKey;
-        if (!string.IsNullOrWhiteSpace(apiKey))
-        {
-            _client = new AnthropicClient { ApiKey = apiKey, Timeout = TimeSpan.FromSeconds(Math.Clamp(settings.TimeoutSeconds, 5, 300)) };
-        }
+        _client = Twogether.Infrastructure.Ai.AnthropicClients.Create(settings, settings.TimeoutSeconds);
     }
 
     public bool IsConfigured => _client is not null;

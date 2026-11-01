@@ -17,6 +17,7 @@ Google Play requires any app that creates accounts to let people delete them, bo
 - notifications
 - devices
 - subscriptions
+- what Claude wrote for them: their coach notes and the weekly recaps written for them (`docs/ai.md`)
 
 It also includes the memories they uploaded, each with a signed download link that expires after `Media:DownloadUrlLifetime` (default one hour). The export repeats that lifetime as `memoryLinksValidFor`.
 
@@ -65,6 +66,7 @@ The request is checked in this order:
   - user row, cycle profile and logs, pregnancies (appointments and kick sessions cascade), food entries, targets and scans
   - shared location, devices, subscriptions, notifications, invites they created
   - messages they sent, their daily answers, and exercise goals they set or were given, together with every attempt
+  - what Claude wrote about them (`docs/ai.md`): the coach's notes on their dares, every weekly recap of a couple they were in, and the record of their AI requests
 - **Games.** All games from any couple they were in are deleted, because game state embeds both players' answers.
 - **Memories they uploaded.**
   - The rows are marked `Deleting`, with caption and date wiped inside the same transaction.

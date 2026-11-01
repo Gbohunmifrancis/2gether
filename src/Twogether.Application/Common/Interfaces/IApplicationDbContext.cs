@@ -39,5 +39,8 @@ public interface IApplicationDbContext
     DbSet<AppSetting> AppSettings { get; }
     DbSet<BachsWebhookEvent> BachsWebhookEvents { get; }
     DbSet<GoogleExternalTransaction> GoogleExternalTransactions { get; }
+    DbSet<AiRequest> AiRequests { get; }
+    DbSet<AiCoachNote> AiCoachNotes { get; }
+    DbSet<WeeklyRecap> WeeklyRecaps { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

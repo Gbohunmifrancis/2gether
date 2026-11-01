@@ -3,6 +3,8 @@ package app.heartpact.alarm
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.heartpact.ui.ai.CoachLoader
+import app.heartpact.ui.ai.CoachUi
 import app.heartpact.HeartpactApplication
 import app.heartpact.data.ApiResult
 import app.heartpact.data.ExerciseOccurrence
@@ -41,6 +43,8 @@ data class AlarmUi(
     val silenced: Boolean = false,
     /** The dare's time has come, so the alarm may be ringing: the screen offers Silence. A dare done early isn't due yet. */
     val dueNow: Boolean = true,
+    /** The coach's note under Heart complete (docs/ai.md); hidden unless the server writes one. */
+    val coach: CoachUi = CoachUi.Hidden,
 )
 
 class AlarmViewModel(application: Application, private val slot: AlarmSlot) : AndroidViewModel(application) {
@@ -66,6 +70,17 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
             is ApiResult.Ok -> _ui.update { it.copy(phase = AlarmPhase.Camera(result.value)) }
             is ApiResult.Failure -> if (result.code == "exercise.not_due_today" || result.code == "exercise.not_active") load() else _ui.update { it.copy(phase = AlarmPhase.Ended(EndReason.Gone), note = result.message) }
             ApiResult.Offline -> _ui.update { it.copy(phase = AlarmPhase.Ended(EndReason.Gone), note = OFFLINE_MESSAGE) }
+        }
+    }
+
+    private var coachFor: String? = null
+
+    /** The coach's note on the heart just made: written on the server while Heart complete shows, so it fades in when ready. */
+    private fun coach(occurrenceId: String) {
+        if (coachFor == occurrenceId) return
+        coachFor = occurrenceId
+        viewModelScope.launch {
+            CoachLoader.load({ app.ai.coach(occurrenceId) }, { coach -> _ui.update { it.copy(coach = coach) } })
         }
     }
 
@@ -103,7 +118,7 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
                 if (_ui.value.phase !is AlarmPhase.Camera) _ui.update { it.copy(phase = AlarmPhase.Ringing(occurrence), note = null) }
                 watch()
             }
-            OccurrenceStatus.Completed -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(occurrence)) } }
+            OccurrenceStatus.Completed -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(occurrence)) }; coach(occurrence.id) }
             OccurrenceStatus.Cancelled -> end(EndReason.LetOff)
             OccurrenceStatus.Missed -> end(EndReason.Missed)
         }
@@ -172,7 +187,7 @@ class AlarmViewModel(application: Application, private val slot: AlarmSlot) : An
         val occurrence = currentOccurrence() ?: return FinishOutcome.Saved
         val token = app.integrity.token(PlayIntegrity.requestHash(occurrence.id, count, checks))
         return when (val result = app.exercise.complete(occurrence.id, count, confidence, checks, token)) {
-            is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) }; replan(); FinishOutcome.Saved }
+            is ApiResult.Ok -> { stopRinging(); _ui.update { it.copy(phase = AlarmPhase.Sealed(result.value)) }; replan(); coach(result.value.id); FinishOutcome.Saved }
             is ApiResult.Failure -> FinishOutcome.of(result.code, result.status, result.message).also {
                 // Closed meanwhile (missed, let off, or done on another phone): show how it ended.
                 if (result.code == "exercise.not_active") recheck(occurrence.id)

@@ -81,7 +81,13 @@ public sealed class AccountExportService(IApplicationDbContext db, IMediaStorage
             await db.NotificationPreferences.AsNoTracking().Where(item => item.UserId == userId).ToListAsync(cancellationToken),
             await db.StoreSubscriptions.AsNoTracking().Where(item => item.UserId == userId)
                 .Select(item => new { item.Store, item.ProductId, item.Status, item.ExpiresAtUtc, item.AutoRenewing, item.CreatedAtUtc }).ToListAsync<object>(cancellationToken),
-            media.DownloadUrlLifetime);
+            media.DownloadUrlLifetime,
+            // What Claude wrote for this person (docs/ai.md): the coach's notes on their dares, and their weekly recaps.
+            await db.AiCoachNotes.AsNoTracking().Where(item => item.UserId == userId && item.State == AiNoteState.Ready).OrderBy(item => item.CreatedAtUtc)
+                .Select(item => new { item.OccurrenceId, item.Language, item.Text, item.CreatedAtUtc }).ToListAsync<object>(cancellationToken),
+            (await db.WeeklyRecaps.AsNoTracking().Where(item => db.Couples.Any(couple => couple.Id == item.CoupleId && (couple.UserAId == userId || couple.UserBId == userId))
+                    && item.State == AiNoteState.Ready).OrderBy(item => item.PeriodEndUtc).ToListAsync(cancellationToken))
+                .Select(item => (object?)Twogether.Application.Features.Ai.WeeklyRecapExport.For(item, userId)).OfType<object>().ToList());
     }
 }
 
@@ -110,4 +116,6 @@ public sealed record AccountExport(
     IReadOnlyList<object> Devices,
     IReadOnlyList<object> NotificationPreferences,
     IReadOnlyList<object> Subscriptions,
-    TimeSpan MemoryLinksValidFor);
+    TimeSpan MemoryLinksValidFor,
+    IReadOnlyList<object>? CoachNotes = null,
+    IReadOnlyList<object>? WeeklyRecaps = null);

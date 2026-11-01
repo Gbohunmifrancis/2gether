@@ -74,6 +74,11 @@ import app.heartpact.ui.us.QuestionViewModel
 import app.heartpact.ui.us.UsTab
 import app.heartpact.ui.us.UsText
 import app.heartpact.ui.us.UsViewModel
+import app.heartpact.ui.ai.PlanScreen
+import app.heartpact.ui.ai.PlanViewModel
+import app.heartpact.ui.ai.UsAiViewModel
+import app.heartpact.ui.ai.WeeklyRecapCard
+import app.heartpact.ui.ai.WeeklyRecapScreen
 import androidx.activity.compose.BackHandler
 import app.heartpact.ui.auth.ForgotPasswordScreen
 import app.heartpact.ui.auth.ForgotViewModel
@@ -167,6 +172,8 @@ private object Routes {
     const val PLUS = "plus"
     const val PREGNANCY = "pregnancy"
     const val NOTIFICATIONS = "notifications"
+    const val PLAN = "plan"
+    const val RECAP = "recap"
     const val FOOD_SCAN = "foodscan?uri={uri}"
     const val FOOD_ENTRY = "foodentry?id={id}"
     fun foodScan(uri: Uri) = "foodscan?uri=" + Uri.encode(uri.toString())
@@ -370,6 +377,9 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val foodUi by foodModel.ui.collectAsStateWithLifecycle()
                     val usModel: UsViewModel = viewModel(factory = viewModelFactory { initializer { UsViewModel(container.us, container.pushEvents, container.auth) } })
                     val usUi by usModel.ui.collectAsStateWithLifecycle()
+                    // The AI features on Us (docs/ai.md): this week's recap and Plan something, each only when the server offers it.
+                    val usAi: UsAiViewModel = viewModel(key = "us-ai", factory = viewModelFactory { initializer { UsAiViewModel(container.ai, container.pushEvents) } })
+                    val usAiUi by usAi.ui.collectAsStateWithLifecycle()
                     val locationModel: LocationViewModel = viewModel(key = "location", factory = viewModelFactory { initializer { LocationViewModel(application) } })
                     val locationUi by locationModel.ui.collectAsStateWithLifecycle()
                     val shareLocation = rememberShareLocation { locationModel.share(partner) }
@@ -398,6 +408,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         plusSummary.load()
                         foodModel.refresh()
                         usModel.refresh()
+                        usAi.refresh()
                         cycleSummary.load()
                         locationModel.refresh()
                         pregnancySummary.load()
@@ -429,7 +440,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                 Tab.Pacts -> pactsModel.refresh()
                                 Tab.Album -> albumModel.refresh()
                                 Tab.Food -> foodModel.refresh()
-                                Tab.Us -> usModel.refresh()
+                                Tab.Us -> { usAi.refresh(); usModel.refresh() }
                             }
                         },
                         onTab = {
@@ -451,6 +462,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)
                                 },
                                 isPlus = isPlus,
+                                recap = usAiUi.recap?.takeIf { linked }?.let { recap -> { WeeklyRecapCard(recap, onOpen = { nav.navigate(Routes.RECAP) }) } },
+                                onPlan = if (usAiUi.status.planner && linked) ({ nav.navigate(Routes.PLAN) }) else null,
                                 extraRows = {
                                     val cycleMode = cycleSummaryUi.mode
                                     if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
@@ -662,10 +675,36 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val couple by appModel.couple.collectAsStateWithLifecycle()
                         val session by appModel.session.collectAsStateWithLifecycle()
                         val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id } ?: return@composable
-                        val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId, container.plus) } })
+                        val model: NewDareViewModel = viewModel(factory = viewModelFactory { initializer { NewDareViewModel(container.exercise, partner.userId, container.plus, container.ai) } })
                         val state by model.state.collectAsStateWithLifecycle()
                         NewDareScreen(state, partner.displayName, model::type, model::step, model::time, model::window, { model.send { nav.popBackStack() } }, onBack = { nav.popBackStack() },
-                            onGetPlus = { nav.navigate(Routes.PLUS) })
+                            onGetPlus = { nav.navigate(Routes.PLUS) }, onSuggest = model::suggest, onPickIdea = model::pick)
+                    }
+                }
+                composable(Routes.PLAN) {
+                    ReadableScreen {
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
+                        val model: PlanViewModel = viewModel(factory = viewModelFactory { initializer { PlanViewModel(container.ai) } })
+                        val ui by model.ui.collectAsStateWithLifecycle()
+                        PlanScreen(ui, partner, model::mood, model::budget, model::setting, model::city, model::suggest,
+                            onGame = { nav.navigate(Routes.GAMES) }, onBack = { nav.popBackStack() })
+                    }
+                }
+                composable(Routes.RECAP) { entry ->
+                    ReadableScreen {
+                        val couple by appModel.couple.collectAsStateWithLifecycle()
+                        val session by appModel.session.collectAsStateWithLifecycle()
+                        val partner = couple?.members?.firstOrNull { it.userId != session?.user?.id }?.displayName ?: tr("your partner")
+                        // The Home entry's model: the same recap the card showed, no second request.
+                        val home = remember(entry) { nav.getBackStackEntry(Routes.HOME) }
+                        val usAi: UsAiViewModel = viewModel(home, key = "us-ai", factory = viewModelFactory { initializer { UsAiViewModel(container.ai, container.pushEvents) } })
+                        val ui by usAi.ui.collectAsStateWithLifecycle()
+                        val recap = ui.recap
+                        if (recap == null) LaunchedEffect(Unit) { nav.popBackStack() }
+                        else WeeklyRecapScreen(recap, partner, onBack = { nav.popBackStack() },
+                            onPlan = if (ui.status.planner) ({ nav.navigate(Routes.PLAN) }) else null)
                     }
                 }
             }

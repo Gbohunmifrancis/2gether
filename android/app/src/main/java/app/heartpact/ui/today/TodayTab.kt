@@ -112,7 +112,7 @@ fun TodayTab(
                     ringing != null -> CardRow(tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.exerciseType.titleOf(ringing.title).lowercase()),
                         subtitle = tr("{progress} · rings until {time}", "progress" to ringing.exerciseType.progress(ringing.achievedCount, ringing.target),
                             "time" to time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))), icon = Icons.Rounded.Alarm)
-                    done != null -> PartnerDone(done, partnerName)
+                    done != null -> PartnerDone(done, partnerName, ui.partnerCoach?.takeIf { it.first == done.id }?.second ?: app.heartpact.ui.ai.CoachUi.Hidden)
                     next != null -> CardRow(tr("Your dare for {partner}", "partner" to partnerName), subtitle = tr("{dare} · rings at {time}", "dare" to next.exerciseType.label(next.target).replaceFirstChar { it.uppercase() },
                         "time" to time(utc(next.nextDueAtUtc))), icon = Icons.Rounded.Alarm)
                     else -> CardRow(tr("No dare for {partner} yet", "partner" to partnerName), subtitle = tr("Set one and stick your half on first"), icon = Icons.Rounded.Alarm)
@@ -192,7 +192,7 @@ private fun DareCard(dare: MyDare, partnerName: String, now: Instant, onStartCam
 
 /** My partner's finished dare: when, and what the camera noticed, flags first. */
 @Composable
-private fun PartnerDone(done: ExerciseOccurrence, partnerName: String) {
+private fun PartnerDone(done: ExerciseOccurrence, partnerName: String, coach: app.heartpact.ui.ai.CoachUi = app.heartpact.ui.ai.CoachUi.Hidden) {
     val checks = done.checks
     val line = checks?.partnerLine()
     val flagged = checks?.flagged == true
@@ -201,6 +201,8 @@ private fun PartnerDone(done: ExerciseOccurrence, partnerName: String) {
         subtitle = listOfNotNull(done.completedAtUtc?.let { tr("at {time}", "time" to time(utc(it))) }, line).joinToString(" · "),
         icon = if (flagged) Icons.Rounded.ReportGmailerrorred else Icons.Rounded.Favorite,
     )
+    // What the coach told them, so the two sides of the moment read the same words.
+    app.heartpact.ui.ai.CoachNoteCard(coach, tr("The coach's note to {partner}", "partner" to partnerName), Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp))
 }
 
 @Composable

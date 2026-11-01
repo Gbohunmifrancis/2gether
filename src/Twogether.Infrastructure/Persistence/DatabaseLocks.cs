@@ -13,7 +13,9 @@ public enum LockScope
     /// <summary>A couple's one open game: check there is none, then invite.</summary>
     GameInvite = 3,
     /// <summary>One Bachs subscription: its events (and an admin's sync or cancel) apply one at a time, newest wins.</summary>
-    BachsSubscription = 4
+    BachsSubscription = 4,
+    /// <summary>A person's daily AI requests for one feature: count, then record the request (docs/ai.md).</summary>
+    AiRequests = 5
 }
 
 /// <summary>

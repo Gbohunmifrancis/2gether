@@ -268,4 +268,20 @@ interface HeartpactApi {
 
     @GET("api/game/sessions/{id}")
     suspend fun gameSession(@Path("id") id: String): Response<GameSession>
+
+    // The AI features (docs/ai.md).
+    @GET("api/ai/status")
+    suspend fun aiStatus(): Response<AiStatus>
+
+    @POST("api/ai/dare-ideas")
+    suspend fun dareIdeas(@Body request: DareIdeasRequest): Response<DareIdeas>
+
+    @GET("api/ai/coach/{occurrenceId}")
+    suspend fun coachNote(@Path("occurrenceId") occurrenceId: String): Response<CoachNote>
+
+    @GET("api/ai/recap")
+    suspend fun weeklyRecap(): Response<WeeklyRecap>
+
+    @POST("api/ai/plan")
+    suspend fun plan(@Body request: PlanRequest): Response<DatePlan>
 }
