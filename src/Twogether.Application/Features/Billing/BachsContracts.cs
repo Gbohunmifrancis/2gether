@@ -24,6 +24,9 @@ public sealed class BachsSettings
     public string? YearlyProductId { get; init; }
     /// <summary>Optional override of the API's address (a local stand-in); otherwise chosen from the key.</summary>
     public string? ApiUrl { get; init; }
+    /// <summary>The card prices the app shows on its "Pay by card" choice; Bachs charges what its products say.</summary>
+    public string MonthlyPrice { get; init; } = "$7.99";
+    public string YearlyPrice { get; init; } = "$39.99";
     public string SuccessUrl { get; init; } = "https://heartpact.me/plus/thanks/";
     public string CancelUrl { get; init; } = "https://heartpact.me/plus/";
 

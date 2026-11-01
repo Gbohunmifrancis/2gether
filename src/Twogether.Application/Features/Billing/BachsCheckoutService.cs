@@ -43,9 +43,9 @@ public sealed class BachsCheckoutService(
         if (productId is null) return Error.Validation(UnknownPlan, Loc.T("Choose the monthly or the yearly plan."));
         var from = string.IsNullOrWhiteSpace(request.From) ? "web" : request.From.Trim().ToLowerInvariant();
         var token = string.IsNullOrWhiteSpace(request.ExternalTransactionToken) ? null : request.ExternalTransactionToken.Trim();
-        // An in-app card checkout only ever starts from Google's choice screen, whose token Google needs reported:
-        // without it the sale couldn't be reported, so it isn't started.
-        if (from is not ("web" or "app") || (token is not null && from != "app") || (from == "app" && token is null))
+        // In the app, a card checkout starts either from Google's choice screen (with the token Google needs reported)
+        // or from the app's own "Pay by card", when the card switch is on (no token: nothing to report to Google).
+        if (from is not ("web" or "app") || (token is not null && from != "app"))
             return Error.Validation(InvalidFrom, Loc.T("This checkout can't be started from here."));
         if (token is { Length: > GoogleExternalTransaction.MaxTokenLength })
             return Error.Validation(InvalidFrom, Loc.T("This checkout can't be started from here."));
@@ -57,7 +57,7 @@ public sealed class BachsCheckoutService(
         if (entitlement.Plan == Plan.Plus)
             return Error.Conflict("billing.already_plus", Loc.T("You already have Heartpact Plus."));
         // Inside the app, card payment exists only where Google's billing choice allows it and the switch is on.
-        if (from == "app" && !entitlement.CardInApp)
+        if (from == "app" && (token is not null ? !entitlement.CardInApp : !entitlement.CardDirect))
             return Error.Forbidden("billing.card_in_app_unavailable", Loc.T("Card payment isn't available in the app here. Use Google Play instead."));
 
         var customerId = await CustomerIdAsync(userId, cancellationToken);

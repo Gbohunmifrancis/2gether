@@ -477,7 +477,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         }
                         PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
                             onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) },
-                            onManageBilling = model::manageBilling)
+                            onManageBilling = model::manageBilling, onSelectCard = model::selectCard, onPayByCard = model::payByCard)
                     }
                 }
                 composable(Routes.PROFILE) {

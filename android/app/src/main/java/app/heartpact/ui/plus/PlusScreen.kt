@@ -127,11 +127,15 @@ fun PlusScreen(
     onRestore: () -> Unit,
     onManage: (String) -> Unit,
     onManageBilling: () -> Unit = {},
+    onSelectCard: (String) -> Unit = {},
+    onPayByCard: () -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val entitlement = ui.entitlement
     val subscription = entitlement?.subscription
     val showPlans = entitlement != null && entitlement.canPurchase && subscription == null
+    val cardPrices = entitlement?.cardPrices?.takeIf { entitlement.cardDirect }
+    val cardOnly = cardPrices != null && ui.options.isEmpty()
     Column(Modifier.fillMaxSize().navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, tr("Close"), tint = colors.ink2) }
@@ -160,11 +164,18 @@ fun PlusScreen(
                 }
                 if (showPlans) {
                     Text(tr("Choose a plan"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
-                    if (ui.options.isEmpty()) {
+                    if (ui.options.isEmpty() && cardPrices == null) {
                         Text(ui.storeMessage ?: tr("Loading plans from Google Play…"), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))
                     }
                     ui.options.forEach { option ->
                         PlanCard(option, selected = option.productId == ui.selected, onClick = { onSelect(option.productId) }, modifier = Modifier.padding(top = 10.dp))
+                    }
+                    cardPrices?.let { prices ->
+                        if (ui.options.isNotEmpty()) Text(tr("Or pay by card"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))
+                        PlusOffers.cardOptions(prices).forEach { option ->
+                            val plan = option.productId.removePrefix("card:")
+                            PlanCard(option, selected = plan == ui.cardSelected, onClick = { onSelectCard(plan) }, modifier = Modifier.padding(top = 10.dp))
+                        }
                     }
                 }
             }
@@ -175,10 +186,19 @@ fun PlusScreen(
                 PlusAction.ManageInPlay -> HeartButton(tr("Manage in Google Play"), onClick = { subscription?.let { onManage(it.productId) } }, kind = ButtonKind.Tonal)
                 PlusAction.ManageBilling -> HeartButton(tr("Manage billing"), onClick = onManageBilling, kind = ButtonKind.Tonal, busy = ui.busy)
                 // With cardInApp, Google's own choice screen offers card after this: there is no separate card button.
-                PlusAction.Buy -> HeartButton(tr("Continue with Google Play"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending && !ui.awaitingCard, busy = ui.busy)
+                PlusAction.Buy -> {
+                    if (!cardOnly) HeartButton(tr("Continue with Google Play"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending && !ui.awaitingCard, busy = ui.busy)
+                    if (cardPrices != null && showPlans) {
+                        HeartButton(tr("Pay by card"), onClick = onPayByCard, kind = if (cardOnly) ButtonKind.Filled else ButtonKind.Text,
+                            enabled = !ui.pending && !ui.awaitingCard, busy = ui.busy && cardOnly, height = if (cardOnly) 56.dp else 40.dp)
+                    }
+                }
                 PlusAction.Done -> HeartButton(tr("Done"), onClick = onClose, kind = ButtonKind.Tonal)
             }
-            if (showPlans) {
+            if (showPlans && cardOnly) {
+                Text(tr("Card payments are handled securely by Bachs. Cancel anytime under Manage billing."), style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 10.dp))
+            }
+            if (showPlans && !cardOnly) {
                 Text(PlusText.FOOTER, style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 10.dp))
                 HeartButton(tr("Restore a purchase"), onClick = onRestore, kind = ButtonKind.Text, enabled = !ui.busy, height = 40.dp)
             }

@@ -135,6 +135,12 @@ object PlusOffers {
      * The card plan (Bachs checkout's `plan`) for a Play product chosen on Google's billing choice screen: "yearly" or
      * "monthly", by the same reading of the product id as [planName]; null for anything else.
      */
+    /** The card plans, as cards like Play's: "card:monthly" and "card:yearly". */
+    fun cardOptions(prices: app.heartpact.data.CardPrices): List<PlanOption> = listOf(
+        PlanOption("card:yearly", tr("Yearly"), tr("{price} a year", "price" to prices.yearly), "", null, "", savings = tr("Best value")),
+        PlanOption("card:monthly", tr("Monthly"), tr("{price} a month", "price" to prices.monthly), "", null, ""),
+    )
+
     fun cardPlan(productId: String): String? = when (rank(productId)) {
         0 -> "yearly"
         1 -> "monthly"

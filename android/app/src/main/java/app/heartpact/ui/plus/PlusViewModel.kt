@@ -44,6 +44,8 @@ data class PlusUi(
     val welcomed: Boolean = false,
     /** Sent to Bachs' checkout (card, from Google Play's choice screen): waiting for the server to hear it was paid. */
     val awaitingCard: Boolean = false,
+    /** The card plan picked under "Pay by card": "monthly" or "yearly". */
+    val cardSelected: String = "monthly",
 ) {
     val selectedOption get() = options.firstOrNull { it.productId == selected }
     val isPlus get() = entitlement?.plan == Plan.Plus
@@ -162,6 +164,14 @@ class PlusViewModel(
         }
     }
 
+    fun selectCard(plan: String) = _ui.update { it.copy(cardSelected = plan) }
+
+    /** The app's own "Pay by card" (the admin's card switch is on): a Bachs checkout for the picked plan, in the browser. */
+    fun payByCard() {
+        if (_ui.value.busy) return
+        viewModelScope.launch { cardCheckout(_ui.value.cardSelected, null) }
+    }
+
     /** Google's choice screen said card: ask the server for a Bachs checkout for that plan and open it. */
     private suspend fun payByCard(choice: PurchaseUpdate.ChoseCard) {
         val plan = choice.productIds.firstNotNullOfOrNull(PlusOffers::cardPlan)
@@ -169,8 +179,12 @@ class PlusViewModel(
             _ui.update { it.copy(busy = false, note = cardMessage("billing.unknown_plan", "")) }
             return
         }
+        cardCheckout(plan, choice.externalTransactionToken)
+    }
+
+    private suspend fun cardCheckout(plan: String, externalTransactionToken: String?) {
         _ui.update { it.copy(busy = true, note = null) }
-        when (val result = plus.cardCheckout(plan, choice.externalTransactionToken)) {
+        when (val result = plus.cardCheckout(plan, externalTransactionToken)) {
             is ApiResult.Ok -> open(result.value.checkoutUrl, awaitingCard = true)
             is ApiResult.Failure -> {
                 _ui.update { it.copy(busy = false, note = cardMessage(result.code, result.message)) }

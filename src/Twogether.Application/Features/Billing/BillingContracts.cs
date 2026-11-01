@@ -68,7 +68,12 @@ public sealed record EntitlementDto(
     PlanLimits? PlusLimits = null,
     IReadOnlyList<string>? ProductIds = null,
     bool WebCheckout = false,
-    bool CardInApp = false);
+    bool CardInApp = false,
+    bool CardDirect = false,
+    CardPricesDto? CardPrices = null);
+
+/// <summary>The card prices the app shows next to "Pay by card", as display text ("$7.99").</summary>
+public sealed record CardPricesDto(string Monthly, string Yearly);
 
 public sealed record VerifyGooglePurchaseRequest(string ProductId, string PurchaseToken);
 

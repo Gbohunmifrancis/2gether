@@ -40,9 +40,11 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
         var plan = granting is null && !complimentary ? Plan.Free : Plan.Plus;
         var webCheckout = bachs?.IsConfigured == true;
         // The flag is read only when it could matter: card checkout set up and the person in a billing choice region.
-        var cardInApp = webCheckout && BachsPlans.CardInAppCountry(me?.CountryCode)
-            && FeatureFlagService.IsOn(await db.AppSettings.AsNoTracking().Where(item => item.Key == FeatureFlagService.BachsInAppKey)
-                .Select(item => item.Value).FirstOrDefaultAsync(cancellationToken));
+        // "Card payments in the app": the app shows its own "Pay by card" everywhere, and where Google's billing choice
+        // exists Play's sheet offers card too.
+        var cardSwitch = webCheckout && FeatureFlagService.IsOn(await db.AppSettings.AsNoTracking().Where(item => item.Key == FeatureFlagService.BachsInAppKey)
+            .Select(item => item.Value).FirstOrDefaultAsync(cancellationToken));
+        var cardInApp = cardSwitch && BachsPlans.CardInAppCountry(me?.CountryCode);
         return new EntitlementDto(
             plan,
             settings.Limits(plan),
@@ -54,6 +56,8 @@ public sealed class EntitlementService(IApplicationDbContext db, IDateTimeProvid
             PlusLimits: settings.Plus,
             ProductIds: settings.ProductIds,
             WebCheckout: webCheckout,
-            CardInApp: cardInApp);
+            CardInApp: cardInApp,
+            CardDirect: cardSwitch,
+            CardPrices: cardSwitch ? new CardPricesDto(bachs!.MonthlyPrice, bachs.YearlyPrice) : null);
     }
 }

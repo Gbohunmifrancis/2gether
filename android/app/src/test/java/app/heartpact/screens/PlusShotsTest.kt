@@ -52,6 +52,14 @@ class PlusShotsTest {
     @Test fun cardRefused() = plus(PlusUi(loading = false, entitlement = free.copy(cardInApp = true), options = options, selected = "heartpact_plus_yearly",
         note = PlusViewModel.cardMessage("billing.bachs_unavailable", "")), "plus-card-unavailable")
 
+    private val direct = free.copy(webCheckout = true, cardDirect = true, cardPrices = app.heartpact.data.CardPrices("$7.99", "$39.99"))
+
+    /** Card switch on where Play sells nothing: the card plans and "Pay by card" are the whole offer. */
+    @Test fun cardOnly() = plus(PlusUi(loading = false, entitlement = direct, storeMessage = "Plus isn't on sale in your country yet."), "plus-card-only")
+
+    /** Card switch on where Play sells too: Play's plans, then "Or pay by card". */
+    @Test fun cardAndPlay() = plus(PlusUi(loading = false, entitlement = direct, options = options, selected = "heartpact_plus_yearly", cardSelected = "yearly"), "plus-card-and-play")
+
     @Test fun mineByCard() = plus(PlusUi(loading = false, entitlement = free.copy(plan = Plan.Plus, limits = plusLimits, subscription = card)), "plus-mine-card")
 
     @Test fun mineByCardNight() = plus(PlusUi(loading = false, entitlement = free.copy(plan = Plan.Plus, limits = plusLimits, subscription = card.copy(status = "inGracePeriod"))), "plus-mine-card-grace-night", night = true)

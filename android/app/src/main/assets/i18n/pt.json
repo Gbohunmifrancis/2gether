@@ -143,6 +143,7 @@
  "Back pain": "Dor nas costas",
  "Back to games": "Voltar aos jogos",
  "Beat {n}": "Batida {n}",
+ "Best value": "Melhor valor",
  "best {score}": "recorde {score}",
  "Between 800 and 6,000": "Entre 800 e 6.000",
  "Bloating": "Inchaço",
@@ -169,6 +170,7 @@
  "Cancel the invite": "Cancelar convite",
  "Caption": "Legenda",
  "Carbs": "Carboidratos",
+ "Card payments are handled securely by Bachs. Cancel anytime under Manage billing.": "Os pagamentos com cartão são processados com segurança pela Bachs. Cancele quando quiser em Gerenciar faturamento.",
  "Center on me": "Centralizar em mim",
  "Chain {chain} · first to {target}": "Corrente {chain} · ganha quem fizer {target}",
  "Champion!": "Campeão!",
@@ -756,6 +758,7 @@
  "Opening…": "Abrindo…",
  "Opens in your browser": "Abre no seu navegador",
  "or": "ou",
+ "Or pay by card": "Ou pague com cartão",
  "or sign up with email": "ou cadastre-se com e-mail",
  "Other half": "Outra metade",
  "out of view for {count} second|out of view for {count} seconds": {
@@ -777,6 +780,7 @@
  "Paused": "Pausado",
  "Paused until {time}": "Pausado até {time}",
  "Pauses cycle predictions": "Pausa as previsões do ciclo",
+ "Pay by card": "Pagar com cartão",
  "Paying by card isn't available right now. Try again later, or pay with Google Play.": "O pagamento com cartão não está disponível agora. Tente mais tarde ou pague com o Google Play.",
  "Pen ready": "Caneta pronta",
  "Perfect tie!": "Empate perfeito!",
@@ -1719,6 +1723,7 @@
   "one": "{price} por dia",
   "other": "{price} a cada {count} dias"
  },
+ "{price} a month": "{price} por mês",
  "{price} a month|{price} every {count} months": {
   "one": "{price} por mês",
   "other": "{price} a cada {count} meses"
@@ -1727,6 +1732,7 @@
   "one": "{price} por semana",
   "other": "{price} a cada {count} semanas"
  },
+ "{price} a year": "{price} por ano",
  "{price} a year|{price} every {count} years": {
   "one": "{price} por ano",
   "other": "{price} a cada {count} anos"

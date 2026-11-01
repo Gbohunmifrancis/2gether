@@ -143,6 +143,7 @@
  "Back pain": "Mal de dos",
  "Back to games": "Retour aux jeux",
  "Beat {n}": "Battement {n}",
+ "Best value": "Meilleur prix",
  "best {score}": "record {score}",
  "Between 800 and 6,000": "Entre 800 et 6 000",
  "Bloating": "Ballonnements",
@@ -169,6 +170,7 @@
  "Cancel the invite": "Annuler l'invitation",
  "Caption": "Légende",
  "Carbs": "Glucides",
+ "Card payments are handled securely by Bachs. Cancel anytime under Manage billing.": "Les paiements par carte sont gérés en toute sécurité par Bachs. Annule quand tu veux dans Gérer la facturation.",
  "Center on me": "Centrer sur moi",
  "Chain {chain} · first to {target}": "Chaîne {chain} · premier à {target}",
  "Champion!": "Champion !",
@@ -756,6 +758,7 @@
  "Opening…": "Ouverture…",
  "Opens in your browser": "S'ouvre dans ton navigateur",
  "or": "ou",
+ "Or pay by card": "Ou payer par carte",
  "or sign up with email": "ou inscris-toi avec ton e-mail",
  "Other half": "L'autre moitié",
  "out of view for {count} second|out of view for {count} seconds": {
@@ -777,6 +780,7 @@
  "Paused": "En pause",
  "Paused until {time}": "En pause jusqu'à {time}",
  "Pauses cycle predictions": "Met en pause les prévisions du cycle",
+ "Pay by card": "Payer par carte",
  "Paying by card isn't available right now. Try again later, or pay with Google Play.": "Le paiement par carte n'est pas disponible pour le moment. Réessaie plus tard, ou paie avec Google Play.",
  "Pen ready": "Stylo prêt",
  "Perfect tie!": "Égalité parfaite !",
@@ -1719,6 +1723,7 @@
   "one": "{price} par jour",
   "other": "{price} tous les {count} jours"
  },
+ "{price} a month": "{price} par mois",
  "{price} a month|{price} every {count} months": {
   "one": "{price} par mois",
   "other": "{price} tous les {count} mois"
@@ -1727,6 +1732,7 @@
   "one": "{price} par semaine",
   "other": "{price} toutes les {count} semaines"
  },
+ "{price} a year": "{price} par an",
  "{price} a year|{price} every {count} years": {
   "one": "{price} par an",
   "other": "{price} tous les {count} ans"

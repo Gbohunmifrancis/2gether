@@ -213,6 +213,27 @@ class PlusViewModelTest {
         assertTrue(model.ui.value.entitlement!!.subscription!!.isCard)
     }
 
+    @Test fun `with the card switch on and Play not selling, Pay by card opens a Bachs checkout for the chosen plan`() = runTest {
+        val direct = free.dropLast(1) + ""","webCheckout":true,"cardDirect":true,"cardPrices":{"monthly":"$7.99","yearly":"$39.99"}}"""
+        server.enqueue(MockResponse().setBody(direct))
+        val store = FakePlayStore(ProductsResult.Unavailable("Plus isn't on sale in your country yet."))
+        val model = PlusViewModel(plus, store, userId, pollEveryMs = 50, pollForMs = 2_000)
+        model.awaitUi { it.entitlement?.cardDirect == true && it.storeMessage != null }
+        server.takeRequest()
+        assertEquals("monthly", model.ui.value.cardSelected)
+        model.selectCard("yearly")
+
+        server.enqueue(MockResponse().setBody("""{"checkoutUrl":"https://checkout.bachs.io/c/direct"}"""))
+        val link = async(Dispatchers.IO) { withTimeout(5_000) { model.links.first() } }
+        model.payByCard()
+        assertEquals("https://checkout.bachs.io/c/direct", link.await())
+        val body = server.takeRequest().body.readUtf8()
+        assertTrue(body, body.contains("\"plan\":\"yearly\"") && body.contains("\"from\":\"app\""))
+        assertFalse(body, body.contains("ext"))
+        model.awaitUi { it.awaitingCard && !it.busy }
+        assertTrue(store.launched.isEmpty())
+    }
+
     @Test fun `when the payment isn't confirmed in time the screen stops waiting and says so`() = runTest {
         server.enqueue(MockResponse().setBody(freeCard))
         val store = FakePlayStore(products)

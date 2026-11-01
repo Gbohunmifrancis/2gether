@@ -143,6 +143,7 @@
  "Back pain": "कमर दर्द",
  "Back to games": "गेम पर वापस",
  "Beat {n}": "धड़कन {n}",
+ "Best value": "सबसे किफ़ायती",
  "best {score}": "बेस्ट {score}",
  "Between 800 and 6,000": "800 से 6,000 के बीच",
  "Bloating": "पेट फूलना",
@@ -169,6 +170,7 @@
  "Cancel the invite": "न्योता रद्द करो",
  "Caption": "कैप्शन",
  "Carbs": "कार्ब्स",
+ "Card payments are handled securely by Bachs. Cancel anytime under Manage billing.": "कार्ड पेमेंट Bachs सुरक्षित रूप से संभालता है। जब चाहो बिलिंग मैनेज करो में जाकर रद्द करो।",
  "Center on me": "मुझ पर केंद्रित करो",
  "Chain {chain} · first to {target}": "चेन {chain} · पहले {target} तक",
  "Champion!": "चैंपियन!",
@@ -756,6 +758,7 @@
  "Opening…": "खुल रहा है…",
  "Opens in your browser": "तुम्हारे ब्राउज़र में खुलता है",
  "or": "या",
+ "Or pay by card": "या कार्ड से भुगतान करो",
  "or sign up with email": "या ईमेल से साइन अप करो",
  "Other half": "दूसरा आधा",
  "out of view for {count} second|out of view for {count} seconds": {
@@ -777,6 +780,7 @@
  "Paused": "रुकी है",
  "Paused until {time}": "{time} तक रुकी है",
  "Pauses cycle predictions": "चक्र के अंदाज़े रोक देता है",
+ "Pay by card": "कार्ड से भुगतान करो",
  "Paying by card isn't available right now. Try again later, or pay with Google Play.": "कार्ड पेमेंट अभी उपलब्ध नहीं है। बाद में कोशिश करो, या Google Play से पेमेंट करो।",
  "Pen ready": "पेन तैयार",
  "Perfect tie!": "बिल्कुल बराबर!",
@@ -1719,6 +1723,7 @@
   "one": "{price} हर दिन",
   "other": "हर {count} दिन में {price}"
  },
+ "{price} a month": "{price} प्रति माह",
  "{price} a month|{price} every {count} months": {
   "one": "{price} हर महीने",
   "other": "हर {count} महीने में {price}"
@@ -1727,6 +1732,7 @@
   "one": "{price} हर हफ़्ते",
   "other": "हर {count} हफ़्ते में {price}"
  },
+ "{price} a year": "{price} प्रति वर्ष",
  "{price} a year|{price} every {count} years": {
   "one": "{price} हर साल",
   "other": "हर {count} साल में {price}"

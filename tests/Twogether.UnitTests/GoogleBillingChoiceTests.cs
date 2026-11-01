@@ -294,16 +294,36 @@ public sealed class GoogleBillingChoiceTests : IDisposable
     }
 
     [Fact]
-    public async Task An_in_app_card_checkout_needs_the_token_from_Googles_choice_screen()
+    public async Task With_the_card_switch_on_the_app_can_start_a_card_checkout_anywhere_without_Google()
     {
         await using (var db = database.CreateContext()) await TestCouple.AddAsync(db);
         var couple = await CoupleInFranceAsync();
+        await using (var db = database.CreateContext())
+        {
+            (await db.Users.SingleAsync(user => user.Id == couple.MayaId)).SetCountry("NG", Now);
+            await db.SaveChangesAsync();
+        }
+
+        var result = await CheckoutAsync(couple, from: "app", token: null);
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.EndsWith("?from=app", Assert.Single(bachs.Checkouts).Request.SuccessUrl);
+        // Nothing came through Google's choice screen, so there is nothing to report to Google.
+        await using var check = database.CreateContext();
+        Assert.Empty(await check.GoogleExternalTransactions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task With_the_card_switch_off_the_app_cannot_start_a_card_checkout()
+    {
+        await using (var db = database.CreateContext()) await TestCouple.AddAsync(db);
+        var couple = await CoupleInFranceAsync();
+        await using (var db = database.CreateContext()) await new FeatureFlagService(db, clock).SetAsync(new FeatureFlagsUpdate(BachsInApp: false), default);
 
         var result = (ObjectResult)await CheckoutAsync(couple, from: "app", token: null);
 
-        Assert.Equal(400, result.StatusCode);
-        await using var check = database.CreateContext();
-        Assert.Empty(await check.GoogleExternalTransactions.ToListAsync());
+        Assert.Equal((403, "billing.card_in_app_unavailable"), (result.StatusCode, ((ApiError)result.Value!).Code));
+        Assert.Empty(bachs.Checkouts);
     }
 
     [Fact]

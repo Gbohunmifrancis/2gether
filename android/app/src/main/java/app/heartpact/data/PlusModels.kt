@@ -58,7 +58,14 @@ data class Entitlement(
      * where it's allowed. Google Play's purchase sheet then shows Google's billing choice screen (PlayStore).
      */
     val cardInApp: Boolean = false,
+    /** The admin's "Card payments in the app" is on: the Plus screen offers its own "Pay by card", in any country. */
+    val cardDirect: Boolean = false,
+    /** The card prices to show next to "Pay by card"; Bachs' checkout shows the exact amount. */
+    val cardPrices: CardPrices? = null,
 )
+
+@Serializable
+data class CardPrices(val monthly: String, val yearly: String)
 
 @Serializable
 data class VerifyPurchaseRequest(val productId: String, val purchaseToken: String)

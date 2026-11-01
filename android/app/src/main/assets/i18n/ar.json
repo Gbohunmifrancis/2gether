@@ -159,6 +159,7 @@
  "Back pain": "ألم الظهر",
  "Back to games": "العودة إلى الألعاب",
  "Beat {n}": "النبضة {n}",
+ "Best value": "أفضل قيمة",
  "best {score}": "الأفضل {score}",
  "Between 800 and 6,000": "بين 800 و6000",
  "Bloating": "انتفاخ",
@@ -189,6 +190,7 @@
  "Cancel the invite": "إلغاء الدعوة",
  "Caption": "تعليق",
  "Carbs": "كربوهيدرات",
+ "Card payments are handled securely by Bachs. Cancel anytime under Manage billing.": "تتولى Bachs معالجة الدفع بالبطاقة بأمان. ألغِ في أي وقت من إدارة الفوترة.",
  "Center on me": "توسيط عليّ",
  "Chain {chain} · first to {target}": "السلسلة {chain} · الفوز لمن يبلغ {target} أولًا",
  "Champion!": "بطل!",
@@ -824,6 +826,7 @@
  "Opening…": "جارٍ الفتح…",
  "Opens in your browser": "تُفتح في متصفحك",
  "or": "أم",
+ "Or pay by card": "أو ادفع بالبطاقة",
  "or sign up with email": "أو سجّل بالبريد الإلكتروني",
  "Other half": "النصف الآخر",
  "out of view for {count} second|out of view for {count} seconds": {
@@ -849,6 +852,7 @@
  "Paused": "متوقفة مؤقتًا",
  "Paused until {time}": "متوقفة مؤقتًا حتى {time}",
  "Pauses cycle predictions": "يوقف توقعات الدورة مؤقتًا",
+ "Pay by card": "ادفع بالبطاقة",
  "Paying by card isn't available right now. Try again later, or pay with Google Play.": "الدفع بالبطاقة غير متاح الآن. حاول لاحقًا، أو ادفع عبر Google Play.",
  "Pen ready": "القلم جاهز",
  "Perfect tie!": "تعادل تام!",
@@ -2039,6 +2043,7 @@
   "two": "{price} كل يومين",
   "zero": "{price} يوميًا"
  },
+ "{price} a month": "{price} شهريًا",
  "{price} a month|{price} every {count} months": {
   "few": "{price} كل {count} أشهر",
   "many": "{price} كل {count} شهرًا",
@@ -2055,6 +2060,7 @@
   "two": "{price} كل أسبوعين",
   "zero": "{price} أسبوعيًا"
  },
+ "{price} a year": "{price} سنويًا",
  "{price} a year|{price} every {count} years": {
   "few": "{price} كل {count} سنوات",
   "many": "{price} كل {count} سنة",
