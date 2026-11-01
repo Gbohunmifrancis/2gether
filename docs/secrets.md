@@ -49,6 +49,13 @@ Google Play happen in `.github/workflows/deploy.yml` (see `docs/deploy.md`).
 | `Admin__MonthlyPrices__<productId>`, `Admin__Currency`, `Admin__TokenHours` | the admin dashboard | list prices for the revenue estimate (monthly equivalent), their currency (default `USD`), admin session hours (default 4) |
 | `Admin__SecretKey` (and `Admin__PreviousSecretKey` while changing it) | the admin dashboard | encrypts admins' authenticator secrets; a long random string. See `docs/admin.md` |
 
+## Email
+
+The only email the API sends is the password-reset code. It goes out branded (`EmailLayout`: the app's lavender page,
+the logo, the code in an indigo pill, a dark variant, right to left in Arabic, in the person's language) with a plain
+text version alongside. The logo is served from the website (`website/assets/email/`), so the site must be deployed
+for it to show. No web fonts, scripts or tracking pixels.
+
 ## Admin dashboard build
 
 | Variable | Notes |

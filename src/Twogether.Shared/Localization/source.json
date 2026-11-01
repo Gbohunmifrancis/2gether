@@ -299,7 +299,7 @@
  "Too many tries. Wait a few minutes and try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/BachsBillingController.cs:62"
+   "Twogether.Api/Controllers/BachsBillingController.cs:60"
   ],
   "code": "return TooManyAttempts(wait, Loc.T(\"Too many tries. Wait a few minutes and try again.\"));"
  },
@@ -1289,16 +1289,65 @@
  "Your Heartpact code: {code}": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Auth/AuthPorts.cs:64"
+   "Twogether.Application/Features/Auth/AuthPorts.cs:65"
   ],
   "code": "Loc.T(\"Your Heartpact code: {code}\", (\"code\", code)),"
  },
  "Your code to reset your Heartpact password is {code}.\n\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Auth/AuthPorts.cs:66"
+   "Twogether.Application/Features/Auth/AuthPorts.cs:67"
   ],
-  "code": "Loc.T(\"Your code to reset your Heartpact password is {code}.\\n\\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.\", (\"code\", code)));"
+  "code": "Loc.T(\"Your code to reset your Heartpact password is {code}.\\n\\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.\", (\"code\", code)),"
+ },
+ "Reset your password": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:69"
+  ],
+  "code": "Loc.T(\"Reset your password\"),"
+ },
+ "Enter this code in the Heartpact app to choose a new password.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:70"
+  ],
+  "code": "Loc.T(\"Enter this code in the Heartpact app to choose a new password.\"),"
+ },
+ "It works for 15 minutes, once.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:72"
+  ],
+  "code": "Loc.T(\"It works for 15 minutes, once.\"),"
+ },
+ "Didn't ask for this? You can ignore this email: your password stays as it is.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:73"
+  ],
+  "code": "Loc.T(\"Didn't ask for this? You can ignore this email: your password stays as it is.\"),"
+ },
+ "Your code is {code}. It works for 15 minutes.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/AuthPorts.cs:74"
+  ],
+  "code": "Loc.T(\"Your code is {code}. It works for 15 minutes.\", (\"code\", code))));"
+ },
+ "Questions? Write to {email}.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/EmailLayout.cs:27"
+  ],
+  "code": "var support = Loc.T(\"Questions? Write to {email}.\", (\"email\", Support));"
+ },
+ "Keep your promises to each other.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Application/Features/Auth/EmailLayout.cs:28"
+  ],
+  "code": "var tagline = Loc.T(\"Keep your promises to each other.\");"
  },
  "Choose the monthly or the yearly plan.": {
   "plural": false,
@@ -1310,15 +1359,15 @@
  "This checkout can't be started from here.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:47",
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:49"
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:49",
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:51"
   ],
   "code": "return Error.Validation(InvalidFrom, Loc.T(\"This checkout can't be started from here.\"));"
  },
  "No Heartpact account matches this purchase.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:53",
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:55",
    "Twogether.Application/Features/Billing/GooglePlaySubscriptionSync.cs:43"
   ],
   "code": "if (user is null) return Error.NotFound(\"billing.unknown_user\", Loc.T(\"No Heartpact account matches this purchase.\"));"
@@ -1326,28 +1375,28 @@
  "You already have Heartpact Plus.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:56"
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:58"
   ],
   "code": "return Error.Conflict(\"billing.already_plus\", Loc.T(\"You already have Heartpact Plus.\"));"
  },
  "Card payment isn't available in the app here. Use Google Play instead.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:59"
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:61"
   ],
   "code": "return Error.Forbidden(\"billing.card_in_app_unavailable\", Loc.T(\"Card payment isn't available in the app here. Use Google Play instead.\"));"
  },
  "You haven't paid by card yet, so there is nothing to manage here.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:90"
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:92"
   ],
   "code": "if (customerId is null) return Error.NotFound(\"billing.no_bachs_customer\", Loc.T(\"You haven't paid by card yet, so there is nothing to manage here.\"));"
  },
  "Card payments are not set up on this server.": {
   "plural": false,
   "uses": [
-   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:113",
+   "Twogether.Application/Features/Billing/BachsCheckoutService.cs:115",
    "Twogether.Infrastructure/Billing/BachsBilling.cs:156",
    "Twogether.Infrastructure/Billing/BachsBilling.cs:169"
   ],

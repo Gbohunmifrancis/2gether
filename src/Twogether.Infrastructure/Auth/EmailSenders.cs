@@ -21,7 +21,8 @@ public sealed class SmtpEmailSender(EmailSettings settings, ILogger<SmtpEmailSen
         mime.From.Add(new MailboxAddress(settings.FromName, from));
         mime.To.Add(MailboxAddress.Parse(message.To));
         mime.Subject = message.Subject;
-        mime.Body = new TextPart("plain") { Text = message.TextBody };
+        // Both versions: the branded HTML, and the plain text for mail apps that don't show HTML.
+        mime.Body = new BodyBuilder { TextBody = message.TextBody, HtmlBody = message.HtmlBody }.ToMessageBody();
 
         using var client = new SmtpClient();
         await client.ConnectAsync(host, settings.Port, settings.StartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect, cancellationToken);
@@ -44,7 +45,9 @@ public sealed class ResendEmailSender(EmailSettings settings, ILogger<ResendEmai
         if (!IsConfigured) throw new InvalidOperationException("Resend is not configured; check IsConfigured before sending.");
         using var request = new HttpRequestMessage(HttpMethod.Post, "emails")
         {
-            Content = JsonContent.Create(new { from = $"{settings.FromName} <{settings.From}>", to = new[] { message.To }, subject = message.Subject, text = message.TextBody }),
+            Content = JsonContent.Create(message.HtmlBody is null
+                ? (object)new { from = $"{settings.FromName} <{settings.From}>", to = new[] { message.To }, subject = message.Subject, text = message.TextBody }
+                : new { from = $"{settings.FromName} <{settings.From}>", to = new[] { message.To }, subject = message.Subject, text = message.TextBody, html = message.HtmlBody }),
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
         using var response = await http.SendAsync(request, cancellationToken);

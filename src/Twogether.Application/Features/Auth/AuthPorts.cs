@@ -4,7 +4,8 @@ using Twogether.Shared.Localization;
 
 namespace Twogether.Application.Features.Auth;
 
-public sealed record EmailMessage(string To, string Subject, string TextBody);
+/// <param name="HtmlBody">The branded version (EmailLayout); mail apps that can't show it read <paramref name="TextBody"/>.</param>
+public sealed record EmailMessage(string To, string Subject, string TextBody, string? HtmlBody = null);
 
 /// <summary>Outbound email. Only account email goes through it (reset codes); nothing is sent in bulk.</summary>
 public interface IEmailSender
@@ -63,5 +64,12 @@ public static class PasswordResetRules
         to,
         Loc.T("Your Heartpact code: {code}", ("code", code)),
         // In the language of the request that asked for it (the app sends Accept-Language).
-        Loc.T("Your code to reset your Heartpact password is {code}.\n\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.", ("code", code)));
+        Loc.T("Your code to reset your Heartpact password is {code}.\n\nIt works for 15 minutes. If you didn't ask for it, ignore this email: your password stays as it is.", ("code", code)),
+        EmailLayout.Code(
+            Loc.T("Reset your password"),
+            Loc.T("Enter this code in the Heartpact app to choose a new password."),
+            code,
+            Loc.T("It works for 15 minutes, once."),
+            Loc.T("Didn't ask for this? You can ignore this email: your password stays as it is."),
+            Loc.T("Your code is {code}. It works for 15 minutes.", ("code", code))));
 }
