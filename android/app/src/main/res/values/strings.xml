@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Heartpact</string>
+    <!-- Digital Asset Links for passwords saved through Credential Manager: the app and heartpact.me share them
+         (the site's /.well-known/assetlinks.json, docs/pairing.md). -->
+    <string name="asset_statements" translatable="false">[{\"include\": \"https://heartpact.me/.well-known/assetlinks.json\"}]</string>
 </resources>

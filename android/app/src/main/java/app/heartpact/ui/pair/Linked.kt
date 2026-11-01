@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -89,7 +90,7 @@ fun LinkedCelebration(name: String, onDone: () -> Unit, modifier: Modifier = Mod
     val haptics = LocalHapticFeedback.current
     val sounds = rememberLevelSounds()
     val done by rememberUpdatedState(onDone)
-    var ms by remember { mutableStateOf(frozenAtMs ?: if (still) LinkedTimeline.END_MS else 0) }
+    var ms by remember { mutableIntStateOf(frozenAtMs ?: if (still) LinkedTimeline.END_MS else 0) }
     val pop = remember { Animatable(if (still) 1f else 0.82f) }
     var left by remember { mutableStateOf(false) }
     fun leave() { if (!left) { left = true; done() } }

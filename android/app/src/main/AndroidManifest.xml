@@ -40,6 +40,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Heartpact">
 
+        <!-- Passwords saved with Credential Manager belong to the app and heartpact.me together. -->
+        <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
