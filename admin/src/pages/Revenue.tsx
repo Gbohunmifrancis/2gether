@@ -28,18 +28,11 @@ export function RevenuePage() {
           <div className="grid cols-4">
             <KpiSticker
               label="Monthly revenue (estimate)"
-              icon="revenue"
-              tone="pen"
               value={data.estimatedMonthlyRevenue}
               format={(value) => money(value, data.currency)}
               hint="Renewing subscriptions × list price"
             />
-            <KpiSticker
-              label="Paying couples"
-              icon="couples"
-              value={data.payingCouples}
-              hint={`${plural(data.renewingOff, "subscription")} set not to renew`}
-            />
+            <KpiSticker label="Paying couples" value={data.payingCouples} hint={`${plural(data.renewingOff, "subscription")} set not to renew`} />
             <Stat
               label="Complimentary Plus"
               value={count(data.complimentaryCouples)}

@@ -1,45 +1,29 @@
-/* Heartpact admin v2: the living console. The header, the live feed and its moments, the insight pages' charts, and
+/* Heartpact admin: the console. The shell, the header, the live feed and its moments, the insight pages' charts, and
    the mascot. Every animation here stops under prefers-reduced-motion (see the end of this file). */
 
-/* ---- Shell: grouped nav, the living header, the privacy line ---------------------------------------------- */
+/* ---- Shell: grouped nav, the header, the privacy line ---------------------------------------------------- */
 
 .nav {
-  gap: 8px;
+  gap: 20px;
 }
 .nav-group {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 .nav-title {
-  font: 700 10.5px/1 "Figtree";
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font: 500 12px/1 "Figtree";
   color: var(--ink-3);
-  padding: 4px 14px 5px;
+  padding: 0 10px 8px;
 }
 .nav a {
   position: relative;
-  height: 34px;
   transition:
-    background 0.15s,
-    color 0.15s;
+    background-color 0.15s var(--ease),
+    color 0.15s var(--ease);
 }
-.nav a[data-status="active"]::after {
-  content: "";
-  position: absolute;
-  right: 12px;
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--pen);
-}
-.nav .ic {
-  width: 19px;
-  height: 19px;
-}
-.side .brand {
-  padding-bottom: 12px;
+.side .brand .mascot {
+  margin-right: 2px;
 }
 .main-col {
   min-width: 0;
@@ -54,168 +38,154 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 32px 12px;
-  max-width: 1320px;
+  height: 56px;
+  padding: 0 32px;
+  max-width: 1440px;
   background: var(--glass);
-  backdrop-filter: blur(12px) saturate(1.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
-.greeting {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.today-line {
   min-width: 0;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.greeting .title {
-  font-size: 19px;
-}
-.greeting p {
-  margin-top: 2px;
-}
-.greeting p b {
+.today-line b {
   color: var(--ink);
+  font-weight: 500;
 }
 .tools {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 .icon-btn {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   border: 0;
   display: grid;
   place-items: center;
-  background: var(--sticker);
+  background: transparent;
   color: var(--ink-2);
-  box-shadow: var(--lift-1);
   cursor: pointer;
   transition:
-    transform 0.15s,
-    background 0.15s;
+    background-color 0.15s var(--ease),
+    color 0.15s var(--ease);
 }
 .icon-btn:hover {
   color: var(--ink);
-  transform: translateY(-1px);
+  background: var(--page-3);
 }
 .icon-btn.on {
-  background: var(--maya-soft);
   color: var(--maya);
+  background: var(--maya-soft);
 }
 .icon-btn .ic {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
 }
 .palette-btn {
-  height: 40px;
-  border-radius: 20px;
+  height: 36px;
+  border-radius: 8px;
   border: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 8px 0 14px;
-  min-width: 230px;
+  padding: 0 6px 0 10px;
+  margin-right: 4px;
+  min-width: 240px;
   background: var(--sticker);
-  box-shadow: var(--lift-1);
+  box-shadow: inset 0 0 0 1px var(--rule-2);
   color: var(--ink-3);
-  font-weight: 600;
   font-size: 13.5px;
   cursor: pointer;
+  transition: box-shadow 0.15s var(--ease);
+}
+.palette-btn:hover {
+  box-shadow: inset 0 0 0 1px var(--ink-4);
 }
 .palette-btn span {
   flex: 1;
   text-align: left;
 }
 .palette-btn .ic {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 kbd {
-  font: 700 11px/1 "Figtree";
+  font: 500 11px/1 "Figtree";
   color: var(--ink-3);
   background: var(--sticker-2);
-  border-radius: 7px;
-  padding: 5px 7px;
-  box-shadow: inset 0 -1.5px 0 var(--rule-2);
+  border-radius: 4px;
+  padding: 4px 6px;
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 -1px 0 var(--rule-2);
 }
 .online-pill,
 .live-heart {
-  height: 40px;
-  border-radius: 20px;
+  height: 36px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0 14px;
-  background: var(--sticker);
-  box-shadow: var(--lift-1);
+  padding: 0 8px;
   text-decoration: none;
   font-size: 13px;
   white-space: nowrap;
+  transition: background-color 0.15s var(--ease);
+}
+.online-pill:hover,
+.live-heart:hover {
+  background: var(--page-3);
 }
 .online-pill b {
-  font: 600 15px/1 "Sora";
+  font-weight: 500;
 }
 .online-word,
 .live-word {
   color: var(--ink-3);
-  font-weight: 700;
 }
 .online-pill .dot,
 .online-badge .dot,
 .live-status .dot {
   position: relative;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--online);
   flex: none;
 }
-.online-pill .dot::after,
-.online-badge .dot::after,
-.live-status.open .dot::after,
-.avatar-online::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--online);
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-@keyframes ping {
-  75%,
-  100% {
-    transform: scale(2.6);
-    opacity: 0;
-  }
-}
 .live-heart {
-  padding: 0 12px 0 10px;
   gap: 6px;
 }
 .live-heart span {
   display: grid;
 }
+/* The signature: the split heart beats once for each live event, and stays still otherwise. */
 .live-heart .beat {
-  animation: heartbeat 0.7s ease-out;
+  animation: heartbeat 0.6s var(--ease);
 }
 .live-heart.off {
   filter: grayscale(1);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 @keyframes heartbeat {
   0% {
     transform: scale(1);
   }
-  18% {
-    transform: scale(1.38);
+  25% {
+    transform: scale(1.22);
   }
-  34% {
-    transform: scale(0.94);
+  45% {
+    transform: scale(0.96);
   }
-  52% {
-    transform: scale(1.16);
+  65% {
+    transform: scale(1.08);
   }
   100% {
     transform: scale(1);
@@ -226,21 +196,21 @@ kbd {
 }
 .bell-count {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  min-width: 19px;
-  height: 19px;
-  border-radius: 10px;
-  padding: 0 5px;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 4px;
   display: grid;
   place-items: center;
-  background: var(--pen);
-  color: #fff;
-  font: 700 11px/1 "Figtree";
-  box-shadow: 0 0 0 2.5px var(--page);
+  background: var(--maya);
+  color: var(--on-maya);
+  font: 500 10.5px/1 "Figtree";
+  box-shadow: 0 0 0 2px var(--page);
 }
 .bell .ring {
-  animation: bell-ring 0.9s ease-in-out;
+  animation: bell-ring 0.6s var(--ease);
   transform-origin: 50% 10%;
 }
 @keyframes bell-ring {
@@ -248,38 +218,32 @@ kbd {
   100% {
     transform: rotate(0);
   }
-  15% {
-    transform: rotate(16deg);
-  }
-  30% {
-    transform: rotate(-14deg);
-  }
-  45% {
+  25% {
     transform: rotate(10deg);
   }
-  60% {
-    transform: rotate(-7deg);
+  50% {
+    transform: rotate(-8deg);
   }
   75% {
-    transform: rotate(3deg);
+    transform: rotate(4deg);
   }
 }
 .popover {
   position: absolute;
   right: 0;
-  top: 50px;
+  top: 44px;
   z-index: 30;
   width: min(380px, calc(100vw - 32px));
   background: var(--sticker);
-  border-radius: 22px;
+  border-radius: 12px;
   box-shadow: var(--lift-3);
-  padding: 14px 16px;
-  animation: pop-in 0.18s ease-out;
+  padding: 12px 16px;
+  animation: pop-in 0.16s var(--ease);
 }
 @keyframes pop-in {
   from {
     opacity: 0;
-    transform: translateY(-6px) scale(0.98);
+    transform: translateY(-4px);
   }
 }
 .popover-head {
@@ -288,17 +252,23 @@ kbd {
   align-items: baseline;
   margin-bottom: 8px;
 }
+.popover-head b {
+  font-weight: 500;
+}
 .popover-empty {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 12px 0;
   color: var(--ink-2);
 }
 .alert-row {
   display: flex;
-  gap: 10px;
-  padding: 10px 0;
+  gap: 8px;
+  padding: 8px 0;
+}
+.alert-row b {
+  font-weight: 500;
 }
 .alert-row .sev {
   width: 8px;
@@ -315,48 +285,44 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 32px 28px;
-  max-width: 1320px;
+  padding: 0 32px 32px;
+  max-width: 1440px;
 }
 .privacy-line .ic {
   width: 16px;
   height: 16px;
 }
 .topbar .tools {
-  gap: 6px;
+  gap: 2px;
 }
 .topbar .online-pill {
-  height: 36px;
-  padding: 0 10px;
-}
-.topbar .icon-btn {
-  width: 36px;
-  height: 36px;
+  padding: 0 8px 0 4px;
 }
 @media (max-width: 1180px) {
   .palette-btn {
     min-width: 0;
+    width: 36px;
+    padding: 0;
+    justify-content: center;
   }
   .palette-btn span,
   .palette-btn kbd {
-    display: none;
-  }
-  .greeting p {
     display: none;
   }
 }
 @media (max-width: 860px) {
   .hello {
     position: static;
-    padding: 14px 16px 4px;
+    height: auto;
+    padding: 16px 16px 0;
     background: none;
     backdrop-filter: none;
   }
   .hello .tools {
     display: none;
   }
-  .greeting p {
-    display: block;
+  .today-line {
+    white-space: normal;
   }
   .topbar .online-word {
     display: none;
@@ -366,13 +332,17 @@ kbd {
   }
   .nav-group {
     flex-direction: row;
+    gap: 4px;
+  }
+  .topbar .nav {
+    gap: 4px;
   }
 }
 
 /* ---- Page furniture ------------------------------------------------------------------------------------- */
 
 .section {
-  margin-top: 22px;
+  margin-top: 24px;
 }
 .section-head {
   display: flex;
@@ -385,63 +355,67 @@ kbd {
 .main > .grid + .section,
 .main > .section + .card,
 .main > .card + .section {
-  margin-top: 16px;
+  margin-top: 24px;
 }
 .eyebrow {
-  font: 700 11px/1 "Figtree";
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font: 500 12px/1 "Figtree";
   color: var(--ink-3);
 }
 .card-tools {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
+/* The one entrance: the page's cards fade up a few pixels together. */
 .card {
-  animation: card-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: card-in 0.3s var(--ease) both;
 }
 @keyframes card-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
 }
 .mini-seg {
   display: inline-flex;
-  padding: 3px;
+  padding: 2px;
   gap: 2px;
-  border-radius: 14px;
-  background: var(--sticker-2);
+  border-radius: 8px;
+  background: var(--page-2);
+  box-shadow: inset 0 0 0 1px var(--hair);
 }
 .mini-seg button {
-  width: 30px;
-  height: 26px;
+  width: 28px;
+  height: 24px;
   border: 0;
-  border-radius: 11px;
+  border-radius: 6px;
   display: grid;
   place-items: center;
   background: none;
   color: var(--ink-3);
   cursor: pointer;
+  transition: color 0.15s var(--ease);
+}
+.mini-seg button:hover {
+  color: var(--ink);
 }
 .mini-seg button[aria-pressed="true"] {
   background: var(--sticker);
-  color: var(--maya);
+  color: var(--ink);
   box-shadow: var(--lift-1);
 }
 .mini-seg .ic {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 .seg.small-seg {
-  height: 34px;
-  padding: 3px;
+  height: 32px;
+  padding: 2px;
 }
 .seg.small-seg button {
-  padding: 0 11px;
+  padding: 0 10px;
   font-size: 12.5px;
-  border-radius: 14px;
+  border-radius: 6px;
 }
 table.data td.num,
 table.data td:first-child {
@@ -450,115 +424,98 @@ table.data td:first-child {
 .viz-table {
   max-height: 420px;
   overflow: auto;
-  margin: 0 -6px;
+  margin: 0 -8px;
 }
 .viz-table table.data td,
 .viz-table table.data th {
-  padding: 8px 10px;
+  padding: 8px;
 }
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 .chip {
-  height: 32px;
-  border-radius: 16px;
+  height: 28px;
+  border-radius: 8px;
   border: 0;
-  padding: 0 12px;
-  font-weight: 700;
+  padding: 0 10px;
+  font-weight: 500;
   font-size: 12.5px;
   background: var(--sticker-2);
+  box-shadow: inset 0 0 0 1px var(--hair);
   color: var(--ink-2);
   cursor: pointer;
+  transition:
+    background-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.chip:hover {
+  color: var(--ink);
 }
 .chip.on {
   background: var(--maya);
   color: var(--on-maya);
+  box-shadow: none;
 }
 .chip.on .faint {
   color: inherit;
   opacity: 0.7;
 }
 
-/* KPI stickers */
-.kpi {
-  position: relative;
-  transition:
-    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1.3),
-    box-shadow 0.2s;
-}
-.kpi:hover {
-  transform: translateY(-3px) rotate(-0.5deg);
-  box-shadow: var(--lift-2);
-}
-.kpi-top {
+/* KPIs: a label, the figure, the change and what it compares to. A status tone is a dot by the label. */
+.kpi .label {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
 }
-.kpi-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: var(--theo-soft);
-  color: var(--theo-ink);
-  margin: -4px -4px 0 0;
+.kpi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  flex: none;
+  background: var(--ink-4);
 }
-.kpi-icon .ic {
-  width: 18px;
-  height: 18px;
+.kpi.good .kpi-dot {
+  background: var(--good);
 }
-.kpi.pen .kpi-icon {
-  background: var(--pen-soft);
-  color: var(--pen-ink);
+.kpi.warn .kpi-dot {
+  background: var(--warn);
 }
-.kpi.good .kpi-icon {
-  background: var(--good-soft);
-  color: var(--good);
-}
-.kpi.warn .kpi-icon {
-  background: var(--warn-soft);
-  color: var(--warn);
+.kpi.bad .kpi-dot {
+  background: var(--error);
 }
 .stat .value.words {
-  font-size: 23px;
-  line-height: 1.2;
-  margin-top: 10px;
+  font-size: 22px;
+  line-height: 1.25;
+  margin-top: 8px;
 }
 .delta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  display: block;
   margin-top: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
 }
 .delta.up {
-  background: var(--good-soft);
   color: var(--good);
 }
 .delta.down {
-  background: var(--error-soft);
   color: var(--error);
 }
 .delta.flat {
-  background: var(--sticker-2);
   color: var(--ink-2);
 }
+.delta > span[aria-hidden="true"] {
+  font-size: 9px;
+  vertical-align: 1px;
+}
 .delta .faint {
-  font-weight: 600;
-  color: inherit;
-  opacity: 0.75;
+  font-weight: 400;
+  color: var(--ink-3);
 }
 
-/* Avatars: three soft tones, and the online dot */
+/* Avatars: soft neutral discs, one with a hint of ink, and the online dot */
 .avatar {
   position: relative;
 }
@@ -569,181 +526,108 @@ table.data td:first-child {
 .avatar.hue-2 {
   background: var(--sticker-2);
   color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--hair);
 }
 .avatar-online {
   position: absolute;
   right: -1px;
   bottom: -1px;
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--online);
-  box-shadow: 0 0 0 2.5px var(--sticker);
+  box-shadow: 0 0 0 2px var(--sticker);
 }
 .avatar.lg .avatar-online {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   right: 1px;
   bottom: 1px;
 }
 .online-badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 12px;
-  background: var(--good-soft);
+  gap: 8px;
+  height: 22px;
+  font-weight: 500;
+  font-size: 12.5px;
   color: var(--good);
   white-space: nowrap;
 }
 .badge .ic {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
 }
 .who b .badge {
   margin-left: 4px;
   vertical-align: 1px;
 }
 .btn.outline.on {
-  box-shadow: inset 0 0 0 2px var(--warn);
+  box-shadow: inset 0 0 0 1px var(--warn);
   color: var(--warn);
 }
 
-/* ---- Live: pulse tiles, the feed and its moments, the stage -------------------------------------------- */
+/* ---- Live: the pulse, the feed and its moments, the stage ---------------------------------------------- */
 
 .live-status {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
   font-size: 12.5px;
-  color: var(--ink-2);
-  padding: 0 12px;
-  height: 30px;
-  border-radius: 15px;
-  background: var(--sticker);
-  box-shadow: var(--lift-1);
+  color: var(--ink-3);
 }
 .live-status:not(.open) .dot {
   background: var(--warn);
 }
-.pulse-grid {
+/* The pulse: one row of figures on one card, split by hairlines. */
+.pulse-strip {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 12px;
+  background: var(--sticker);
+  border-radius: var(--radius);
+  box-shadow: var(--lift-1);
+  overflow: hidden;
+  animation: card-in 0.3s var(--ease) both;
 }
-.pulse-tile {
-  position: relative;
+.pulse-figure {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 14px 14px 12px;
-  border-radius: 22px;
-  background: var(--sticker);
-  box-shadow: var(--lift-1);
-  text-decoration: none;
   min-width: 0;
-  transition:
-    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1.3),
-    box-shadow 0.2s;
+  padding: 16px 20px;
+  text-decoration: none;
+  box-shadow: -1px 0 0 var(--rule);
+  transition: background-color 0.15s var(--ease);
 }
-a.pulse-tile:hover {
-  transform: translateY(-3px) rotate(0.6deg);
-  box-shadow: var(--lift-2);
-}
-.pulse-icon {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  border-radius: 11px;
-  display: grid;
-  place-items: center;
+a.pulse-figure:hover {
   background: var(--sticker-2);
-  color: var(--ink-3);
-  margin-bottom: 4px;
-}
-.pulse-icon .ic {
-  width: 17px;
-  height: 17px;
-}
-.pulse-tile.lit .pulse-icon {
-  background: var(--theo-soft);
-  color: var(--theo-ink);
-}
-.pulse-tile.online.lit .pulse-icon {
-  background: var(--good-soft);
-  color: var(--good);
-}
-.pulse-tile.hearts.lit .pulse-icon,
-.pulse-tile.plus.lit .pulse-icon {
-  background: var(--pen-soft);
-  color: var(--pen-ink);
-}
-.pulse-tile.ringing.lit .pulse-icon .ic {
-  animation: wiggle 1.6s ease-in-out infinite;
-}
-.pulse-tile.hearts.lit .pulse-icon .ic {
-  animation: heartbeat 1.6s ease-out infinite;
-}
-.pulse-icon .rec {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--pen);
-  animation: blink-rec 1.2s steps(2, jump-none) infinite;
-}
-@keyframes blink-rec {
-  50% {
-    opacity: 0.15;
-  }
-}
-@keyframes wiggle {
-  0%,
-  60%,
-  100% {
-    transform: rotate(0);
-  }
-  10% {
-    transform: rotate(-14deg);
-  }
-  20% {
-    transform: rotate(12deg);
-  }
-  30% {
-    transform: rotate(-10deg);
-  }
-  40% {
-    transform: rotate(8deg);
-  }
-  50% {
-    transform: rotate(-4deg);
-  }
 }
 .pulse-value {
-  font: 600 25px/1.05 "Sora";
-  letter-spacing: -0.03em;
+  font: 500 22px/1.1 "Sora";
+  letter-spacing: -0.02em;
 }
 .pulse-label {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 12.5px;
   color: var(--ink-3);
-  line-height: 1.25;
+  line-height: 1.3;
 }
 @media (max-width: 1280px) {
-  .pulse-grid {
+  .pulse-strip {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .pulse-figure:nth-child(n + 5) {
+    border-top: 1px solid var(--rule);
   }
 }
 @media (max-width: 640px) {
-  .pulse-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+  .pulse-figure {
+    padding: 12px;
+  }
+  .pulse-value {
+    font-size: 18px;
+  }
+  .pulse-label {
+    font-size: 11.5px;
   }
 }
 
@@ -751,7 +635,9 @@ a.pulse-tile:hover {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+}
+.feed > li + li {
+  border-top: 1px solid var(--rule);
 }
 .feed-card .feed {
   max-height: 474px;
@@ -762,36 +648,25 @@ a.pulse-tile:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px 9px 9px;
-  border-radius: 18px;
-  background: var(--sticker-2);
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
   text-decoration: none;
-  transition:
-    transform 0.15s,
-    background 0.15s;
+  transition: background-color 0.15s var(--ease);
 }
 a.feed-item:hover {
-  background: var(--page-2);
-  transform: translateX(2px);
+  background: var(--sticker-2);
 }
 .feed-item.fresh {
-  animation: slide-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
-  box-shadow:
-    0 0 0 2px var(--sticker),
-    0 10px 22px -14px rgba(31, 37, 87, 0.5);
-  background: var(--sticker);
-}
-.feed-item.fresh.alert {
-  animation:
-    slide-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both,
-    shake 0.6s 0.5s ease-in-out;
+  animation: slide-in 0.4s var(--ease) both;
 }
 @keyframes slide-in {
   from {
     opacity: 0;
-    transform: translateY(-14px) scale(0.94) rotate(-1.5deg);
+    transform: translateY(-6px);
   }
 }
+/* The step-up dialog shakes its lock on a wrong code. */
 @keyframes shake {
   0%,
   100% {
@@ -813,47 +688,39 @@ a.feed-item:hover {
     transform: translateX(-2px);
   }
 }
+/* The event's mark: a muted line icon; colour only where it means something (a dare done, Plus, an alert) and the
+   split heart when a couple links. */
 .ev-art {
   position: relative;
   flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 13px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  background: var(--theo-soft);
-  color: var(--theo-ink);
+  color: var(--ink-3);
 }
 .ev-art .ic {
-  width: 19px;
-  height: 19px;
-}
-.ev-art.maya {
-  background: var(--maya-soft);
+  width: 18px;
+  height: 18px;
 }
 .ev-art.good {
-  background: var(--good-soft);
   color: var(--good);
 }
 .ev-art.pen {
-  background: var(--pen-soft);
   color: var(--pen-ink);
 }
 .ev-art.bad {
-  background: var(--error-soft);
   color: var(--error);
 }
-.ev-art.soft {
-  background: var(--page-2);
-  color: var(--ink-3);
-}
 .ev-art.tiny {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  font-weight: 600;
   font-size: 12px;
   display: inline-grid;
+  background: var(--sticker-2);
+  box-shadow: inset 0 0 0 1px var(--hair);
 }
 .ev-text {
   flex: 1;
@@ -862,31 +729,30 @@ a.feed-item:hover {
   flex-direction: column;
 }
 .ev-text b {
-  font-weight: 700;
+  font-weight: 500;
   font-size: 13.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ev-text small {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ev-time {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--ink-3);
-  font-weight: 600;
   white-space: nowrap;
 }
 .feed-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 18px 8px;
+  gap: 12px;
+  padding: 16px 8px;
   text-align: center;
   color: var(--ink-3);
 }
@@ -1090,7 +956,7 @@ a.feed-item:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  animation: toast-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+  animation: toast-in 0.3s var(--ease) both;
 }
 .toast.leaving {
   animation: toast-out 0.25s ease-in forwards;
@@ -1103,9 +969,9 @@ a.feed-item:hover {
 }
 .toast-art {
   flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.12);
@@ -1116,7 +982,7 @@ a.feed-item:hover {
 }
 .toast.plus {
   box-shadow:
-    0 0 0 3px var(--pen),
+    inset 3px 0 0 var(--pen),
     var(--lift-3);
 }
 .toast.bad .toast-art .ic {
@@ -1126,13 +992,13 @@ a.feed-item:hover {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.95);
+    transform: translateY(8px);
   }
 }
 @keyframes toast-out {
   to {
     opacity: 0;
-    transform: translateY(10px) scale(0.97);
+    transform: translateY(4px);
   }
 }
 
@@ -1141,7 +1007,7 @@ a.feed-item:hover {
 dialog.palette {
   margin: 12vh auto auto;
   border: 0;
-  border-radius: 26px;
+  border-radius: 16px;
   background: var(--sticker);
   color: var(--ink);
   box-shadow: var(--lift-3);
@@ -1153,22 +1019,21 @@ dialog.palette[open] {
   animation: pop-in 0.18s ease-out;
 }
 dialog.palette::backdrop {
-  background: rgba(16, 19, 43, 0.4);
-  backdrop-filter: blur(3px);
+  background: rgba(21, 20, 19, 0.4);
 }
 .palette-input {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 2px dashed var(--rule);
+  padding: 16px;
+  border-bottom: 1px solid var(--rule);
 }
 .palette-input input {
   flex: 1;
   border: 0;
   background: none;
-  font-size: 16.5px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
   outline: none;
   min-width: 0;
 }
@@ -1182,18 +1047,16 @@ dialog.palette::backdrop {
   padding: 8px;
 }
 .palette-group {
-  font: 700 10.5px/1 "Figtree";
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font: 500 12px/1 "Figtree";
   color: var(--ink-3);
-  padding: 12px 12px 6px;
+  padding: 12px 12px 8px;
 }
 .palette-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
-  border-radius: 15px;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
 }
 .palette-item .ic {
@@ -1217,7 +1080,7 @@ dialog.palette::backdrop {
   flex-direction: column;
 }
 .palette-text b {
-  font-weight: 700;
+  font-weight: 500;
 }
 .palette-text small {
   color: var(--ink-3);
@@ -1232,8 +1095,8 @@ dialog.palette::backdrop {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 18px;
-  border-top: 2px solid var(--rule);
+  padding: 8px 16px;
+  border-top: 1px solid var(--rule);
 }
 @media (max-width: 640px) {
   .palette-foot span:last-child {
@@ -1536,7 +1399,7 @@ dialog.step-up {
 .draw {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: draw 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: draw 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 @keyframes draw {
   to {
@@ -1544,7 +1407,10 @@ dialog.step-up {
   }
 }
 .area-fade {
-  animation: fade-in 0.8s 0.35s both;
+  animation: fade-in 0.6s 0.3s both;
+}
+.last-dot {
+  animation: fade-in 0.3s 0.8s both;
 }
 @keyframes fade-in {
   from {
@@ -1554,8 +1420,8 @@ dialog.step-up {
 .bar-grow {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: grow 0.55s cubic-bezier(0.2, 0.8, 0.2, 1.15) both;
-  animation-delay: calc(var(--i, 0) * 14ms);
+  animation: grow 0.5s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 10ms);
 }
 @keyframes grow {
   from {
@@ -1643,7 +1509,7 @@ dialog.step-up {
 }
 .ring-label small {
   color: var(--ink-3);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 11.5px;
 }
 .ring-row {
@@ -1719,12 +1585,12 @@ dialog.step-up {
 }
 .step-share {
   text-align: right;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   font-size: 12.5px;
 }
 .step-label {
-  font-weight: 700;
+  font-weight: 600;
 }
 .swatch {
   width: 14px;
@@ -1735,11 +1601,11 @@ dialog.step-up {
   padding: 2px 12px 2px 38px;
   font-size: 12px;
   color: var(--ink-2);
-  border-left: 2px dashed var(--rule-2);
+  border-left: 1px solid var(--rule);
   margin-left: 18px;
 }
 .step-gap .conv {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--ink);
 }
 .funnel-steps li.drop .step-gap .conv {
@@ -1776,19 +1642,19 @@ dialog.step-up {
 }
 .cohort-row.cohort-head {
   color: var(--ink-3);
-  font-weight: 700;
+  font-weight: 600;
 }
 .cohort-row.average {
   margin-bottom: 6px;
   padding-bottom: 8px;
-  border-bottom: 2px dashed var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 .cohort-row.average .cohort-name {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--ink);
 }
 .cohort-name {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-2);
   white-space: nowrap;
 }
@@ -1821,7 +1687,7 @@ dialog.step-up {
 }
 .heat-text {
   font-size: 10.5px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .heat.lv0 {
   background: var(--sticker-2);
@@ -1882,12 +1748,12 @@ dialog.step-up {
 }
 .rhythm-hours span {
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   white-space: nowrap;
 }
 .rhythm-day {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12.5px;
   color: var(--ink-2);
 }
@@ -1972,7 +1838,7 @@ dialog.step-up {
 }
 .streak-label {
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   white-space: nowrap;
 }
@@ -1994,10 +1860,10 @@ dialog.step-up {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 14px;
-  border-radius: 20px;
+  padding: 12px;
+  border-radius: 10px;
   background: var(--sticker-2);
-  animation: card-in 0.45s both;
+  animation: card-in 0.3s var(--ease) both;
   animation-delay: calc(var(--i) * 0.08s);
 }
 .path li + li::before {
@@ -2006,14 +1872,14 @@ dialog.step-up {
   left: -10px;
   top: 30px;
   width: 10px;
-  border-top: 2px dashed var(--rule-2);
+  border-top: 1px solid var(--rule);
 }
 .path li b {
   font: 600 22px/1.1 "Sora";
   letter-spacing: -0.03em;
 }
 .path-label {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12.5px;
   color: var(--ink-2);
   line-height: 1.25;
@@ -2102,8 +1968,8 @@ dialog.step-up {
   position: absolute;
   transform: translate(-50%, -100%);
   background: var(--sticker);
-  border-radius: 18px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 12px;
   box-shadow:
     0 0 0 3px var(--sticker),
     var(--lift-3);
@@ -2126,11 +1992,11 @@ dialog.step-up {
 }
 .hover-card dt {
   color: var(--ink-3);
-  font-weight: 700;
+  font-weight: 600;
 }
 .hover-card dd {
   text-align: right;
-  font-weight: 700;
+  font-weight: 600;
 }
 .map-legend {
   display: inline-flex;
@@ -2170,7 +2036,7 @@ dialog.step-up {
   align-items: center;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 2px dashed var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 .country-list .rank {
   width: 22px;
@@ -2210,70 +2076,59 @@ dialog.step-up {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 22px 16px 16px;
-  border-radius: 30px;
+  padding: 24px 16px 16px;
+  border-radius: var(--radius);
   background: var(--sticker);
   text-align: center;
   text-decoration: none;
-  box-shadow:
-    0 0 0 5px var(--sticker),
-    var(--lift-2);
-  transform: rotate(var(--tilt));
-  transition:
-    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.4),
-    box-shadow 0.25s;
-  animation: stick 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
-  animation-delay: calc(var(--i) * 60ms);
+  box-shadow: var(--lift-1);
+  transition: box-shadow 0.15s var(--ease);
+  animation: stick 0.3s var(--ease) both;
+  animation-delay: calc(var(--i) * 30ms);
 }
 @keyframes stick {
   from {
     opacity: 0;
-    transform: rotate(calc(var(--tilt) * -3)) scale(0.85) translateY(-14px);
+    transform: translateY(4px);
   }
 }
 .couple-sticker:hover,
 .couple-sticker:focus-visible {
-  transform: rotate(0) translateY(-6px) scale(1.03);
-  box-shadow:
-    0 0 0 5px var(--sticker),
-    var(--lift-3);
+  box-shadow: var(--lift-2);
   z-index: 1;
-}
-.couple-sticker.podium {
-  background: radial-gradient(90% 60% at 50% 0%, var(--maya-tint), transparent 70%), var(--sticker);
 }
 .couple-sticker .rank {
   position: absolute;
   top: -10px;
   left: -8px;
-  width: 34px;
-  height: 34px;
-  border-radius: 17px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
-  font: 600 15px/1 "Sora";
+  font: 500 13px/1 "Sora";
+  background: var(--sticker-2);
+  color: var(--ink-2);
+  box-shadow:
+    0 0 0 1px var(--hair),
+    0 0 0 3px var(--page);
+}
+.couple-sticker.podium .rank {
   background: var(--maya);
   color: var(--on-maya);
-  box-shadow: 0 0 0 3px var(--sticker);
-}
-.couple-sticker.podium:first-child .rank {
-  background: var(--pen);
-  color: #fff;
 }
 .plus-tag {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  font: 800 10.5px/1 "Figtree";
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 5px 8px;
-  border-radius: 9px;
+  top: 12px;
+  right: 12px;
+  font: 500 11.5px/1 "Figtree";
+  padding: 4px 6px;
+  border-radius: 6px;
   background: var(--pen-soft);
   color: var(--pen-ink);
 }
 .couple-names {
-  font: 600 17px/1.2 "Sora";
+  font: 500 17px/1.2 "Sora";
   letter-spacing: -0.02em;
 }
 .couple-names .amp {
@@ -2295,7 +2150,7 @@ dialog.step-up {
 .couple-stats {
   display: flex;
   gap: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12.5px;
   color: var(--ink-2);
 }
@@ -2328,7 +2183,7 @@ dialog.step-up {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 18px;
+  border-radius: 10px;
   background: var(--sticker-2);
 }
 .probe-dot {
@@ -2346,7 +2201,6 @@ dialog.step-up {
 .probe.down .probe-dot {
   background: var(--error);
   box-shadow: 0 0 0 4px var(--error-soft);
-  animation: blink-rec 1s steps(2, jump-none) infinite;
 }
 .probe.off .probe-dot {
   background: var(--ink-4);
@@ -2370,7 +2224,7 @@ dialog.step-up {
 }
 .probe-ms {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   white-space: nowrap;
 }
@@ -2464,7 +2318,7 @@ dialog.step-up {
   flex: none;
   display: grid;
   place-items: center;
-  font: 800 20px/1 "Sora";
+  font: 600 20px/1 "Sora";
   background: var(--warn-soft);
   color: var(--warn);
 }
@@ -2499,7 +2353,7 @@ dialog.step-up {
   left: 79px;
   top: 10px;
   bottom: 10px;
-  border-left: 2px dashed var(--rule-2);
+  border-left: 1px solid var(--rule);
 }
 .j-day {
   position: relative;
@@ -2523,7 +2377,7 @@ dialog.step-up {
 }
 .j-date span {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   white-space: nowrap;
 }
@@ -2574,7 +2428,7 @@ dialog.step-up {
   color: var(--ink-3);
 }
 .j-chip b {
-  font-weight: 800;
+  font-weight: 600;
 }
 .j-chip.dareCompleted .ic {
   color: var(--good);
@@ -2614,7 +2468,7 @@ dialog.step-up {
 .j-gap span {
   grid-column: 3;
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
   font-style: italic;
 }
@@ -2652,14 +2506,17 @@ dialog.step-up {
 .side-foot {
   flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 12px 6px 0;
+  gap: 8px;
+  padding: 12px 4px 0;
 }
 .side-me {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+.side-me b {
+  font-weight: 500;
 }
 .side-me small {
   font-size: 12px;
@@ -2669,45 +2526,33 @@ dialog.step-up {
   text-overflow: ellipsis;
 }
 .icon-btn.flat {
-  box-shadow: none;
-  background: transparent;
-  width: 36px;
-  height: 36px;
-}
-.icon-btn.flat:hover {
-  background: var(--page-3);
+  width: 32px;
+  height: 32px;
 }
 
-/* Phones: KPI stickers two to a row, the tab strip without the active dot. */
+/* Phones: KPIs two to a row. */
 @media (max-width: 640px) {
   .grid.cols-4:has(> .kpi) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 12px;
   }
   .kpi {
-    padding: 14px 14px 12px;
-    border-radius: 22px;
+    padding: 16px;
   }
   .kpi .value {
-    font-size: 25px;
+    font-size: 24px;
   }
   .stat .value.words {
     font-size: 17px;
   }
-  .kpi-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 10px;
-  }
   .kpi .label {
-    font-size: 12px;
+    font-size: 12.5px;
   }
   .kpi .hint {
-    font-size: 11.5px;
+    font-size: 12px;
   }
   .delta {
-    font-size: 11px;
-    padding: 2px 6px;
+    font-size: 12px;
   }
   .delta .faint {
     display: none;
@@ -2715,11 +2560,6 @@ dialog.step-up {
   .head .seg {
     max-width: 100%;
     overflow-x: auto;
-  }
-}
-@media (max-width: 860px) {
-  .topbar .nav a[data-status="active"]::after {
-    display: none;
   }
 }
 
@@ -2827,7 +2667,7 @@ dialog.step-up {
   overflow-wrap: anywhere;
 }
 .checklist .hint + .hint {
-  border-top: 2px dashed var(--rule);
+  border-top: 1px solid var(--rule);
 }
 .tick {
   display: inline-grid;

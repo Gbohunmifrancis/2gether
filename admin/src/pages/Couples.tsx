@@ -30,13 +30,12 @@ function Hearts({ hearts }: { hearts: number }) {
 }
 
 function CoupleSticker({ couple, rank }: { couple: TopCouple; rank: number }) {
-  const tilt = [-2.2, 1.6, -1.1, 2.4, -1.8, 0.9][rank % 6]!;
   return (
     <Link
       to="/users"
       search={{ query: couple.coupleId, page: 1 }}
       className={`couple-sticker${rank < 3 ? " podium" : ""}`}
-      style={{ "--tilt": `${tilt}deg`, "--i": rank } as CSSProperties}
+      style={{ "--i": rank } as CSSProperties}
       aria-label={`${couple.names[0]} and ${couple.names[1]}: ${plural(couple.hearts, "heart")}, open their accounts`}
     >
       <span className="rank">{rank + 1}</span>

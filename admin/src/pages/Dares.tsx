@@ -106,10 +106,10 @@ export function DaresPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label="Dares set" icon="dares" value={set} hint={`${count(done)} done · ${rate(set ? done / set : null)}`} />
-                <KpiSticker label="Started before the alarm" icon="ring" value={data.earlyStarts} hint="Keen ones" />
-                <KpiSticker label="Usual target" icon="check" value={data.medianRepsTarget} hint="Median reps asked for" />
-                <KpiSticker label="Couples on a streak" icon="flame" tone="pen" value={streaking} hint={`${count(failed)} camera checks failed`} />
+                <KpiSticker label="Dares set" value={set} hint={`${count(done)} done · ${rate(set ? done / set : null)}`} />
+                <KpiSticker label="Started before the alarm" value={data.earlyStarts} hint="Keen ones" />
+                <KpiSticker label="Usual target" value={data.medianRepsTarget} hint="Median reps asked for" />
+                <KpiSticker label="Couples on a streak" value={streaking} hint={`${count(failed)} camera checks failed`} />
               </div>
               <div className="grid cols-3">
                 <Card flush title="By exercise" className="span-2">

@@ -27,15 +27,10 @@ export function EngagementPage() {
       ) : (
         <>
           <div className="grid cols-4">
-            <KpiSticker label="Dares completed" icon="check" value={data.daresCompleted} hint={`${percent(data.completionRate)} of dares done or missed`} />
-            <KpiSticker
-              label="Meals logged"
-              icon="meal"
-              value={data.foodEntries}
-              hint={`${count(data.foodScans)} photo scans · ${count(data.foodScansFailed)} failed`}
-            />
-            <KpiSticker label="Photos shared" icon="photo" value={data.photosSynced} hint={`${bytes(data.photoBytesSynced)} stored`} />
-            <KpiSticker label="Questions answered" icon="question" value={data.questionsAnswered} hint={`${count(data.gamesCompleted)} games finished`} />
+            <KpiSticker label="Dares completed" value={data.daresCompleted} hint={`${percent(data.completionRate)} of dares done or missed`} />
+            <KpiSticker label="Meals logged" value={data.foodEntries} hint={`${count(data.foodScans)} photo scans · ${count(data.foodScansFailed)} failed`} />
+            <KpiSticker label="Photos shared" value={data.photosSynced} hint={`${bytes(data.photoBytesSynced)} stored`} />
+            <KpiSticker label="Questions answered" value={data.questionsAnswered} hint={`${count(data.gamesCompleted)} games finished`} />
           </div>
 
           <div className="grid cols-3">

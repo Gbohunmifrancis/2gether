@@ -60,7 +60,6 @@ export function HealthPage() {
               <div className="grid cols-4">
                 <KpiSticker
                   label="Services"
-                  icon="health"
                   value={null}
                   text={down ? `${down} need${down === 1 ? "s" : ""} a look` : "All up"}
                   tone={down ? "warn" : "good"}
@@ -68,16 +67,14 @@ export function HealthPage() {
                 />
                 <KpiSticker
                   label="Workers"
-                  icon="refresh"
                   value={null}
                   text={troubled ? `${troubled} behind` : "Keeping time"}
                   tone={troubled ? "warn" : "good"}
                   hint={`${data.workers.length} background loops`}
                 />
-                <KpiSticker label="Album storage" icon="storage" value={null} text={bytes(data.storageBytes)} hint="Counted from the database" />
+                <KpiSticker label="Album storage" value={null} text={bytes(data.storageBytes)} hint="Counted from the database" />
                 <KpiSticker
                   label={`Food scans, ${data.foodScanCost.days} days`}
-                  icon="meal"
                   value={null}
                   text={data.foodScanCost.estimatedCost === null ? "—" : money(data.foodScanCost.estimatedCost, data.foodScanCost.currency)}
                   hint={`${compact(data.foodScanCost.inputTokens)} in · ${compact(data.foodScanCost.outputTokens)} out tokens`}

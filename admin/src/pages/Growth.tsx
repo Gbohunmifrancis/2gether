@@ -38,10 +38,10 @@ export function GrowthPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label="Renewing in 7 days" icon="calendar" value={data.endingIn7Days} hint="Subscriptions that end or renew" />
-                <KpiSticker label="Renewing in 30 days" icon="calendar" value={data.endingIn30Days} />
-                <KpiSticker label="Renewed" icon="refresh" value={data.renewed} hint={`in ${days} days`} />
-                <KpiSticker label="Lapsed" icon="broken" value={data.lapsed} hint={`in ${days} days`} />
+                <KpiSticker label="Renewing in 7 days" value={data.endingIn7Days} hint="Subscriptions that end or renew" />
+                <KpiSticker label="Renewing in 30 days" value={data.endingIn30Days} />
+                <KpiSticker label="Renewed" value={data.renewed} hint={`in ${days} days`} />
+                <KpiSticker label="Lapsed" value={data.lapsed} hint={`in ${days} days`} />
               </div>
               <div className="grid cols-3">
                 <Card title="Renewal rate">

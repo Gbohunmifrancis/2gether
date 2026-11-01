@@ -8,7 +8,7 @@ import { Characters, Halves, MiniHeart } from "./Art";
 import { Icon, type IconName } from "./Icon";
 import { CountUp } from "./Viz";
 
-/* The live feed as stickers sliding in, each kind with its own little moment, and the pulse tiles. */
+/* The live feed, each kind with its own little moment when it arrives, and the pulse as a row of figures. */
 
 const KIND: Record<LiveKind, { icon: IconName; tone: string }> = {
   signedUp: { icon: "userPlus", tone: "theo" },
@@ -148,41 +148,36 @@ export function LiveStatus() {
   );
 }
 
-const TILES: { key: keyof Pulse; label: string; icon: IconName; className: string; to?: "/live" | "/dares" | "/games" | "/funnel" | "/growth" }[] = [
-  { key: "onlineNow", label: "Online now", icon: "users", className: "online" },
-  { key: "ringingNow", label: "Dares ringing", icon: "ring", className: "ringing", to: "/dares" },
-  { key: "onCameraNow", label: "On camera", icon: "camera", className: "camera", to: "/dares" },
-  { key: "heartsToday", label: "Hearts today", icon: "heart", className: "hearts", to: "/dares" },
-  { key: "openGames", label: "Games open", icon: "games", className: "games", to: "/games" },
-  { key: "signupsToday", label: "Sign-ups today", icon: "userPlus", className: "signups", to: "/funnel" },
-  { key: "couplesLinkedToday", label: "Couples linked today", icon: "link", className: "linked", to: "/funnel" },
-  { key: "plusStartedToday", label: "Plus today", icon: "plus", className: "plus", to: "/growth" },
+const TILES: { key: keyof Pulse; label: string; to?: "/live" | "/dares" | "/games" | "/funnel" | "/growth" }[] = [
+  { key: "onlineNow", label: "Online now" },
+  { key: "ringingNow", label: "Dares ringing", to: "/dares" },
+  { key: "onCameraNow", label: "On camera", to: "/dares" },
+  { key: "heartsToday", label: "Hearts today", to: "/dares" },
+  { key: "openGames", label: "Games open", to: "/games" },
+  { key: "signupsToday", label: "Sign-ups today", to: "/funnel" },
+  { key: "couplesLinkedToday", label: "Couples linked today", to: "/funnel" },
+  { key: "plusStartedToday", label: "Plus today", to: "/growth" },
 ];
 
-/** What's happening right now, from the pulse; nudged by live events between polls. */
+/** What's happening right now, from the pulse, as one row of figures; nudged by live events between polls. */
 export function PulseTiles() {
   const { pulse } = useLive();
   return (
-    <div className="pulse-grid">
+    <div className="pulse-strip">
       {TILES.map((tile) => {
         const value = pulse ? (pulse[tile.key] as number) : null;
         const content = (
           <>
-            <span className="pulse-icon" aria-hidden="true">
-              <Icon name={tile.icon} />
-              {tile.className === "camera" && value ? <span className="rec" /> : null}
-            </span>
             <span className="pulse-value">{value === null ? "–" : <CountUp value={value} />}</span>
             <span className="pulse-label">{tile.label}</span>
           </>
         );
-        const className = `pulse-tile ${tile.className}${value ? " lit" : ""}`;
         return tile.to ? (
-          <Link key={tile.key} to={tile.to} className={className} aria-label={`${tile.label}: ${value === null ? "unknown" : count(value)}`}>
+          <Link key={tile.key} to={tile.to} className="pulse-figure" aria-label={`${tile.label}: ${value === null ? "unknown" : count(value)}`}>
             {content}
           </Link>
         ) : (
-          <div key={tile.key} className={className}>
+          <div key={tile.key} className="pulse-figure">
             {content}
           </div>
         );

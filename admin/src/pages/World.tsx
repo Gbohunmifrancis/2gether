@@ -30,16 +30,15 @@ export function WorldPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label="Countries" icon="world" value={data.countries.length} hint={`${count(data.unknown)} people with no country`} />
-                <KpiSticker label="People placed" icon="users" value={people} />
+                <KpiSticker label="Countries" value={data.countries.length} hint={`${count(data.unknown)} people with no country`} />
+                <KpiSticker label="People placed" value={people} />
                 <KpiSticker
                   label="Most people"
-                  icon="flame"
                   value={null}
                   text={top ? `${flag(top.code)} ${countryName(top.code)}` : "—"}
                   hint={top ? `${count(top.people)} people` : ""}
                 />
-                <KpiSticker label="Couples on Plus" icon="plus" tone="pen" value={plus} hint={`${rate(couples ? plus / couples : null)} of couples placed`} />
+                <KpiSticker label="Couples on Plus" value={plus} hint={`${rate(couples ? plus / couples : null)} of couples placed`} />
               </div>
               <ChartCard
                 title="The map"
