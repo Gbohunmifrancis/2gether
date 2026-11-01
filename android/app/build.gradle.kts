@@ -7,6 +7,12 @@ import java.net.URI
  */
 fun setting(name: String): String =
     providers.environmentVariable(name).filter { it.isNotBlank() }.orElse(providers.gradleProperty("heartpact.$name")).getOrElse("")
+        // Pasted secrets often carry a line break or the quotes around them; neither belongs in the value.
+        .trim().removeSurrounding("\"").removeSurrounding("'").trim()
+
+/** A Java string literal for BuildConfig: escaped, so no value can break the generated code. */
+fun javaString(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") + "\""
 
 plugins {
     alias(libs.plugins.android.application)
@@ -29,12 +35,12 @@ android {
         versionName = setting("ANDROID_VERSION_NAME").ifBlank { "0.1.0" }
         // Firebase Cloud Messaging. Without these the app runs without push and polls instead.
         for (name in listOf("FIREBASE_PROJECT_ID", "FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_SENDER_ID")) {
-            buildConfigField("String", name, "\"${setting(name)}\"")
+            buildConfigField("String", name, javaString(setting(name)))
         }
         // Google sign-in: the web OAuth client id the server checks ID tokens against. Empty hides the button.
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${setting("GOOGLE_WEB_CLIENT_ID")}\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", javaString(setting("GOOGLE_WEB_CLIENT_ID")))
         // Play Integrity: the Google Cloud project number linked in Play Console. Empty skips the check.
-        buildConfigField("String", "PLAY_INTEGRITY_PROJECT_NUMBER", "\"${setting("PLAY_INTEGRITY_PROJECT_NUMBER")}\"")
+        buildConfigField("String", "PLAY_INTEGRITY_PROJECT_NUMBER", javaString(setting("PLAY_INTEGRITY_PROJECT_NUMBER")))
     }
 
     signingConfigs {
@@ -58,7 +64,7 @@ android {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             val apiUrl = setting("HEARTPACT_RELEASE_API_URL").ifBlank { property("heartpact.apiBaseUrl.release").toString() }
-            buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
+            buildConfigField("String", "API_BASE_URL", javaString(apiUrl))
             signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
