@@ -26,6 +26,9 @@ class AuthExtrasShotsTest {
     @Test fun google() {
         shot("welcome-google") { WelcomeScreen({}, {}, onGoogle = {}) }
         shot("google-finish") { GoogleFinishScreen(GoogleState(finishing = true, name = "Maya Okafor", dateOfBirth = LocalDate.of(1996, 5, 14), gender = Gender.Female, country = "IN"), {}, {}, {}, {}, {}, {}) }
+        // Google came without a name: asked for here, with the rest of step 2.
+        shot("google-finish-name") { GoogleFinishScreen(GoogleState(finishing = true, askName = true, country = "IN", showErrors = true), {}, {}, {}, {}, {}, {}) }
+        shot("welcome-invited") { WelcomeScreen({}, {}, onGoogle = {}, invitedBy = "Theo") }
         // Under 18: refused right away (the server refuses it too).
         shot("google-finish-too-young") { GoogleFinishScreen(GoogleState(finishing = true, name = "Maya Okafor", dateOfBirth = LocalDate.now().minusYears(16), gender = Gender.Female, country = "NG"), {}, {}, {}, {}, {}, {}) }
     }

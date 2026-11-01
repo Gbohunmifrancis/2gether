@@ -38,10 +38,41 @@ class CoupleRepository(private val api: HeartpactApi, private val session: Sessi
     suspend fun current(userId: String): ApiResult<Couple> = apiCall(json) { api.couple() }.alsoOk { session.saveCouple(it, userId) }
 
     /** A fresh invite (any earlier pending one is revoked). The server may hand back a refreshed token. */
-    suspend fun createInvite(): ApiResult<PartnerInvite> = apiCall(json) { api.createInvite() }.alsoOk { invite -> invite.accessToken?.let { session.saveToken(it) } }
+    suspend fun createInvite(userId: String? = null): ApiResult<PartnerInvite> = apiCall(json) { api.createInvite() }.alsoOk { invite ->
+        invite.accessToken?.let { session.saveToken(it) }
+        userId?.let { session.saveInvite(it, invite.copy(accessToken = null)) }
+    }
+
+    /**
+     * The invite to show: the one this phone made last while it still has a while to run, else a new one. Making a new
+     * one revokes the last, so opening the pair screen again never breaks a code already sent to the partner.
+     */
+    suspend fun invite(userId: String, nowMs: Long = System.currentTimeMillis()): ApiResult<PartnerInvite> {
+        val kept = session.invite(userId)
+        if (kept != null && InviteKeeping.stillGood(kept.expiresAtUtc, nowMs)) return ApiResult.Ok(kept)
+        return createInvite(userId)
+    }
+
+    /** Whose invite link this is, by first name, before joining. */
+    suspend fun preview(token: String): ApiResult<InvitePreview> = apiCall(json) { api.previewInvite(InvitePreviewRequest(token)) }
 
     suspend fun accept(code: String? = null, token: String? = null): ApiResult<AuthResponse> =
-        apiCall(json) { api.acceptInvite(AcceptInviteRequest(code = code, token = token)) }.alsoOk { session.save(it.accessToken, it.user) }
+        apiCall(json) { api.acceptInvite(AcceptInviteRequest(code = code, token = token)) }.alsoOk {
+            session.save(it.accessToken, it.user)
+            session.clearInvite()
+        }
+}
+
+object InviteKeeping {
+    /** A kept invite is shown again while it has more than this left; nearer the end a new one is made. */
+    const val MARGIN_MS = 60_000L
+
+    fun stillGood(expiresAtUtc: String, nowMs: Long): Boolean = expiresAtMs(expiresAtUtc)?.let { it - nowMs > MARGIN_MS } ?: false
+
+    /** The server's UTC times come with or without the Z. */
+    fun expiresAtMs(isoUtc: String): Long? = runCatching {
+        java.time.Instant.parse(if (isoUtc.endsWith("Z") || isoUtc.contains('+')) isoUtc else "${isoUtc}Z").toEpochMilli()
+    }.getOrNull()
 }
 
 inline fun <T> ApiResult<T>.alsoOk(block: (T) -> Unit): ApiResult<T> {

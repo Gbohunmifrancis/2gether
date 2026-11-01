@@ -12,6 +12,7 @@ import app.heartpact.alarm.AlarmScheduler
 import app.heartpact.location.LocationShareService
 import app.heartpact.location.LocationStop
 import app.heartpact.push.Push
+import app.heartpact.ui.pair.PendingLink
 import app.heartpact.ui.theme.Side
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,24 +60,67 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     fun openRoute(route: String) { _openRoute.value = route }
     fun routeOpened() { _openRoute.value = null }
 
-    /** An invite link that opened the app; consumed by the pair screen. */
-    var pendingInviteToken: String? = null
+    private val _pendingLink = MutableStateFlow<PendingLink?>(null)
+    /**
+     * A partner's invite link that opened the app, kept (on disk too) through signing up or in; the pair screen takes it.
+     * Opened while signed out it joins straight after; opened while signed in it asks first.
+     */
+    val pendingLink: StateFlow<PendingLink?> = _pendingLink.asStateFlow()
+
+    private val _inviter = MutableStateFlow<String?>(null)
+    /** Who that link is from, for Welcome and sign-up: a first name, "" while unknown, null with no link waiting. */
+    val inviter: StateFlow<String?> = _inviter.asStateFlow()
 
     init {
-        viewModelScope.launch { _destination.value = decide() }
+        viewModelScope.launch { decideAndRoute() }
         // The partner ended the pact, or this account was deleted on another phone: decide again.
-        viewModelScope.launch { app.pushEvents.collect { if (it in setOf("coupleEnded", "accountDeleted", "breakup")) refresh() } }
+        viewModelScope.launch {
+            app.pushEvents.collect {
+                if (it in setOf("coupleEnded", "accountDeleted", "breakup")) refresh()
+                // The partner joined with this person's code while they look around on Home: Home gets the partner.
+                if (it == "coupleConnected") checkLinked()
+            }
+        }
     }
 
-    fun openedInvite(token: String) {
-        pendingInviteToken = token
-        // Already signed in and still waiting for a partner: go straight to pairing with it.
-        if (_destination.value == null) return
-        if (_destination.value == Destination.Home) {
-            if (!_linked.value) _pairRequested.value = true
-            return
+    fun openedInvite(token: String) = viewModelScope.launch {
+        val signedIn = app.session.load() != null
+        app.session.savePendingInvite(token, signedOut = !signedIn)
+        _pendingLink.value = PendingLink(token, ask = signedIn)
+        loadInviter(token)
+        when (_destination.value) {
+            // Still deciding: decide() reads it. Pair: the open pair screen takes it.
+            null, Destination.Pair -> Unit
+            // A first visit with an invite skips the tour: Welcome says who it's from.
+            Destination.Onboarding -> _destination.value = Destination.Welcome
+            Destination.Welcome -> if (signedIn) refresh()
+            Destination.Home -> routePending()
         }
-        if (session.value != null) _destination.value = Destination.Pair
+    }
+
+    /** The pair screen took the link: it is used, whatever comes of it. */
+    fun inviteTaken() {
+        _pendingLink.value = null
+        _inviter.value = null
+        viewModelScope.launch { app.session.clearPendingInvite() }
+    }
+
+    private fun loadInviter(token: String) = viewModelScope.launch {
+        _inviter.value = ""
+        (app.couple.preview(token) as? ApiResult.Ok)?.value?.inviterFirstName?.takeIf { it.isNotBlank() }?.let {
+            if (_pendingLink.value?.token == token) _inviter.value = it
+        }
+    }
+
+    private suspend fun decideAndRoute() {
+        _destination.value = decide()
+        routePending()
+    }
+
+    /** On Home with a link waiting: not linked yet, the pair screen opens over Home with it; linked already, it's dropped. */
+    private fun routePending() {
+        if (_pendingLink.value == null || _destination.value != Destination.Home) return
+        if (_linked.value) inviteTaken() else _pairRequested.value = true
     }
 
     /** "Connect later" on the pair screen: remembered for this account, so the app opens on Home from now on. */
@@ -91,11 +135,11 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         if (_linked.value || _destination.value != Destination.Home) return@launch
         val userId = session.value?.user?.id ?: return@launch
         val fresh = app.couple.current(userId)
-        if ((fresh as? ApiResult.Ok)?.value?.status == CoupleStatus.Active) _destination.value = decide()
+        if ((fresh as? ApiResult.Ok)?.value?.status == CoupleStatus.Active) decideAndRoute()
     }
 
     /** After signing in or up, or after linking: re-read the couple and move on. */
-    fun refresh() = viewModelScope.launch { _destination.value = decide() }
+    fun refresh() = viewModelScope.launch { decideAndRoute() }
 
     fun finishOnboarding() = viewModelScope.launch {
         app.session.markOnboardingSeen()
@@ -128,7 +172,17 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     }
 
     private suspend fun decide(): Destination {
-        val session = app.session.load() ?: return if (app.session.onboardingSeen.first()) Destination.Welcome else Destination.Onboarding
+        // A link kept from before (the app was closed while signing up): picked up again.
+        if (_pendingLink.value == null) app.session.pendingInvite()?.let { (token, signedOut) ->
+            // Opened while signed out: signing up or in was the answer, so it joins without asking again.
+            _pendingLink.value = PendingLink(token, ask = !signedOut)
+            loadInviter(token)
+        }
+        val session = app.session.load() ?: return when {
+            // With an invite waiting, Welcome says who it's from; the tour can wait.
+            _pendingLink.value != null || app.session.onboardingSeen.first() -> Destination.Welcome
+            else -> Destination.Onboarding
+        }
         // Ask the server, but never hold the splash for long: fall back to what we last knew.
         val fresh = withTimeoutOrNull(4_000) { app.couple.current(session.user.id) }
         val couple = (fresh as? ApiResult.Ok)?.value
@@ -151,8 +205,11 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
         val status = couple?.status ?: session.coupleStatus
         _linked.value = status == CoupleStatus.Active
         if (status != CoupleStatus.Active) stopAlarms()
+        if (status == CoupleStatus.Active && _pendingLink.value != null) inviteTaken()
         return when {
             status == CoupleStatus.Active -> Destination.Home
+            // A partner's link is waiting: straight to joining them.
+            _pendingLink.value != null -> Destination.Pair
             // Chose to look around first: Home, with a way to connect from there.
             app.session.connectsLater(session.user.id) -> Destination.Home
             else -> Destination.Pair

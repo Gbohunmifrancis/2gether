@@ -28,7 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
@@ -60,6 +64,8 @@ fun HeartField(
     /** More than one line makes it a writing box (answers, notes) instead of a single-line field. */
     minLines: Int = 1,
     maxLength: Int? = null,
+    /** What autofill and password managers may put here (an email, a new password...). */
+    contentType: ContentType? = null,
 ) {
     val colors = Heartpact.colors
     val interaction = remember { MutableInteractionSource() }
@@ -90,6 +96,7 @@ fun HeartField(
                         .semantics {
                             contentDescription = label
                             if (error != null) error(error)
+                            if (contentType != null) this.contentType = contentType
                         },
                     singleLine = minLines == 1,
                     minLines = minLines,
@@ -123,7 +130,9 @@ fun HeartField(
             Text("${value.length} / $maxLength", style = Heartpact.type.small, color = colors.ink3, modifier = Modifier.align(Alignment.End).padding(top = 6.dp, end = 4.dp))
         }
         if (note != null) {
-            Text(note, style = Heartpact.type.small, color = if (error != null) colors.error else colors.ink2, modifier = Modifier.padding(start = 6.dp, top = 6.dp))
+            // An error is read out as it appears, by the field it belongs to.
+            Text(note, style = Heartpact.type.small, color = if (error != null) colors.error else colors.ink2,
+                modifier = Modifier.padding(start = 6.dp, top = 6.dp).then(if (error != null) Modifier.semantics { liveRegion = LiveRegionMode.Polite } else Modifier))
         }
     }
 }

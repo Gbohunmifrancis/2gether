@@ -53,13 +53,12 @@ object Countries {
      */
     fun guess(context: Context): String? {
         val phone = runCatching { context.getSystemService(TelephonyManager::class.java) }.getOrNull()
-        val candidates = listOf(
-            runCatching { phone?.simCountryIso }.getOrNull(),
-            runCatching { phone?.networkCountryIso }.getOrNull(),
-            Locale.getDefault().country,
-        )
-        return candidates.firstNotNullOfOrNull { it?.uppercase(Locale.ROOT)?.takeIf(::isKnown) }
+        return pick(runCatching { phone?.simCountryIso }.getOrNull(), runCatching { phone?.networkCountryIso }.getOrNull(), Locale.getDefault().country)
     }
+
+    /** The first of SIM, network and language-setting countries that is a real country ("us", "", "ZZ" and "419" aren't). */
+    fun pick(sim: String?, network: String?, locale: String?): String? =
+        listOf(sim, network, locale).firstNotNullOfOrNull { it?.trim()?.uppercase(Locale.ROOT)?.takeIf(::isKnown) }
 
     private fun fold(value: String): String =
         Normalizer.normalize(value, Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "").lowercase(Locale.ROOT)

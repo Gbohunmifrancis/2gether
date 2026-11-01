@@ -28,7 +28,9 @@ import app.heartpact.ui.graphics.Who
 import app.heartpact.ui.theme.Heartpact
 
 @Composable
-fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (() -> Unit)? = null, googleBusy: Boolean = false, note: String? = null) {
+fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (() -> Unit)? = null, googleBusy: Boolean = false, note: String? = null,
+                  /** A partner's invite link opened the app: their first name, or "" when it couldn't be read. */
+                  invitedBy: String? = null) {
     val colors = Heartpact.colors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp)) {
         Row(Modifier.height(56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -47,7 +49,11 @@ fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, onGoogle: (
         HeartButton(tr("I already have an account"), onSignIn, Modifier.padding(top = 8.dp), kind = ButtonKind.Outline)
         onGoogle?.let { GoogleButton(it, Modifier.padding(top = 8.dp), busy = googleBusy) }
         note?.let { app.heartpact.ui.components.NoteCard(it, Modifier.padding(top = 8.dp)) }
-        Text(
+        if (invitedBy != null) InvitedCard(
+            if (invitedBy.isNotBlank()) tr("{name} invited you. Create your account or sign in, and you'll be linked right away.", "name" to invitedBy)
+            else tr("Your partner's invite is waiting. Create your account or sign in, and you'll be linked right away."),
+            Modifier.padding(top = 12.dp, bottom = 16.dp),
+        ) else Text(
             tr("Got an invite code from your partner? You'll enter it after you sign up."),
             style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 16.dp),

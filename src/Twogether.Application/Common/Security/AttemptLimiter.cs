@@ -22,6 +22,11 @@ public static class AttemptRules
     /// then codes stop working for an hour while invite links keep working.
     /// </summary>
     public static readonly AttemptRule InviteCodeGlobal = new("invite-global", 200, TimeSpan.FromHours(1));
+    /// <summary>
+    /// New invite codes, every one counted: each revokes the last, so a burst only churns codes. The app keeps its code
+    /// and asks again only when it has expired or the person taps "Get a new code".
+    /// </summary>
+    public static readonly AttemptRule InviteCreatePerUser = new("invite-new-user", 20, TimeSpan.FromHours(1));
     public static readonly AttemptRule AccountDeletePerUser = new("delete-user", 5, TimeSpan.FromMinutes(15));
     /// <summary>Reset emails per address asked about, existing or not: no inbox gets flooded.</summary>
     public static readonly AttemptRule ResetRequestPerEmail = new("reset-email", 3, TimeSpan.FromHours(1));

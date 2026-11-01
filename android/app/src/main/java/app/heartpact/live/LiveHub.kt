@@ -140,7 +140,8 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
             "ExerciseCancelled", "ExerciseCallOffAsked", "ExerciseGoalsChanged", "ExerciseLive", "ExerciseWatching", "ExerciseCheer",
             "LocationUpdated", "LocationStopped", "LocationSharingChanged",
             "FoodDayUpdated", "DailyQuestionAnswered", "PregnancyChanged", "MemoriesChanged",
-            "CoupleEnded", "AccountDeleted", "NotificationCreated",
+            // CoupleConnected: the partner just joined with this person's code (the pair screen celebrates at once).
+            "CoupleConnected", "CoupleEnded", "AccountDeleted", "NotificationCreated",
             "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded", "GameInk", "GameProgress",
         )
 

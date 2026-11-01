@@ -10,6 +10,7 @@ Sign-in, sign-up, invite codes and the account-deletion password check all limit
 | Wrong invite code | 5 per 15 min | account |
 | Wrong invite code | 20 per hour | client address |
 | Wrong invite code | 200 per hour | everyone together |
+| New invite code | 20 per hour, every one counts | account |
 | Wrong password when deleting the account | 5 per 15 min | account |
 
 ## Invites
@@ -18,6 +19,8 @@ Invite codes are short enough to guess, so the limits above apply to them, along
 
 - **Every request that carries a code counts as a code attempt,** even if it also carries a link token. Otherwise a junk token would let guesses through uncounted.
 - **Invite links are never limited.** They carry 192 random bits, so they keep working for everyone even while codes are paused.
+- **Only a link can name its sender.** `POST api/couple/invites/preview` gives the inviter's first name for a link token, so the app can say "Join Maya?". It never takes a code: a six-digit code could be guessed to collect names.
+- **New codes have a budget too.** Each new code revokes the last, so a stream of them would only churn codes. The app keeps its code and asks for a new one only when it has expired or the person taps "Get a new code" (`docs/pairing.md`).
 - **The global budget catches guessing spread across many accounts and addresses.** When it runs out, codes pause for up to an hour and an error is logged: "possible guessing attack".
 - **Invites now last 48 hours** instead of 7 days. Fewer live codes means fewer to hit.
 - **`Invites:CodeDigits`** (6 to 10, default 6) sets the code length. The current web screen accepts only six digits. Once the Android code field accepts eight, set it to 8: each extra digit makes guessing ten times harder. Codes may be typed with spaces or dashes.

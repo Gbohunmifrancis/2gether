@@ -63,7 +63,18 @@ class LocalizedShotsTest {
             partnerAnswered = true, streakDays = 14)
         at("onboarding") { OnboardingScreen(onDone = {}, initialPage = 0) }
         at("welcome") { WelcomeScreen({}, {}, onGoogle = {}) }
-        at("sign-up") { SignUpScreen(SignUpState(form = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG")), {}, {}, {}) }
+        at("sign-up") { SignUpScreen(SignUpState(form = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG")), {}, {}, {}, {}, onGoogle = {}) }
+        at("sign-up-about") { SignUpScreen(SignUpState(form = SignUpForm("Maya", "maya@example.com", "longenough", LocalDate.of(1996, 5, 14), Gender.Female, "NG"), step = 2), {}, {}, {}, {}) }
+        at("sign-in") { app.heartpact.ui.auth.SignInScreen(app.heartpact.ui.auth.SignInState(email = "maya@example.com", password = "longenough"), {}, {}, {}, {}, {}, {}, onGoogle = {}) }
+        at("pair") {
+            app.heartpact.ui.pair.PairScreen(app.heartpact.ui.pair.PairState(invite = app.heartpact.data.PartnerInvite("i1", "482039", "ab".repeat(24), "2026-10-11T10:12:00Z"), loadingInvite = false),
+                app.heartpact.ui.pair.PairActions(), onLater = {}, now = java.time.Instant.parse("2026-10-11T10:00:00Z"))
+        }
+        at("pair-enter-code") {
+            app.heartpact.ui.pair.PairScreen(app.heartpact.ui.pair.PairState(loadingInvite = false, entering = true, code = "482"), app.heartpact.ui.pair.PairActions(),
+                pasteOffer = app.heartpact.ui.pair.InviteInput.Code("482031"))
+        }
+        at("linked") { app.heartpact.ui.pair.LinkedCelebration("Theo", {}, frozenAtMs = app.heartpact.ui.pair.LinkedTimeline.END_MS) }
         at("today") { HomeScreen("Maya", "Theo", {}) }
         at("new-dare") { NewDareScreen(NewDareState(type = ExerciseType.PushUp, target = 30), "Theo", {}, {}, {}, {}, {}, {}) }
         at("us") {

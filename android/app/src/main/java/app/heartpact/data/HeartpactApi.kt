@@ -45,6 +45,9 @@ interface HeartpactApi {
     @POST("api/couple/invites/accept")
     suspend fun acceptInvite(@Body request: AcceptInviteRequest): Response<AuthResponse>
 
+    @POST("api/couple/invites/preview")
+    suspend fun previewInvite(@Body request: InvitePreviewRequest): Response<InvitePreview>
+
     @GET("api/exercise/today")
     suspend fun exerciseToday(): Response<ExerciseToday>
 

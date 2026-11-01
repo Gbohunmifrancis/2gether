@@ -3,8 +3,6 @@ package app.heartpact.ui.auth
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -14,19 +12,13 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,7 +42,6 @@ import app.heartpact.i18n.trn
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.ConsentLine
 import app.heartpact.ui.components.HeartButton
-import app.heartpact.ui.components.HeartChip
 import app.heartpact.ui.components.HeartField
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.TopBar
@@ -60,8 +51,6 @@ import app.heartpact.ui.theme.Heartpact
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -178,13 +167,21 @@ object GoogleSignIn {
 data class GoogleState(
     val busy: Boolean = false,
     val note: String? = null,
-    /** A new account: Google gave a name; we still need a birthday (and, optionally, gender). */
+    /** A new account: Google gave the name and email; step 2 (birthday, country, gender) is what's left. */
     val finishing: Boolean = false,
     val name: String = "",
+    /** Google came without a name: ask for it too. */
+    val askName: Boolean = false,
     val dateOfBirth: LocalDate? = null,
-    val gender: Gender = Gender.PreferNotToSay,
+    val gender: Gender? = null,
     val country: String? = null,
-)
+    val showErrors: Boolean = false,
+) {
+    /** The same checks as step 2 of signing up (and the name, when asked). */
+    val errors: Map<SignUpForm.Field, String> get() = if (!showErrors) emptyMap() else
+        SignUpForm(name = name.ifBlank { if (askName) "" else "-" }, email = "google@example.com", password = "x".repeat(SignUpForm.MIN_PASSWORD), dateOfBirth = dateOfBirth, gender = gender, country = country)
+            .errors().filterKeys { it.step == 2 || (askName && it == SignUpForm.Field.Name) }
+}
 
 class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
     private val _state = MutableStateFlow(GoogleState())
@@ -192,6 +189,7 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
     private var token: String? = null
 
     fun signIn(context: Context, onSignedIn: () -> Unit) {
+        if (_state.value.busy) return
         _state.update { it.copy(busy = true, note = null) }
         viewModelScope.launch {
             when (val outcome = GoogleSignIn.requestToken(context)) {
@@ -202,7 +200,7 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
                     when (val result = auth.google(GoogleSignInRequest(outcome.idToken))) {
                         is ApiResult.Ok -> { _state.update { it.copy(busy = false) }; onSignedIn() }
                         is ApiResult.Failure -> _state.update {
-                            if (result.code == "auth.profile_required") it.copy(busy = false, finishing = true, name = outcome.name.orEmpty())
+                            if (result.code == "auth.profile_required") it.copy(busy = false, finishing = true, name = outcome.name.orEmpty().trim(), askName = outcome.name.isNullOrBlank())
                             else it.copy(busy = false, note = result.message)
                         }
                         ApiResult.Offline -> _state.update { it.copy(busy = false, note = OFFLINE_MESSAGE) }
@@ -212,50 +210,53 @@ class GoogleViewModel(private val auth: AuthRepository) : ViewModel() {
         }
     }
 
-    fun name(value: String) = _state.update { it.copy(name = value) }
-    fun birthday(value: LocalDate) = _state.update { it.copy(dateOfBirth = value) }
-    fun gender(value: Gender) = _state.update { it.copy(gender = value) }
+    fun name(value: String) = _state.update { it.copy(name = value, note = null) }
+    fun birthday(value: LocalDate) = _state.update { it.copy(dateOfBirth = value, note = null) }
+    fun gender(value: Gender) = _state.update { it.copy(gender = value, note = null) }
     fun country(value: String) = _state.update { it.copy(country = value, note = null) }
     fun cancel() = _state.update { GoogleState() }
 
     fun finish(onSignedIn: () -> Unit) {
         val s = _state.value
+        if (s.busy) return
         val idToken = token ?: return
-        val dob = s.dateOfBirth ?: run { _state.update { it.copy(note = tr("Choose your date of birth.")) }; return }
-        if (!isAdult(dob)) return _state.update { it.copy(note = TOO_YOUNG) }
-        val country = s.country?.takeIf(Countries::isKnown) ?: run { _state.update { it.copy(note = tr("Choose the country you live in.")) }; return }
-        _state.update { it.copy(busy = true, note = null) }
+        if (s.copy(showErrors = true).errors.isNotEmpty()) { _state.update { it.copy(showErrors = true) }; return }
+        _state.update { it.copy(busy = true, note = null, showErrors = true) }
         viewModelScope.launch {
-            val result = auth.google(GoogleSignInRequest(idToken, dob.toString(), s.gender, s.name.trim().takeIf { it.isNotEmpty() }, country))
+            val result = auth.google(GoogleSignInRequest(idToken, s.dateOfBirth.toString(), s.gender ?: Gender.PreferNotToSay, s.name.trim().takeIf { it.isNotEmpty() }, s.country))
             _state.update { it.copy(busy = false, note = result.note()) }
             if (result is ApiResult.Ok) onSignedIn()
         }
     }
 }
 
-/** The last step of signing up with Google: what Google doesn't tell us. */
-@OptIn(ExperimentalLayoutApi::class)
+/** The last step of signing up with Google: step 2 alone, since Google gave the name and email. */
 @Composable
-fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday: (LocalDate) -> Unit, onGender: (Gender) -> Unit, onCountry: (String) -> Unit, onFinish: () -> Unit, onBack: () -> Unit) {
+fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday: (LocalDate) -> Unit, onGender: (Gender) -> Unit, onCountry: (String) -> Unit, onFinish: () -> Unit, onBack: () -> Unit,
+                       invitedBy: String? = null) {
     val colors = Heartpact.colors
-    var picking by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val guess = remember { Countries.guess(context) }
     LaunchedEffect(guess) { if (state.country == null && guess != null) onCountry(guess) }
+    val errors = state.errors
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-        TopBar(tr("Almost there"), onBack)
+        TopBar(tr("About you"), onBack) { LiveLogo(30.dp, if (errors.isNotEmpty() || state.note != null) LogoMood.Worried else LogoMood.Happy, night = colors.isNight) }
+        StepIndicator(2, 2, Modifier.padding(horizontal = 20.dp).padding(bottom = 12.dp))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(tr("Google signed you in. A few more things and your account is ready."), style = Heartpact.type.bodyLarge, color = colors.ink2)
-            HeartField(tr("Your name"), state.name, onName, keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words))
-            HeartField(tr("Date of birth"), state.dateOfBirth?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)) ?: "", {},
-                error = state.dateOfBirth?.takeIf { !isAdult(it) }?.let { TOO_YOUNG }, hint = tr("You need to be 18 or over"),
-                trailing = { IconButton(onClick = { picking = true }) { Icon(Icons.Rounded.CalendarMonth, tr("Choose date of birth"), tint = colors.ink2) } })
-            CountryField(state.country, onCountry, suggested = guess)
-            Text(tr("Which describes you?"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 8.dp))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                GENDERS.forEach { (gender, label) -> HeartChip(label, state.gender == gender, { onGender(gender) }) }
-            }
-            Text(tr("Choosing Woman turns on cycle tracking. It stays private until you share it."), style = Heartpact.type.small, color = colors.ink2)
+            invitedBy?.let { InvitedCard(tr("You'll be linked with {name} as soon as your account is ready.", "name" to it)) }
+            Text(
+                if (state.name.isNotBlank() && !state.askName) tr("Hi {name}, Google signed you in. Three quick things and you're in.", "name" to state.name.trim().substringBefore(' '))
+                else tr("Google signed you in. A few quick things and you're in."),
+                style = Heartpact.type.bodyLarge, color = colors.ink2,
+            )
+            if (state.askName) HeartField(tr("Your name"), state.name, onName, error = errors[SignUpForm.Field.Name],
+                keyboard = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done), contentType = ContentType.PersonFullName)
+            AboutYouFields(
+                dateOfBirth = state.dateOfBirth, onDateOfBirth = onBirthday, country = state.country, onCountry = onCountry,
+                gender = state.gender, onGender = onGender, errors = errors, suggestedCountry = guess,
+                // Under 18 is refused at once, before anything is sent (the server refuses it too).
+                dateError = state.dateOfBirth?.takeIf { !isAdult(it) }?.let { TOO_YOUNG },
+            )
             state.note?.let { NoteCard(it) }
         }
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)) {
@@ -263,5 +264,4 @@ fun GoogleFinishScreen(state: GoogleState, onName: (String) -> Unit, onBirthday:
             ConsentLine(Modifier.padding(top = 10.dp).fillMaxWidth())
         }
     }
-    if (picking) BirthDatePicker(state.dateOfBirth, onPicked = { onBirthday(it); picking = false }, onDismiss = { picking = false })
 }

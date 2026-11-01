@@ -333,53 +333,61 @@
   ],
   "code": "return Conflict(new ApiError(\"couple.already_linked\", Loc.T(\"This couple is already linked.\")));"
  },
+ "That's a lot of new codes. Wait a little, then try again.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Controllers/CoupleController.cs:73"
+  ],
+  "code": "return TooManyAttempts(wait, Loc.T(\"That's a lot of new codes. Wait a little, then try again.\"));"
+ },
  "This invitation is invalid or expired.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:117",
-   "Twogether.Api/Controllers/CoupleController.cs:128"
+   "Twogether.Api/Controllers/CoupleController.cs:112",
+   "Twogether.Api/Controllers/CoupleController.cs:153",
+   "Twogether.Api/Controllers/CoupleController.cs:164"
   ],
-  "code": "return NotFound(new ApiError(\"invite.invalid\", Loc.T(\"This invitation is invalid or expired.\")));"
+  "code": "private static ApiError InvalidInvite => new(\"invite.invalid\", Loc.T(\"This invitation is invalid or expired.\"));"
  },
  "You cannot accept your own invitation.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:119"
+   "Twogether.Api/Controllers/CoupleController.cs:155"
   ],
   "code": "if (invite.InviterUserId == currentUser.UserId.Value) return Conflict(new ApiError(\"invite.self\", Loc.T(\"You cannot accept your own invitation.\")));"
  },
  "You are already linked to a partner.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:134"
+   "Twogether.Api/Controllers/CoupleController.cs:170"
   ],
   "code": "if (previous?.Status != CoupleStatus.PendingInvite) return Conflict(new ApiError(\"couple.already_linked\", Loc.T(\"You are already linked to a partner.\")));"
  },
  "You are connected": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:145"
+   "Twogether.Api/Controllers/CoupleController.cs:181"
   ],
   "code": "connected = Notification.Create(invite.InviterUserId, couple.Id, NotificationType.CoupleConnected, Loc.T(\"You are connected\"),"
  },
  "{name} joined your private space.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:146"
+   "Twogether.Api/Controllers/CoupleController.cs:182"
   ],
   "code": "Loc.T(\"{name} joined your private space.\", (\"name\", user.DisplayName)), null, clock.UtcNow);"
  },
  "Something changed in your couple space just now. Try again.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:174"
+   "Twogether.Api/Controllers/CoupleController.cs:210"
   ],
   "code": "if (attempt > 0) return Conflict(new ApiError(\"couple.breakup_conflict\", Loc.T(\"Something changed in your couple space just now. Try again.\")));"
  },
  "Your couple space was ended": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:203",
+   "Twogether.Api/Controllers/CoupleController.cs:239",
    "Twogether.Infrastructure/Account/AccountEraser.cs:179"
   ],
   "code": "var notification = Notification.Create(linkedPartnerId, couple.Id, NotificationType.Breakup, Loc.T(\"Your couple space was ended\"),"
@@ -387,7 +395,7 @@
  "{name} ended the connection.": {
   "plural": false,
   "uses": [
-   "Twogether.Api/Controllers/CoupleController.cs:204"
+   "Twogether.Api/Controllers/CoupleController.cs:240"
   ],
   "code": "Loc.T(\"{name} ended the connection.\", (\"name\", actor.DisplayName)), null, clock.UtcNow);"
  },
@@ -1086,7 +1094,7 @@
   "plural": false,
   "uses": [
    "Twogether.Api/Controllers/MessageController.cs:33",
-   "Twogether.Api/Controllers/MessageController.cs:60"
+   "Twogether.Api/Controllers/MessageController.cs:62"
   ],
   "code": "if (string.IsNullOrWhiteSpace(request.Body) || request.Body.Length > 4000) return UnprocessableEntity(new ApiError(\"message.invalid_body\", Loc.T(\"Message must be between 1 and 4000 characters.\")));"
  },
@@ -1109,7 +1117,7 @@
   "uses": [
    "Twogether.Api/Controllers/MessageController.cs:44"
   ],
-  "code": "request.IsPrivate ? Loc.T(\"{name} sent something just for you.\", (\"name\", senderName)) : message.Body[..Math.Min(message.Body.Length, 140)], null, clock.UtcNow);"
+  "code": "request.IsPrivate ? Loc.T(\"{name} sent something just for you.\", (\"name\", senderName)) : message.Body[..Math.Min(message.Body.Length, 140)],"
  },
  "Link your partner before starting pregnancy mode.": {
   "plural": false,

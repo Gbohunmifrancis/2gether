@@ -31,7 +31,11 @@ data class SignUpForm(
         if (!Countries.isKnown(country)) put(Field.Country, tr("Choose the country you live in."))
     }
 
-    enum class Field { Name, Email, Password, DateOfBirth, Gender, Country }
+    /** The errors of one step only: step 1 is the account, step 2 is about you. */
+    fun errors(step: Int, today: LocalDate = LocalDate.now()): Map<Field, String> = errors(today).filterKeys { it.step == step }
+
+    /** Fields in the order they appear, each on its step. */
+    enum class Field(val step: Int) { Name(1), Email(1), Password(1), DateOfBirth(2), Country(2), Gender(2) }
 
     companion object {
         const val MIN_PASSWORD = 8
@@ -49,4 +53,32 @@ fun looksLikeEmail(value: String): Boolean {
     val v = value.trim()
     val at = v.indexOf('@')
     return at > 0 && at == v.lastIndexOf('@') && v.indexOf('.', at) > at + 1 && !v.endsWith('.') && ' ' !in v
+}
+
+/** A light hint while choosing a password; the only rule is the length the server needs. */
+enum class PasswordStrength { TooShort, Weak, Fair, Strong;
+    companion object {
+        fun of(password: String): PasswordStrength {
+            if (password.length < SignUpForm.MIN_PASSWORD) return TooShort
+            val kinds = listOf(password.any(Char::isLowerCase), password.any(Char::isUpperCase), password.any(Char::isDigit),
+                password.any { !it.isLetterOrDigit() }).count { it }
+            val repeats = password.toSet().size <= 3
+            return when {
+                repeats || COMMON.any { password.lowercase().contains(it) } && password.length < 14 -> Weak
+                password.length >= 14 || (password.length >= 10 && kinds >= 3) -> Strong
+                kinds >= 2 -> Fair
+                else -> Weak
+            }
+        }
+
+        private val COMMON = listOf("password", "12345678", "qwerty", "iloveyou", "heartpact", "abcdefg")
+    }
+}
+
+/** The words under the password field for [strength]; null while it is empty. */
+fun strengthHint(password: String): String? = if (password.isEmpty()) null else when (PasswordStrength.of(password)) {
+    PasswordStrength.TooShort -> trn(SignUpForm.MIN_PASSWORD, "At least {count} character", "At least {count} characters")
+    PasswordStrength.Weak -> tr("Easy to guess. A few more words would help.")
+    PasswordStrength.Fair -> tr("Good. Longer is even better.")
+    PasswordStrength.Strong -> tr("Strong password")
 }

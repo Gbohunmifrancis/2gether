@@ -145,6 +145,8 @@ dependencies {
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
+    // The invite QR code on the pair screen and the scanner that reads a partner's.
+    implementation(libs.zxing.core)
     implementation(libs.mediapipe.tasks.vision)
     implementation(libs.work.runtime)
     implementation(libs.exifinterface)

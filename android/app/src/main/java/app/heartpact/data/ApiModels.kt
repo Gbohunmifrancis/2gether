@@ -81,6 +81,13 @@ data class PartnerInvite(val id: String, val code: String, val token: String, va
 @Serializable
 data class AcceptInviteRequest(val code: String? = null, val token: String? = null)
 
+/** Who sent an invite link: `POST api/couple/invites/preview`, with the link's token only (never a code). */
+@Serializable
+data class InvitePreviewRequest(val token: String)
+
+@Serializable
+data class InvitePreview(val inviterFirstName: String, val expiresAtUtc: String)
+
 /** Every expected failure from the API: a stable code and a sentence fit to show. */
 @Serializable
 data class ApiErrorBody(val code: String = "unknown", val message: String = "")

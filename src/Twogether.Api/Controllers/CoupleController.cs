@@ -67,6 +67,11 @@ public sealed class CoupleController(
         }
         if (couple.Status != CoupleStatus.PendingInvite)
             return Conflict(new ApiError("couple.already_linked", Loc.T("This couple is already linked.")));
+        // Each new code revokes the last; a burst of them would only churn codes, so they have a budget of their own.
+        var creatorKey = actor.Id.ToString();
+        if (Blocked(limiter, (AttemptRules.InviteCreatePerUser, creatorKey)) is { } wait)
+            return TooManyAttempts(wait, Loc.T("That's a lot of new codes. Wait a little, then try again."));
+        limiter.RecordFailure(AttemptRules.InviteCreatePerUser, creatorKey);
 
         var existing = await db.PartnerInvites.Where(invite => invite.CoupleId == couple.Id && invite.Status == PartnerInviteStatus.Pending).ToListAsync(cancellationToken);
         foreach (var invite in existing) invite.Revoke(clock.UtcNow);
@@ -80,6 +85,37 @@ public sealed class CoupleController(
         // id is present for subsequent API and SignalR calls.
         var accessToken = tokenService.CreateAccessToken(actor.Id, couple.Id, actor.Email, actor.DisplayName, clock.UtcNow);
         return Ok(new PartnerInviteDto(partnerInvite.Id, code, token, partnerInvite.ExpiresAtUtc, accessToken));
+    }
+
+    /// <summary>
+    /// Whose invite link this is, so the app can say "Join Maya" before linking, and "Maya invited you" before the
+    /// person has an account. Only a link's token is accepted, never a code: a token carries 192 random bits, so this
+    /// can't be used to fish for names, as a six-digit code could. Only the inviter's first name and the expiry come back.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("invites/preview")]
+    public async Task<ActionResult<InvitePreviewDto>> PreviewInvite(InvitePreviewRequest request, CancellationToken cancellationToken)
+    {
+        var token = request.Token?.Trim();
+        if (string.IsNullOrEmpty(token) || token.Length > 128) return NotFound(InvalidInvite);
+        var tokenHash = Hash(token);
+        var now = clock.UtcNow;
+        var found = await db.PartnerInvites.AsNoTracking()
+            .Where(invite => invite.LinkTokenHash == tokenHash && invite.Status == PartnerInviteStatus.Pending && invite.ExpiresAtUtc > now)
+            .Join(db.Couples.Where(couple => couple.Status == CoupleStatus.PendingInvite && couple.UserBId == null), invite => invite.CoupleId, couple => couple.Id, (invite, _) => invite)
+            .Join(db.Users, invite => invite.InviterUserId, user => user.Id, (invite, user) => new { user.DisplayName, invite.ExpiresAtUtc })
+            .SingleOrDefaultAsync(cancellationToken);
+        if (found is null) return NotFound(InvalidInvite);
+        return Ok(new InvitePreviewDto(FirstName(found.DisplayName), found.ExpiresAtUtc));
+    }
+
+    private static ApiError InvalidInvite => new("invite.invalid", Loc.T("This invitation is invalid or expired."));
+
+    /// <summary>"Maya Okafor" is Maya: the first word, and never more than 40 characters of it.</summary>
+    public static string FirstName(string displayName)
+    {
+        var first = displayName.Trim().Split((char[]?)null, 2, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+        return first.Length > 40 ? first[..40] : first;
     }
 
     [HttpPost("invites/accept")]
@@ -248,6 +284,9 @@ public sealed class CoupleController(
 }
 
 public sealed record AcceptPartnerInviteRequest(string? Code, string? Token);
+public sealed record InvitePreviewRequest(string? Token);
+/// <summary>An invite link's sender, by first name only, and when the link stops working.</summary>
+public sealed record InvitePreviewDto(string InviterFirstName, DateTime ExpiresAtUtc);
 public sealed record PartnerInviteDto(Guid Id, string Code, string Token, DateTime ExpiresAtUtc, string? AccessToken = null);
 public sealed record CoupleDto(Guid Id, CoupleStatus Status, DateTime? LinkedAtUtc, IReadOnlyList<CoupleMemberDto> Members);
 /// <summary>

@@ -50,7 +50,7 @@ class HeartpactMessagingService : FirebaseMessagingService() {
                 show(PushNotice(id, type, title, data["body"] ?: message.notification?.body.orEmpty(), data["quiet"] == "true", PushData.parse(data["data"])))
             }
         }
-        if (type == "memoriesSynced" || PushInbox.refreshesHome(type)) container.pushEvents.tryEmit(type!!)
+        if (type == "memoriesSynced" || type == "coupleConnected" || PushInbox.refreshesHome(type)) container.pushEvents.tryEmit(type!!)
         // The partner ended the pact: their dares must not ring here any more.
         if (type == "breakup") AlarmScheduler.apply(this, emptyList())
     }

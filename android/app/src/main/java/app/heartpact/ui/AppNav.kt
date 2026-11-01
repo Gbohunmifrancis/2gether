@@ -148,8 +148,12 @@ import app.heartpact.ui.home.ConnectBanner
 import app.heartpact.ui.home.HomeScreen
 import app.heartpact.ui.home.NeedsPartnerDialog
 import app.heartpact.ui.onboarding.OnboardingScreen
+import app.heartpact.ui.pair.PairActions
 import app.heartpact.ui.pair.PairScreen
 import app.heartpact.ui.pair.PairViewModel
+import app.heartpact.ui.pair.ScanScreen
+import app.heartpact.ui.auth.PasswordSaving
+import androidx.compose.ui.platform.LocalAutofillManager
 import app.heartpact.ui.splash.AnimatedSplash
 import app.heartpact.ui.theme.Heartpact
 import app.heartpact.ui.theme.HeartpactTheme
@@ -162,6 +166,7 @@ private object Routes {
     const val SIGN_UP = "signup"
     const val SIGN_IN = "signin"
     const val PAIR = "pair"
+    const val SCAN = "pair/scan"
     const val HOME = "home"
     const val NEW_DARE = "newdare"
     const val WATCH = "watch/{id}"
@@ -183,6 +188,10 @@ private object Routes {
     fun foodScan(uri: Uri) = "foodscan?uri=" + Uri.encode(uri.toString())
     fun foodEntry(id: String?) = if (id == null) "foodentry" else "foodentry?id=$id"
 }
+
+/** The pair screen's saved-state key for what the scanner read; [TYPE_INSTEAD] asks for the code boxes. */
+private const val SCANNED = "scanned"
+private const val TYPE_INSTEAD = "type"
 
 private fun Destination.route() = when (this) {
     Destination.Onboarding -> Routes.ONBOARDING
@@ -289,13 +298,15 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
                         val googleState by google.state.collectAsStateWithLifecycle()
                         val context = LocalContext.current
+                        val inviter by appModel.inviter.collectAsStateWithLifecycle()
                         if (googleState.finishing) {
                             BackHandler { google.cancel() }
-                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel,
+                                invitedBy = inviter?.takeIf { it.isNotBlank() })
                         } else WelcomeScreen(
                             onCreateAccount = { nav.navigate(Routes.SIGN_UP) }, onSignIn = { nav.navigate(Routes.SIGN_IN) },
                             onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
-                            googleBusy = googleState.busy, note = googleState.note,
+                            googleBusy = googleState.busy, note = googleState.note, invitedBy = inviter,
                         )
                     }
                 }
@@ -315,12 +326,28 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
                         val googleState by google.state.collectAsStateWithLifecycle()
                         val context = LocalContext.current
+                        val activity = LocalActivity.current
+                        val autofill = LocalAutofillManager.current
+                        val inviter by appModel.inviter.collectAsStateWithLifecycle()
                         if (googleState.finishing) {
                             BackHandler { google.cancel() }
-                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
-                        } else SignUpScreen(state, model::edit, { model.submit { appModel.refresh() } }, onBack = { nav.popBackStack() },
-                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
-                            googleBusy = googleState.busy, googleNote = googleState.note)
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel,
+                                invitedBy = inviter?.takeIf { it.isNotBlank() })
+                        } else {
+                            // Back from "About you" returns to step 1 with everything kept.
+                            BackHandler(enabled = state.step == 2) { model.back() }
+                            SignUpScreen(state, model::edit, model::next, {
+                                model.submit {
+                                    // The password manager's own offer, once; not autofill's as well.
+                                    autofill?.cancel()
+                                    val form = model.state.value.form
+                                    PasswordSaving.offer(activity, form.email, form.password)
+                                    appModel.refresh()
+                                }
+                            }, onBack = { if (!model.back()) nav.popBackStack() },
+                                onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null,
+                                googleBusy = googleState.busy, googleNote = googleState.note, invitedBy = inviter?.takeIf { it.isNotBlank() })
+                        }
                     }
                 }
                 composable(Routes.SIGN_IN) {
@@ -330,29 +357,78 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val google: GoogleViewModel = viewModel(factory = viewModelFactory { initializer { GoogleViewModel(container.auth) } })
                         val googleState by google.state.collectAsStateWithLifecycle()
                         val context = LocalContext.current
+                        val activity = LocalActivity.current
+                        val autofill = LocalAutofillManager.current
+                        val inviter by appModel.inviter.collectAsStateWithLifecycle()
                         if (googleState.finishing) {
                             BackHandler { google.cancel() }
-                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel)
-                        } else SignInScreen(state.copy(note = state.note ?: googleState.note), model::email, model::password, { model.submit { appModel.refresh() } },
+                            GoogleFinishScreen(googleState, google::name, google::birthday, google::gender, google::country, { google.finish { appModel.refresh() } }, onBack = google::cancel,
+                                invitedBy = inviter?.takeIf { it.isNotBlank() })
+                        } else SignInScreen(state.copy(note = state.note ?: googleState.note), model::email, model::password, {
+                                model.submit {
+                                    autofill?.cancel()
+                                    val signedIn = model.state.value
+                                    PasswordSaving.offer(activity, signedIn.email, signedIn.password)
+                                    appModel.refresh()
+                                }
+                            },
                             onForgot = { nav.navigate(Routes.forgot(state.email)) },
                             onCreateAccount = { nav.navigate(Routes.SIGN_UP) { popUpTo(Routes.WELCOME) } }, onBack = { nav.popBackStack() },
-                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null, googleBusy = googleState.busy)
+                            onGoogle = if (GoogleSignIn.available) ({ google.signIn(context) { appModel.refresh() } }) else null, googleBusy = googleState.busy,
+                            invitedBy = inviter?.takeIf { it.isNotBlank() })
                     }
                 }
-                composable(Routes.PAIR) {
+                composable(Routes.PAIR) { entry ->
                     ReadableScreen {
                         val session by appModel.session.collectAsStateWithLifecycle()
                         val userId = session?.user?.id ?: return@composable
-                        val token = appModel.pendingInviteToken.also { appModel.pendingInviteToken = null }
-                        val model: PairViewModel = viewModel(factory = viewModelFactory { initializer { PairViewModel(container.couple, userId, token) } })
+                        val model: PairViewModel = viewModel(factory = viewModelFactory {
+                            initializer {
+                                // A partner's link that brought the person here is the first thing done.
+                                val pending = appModel.pendingLink.value?.also { appModel.inviteTaken() }
+                                PairViewModel(container.couple, userId, pending, container.pushEvents)
+                            }
+                        })
                         val state by model.state.collectAsStateWithLifecycle()
+                        // A link opened while this screen is already up.
+                        val pending by appModel.pendingLink.collectAsStateWithLifecycle()
+                        LaunchedEffect(pending) { pending?.let { model.offerLink(it); appModel.inviteTaken() } }
+                        // What the scanner read comes back here.
+                        val scanned by entry.savedStateHandle.getStateFlow<String?>(SCANNED, null).collectAsStateWithLifecycle()
+                        LaunchedEffect(scanned) {
+                            scanned?.let { text ->
+                                if (text == TYPE_INSTEAD) model.startEntering() else app.heartpact.ui.pair.InviteParsing.parse(text)?.let(model::use)
+                                entry.savedStateHandle[SCANNED] = null
+                            }
+                        }
                         LaunchedEffect(state.linked) { if (state.linked) appModel.refresh() }
                         // Over Home ("Connect"), Back returns there; straight after signing up, "Connect later" goes there.
                         val fromHome = destination == Destination.Home
-                        PairScreen(state, model::code, model::startEntering, model::stopEntering, model::submitCode, model::newInvite, onSignOut = { appModel.signOut() },
+                        PairScreen(state, PairActions(
+                            code = model::code, startEntering = model::startEntering, stopEntering = model::stopEntering, submitCode = model::submitCode,
+                            retry = { model.loadInvite() }, newCode = model::newInvite, scan = { nav.navigate(Routes.SCAN) { launchSingleTop = true } },
+                            use = model::use, confirmLink = model::confirmLink, declineLink = model::declineLink, celebrated = model::celebrated,
+                            signOut = { appModel.signOut() },
+                        ),
                             onLater = if (fromHome) null else ({ appModel.connectLater() }),
                             onBack = if (fromHome) ({ nav.popBackStack() }) else null)
                     }
+                }
+                composable(Routes.SCAN) {
+                    ScanScreen(
+                        onFound = { input ->
+                            nav.previousBackStackEntry?.savedStateHandle?.set(SCANNED, when (input) {
+                                is app.heartpact.ui.pair.InviteInput.Link -> app.heartpact.ui.pair.InviteParsing.link(input.token)
+                                is app.heartpact.ui.pair.InviteInput.Code -> input.digits
+                            })
+                            nav.popBackStack()
+                        },
+                        onBack = { nav.popBackStack() },
+                        onType = {
+                            nav.previousBackStackEntry?.savedStateHandle?.set(SCANNED, TYPE_INSTEAD)
+                            nav.popBackStack()
+                        },
+                    )
                 }
                 composable(Routes.HOME) {
                     val session by appModel.session.collectAsStateWithLifecycle()

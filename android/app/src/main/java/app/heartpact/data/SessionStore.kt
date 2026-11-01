@@ -57,10 +57,36 @@ class SessionStore(private val dataStore: DataStore<Preferences>, private val js
 
     suspend fun connectsLater(userId: String): Boolean = dataStore.data.first()[CONNECT_LATER] == userId
 
+    /** The invite this phone made last, for this account: shown again instead of revoking it with a new one. */
+    suspend fun saveInvite(userId: String, invite: PartnerInvite) = dataStore.edit {
+        it[INVITE] = json.encodeToString(KeptInvite.serializer(), KeptInvite(userId, invite))
+    }
+
+    suspend fun invite(userId: String): PartnerInvite? = dataStore.data.first()[INVITE]
+        ?.let { runCatching { json.decodeFromString(KeptInvite.serializer(), it) }.getOrNull() }
+        ?.takeIf { it.userId == userId }?.invite
+
+    suspend fun clearInvite() = dataStore.edit { it.remove(INVITE) }
+
+    /**
+     * A partner's invite link that opened the app, kept until it is used: through signing up or in, and across the
+     * app being closed meanwhile. [signedOut] says it came before an account, so it joins without asking again.
+     */
+    suspend fun savePendingInvite(token: String, signedOut: Boolean) = dataStore.edit {
+        it[PENDING_INVITE] = token
+        it[PENDING_SIGNED_OUT] = signedOut
+    }
+
+    suspend fun pendingInvite(): Pair<String, Boolean>? = dataStore.data.first().let { prefs ->
+        prefs[PENDING_INVITE]?.let { it to (prefs[PENDING_SIGNED_OUT] == true) }
+    }
+
+    suspend fun clearPendingInvite() = dataStore.edit { it.remove(PENDING_INVITE); it.remove(PENDING_SIGNED_OUT) }
+
     suspend fun clear() {
         token = null
         dataStore.edit {
-            it.remove(TOKEN); it.remove(USER); it.remove(COUPLE_STATUS); it.remove(SIDE); it.remove(CONNECT_LATER)
+            it.remove(TOKEN); it.remove(USER); it.remove(COUPLE_STATUS); it.remove(SIDE); it.remove(CONNECT_LATER); it.remove(INVITE)
         }
     }
 
@@ -79,5 +105,11 @@ class SessionStore(private val dataStore: DataStore<Preferences>, private val js
         val SIDE = stringPreferencesKey("side")
         val ONBOARDING = booleanPreferencesKey("onboarding_seen")
         val CONNECT_LATER = stringPreferencesKey("connect_later")
+        val INVITE = stringPreferencesKey("invite")
+        val PENDING_INVITE = stringPreferencesKey("pending_invite")
+        val PENDING_SIGNED_OUT = booleanPreferencesKey("pending_invite_signed_out")
     }
 }
+
+@kotlinx.serialization.Serializable
+private data class KeptInvite(val userId: String, val invite: PartnerInvite)
