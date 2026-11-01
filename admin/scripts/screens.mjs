@@ -130,12 +130,12 @@ await shoot(page, "10-audit", "/audit", (p) => p.locator("table.data tbody tr").
 await shoot(page, "11-system", "/system", heading("System"));
 
 const sessionState = await desktop.storageState();
-const storage = await page.evaluate(() => sessionStorage.getItem("heartpact.admin.session"));
+const storage = await page.evaluate(() => localStorage.getItem("heartpact.admin.session"));
 for (const [name, scheme] of [["12-overview-dark", "dark"]]) {
   const dark = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: scheme, storageState: sessionState });
   const darkPage = await dark.newPage();
   watch(darkPage);
-  await darkPage.addInitScript((value) => sessionStorage.setItem("heartpact.admin.session", value), storage);
+  await darkPage.addInitScript((value) => localStorage.setItem("heartpact.admin.session", value), storage);
   await shoot(darkPage, name, "/?days=90", heading("Overview"));
   await dark.close();
 }
@@ -143,7 +143,7 @@ for (const [name, scheme] of [["12-overview-dark", "dark"]]) {
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const phonePage = await phone.newPage();
 watch(phonePage);
-await phonePage.addInitScript((value) => sessionStorage.setItem("heartpact.admin.session", value), storage);
+await phonePage.addInitScript((value) => localStorage.setItem("heartpact.admin.session", value), storage);
 await shoot(phonePage, "13-phone-overview", "/?days=30", heading("Overview"));
 await shoot(phonePage, "14-phone-users", "/users", (p) => p.locator("table.data tbody tr.link").first().waitFor());
 

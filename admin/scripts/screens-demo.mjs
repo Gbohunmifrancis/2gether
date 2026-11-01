@@ -73,7 +73,7 @@ await signIn.waitForTimeout(1200);
 await signIn.screenshot({ path: `${OUT}/00-sign-in.png` });
 await signIn.getByRole("button", { name: "Try the demo" }).click();
 await signIn.getByRole("heading", { name: "Overview", level: 1 }).waitFor();
-const session = await signIn.evaluate(() => sessionStorage.getItem("heartpact.admin.session"));
+const session = await signIn.evaluate(() => localStorage.getItem("heartpact.admin.session"));
 const userId = await signIn.evaluate(async () => {
   const response = await fetch("/api/admin/users?page=2&pageSize=600");
   const page = await response.json();
@@ -94,7 +94,7 @@ async function context(width, scheme) {
   });
   await ctx.addInitScript((value) => {
     try {
-      sessionStorage.setItem("heartpact.admin.session", value);
+      localStorage.setItem("heartpact.admin.session", value);
     } catch {
       // about:blank has no storage.
     }
