@@ -20,6 +20,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!-- The workout coach speaks with the phone's text-to-speech engine, which Android 11+ only lets apps find when asked for. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".HeartpactApplication"
         android:allowBackup="false"

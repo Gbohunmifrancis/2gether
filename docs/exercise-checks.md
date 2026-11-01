@@ -7,6 +7,26 @@ notices goes to the server with the finish, and the partner sees it on Today and
 The checks are informational. A rep with bad form doesn't count, but nothing here stops a finished dare from
 counting: the partner decides what to make of a flag.
 
+## Getting set: the voice coach
+
+Nothing counts until the person is in the exercise's start position (`exercise/PoseCoach.kt`, spoken by
+`ui/camera/VoiceCoach.kt`). The coach works through, in order: someone in the picture, the whole body in view (the joints
+the counter needs), turned the right way, and the start pose. Squats, push-ups, sit-ups and planks are side-on: from the
+front a squat's knees come toward the camera and barely bend on screen, so front-on squats never reached the counting
+zone. That was the main reason reps went uncounted. Arm raises, jumping jacks and high knees face the camera. "Turned"
+is shoulder width over torso length: side-on at most 0.5, facing at least 0.35.
+
+Each instruction is shown in the middle of the picture and said out loud once it has held for 0.7 s, then again every
+6 s while it isn't followed. Held in position for 0.6 s: "Perfect. Hold it there.", then "3, 2, 1, Go!". Leaving the
+position for more than 0.7 s during the countdown goes back to getting set. Only after "Go!" does the rep counter see
+frames, so check-ins and the minimum time start from a real start. While counting it says each rep (a plank every ten
+seconds), each new form tip, "Done! Well done." at the target, and asks the person back if they are out of the picture
+for 2.5 s.
+
+The voice is the phone's own text-to-speech, in the app's language; with no voice for that language it stays quiet and
+the words stay on screen. The speaker button turns it off and on, remembered on the phone. The manifest declares the
+`TTS_SERVICE` query, without which Android 11+ hides the speech engine from the app.
+
 ## Form: reps that don't count
 
 `android/.../exercise/RepCounter.kt` and `Form.kt`. Each fault leaves a tip in the sheet for three seconds.

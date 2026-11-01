@@ -126,6 +126,18 @@ class ExerciseShotsTest {
         shot("camera-check-in") { CameraRepContent(ui, {}, {}) { CameraStandIn() } }
     }
 
+    /** The voice coach getting someone into position before anything counts. */
+    @Test fun cameraGetSet() {
+        val ui = workout.copy(counter = CounterState(), coach = app.heartpact.exercise.CoachState(app.heartpact.exercise.CoachPhase.Setup, "Stand tall with your arms down by your sides.", inFrame = true), voiceOn = true)
+        shot("camera-get-set") { CameraRepContent(ui, {}, {}) { CameraStandIn() } }
+    }
+
+    /** Then counting down to "Go!", the voice switched off. */
+    @Test fun cameraCountdown() {
+        val ui = workout.copy(counter = CounterState(), coach = app.heartpact.exercise.CoachState(app.heartpact.exercise.CoachPhase.Countdown, "Hold it there.", countdown = 2, inFrame = true), voiceOn = false)
+        shot("camera-countdown", night = true) { CameraRepContent(ui, {}, {}) { CameraStandIn() } }
+    }
+
     @Test @Config(qualifiers = "w844dp-h390dp-land-xxhdpi") fun cameraLandscape() {
         // A side-on sit-up pose for the overlay.
         val points = MutableList(Pose.COUNT) { Landmark(0.5f, 0.5f, 0.1f) }.apply {

@@ -31,6 +31,12 @@ data class CounterState(
     val lastRepEndMs: Long? = null,
 )
 
+/** How a pose stands against an exercise's starting position. */
+enum class Readiness { OutOfView, OutOfPosition, NotAtStart, Ready }
+
+/** [Readiness] with the fault behind it, when the counter knows one (a plank's hips too low, say). */
+data class StartCheck(val readiness: Readiness, val fault: FaultKind? = null)
+
 /**
  * Counts reps (or seconds held) from a stream of poses. Each exercise reduces a pose to one signal
  * with a resting zone and an active zone and a dead band between them, so jitter around a single
@@ -193,6 +199,19 @@ class RepCounter(
         postureFrames = 0
         retreated = false
         restSeenMs = now
+    }
+
+    /**
+     * Whether [pose] is this exercise's starting position, for the coach before counting begins (docs/exercise-checks.md, Getting
+     * set). Use a separate counter for this: reading a squat remembers the standing hip height.
+     */
+    fun readiness(pose: Pose): StartCheck {
+        if (pose.landmarks.size < Pose.COUNT) return StartCheck(Readiness.OutOfView)
+        val reading = read(pose) ?: return StartCheck(Readiness.OutOfView)
+        if (!reading.inPosition) return StartCheck(Readiness.OutOfPosition, reading.fault)
+        if (type == ExerciseType.Plank) return if (reading.signal >= 1f) StartCheck(Readiness.Ready) else StartCheck(Readiness.NotAtStart, reading.fault)
+        val atRest = if (reading.activeIsLow) reading.signal >= reading.restEdge else reading.signal <= reading.restEdge
+        return if (atRest && reading.postureOk) StartCheck(Readiness.Ready) else StartCheck(Readiness.NotAtStart)
     }
 
     /** One frame reduced to a signal and its zones, or null when the joints that matter are not visible. */

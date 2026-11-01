@@ -35,6 +35,8 @@ import androidx.compose.material.icons.rounded.Cameraswitch
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.NotificationsPaused
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,6 +76,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import app.heartpact.exercise.ChallengeUi
+import app.heartpact.exercise.CoachPhase
+import app.heartpact.exercise.CoachState
+import app.heartpact.exercise.PoseCoach
 import app.heartpact.exercise.CounterState
 import app.heartpact.exercise.ExerciseChecks
 import app.heartpact.exercise.ExerciseType
@@ -130,6 +135,10 @@ data class CameraUi(
     val challenge: ChallengeUi? = null,
     /** The target was reached but the finish didn't save yet; the counted reps are kept. */
     val unsaved: Unsaved? = null,
+    /** The voice coach: getting set and counting down before the count starts. Null: counting from the first frame. */
+    val coach: CoachState? = null,
+    /** Whether the coach speaks; null hides the switch. */
+    val voiceOn: Boolean? = null,
 )
 
 /** A finish that didn't save: why, and whether it is being retried by itself. */
@@ -182,11 +191,11 @@ object CameraText {
  * the sheet beside the picture instead of under it.
  */
 @Composable
-fun CameraRepContent(ui: CameraUi, onFlip: () -> Unit, onStop: () -> Unit, onSilence: () -> Unit = {}, onRetry: () -> Unit = {}, preview: @Composable () -> Unit) {
+fun CameraRepContent(ui: CameraUi, onFlip: () -> Unit, onStop: () -> Unit, onSilence: () -> Unit = {}, onRetry: () -> Unit = {}, onVoice: () -> Unit = {}, preview: @Composable () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().background(Glass)) {
         val wide = maxWidth > maxHeight
         Layout(content = {
-            Stage(ui, wide, onFlip, preview)
+            Stage(ui, wide, onFlip, onVoice, preview)
             Sheet(ui, wide, onStop, onSilence, onRetry)
         }) { measurables, constraints ->
             val overlap = Overlap.roundToPx()
@@ -206,7 +215,7 @@ fun CameraRepContent(ui: CameraUi, onFlip: () -> Unit, onStop: () -> Unit, onSil
 }
 
 @Composable
-private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, preview: @Composable () -> Unit) {
+private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, onVoice: () -> Unit, preview: @Composable () -> Unit) {
     // Clear of the sheet's rounded edge, which lies over this side of the picture.
     val clear = if (wide) Modifier.padding(end = Overlap) else Modifier.padding(bottom = Overlap)
     Box(Modifier.fillMaxSize().clipToBounds()) {
@@ -232,16 +241,30 @@ private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, preview: @Com
                         Text(CameraText.whose(ui.setBy), style = Heartpact.type.small, color = Color.White.copy(alpha = 0.85f))
                     }
                     Text(CameraText.title(ui.type, ui.target), style = Heartpact.type.headline, color = Color.White, modifier = Modifier.padding(top = 2.dp))
-                    Chip(CameraText.frame(ui.counter.inFrame), dot = if (ui.counter.inFrame) Bone else OutOfFrame, modifier = Modifier.padding(top = 10.dp))
+                    val inFrame = ui.coach?.takeIf { it.phase != CoachPhase.Counting }?.inFrame ?: ui.counter.inFrame
+                    Chip(CameraText.frame(inFrame), dot = if (inFrame) Bone else OutOfFrame, modifier = Modifier.padding(top = 10.dp))
                 }
-                IconButton(onClick = onFlip, modifier = Modifier.size(46.dp).clip(Shapes.Pill).background(Glass.copy(alpha = 0.62f))) {
-                    Icon(Icons.Rounded.Cameraswitch, tr("Switch camera"), tint = Color.White)
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    IconButton(onClick = onFlip, modifier = Modifier.size(46.dp).clip(Shapes.Pill).background(Glass.copy(alpha = 0.62f))) {
+                        Icon(Icons.Rounded.Cameraswitch, tr("Switch camera"), tint = Color.White)
+                    }
+                    ui.voiceOn?.let { on ->
+                        IconButton(onClick = onVoice, modifier = Modifier.size(46.dp).clip(Shapes.Pill).background(Glass.copy(alpha = 0.62f))) {
+                            Icon(
+                                if (on) Icons.AutoMirrored.Rounded.VolumeUp else Icons.AutoMirrored.Rounded.VolumeOff,
+                                if (on) tr("Voice coach on") else tr("Voice coach off"),
+                                tint = Color.White,
+                            )
+                        }
+                    }
                 }
             }
-            // A check-in takes the middle of the picture; the bar steps aside until it's answered.
+            // Getting set, a check-in: each takes the middle of the picture, and the bar steps aside until it's done.
+            val gettingSet = ui.coach != null && ui.coach.phase != CoachPhase.Counting
             val checkingIn = ui.challenge != null && ui.challenge.passed == null
-            if (!checkingIn) Progress(ui, trackHeight = if (wide) 76.dp else 150.dp, modifier = Modifier.align(if (wide) Alignment.BottomEnd else Alignment.CenterEnd))
-            ui.challenge?.let { CheckIn(it, Modifier.align(Alignment.Center).padding(horizontal = if (wide) 0.dp else 24.dp)) }
+            if (!checkingIn && !gettingSet) Progress(ui, trackHeight = if (wide) 76.dp else 150.dp, modifier = Modifier.align(if (wide) Alignment.BottomEnd else Alignment.CenterEnd))
+            if (gettingSet) GetSet(ui.coach!!, Modifier.align(Alignment.Center).padding(horizontal = if (wide) 0.dp else 24.dp))
+            else ui.challenge?.let { CheckIn(it, Modifier.align(Alignment.Center).padding(horizontal = if (wide) 0.dp else 24.dp)) }
             ui.setBy?.let { partner ->
                 val who = if (ui.mySide == Side.Left) Who.Right else Who.Left
                 Row(
@@ -279,6 +302,26 @@ private fun Progress(ui: CameraUi, trackHeight: Dp, modifier: Modifier) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(CameraText.toGo(ui), style = Heartpact.type.titleSmall, color = colors.ink)
             Text(tr("to go"), style = Heartpact.type.small.copy(fontSize = 11.sp, lineHeight = 13.sp), color = colors.ink2)
+        }
+    }
+}
+
+/** Getting into the start position: the coach's instruction, then the countdown to "Go!", big and central. */
+@Composable
+private fun GetSet(coach: CoachState, modifier: Modifier) {
+    Column(
+        modifier.widthIn(max = 320.dp).clip(Shapes.Card).background(Glass.copy(alpha = 0.86f)).padding(horizontal = 22.dp, vertical = 18.dp)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        coach.countdown?.let {
+            Text("$it", style = Heartpact.type.display.copy(fontSize = 72.sp, lineHeight = 76.sp), color = Bone, textAlign = TextAlign.Center)
+        } ?: Text(tr("Get set"), style = Heartpact.type.labelSmall, color = Bone, textAlign = TextAlign.Center)
+        coach.cue?.let {
+            Text(it, style = Heartpact.type.title, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
+        }
+        if (coach.countdown == null) {
+            Text(tr("Counting starts when you're in position."), style = Heartpact.type.small, color = Color.White.copy(alpha = 0.75f), textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
@@ -426,6 +469,17 @@ fun CameraRepScreen(
     var sealing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val counter = remember { RepCounter(type) }
+    // Gets the person into position and counts down; the counter only sees frames after "Go!".
+    val coach = remember { PoseCoach(type, target) }
+    var coaching by remember { mutableStateOf(CoachState()) }
+    val prefs = remember { context.getSharedPreferences("workout", android.content.Context.MODE_PRIVATE) }
+    var voiceOn by remember { mutableStateOf(prefs.getBoolean("voice", true)) }
+    val voice = remember {
+        val locale = java.util.Locale.getDefault().takeIf { it.language in app.heartpact.i18n.Tr.LANGUAGES } ?: java.util.Locale.ENGLISH
+        runCatching { VoiceCoach(context, locale) }.getOrNull()
+    }
+    DisposableEffect(Unit) { onDispose { voice?.close() } }
+    LaunchedEffect(voiceOn) { voice?.muted = !voiceOn }
     var challenge by remember { mutableStateOf<ChallengeUi?>(null) }
     val motion = remember { MotionLog() }
     val checks = remember { SessionChecks(type, target, motion) }
@@ -481,8 +535,11 @@ fun CameraRepScreen(
         silenced = silenced,
         challenge = challenge,
         unsaved = unsaved,
+        coach = coaching,
+        voiceOn = voiceOn,
     )
-    CameraRepContent(shown, onFlip = { front = !front }, onStop = onStop, onSilence = onSilence, onRetry = { attempt++ }) {
+    val toggleVoice = { voiceOn = !voiceOn; prefs.edit().putBoolean("voice", voiceOn).apply() }
+    CameraRepContent(shown, onFlip = { front = !front }, onStop = onStop, onSilence = onSilence, onRetry = { attempt++ }, onVoice = toggleVoice) {
         if (granted) {
             val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
             AndroidView({ previewView }, Modifier.fillMaxSize())
@@ -490,9 +547,15 @@ fun CameraRepScreen(
                 val executor = Executors.newSingleThreadExecutor()
                 val tracker = runCatching {
                     PoseTracker(context, onPose = { detected ->
-                        val state = counter.update(detected)
-                        challenge = checks.update(detected, state, detected?.timestampMs ?: SystemClock.uptimeMillis(), mirrored = front)
-                        counted = state
+                        val now = detected?.timestampMs ?: SystemClock.uptimeMillis()
+                        val tick = if (coach.counting) {
+                            val state = counter.update(detected)
+                            challenge = checks.update(detected, state, now, mirrored = front)
+                            counted = state
+                            coach.update(detected, state, now)
+                        } else coach.update(detected, counted, now)
+                        coaching = tick.state
+                        tick.speak?.let { voice?.say(it) }
                         pose = detected
                     }, onError = { error = it })
                 }.onFailure {
