@@ -19,6 +19,9 @@ import app.heartpact.R
  */
 internal class LevelSounds(context: Context) {
     private val audio = context.getSystemService(AudioManager::class.java)
+    /** Sounds decode in the background: one asked for before it's ready plays as soon as it is. */
+    private val ready = mutableSetOf<Int>()
+    private var waiting: Pair<Int, Float>? = null
     private val pool = SoundPool.Builder()
         .setMaxStreams(4)
         .setAudioAttributes(
@@ -28,6 +31,13 @@ internal class LevelSounds(context: Context) {
                 .build(),
         )
         .build()
+        .apply {
+            setOnLoadCompleteListener { _, id, status ->
+                if (status != 0) return@setOnLoadCompleteListener
+                ready += id
+                waiting?.takeIf { it.first == id }?.let { (sound, rate) -> waiting = null; play(sound, rate) }
+            }
+        }
     private val up = pool.load(context, R.raw.level_up, 1)
     private val star = pool.load(context, R.raw.level_star, 1)
     private val tryAgain = pool.load(context, R.raw.level_try, 1)
@@ -35,6 +45,7 @@ internal class LevelSounds(context: Context) {
 
     private fun play(id: Int, rate: Float = 1f) {
         if (audio?.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
+        if (id !in ready) { waiting = id to rate; return }
         pool.play(id, 1f, 1f, 1, 0, rate)
     }
 

@@ -46,6 +46,8 @@ data class PlusUi(
     val awaitingCard: Boolean = false,
     /** The card plan picked under "Pay by card": "monthly" or "yearly". */
     val cardSelected: String = "monthly",
+    /** Plus just started for this person: the full-screen celebration to show once ([PlusCelebrations]). */
+    val celebrate: Celebration? = null,
 ) {
     val selectedOption get() = options.firstOrNull { it.productId == selected }
     val isPlus get() = entitlement?.plan == Plan.Plus
@@ -67,6 +69,8 @@ class PlusViewModel(
     private val userId: String,
     private val pollEveryMs: Long = 3_000,
     private val pollForMs: Long = 90_000,
+    /** Remembers the Plus celebrated, so Home doesn't celebrate it again ([PlusCelebrations]). */
+    private val celebrations: CelebrationMemory? = null,
 ) : ViewModel() {
     private val _ui = MutableStateFlow(PlusUi())
     val ui: StateFlow<PlusUi> = _ui.asStateFlow()
@@ -237,9 +241,15 @@ class PlusViewModel(
         }
     }
 
-    private fun accept(entitlement: Entitlement) = _ui.update {
-        it.copy(entitlement = entitlement, pending = false, welcomed = it.welcomed || (entitlement.plan == Plan.Plus && it.entitlement?.plan != Plan.Plus))
+    private fun accept(entitlement: Entitlement) {
+        val arrived = entitlement.plan == Plan.Plus && _ui.value.entitlement?.plan != Plan.Plus
+        // Watched it go from Free to Plus here: celebrate now (and Home, remembering it, won't again).
+        val celebrate = if (arrived) celebrations?.observe(userId, entitlement, sawFree = true) else null
+        _ui.update { it.copy(entitlement = entitlement, pending = false, welcomed = it.welcomed || arrived, celebrate = celebrate ?: it.celebrate) }
     }
+
+    /** "Let's go": the celebration is done. */
+    fun celebrated() = _ui.update { it.copy(celebrate = null) }
 
     companion object {
         val PENDING get() = tr("Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.")
@@ -256,12 +266,31 @@ class PlusViewModel(
     }
 }
 
-/** Just the entitlement, for the Us row and the "Get Plus" prompts elsewhere. */
-class PlusSummaryViewModel(private val plus: PlusRepository) : ViewModel() {
+/**
+ * Just the entitlement, for the Us row, the Plus look and the "Get Plus" prompts elsewhere. On Home ([celebrations] and
+ * [userId] set) it also decides the Plus celebration ([PlusCelebrations]): each load, and when a `plusStarted` push
+ * arrives while the app is open.
+ */
+class PlusSummaryViewModel(
+    private val plus: PlusRepository,
+    private val celebrations: CelebrationMemory? = null,
+    private val userId: String? = null,
+    events: Flow<String>? = null,
+) : ViewModel() {
     private val _ui = MutableStateFlow(PlusUi())
     val ui: StateFlow<PlusUi> = _ui.asStateFlow()
 
-    fun load() = viewModelScope.launch {
-        (plus.entitlement() as? ApiResult.Ok)?.let { result -> _ui.update { it.copy(loading = false, entitlement = result.value) } }
+    init {
+        events?.let { flow -> viewModelScope.launch { flow.collect { if (it == "plusStarted") load() } } }
     }
+
+    fun load() = viewModelScope.launch {
+        (plus.entitlement() as? ApiResult.Ok)?.let { result ->
+            val show = if (celebrations != null && userId != null) celebrations.observe(userId, result.value) else null
+            _ui.update { it.copy(loading = false, entitlement = result.value, celebrate = show ?: it.celebrate) }
+        }
+    }
+
+    /** "Let's go": the celebration is done. */
+    fun celebrated() = _ui.update { it.copy(celebrate = null) }
 }

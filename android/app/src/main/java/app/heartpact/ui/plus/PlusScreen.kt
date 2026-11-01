@@ -38,6 +38,9 @@ import app.heartpact.i18n.Dates
 import app.heartpact.i18n.tr
 import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
+import app.heartpact.ui.components.GoldSparkle
+import app.heartpact.ui.graphics.Icon3D
+import app.heartpact.ui.us.Chevron
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
 import app.heartpact.ui.components.StickerCard
@@ -114,6 +117,17 @@ object PlusText {
     }
 
     val FOOTER get() = tr("Cancel anytime in the Play Store. Deleting your account doesn't cancel it.")
+}
+
+/** The Plus row on Us. On Plus it carries a little gold: the subtitle and a sparkle by the chevron. */
+@Composable
+fun PlusUsRow(entitlement: Entitlement?, partnerName: String, onClick: () -> Unit, divider: Boolean = true) {
+    val isPlus = entitlement?.plan == app.heartpact.data.Plan.Plus
+    CardRow("Heartpact Plus", subtitle = PlusText.usRow(entitlement, partnerName), icon3d = Icon3D.Plus, divider = divider, onClick = onClick,
+        subtitleColor = if (isPlus) Heartpact.colors.goldInk else null) {
+        if (isPlus) GoldSparkle(16.dp)
+        Chevron()
+    }
 }
 
 /** Heartpact Plus (mockup 18): what you both get, the plans, and Google Play's purchase sheet. */

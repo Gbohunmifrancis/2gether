@@ -178,8 +178,8 @@ private fun LevelStar(filled: Boolean, earned: Boolean, big: Boolean) {
 }
 
 /** The stars' gold, warm and bright on the sticker card by day and night, with a deeper edge. */
-private val StarGold = Color(0xFFFFC23D)
-private val StarEdge = Color(0xFFE09A12)
+private val StarGold = app.heartpact.ui.theme.PlusGold.Bright
+private val StarEdge = app.heartpact.ui.theme.PlusGold.Deep
 
 /** A five-pointed star centred on [c]. */
 private fun starPath(c: Offset, outer: Float, inner: Float): Path = Path().apply {

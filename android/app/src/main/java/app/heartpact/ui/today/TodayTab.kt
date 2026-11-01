@@ -44,6 +44,7 @@ import app.heartpact.ui.components.ButtonKind
 import app.heartpact.ui.components.CardRow
 import app.heartpact.ui.components.HeartButton
 import app.heartpact.ui.components.NoteCard
+import app.heartpact.ui.components.PlusBadge
 import app.heartpact.ui.components.StickerCard
 import app.heartpact.ui.graphics.Character
 import app.heartpact.ui.graphics.HalfState
@@ -82,6 +83,8 @@ fun TodayTab(
     gameBusy: Boolean = false,
     onAcceptGame: (String) -> Unit = {},
     onDeclineGame: (String) -> Unit = {},
+    /** The couple has Heartpact Plus: a small gold badge by the title. */
+    isPlus: Boolean = false,
 ) {
     val colors = Heartpact.colors
     val view = ui.view
@@ -89,7 +92,10 @@ fun TodayTab(
     // With room, my dare sits beside the rest: the week, my dare for my partner and a new one.
     AdaptivePage(header = {
         Column(Modifier.padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)) {
-            Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(tr("Today"), style = Heartpact.type.headline, color = colors.ink)
+                if (isPlus) PlusBadge()
+            }
             // The same clock as the dare's countdown, so the header and the card always agree on the day.
             val date = now.atZone(ZoneId.systemDefault()).toLocalDate().format(Dates.formatter("EEEE d MMMM"))
             Text(if (view != null) trn(view.hearts, "{date} · {count} heart this week", "{date} · {count} hearts this week", "date" to date) else date,

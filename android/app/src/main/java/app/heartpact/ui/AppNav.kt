@@ -31,9 +31,10 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
 import app.heartpact.billing.PlusOffers
+import app.heartpact.ui.plus.PlusCelebrationDialog
 import app.heartpact.ui.plus.PlusScreen
+import app.heartpact.ui.plus.PlusUsRow
 import app.heartpact.ui.plus.PlusSummaryViewModel
-import app.heartpact.ui.plus.PlusText
 import app.heartpact.ui.plus.PlusViewModel
 import app.heartpact.ui.components.ReadableScreen
 import app.heartpact.ui.components.openInBrowser
@@ -344,8 +345,21 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     val cycleSummaryUi by cycleSummary.ui.collectAsStateWithLifecycle()
                     val pregnancySummary: PregnancyViewModel = viewModel(key = "pregnancy-summary", factory = viewModelFactory { initializer { PregnancyViewModel(container.pregnancy, container.pushEvents) } })
                     val pregnancySummaryUi by pregnancySummary.ui.collectAsStateWithLifecycle()
-                    val plusSummary: PlusSummaryViewModel = viewModel(key = "plus-summary", factory = viewModelFactory { initializer { PlusSummaryViewModel(container.plus) } })
+                    // Also decides the Plus celebration: each time Home shows, and when a plusStarted push arrives.
+                    val plusSummary: PlusSummaryViewModel = viewModel(key = "plus-summary", factory = viewModelFactory {
+                        initializer { PlusSummaryViewModel(container.plus, container.plusCelebrations, me.id, container.pushEvents) }
+                    })
                     val plusUi by plusSummary.ui.collectAsStateWithLifecycle()
+                    val isPlus = plusUi.isPlus
+                    // The partner started sharing their location or cycle: the Us cards show it at once.
+                    LaunchedEffect(Unit) {
+                        container.pushEvents.collect {
+                            when (it) {
+                                "locationShared" -> locationModel.refresh()
+                                "cycleShared" -> cycleSummary.load()
+                            }
+                        }
+                    }
                     // Back from logging a meal, answering, or settings: what they show may have moved.
                     LifecycleResumeEffect(Unit) {
                         plusSummary.load()
@@ -370,6 +384,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                     // The app declares CAMERA (for rep counting), so the system camera needs it granted too.
                     val cameraForMeal = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) snapMeal() else pickMealPhoto() }
                     if (askConnect) NeedsPartnerDialog(onConnect = connect, onDismiss = { askConnect = false })
+                    plusUi.celebrate?.let { PlusCelebrationDialog(it, partner, onDone = plusSummary::celebrated) }
                     HomeScreen(myName = me.displayName, partnerName = partner, onSignOut = { appModel.signOut() },
                         banner = if (linked) null else ({ ConnectBanner(onConnect = connect) }),
                         requestedTab = requestedTab?.let { name -> Tab.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } },
@@ -402,6 +417,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                     LocationCard(locationUi, partner, onOpen = withPartner { nav.navigate(Routes.MAP) }, onShare = withPartner(shareLocation),
                                         onPause = { locationModel.pause(60) }, onResume = locationModel::resume)
                                 },
+                                isPlus = isPlus,
                                 extraRows = {
                                     val cycleMode = cycleSummaryUi.mode
                                     if (cycleMode != CycleMode.Loading && cycleMode != CycleMode.Unavailable) {
@@ -411,8 +427,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                                                 partnerPrediction?.cycleDay, partnerPrediction?.daysLate),
                                             icon3d = Icon3D.Cycle, divider = true, onClick = { nav.navigate(Routes.CYCLE) }) { Chevron() }
                                     }
-                                    CardRow("Heartpact Plus", subtitle = PlusText.usRow(plusUi.entitlement, partner),
-                                        icon3d = Icon3D.Plus, divider = true, onClick = { nav.navigate(Routes.PLUS) }) { Chevron() }
+                                    PlusUsRow(plusUi.entitlement, partner, onClick = { nav.navigate(Routes.PLUS) })
                                     CardRow(tr("Pregnancy mode"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),
                                         icon3d = Icon3D.Pregnancy, divider = true, onClick = { nav.navigate(Routes.PREGNANCY) }) { Chevron() }
                                 },
@@ -457,6 +472,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             gameBusy = todayGamesUi.busy,
                             onAcceptGame = { id -> todayGames.accept(id) { nav.navigate(Routes.GAMES) { launchSingleTop = true } } },
                             onDeclineGame = todayGames::decline,
+                            isPlus = isPlus,
                         )
                     })
                 }
@@ -467,7 +483,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val me = session?.user ?: return@composable
                         val partner = couple?.members?.firstOrNull { it.userId != me.id }?.displayName ?: tr("your partner")
                         val activity = LocalActivity.current ?: return@composable
-                        val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id) } })
+                        val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id, celebrations = container.plusCelebrations) } })
                         val ui by model.ui.collectAsStateWithLifecycle()
                         // Bachs' checkout and billing open in the browser; back here, a card payment is checked for.
                         LaunchedEffect(model) { model.links.collect { url -> openInBrowser(activity, url) } }
@@ -478,6 +494,8 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
                             onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) },
                             onManageBilling = model::manageBilling, onSelectCard = model::selectCard, onPayByCard = model::payByCard)
+                        // Bought here: the celebration at once (Home remembers it and won't show it again).
+                        ui.celebrate?.let { PlusCelebrationDialog(it, partner, onDone = model::celebrated) }
                     }
                 }
                 composable(Routes.PROFILE) {

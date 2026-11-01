@@ -24,9 +24,15 @@ class PushInboxTest {
         assertEquals("today", PushInbox.tabFor("exercisePausedByPlan"))
         assertEquals("us", PushInbox.tabFor("plusEnding"))
         assertEquals("us", PushInbox.tabFor("dailyQuestionAnswered"))
+        // Plus starting, and the partner sharing their location (the map card) or cycle (the cycle row): all on Us.
+        listOf("plusStarted", "locationShared", "cycleShared").forEach { assertEquals(it, "us", PushInbox.tabFor(it)) }
         // A game invite, a turn waiting, a game ended or declined: straight to the games, not the Us tab.
         listOf("gameInvite", "gameTurn", "gameEnded", "gameStarted").forEach { assertEquals(PushInbox.GAMES, PushInbox.tabFor(it)) }
         assertTrue(PushInbox.refreshesToday("exerciseCompleted"))
         assertFalse(PushInbox.refreshesToday("memoriesSynced"))
+        // These refresh Home at once (the Plus celebration, the map card, the cycle row), not Today.
+        listOf("plusStarted", "locationShared", "cycleShared").forEach { assertTrue(PushInbox.refreshesHome(it)); assertFalse(PushInbox.refreshesToday(it)) }
+        assertFalse(PushInbox.refreshesHome("plusEnding"))
+        assertFalse(PushInbox.refreshesHome(null))
     }
 }
