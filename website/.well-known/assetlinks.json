@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls", "delegate_permission/common.get_login_creds"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.heartpact",
+      "sha256_cert_fingerprints": [
+        "90:28:92:76:9F:5C:14:C4:19:2C:45:B4:79:F7:06:43:F1:0B:B2:72:14:20:0C:D8:A8:9F:2F:AD:6F:6A:D5:B8"
+      ]
+    }
+  }
+]

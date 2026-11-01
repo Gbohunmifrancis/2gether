@@ -36,5 +36,13 @@ The person waiting with the code sees the partner arrive at once. The couple hub
 
 ## Not yet
 
-- The app link needs `https://heartpact.me/.well-known/assetlinks.json` with the Play app-signing certificate's SHA-256 fingerprint before Android will verify it. The same file lets saved passwords be shared between the app and heartpact.me (the manifest's `asset_statements` already points at it). The website has no `/invite/` page yet. Until both exist, a link tapped on a phone without the app, or opened before verification, lands on the website's 404 page. The code in the share message always works. A phone's own camera scanning the QR code opens the same link.
+- The app link is verified against `https://heartpact.me/.well-known/assetlinks.json` (`website/.well-known/`), which
+  also lets saved passwords be shared between the app and heartpact.me (the manifest's `asset_statements` points at it).
+  It lists the upload key; installs from Google Play are signed with Play's app-signing key, whose SHA-256 (Play Console
+  → Test and release → App integrity → App signing key certificate) must be added before links open the app straight
+  away there. Until then, or without the app, a link lands on the invite page: `website/invite/index.html` (every token
+  rewritten to it by `website/_redirects`, in all the site's languages) names the inviter through the anonymous
+  `POST api/couple/invites/preview`, offers "Open in Heartpact" (on Android an intent link that opens the app on the
+  invite, else Google Play with `referrer=invite=…`) and explains the code route. A phone's own camera scanning the QR
+  code opens the same link.
 - The code boxes take six digits. `Invites:CodeDigits` can go up to ten once they take more.

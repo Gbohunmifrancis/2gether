@@ -24,9 +24,9 @@ SITE = pathlib.Path(__file__).resolve().parent.parent
 HERE = SITE / "i18n"
 ORIGIN = "https://heartpact.me"
 PAGES = ["index.html", "privacy/index.html", "terms/index.html", "delete-account/index.html", "plus/index.html",
-         "plus/thanks/index.html", "404.html"]
+         "plus/thanks/index.html", "invite/index.html", "404.html"]
 # Pages search engines shouldn't list (each also says noindex): not in the sitemap.
-UNLISTED = {"404.html", "plus/thanks/index.html"}
+UNLISTED = {"404.html", "plus/thanks/index.html", "invite/index.html"}
 LEGAL = {"privacy/index.html", "terms/index.html"}
 LANGUAGES = ["fr", "pt", "es", "ar", "hi"]
 NAMES = {"en": "English", "fr": "Français", "pt": "Português", "es": "Español", "ar": "العربية", "hi": "हिन्दी"}

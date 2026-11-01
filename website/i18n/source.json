@@ -11,6 +11,7 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "invite/index.html",
    "plus/index.html",
    "plus/thanks/index.html",
    "privacy/index.html",
@@ -23,6 +24,7 @@
    "404.html",
    "delete-account/index.html",
    "index.html",
+   "invite/index.html",
    "plus/index.html",
    "plus/thanks/index.html",
    "privacy/index.html",
@@ -3162,6 +3164,60 @@
    "plus/thanks/index.html"
   ]
  },
+ "You're invited to Heartpact": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "Your partner wants to keep their promises with you: daily dares the phone counts, little games, and a sticker page of every heart you make together.": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "<a class=\"button\" id=\"open-app\" href=\"https://play.google.com/store/apps/details?id=app.heartpact\">Open in Heartpact</a>": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "<a class=\"button\" id=\"get-app\" href=\"https://play.google.com/store/apps/details?id=app.heartpact\">Get Heartpact on Google Play</a>": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "How to link up": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "Install Heartpact and create your account.": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "Come back to this message and tap the link again. Heartpact opens and links you both.": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "No luck? On the app's \"Find your other half\" screen, tap <b>I have a code from my partner</b> and enter the six digits they sent.": {
+  "kind": "text",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
+ "Your partner invited you to Heartpact. Get the app and link up.": {
+  "kind": "attribute",
+  "pages": [
+   "invite/index.html"
+  ]
+ },
  "Not found · Heartpact": {
   "kind": "text",
   "pages": [
@@ -3238,6 +3294,18 @@
   "pages": [
    "assets/delete.js",
    "assets/plus.js"
+  ]
+ },
+ "This invitation has expired or was already used. Ask your partner to send a new one from the app.": {
+  "kind": "script",
+  "pages": [
+   "assets/invite.js"
+  ]
+ },
+ "{name} invited you to Heartpact": {
+  "kind": "script",
+  "pages": [
+   "assets/invite.js"
   ]
  },
  "Your session has ended. Sign in again.": {

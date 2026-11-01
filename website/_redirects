@@ -1,0 +1,3 @@
+# Invite links: every /invite/{token} is the one invite page (Cloudflare Pages rewrite, address kept).
+/invite/*  /invite/  200
+/:lang/invite/*  /:lang/invite/  200
