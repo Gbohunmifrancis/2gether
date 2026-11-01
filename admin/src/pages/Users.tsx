@@ -78,7 +78,7 @@ const columns = [
   }),
   column.accessor("disabledAtUtc", {
     header: "Status",
-    cell: ({ getValue }) => (getValue() ? <Badge tone="bad">Disabled</Badge> : <Badge tone="good">Active</Badge>),
+    cell: ({ getValue }) => (getValue() ? <Badge tone="bad">Disabled</Badge> : <span className="faint">Active</span>),
   }),
 ];
 

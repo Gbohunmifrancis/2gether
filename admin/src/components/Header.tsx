@@ -5,14 +5,13 @@ import { queries } from "../api/queries";
 import type { Alert } from "../api/types";
 import { count } from "../lib/format";
 import { useLive } from "../live/LiveProvider";
-import { greeting } from "../lib/nav";
 import { setSoundEnabled, useSoundEnabled } from "../lib/sound";
 import { Mascot, MiniHeart, type MascotMood } from "./Art";
 import { Icon } from "./Icon";
 import { ago } from "../lib/format";
 
-/* The living header: a greeting with the mascot, the live heart that beats once per event, who's online, the alerts
-   bell, the command palette and the sound switch. */
+/* The header: today's line, the live heart that beats once per event, who's online, the alerts bell, the command
+   palette and the sound switch. The mascot lives in the brand. */
 
 const SEEN_KEY = "heartpact.admin.seenAlerts";
 const seenListeners = new Set<() => void>();
@@ -52,7 +51,7 @@ function useSeenAlerts(): Set<string> {
   return new Set(raw.split("|").filter(Boolean));
 }
 
-/** The admin's hour, refreshed each minute, for the greeting and the sleepy mascot. */
+/** The admin's hour, refreshed each minute, for the sleepy mascot. */
 function useHour(): number {
   const [hour, setHour] = useState(() => new Date().getHours());
   useEffect(() => {
@@ -62,7 +61,8 @@ function useHour(): number {
   return hour;
 }
 
-export function Greeting({ name }: { name: string }) {
+/** The mark, alive: worried while there's a bad alert, asleep late at night, a cheer when a couple links or goes Plus. */
+export function LiveMark({ size = 28 }: { size?: number }) {
   const hour = useHour();
   const live = useLive();
   const alerts = useQuery(queries.alerts());
@@ -74,26 +74,23 @@ export function Greeting({ name }: { name: string }) {
   }, [latest]);
   const night = hour >= 23 || hour < 5;
   const mood: MascotMood = worried ? "worried" : night ? "sleepy" : "idle";
-  const pulse = live.pulse;
+  return <Mascot mood={mood} beat={cheer} size={size} title={worried ? "The mascot looks worried: there's an alert" : "Heartpact"} />;
+}
+
+/** Today so far, from the pulse: one quiet line in the header. */
+export function TodayLine() {
+  const { pulse } = useLive();
   return (
-    <div className="greeting">
-      <Mascot mood={mood} beat={cheer} size={40} title={worried ? "The mascot looks worried: there's an alert" : "Heartpact"} />
-      <div>
-        <h2 className="title">
-          {greeting(hour)}, {name.split(" ")[0]}
-        </h2>
-        <p className="small muted">
-          {pulse ? (
-            <>
-              <b>{count(pulse.heartsToday)}</b> hearts made today · <b>{count(pulse.signupsToday)}</b> new people · <b>{count(pulse.couplesLinkedToday)}</b>{" "}
-              couples linked
-            </>
-          ) : (
-            "Listening for what couples are up to…"
-          )}
-        </p>
-      </div>
-    </div>
+    <p className="today-line small">
+      {pulse ? (
+        <>
+          Today <span aria-hidden="true">·</span> <b>{count(pulse.heartsToday)}</b> hearts <span aria-hidden="true">·</span> <b>{count(pulse.signupsToday)}</b>{" "}
+          new people <span aria-hidden="true">·</span> <b>{count(pulse.couplesLinkedToday)}</b> couples linked
+        </>
+      ) : (
+        "Listening for what couples are up to"
+      )}
+    </p>
   );
 }
 
@@ -148,7 +145,7 @@ export function PaletteButton({ onOpen, compact }: { onOpen: () => void; compact
   ) : (
     <button type="button" className="palette-btn" onClick={onOpen} aria-label="Search and jump (command palette)">
       <Icon name="search" />
-      <span>Search or jump…</span>
+      <span>Search or jump</span>
       <kbd>{mac ? "⌘" : "Ctrl"} K</kbd>
     </button>
   );

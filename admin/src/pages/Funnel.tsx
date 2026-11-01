@@ -91,10 +91,10 @@ export function FunnelPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label="Signed up" icon="userPlus" value={rows[0]?.count ?? 0} hint={`in the last ${days} days`} />
-                <KpiSticker label="Linked as a couple" icon="link" value={linked?.count ?? null} hint={`${rate(linked?.share)} of sign-ups`} />
-                <KpiSticker label="Made a whole heart" icon="heart" value={heart?.count ?? null} hint={`${rate(heart?.share)} of sign-ups`} />
-                <KpiSticker label="Went Plus" icon="plus" tone="pen" value={plus?.count ?? null} hint={`${rate(plus?.share, 1)} of sign-ups`} />
+                <KpiSticker label="Signed up" value={rows[0]?.count ?? 0} hint={`in the last ${days} days`} />
+                <KpiSticker label="Linked as a couple" value={linked?.count ?? null} hint={`${rate(linked?.share)} of sign-ups`} />
+                <KpiSticker label="Made a whole heart" value={heart?.count ?? null} hint={`${rate(heart?.share)} of sign-ups`} />
+                <KpiSticker label="Went Plus" value={plus?.count ?? null} hint={`${rate(plus?.share, 1)} of sign-ups`} />
               </div>
               <ChartCard
                 title="The heart jar"

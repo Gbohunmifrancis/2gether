@@ -74,12 +74,11 @@ export function RetentionPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label="Couples in these cohorts" icon="couples" value={couples} hint={`${data.cohorts.length} weekly cohorts`} />
+                <KpiSticker label="Couples in these cohorts" value={couples} hint={`${data.cohorts.length} weekly cohorts`} />
                 {[1, 4, 8].map((week) => (
                   <KpiSticker
                     key={week}
                     label={week === 1 ? "Still at it in week 1" : `Still at it in week ${week}`}
-                    icon={week === 1 ? "heart" : "calendar"}
                     value={average[week] === null || average[week] === undefined ? null : average[week]! * 100}
                     format={(value) => `${Math.round(value)}%`}
                     hint={average[week] === null || average[week] === undefined ? "Not enough weeks yet" : "of couples, across cohorts"}

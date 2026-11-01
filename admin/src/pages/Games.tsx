@@ -65,22 +65,15 @@ export function GamesPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label="Games started" icon="games" value={started} hint={`${rate(started ? finished / started : null)} finished`} />
+                <KpiSticker label="Games started" value={started} hint={`${rate(started ? finished / started : null)} finished`} />
                 <KpiSticker
                   label="Favourite"
-                  icon="heart"
                   value={null}
                   text={favourite ? gameLabel(favourite.type) : DASH}
                   hint={favourite ? `${count(favourite.started)} started` : ""}
                 />
-                <KpiSticker label="Duels finished" icon="couples" value={data.duels.finished} hint={`${count(data.duels.ties)} ties`} />
-                <KpiSticker
-                  label="Usual winning margin"
-                  icon="spark"
-                  value={data.duels.medianMargin}
-                  format={hearts}
-                  hint="Median gap in hearts at the end of a duel"
-                />
+                <KpiSticker label="Duels finished" value={data.duels.finished} hint={`${count(data.duels.ties)} ties`} />
+                <KpiSticker label="Usual winning margin" value={data.duels.medianMargin} format={hearts} hint="Median gap in hearts at the end of a duel" />
               </div>
               <Card flush title="By game">
                 <DataTable

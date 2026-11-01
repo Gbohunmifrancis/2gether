@@ -48,6 +48,33 @@ export function useWidth<T extends HTMLElement>() {
   return [ref, width] as const;
 }
 
+/** A smooth path through the points that never overshoots them (monotone cubic), so a quiet day doesn't dip below zero. */
+export function smoothPath(points: [number, number][]): string {
+  const n = points.length;
+  if (n === 0) return "";
+  const f = (value: number) => value.toFixed(1);
+  if (n < 3) return points.map(([px, py], index) => `${index === 0 ? "M" : "L"}${f(px)},${f(py)}`).join("");
+  const slopes = points.slice(0, -1).map(([x0, y0], index) => {
+    const [x1, y1] = points[index + 1]!;
+    return (y1 - y0) / (x1 - x0 || 1);
+  });
+  const tangents = points.map((_, index) => {
+    if (index === 0) return slopes[0]!;
+    if (index === n - 1) return slopes[n - 2]!;
+    const a = slopes[index - 1]!;
+    const b = slopes[index]!;
+    return a * b <= 0 ? 0 : (2 * a * b) / (a + b);
+  });
+  let d = `M${f(points[0]![0])},${f(points[0]![1])}`;
+  for (let index = 0; index < n - 1; index++) {
+    const [x0, y0] = points[index]!;
+    const [x1, y1] = points[index + 1]!;
+    const third = (x1 - x0) / 3;
+    d += `C${f(x0 + third)},${f(y0 + tangents[index]! * third)},${f(x1 - third)},${f(y1 - tangents[index + 1]! * third)},${f(x1)},${f(y1)}`;
+  }
+  return d;
+}
+
 const PAD = { top: 12, right: 8, bottom: 26, left: 40 };
 
 /**
@@ -131,7 +158,7 @@ export function TimeChart({ series, kind = "line", height = 220, label }: { seri
                     const y0 = y(base);
                     base += value;
                     const y1 = y(base);
-                    // 2px gap between stacked segments reads as two stickers, not one bar.
+                    // A 2px gap between stacked segments keeps the series apart.
                     return (
                       <rect
                         key={item.name}
@@ -139,7 +166,7 @@ export function TimeChart({ series, kind = "line", height = 220, label }: { seri
                         y={y1}
                         width={barWidth}
                         height={Math.max(1, y0 - y1 - (base === value ? 0 : 2))}
-                        rx={Math.min(4, barWidth / 3)}
+                        rx={Math.min(2, barWidth / 4)}
                         fill={item.color}
                       />
                     );
@@ -148,11 +175,12 @@ export function TimeChart({ series, kind = "line", height = 220, label }: { seri
               );
             })
           : data.map((item, seriesIndex) => {
-              const path = item.values.map((point, index) => `${index === 0 ? "M" : "L"}${x(index).toFixed(1)},${y(point.value).toFixed(1)}`).join("");
+              const path = smoothPath(item.values.map((point, index) => [x(index), y(point.value)]));
+              const last = item.values[points - 1];
               return (
                 <g key={item.name}>
                   {seriesIndex === 0 && points > 1 ? (
-                    <path className="area-fade" d={`${path}L${x(points - 1)},${y(0)}L${x(0)},${y(0)}Z`} fill={item.color} opacity={0.1} />
+                    <path className="area-fade" d={`${path}L${x(points - 1)},${y(0)}L${x(0)},${y(0)}Z`} fill={item.color} opacity={0.06} />
                   ) : null}
                   <path
                     className="draw"
@@ -160,11 +188,14 @@ export function TimeChart({ series, kind = "line", height = 220, label }: { seri
                     d={path}
                     fill="none"
                     stroke={item.color}
-                    strokeWidth={2.5}
+                    strokeWidth={2}
                     strokeLinejoin="round"
                     strokeLinecap="round"
                     style={{ animationDelay: `${seriesIndex * 120}ms` }}
                   />
+                  {last && hover === null && points > 1 ? (
+                    <circle className="last-dot" cx={x(points - 1)} cy={y(last.value)} r={3.5} fill={item.color} stroke="var(--sticker)" strokeWidth={2} />
+                  ) : null}
                   {hover !== null && item.values[hover] ? (
                     <circle cx={x(hover)} cy={y(item.values[hover]!.value)} r={4.5} fill={item.color} stroke="var(--sticker)" strokeWidth={2} />
                   ) : null}

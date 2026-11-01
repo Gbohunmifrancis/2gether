@@ -3,9 +3,8 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { getSession, onSessionChange, setSession } from "../auth/session";
 import { NAV_GROUPS } from "../lib/nav";
 import { LiveProvider } from "../live/LiveProvider";
-import { Mark } from "./Art";
 import { CommandPalette } from "./CommandPalette";
-import { Bell, Greeting, LiveHeart, OnlinePill, PaletteButton, SoundToggle } from "./Header";
+import { Bell, LiveHeart, LiveMark, OnlinePill, PaletteButton, SoundToggle, TodayLine } from "./Header";
 import { Icon } from "./Icon";
 import { StepUpDialog } from "./StepUpDialog";
 import { Avatar } from "./ui";
@@ -35,11 +34,9 @@ function Nav({ grouped }: { grouped?: boolean }) {
 function Brand() {
   return (
     <Link to="/" className="brand" aria-label="Heartpact admin home">
-      <Mark />
-      <div>
-        <b>heartpact</b>
-        <span>Admin</span>
-      </div>
+      <LiveMark />
+      <b>heartpact</b>
+      <span>Admin</span>
     </Link>
   );
 }
@@ -93,7 +90,7 @@ export function Shell() {
         </div>
         <div className="main-col">
           <header className="hello">
-            <Greeting name={session?.admin.displayName ?? "there"} />
+            <TodayLine />
             <div className="tools">
               <PaletteButton onOpen={() => setPalette(true)} />
               <SoundToggle />

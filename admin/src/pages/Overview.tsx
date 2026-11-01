@@ -43,29 +43,24 @@ export function OverviewPage() {
               <div className="grid cols-4">
                 <KpiSticker
                   label="People"
-                  icon="users"
                   value={data.totalUsers}
                   hint={`${plural(data.newUsers, "new sign-up")} in ${days} days${data.disabledUsers ? ` · ${count(data.disabledUsers)} disabled` : ""}`}
                   delta={{ now: signups.now, before: signups.before, label: "sign-ups vs the week before" }}
                 />
                 <KpiSticker
                   label="Linked couples"
-                  icon="couples"
                   value={data.activeCouples}
                   hint={`${plural(data.pendingCouples, "invite")} waiting · ${count(data.dissolvedCouples)} unlinked`}
                   delta={{ now: linked.now, before: linked.before, label: "links vs the week before" }}
                 />
                 <KpiSticker
                   label="Active today"
-                  icon="live"
                   value={data.activeToday}
                   hint={`${count(data.activeWeek)} this week · ${count(data.activeMonth)} this month`}
                   delta={{ now: data.activeToday, before: lastWeek, label: "vs a week ago" }}
                 />
                 <KpiSticker
                   label="Couples on Plus"
-                  icon="plus"
-                  tone="pen"
                   value={data.plusCouples}
                   hint={data.activeCouples > 0 ? `${percent(data.plusCouples / data.activeCouples)} of linked couples` : "No linked couples yet"}
                 />

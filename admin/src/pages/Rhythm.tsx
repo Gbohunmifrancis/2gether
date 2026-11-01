@@ -59,22 +59,15 @@ export function RhythmPage() {
           return (
             <>
               <div className="grid cols-4">
-                <KpiSticker label={`All ${meta.noun}`} icon="rhythm" value={Math.round(gridTotal(grid))} hint={`in ${days} days`} />
+                <KpiSticker label={`All ${meta.noun}`} value={Math.round(gridTotal(grid))} hint={`in ${days} days`} />
                 <KpiSticker
                   label="Busiest hour"
-                  icon="flame"
                   value={null}
                   text={best ? `${WEEKDAYS[best.day]!.slice(0, 3)} ${hourLabel(best.hour)}` : undefined}
                   hint={best ? `${count(Math.round(best.value))} ${meta.noun} in that hour` : "Nothing yet"}
                 />
-                <KpiSticker
-                  label="Busiest day"
-                  icon="calendar"
-                  value={null}
-                  text={WEEKDAYS[busiestDay]}
-                  hint={`${count(Math.round(totals[busiestDay] ?? 0))} ${meta.noun}`}
-                />
-                <KpiSticker label="Quietest hour" icon="eyeOff" value={null} text={hourLabel(quiet)} hint="Fewest, across the week" />
+                <KpiSticker label="Busiest day" value={null} text={WEEKDAYS[busiestDay]} hint={`${count(Math.round(totals[busiestDay] ?? 0))} ${meta.noun}`} />
+                <KpiSticker label="Quietest hour" value={null} text={hourLabel(quiet)} hint="Fewest, across the week" />
               </div>
               <ChartCard
                 title="The week, hour by hour"

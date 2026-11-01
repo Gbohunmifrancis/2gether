@@ -80,11 +80,3 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
 ];
 
 export const NAV: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
-
-/** "Good morning" by the admin's own clock; late nights get a gentler line. */
-export function greeting(hour: number): string {
-  if (hour >= 5 && hour < 12) return "Good morning";
-  if (hour >= 12 && hour < 17) return "Good afternoon";
-  if (hour >= 17 && hour < 22) return "Good evening";
-  return "Up late";
-}
