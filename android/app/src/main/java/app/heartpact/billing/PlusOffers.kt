@@ -1,5 +1,6 @@
 package app.heartpact.billing
 
+import app.heartpact.data.Entitlement
 import app.heartpact.data.PlanLimits
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
@@ -16,6 +17,12 @@ data class PlanOption(
     val currency: String,
     val savings: String? = null,
 )
+
+/**
+ * What the Plus screen's main button does. [Buy] opens Google Play's purchase sheet, which (with `cardInApp`) may
+ * first offer Google's billing choice screen; there is no separate card button.
+ */
+enum class PlusAction { Buy, ManageInPlay, ManageBilling, Done }
 
 /** Pure rules for turning Play's products into what the Plus screen shows. */
 object PlusOffers {
@@ -123,6 +130,27 @@ object PlusOffers {
 
     /** Active dares each: "1 each", or "Unlimited". */
     fun dares(limit: Int?): String = limit?.let { trn(it, "{count} each", "{count} each") } ?: tr("Unlimited")
+
+    /**
+     * The card plan (Bachs checkout's `plan`) for a Play product chosen on Google's billing choice screen: "yearly" or
+     * "monthly", by the same reading of the product id as [planName]; null for anything else.
+     */
+    fun cardPlan(productId: String): String? = when (rank(productId)) {
+        0 -> "yearly"
+        1 -> "monthly"
+        else -> null
+    }
+
+    /** The Plus screen's main button. */
+    fun action(entitlement: Entitlement?): PlusAction {
+        val subscription = entitlement?.subscription
+        return when {
+            entitlement == null -> PlusAction.Done
+            subscription != null && subscription.purchasedByMe -> if (subscription.isCard) PlusAction.ManageBilling else PlusAction.ManageInPlay
+            entitlement.canPurchase && subscription == null -> PlusAction.Buy
+            else -> PlusAction.Done
+        }
+    }
 
     /** Google Play's page for this subscription, where it is cancelled or the payment fixed. */
     fun manageUrl(productId: String, packageName: String) =

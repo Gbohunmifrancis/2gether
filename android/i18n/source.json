@@ -197,7 +197,7 @@
    "app/heartpact/alarm/AlarmScreens.kt:231",
    "app/heartpact/ui/auth/SignUp.kt:132",
    "app/heartpact/ui/games/TruthOrDareBoard.kt:101",
-   "app/heartpact/ui/plus/PlusScreen.kt:160",
+   "app/heartpact/ui/plus/PlusScreen.kt:179",
    "app/heartpact/ui/today/NewDare.kt:195"
   ],
   "code": "HeartButton(tr(\"Done\"), onDone, Modifier.padding(top = 12.dp, start = 8.dp, end = 8.dp, bottom = 12.dp))"
@@ -266,14 +266,14 @@
    "app/heartpact/alarm/AlarmViewModel.kt:39",
    "app/heartpact/alarm/AlarmViewModel.kt:48",
    "app/heartpact/location/LocationShareService.kt:89",
-   "app/heartpact/ui/AppNav.kt:307",
-   "app/heartpact/ui/AppNav.kt:467",
-   "app/heartpact/ui/AppNav.kt:480",
-   "app/heartpact/ui/AppNav.kt:500",
-   "app/heartpact/ui/AppNav.kt:510",
-   "app/heartpact/ui/AppNav.kt:530",
-   "app/heartpact/ui/AppNav.kt:545",
-   "app/heartpact/ui/AppNav.kt:560",
+   "app/heartpact/ui/AppNav.kt:308",
+   "app/heartpact/ui/AppNav.kt:468",
+   "app/heartpact/ui/AppNav.kt:488",
+   "app/heartpact/ui/AppNav.kt:508",
+   "app/heartpact/ui/AppNav.kt:518",
+   "app/heartpact/ui/AppNav.kt:538",
+   "app/heartpact/ui/AppNav.kt:553",
+   "app/heartpact/ui/AppNav.kt:568",
    "app/heartpact/ui/games/GamesViewModel.kt:105"
   ],
   "code": "val partnerName: String = tr(\"your partner\"),"
@@ -390,93 +390,93 @@
  "Google Play isn't available on this phone. Check you're signed in to the Play Store.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:74"
+   "app/heartpact/billing/PlayStore.kt:85"
   ],
   "code": "val UNAVAILABLE get() = tr(\"Google Play isn't available on this phone. Check you're signed in to the Play Store.\")"
  },
  "Can't reach Google Play. Check your connection and try again.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:75",
-   "app/heartpact/ui/plus/PlusViewModel.kt:107"
+   "app/heartpact/billing/PlayStore.kt:86",
+   "app/heartpact/ui/plus/PlusViewModel.kt:130"
   ],
   "code": "val UNREACHABLE get() = tr(\"Can't reach Google Play. Check your connection and try again.\")"
  },
  "Plus isn't on sale in your country yet.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:76",
-   "app/heartpact/ui/plus/PlusViewModel.kt:80"
+   "app/heartpact/billing/PlayStore.kt:87",
+   "app/heartpact/ui/plus/PlusViewModel.kt:103"
   ],
   "code": "val NOT_ON_SALE get() = tr(\"Plus isn't on sale in your country yet.\")"
  },
  "Google Play couldn't finish that. Try again in a moment.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:77"
+   "app/heartpact/billing/PlayStore.kt:88"
   ],
   "code": "val FAILED get() = tr(\"Google Play couldn't finish that. Try again in a moment.\")"
  },
  "Your payment was declined: there wasn't enough money on that payment method. Try another one in Google Play.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:78"
+   "app/heartpact/billing/PlayStore.kt:89"
   ],
   "code": "val DECLINED get() = tr(\"Your payment was declined: there wasn't enough money on that payment method. Try another one in Google Play.\")"
  },
  "This offer isn't available on your Google account. Pick the plan without it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlayStore.kt:79"
+   "app/heartpact/billing/PlayStore.kt:90"
   ],
   "code": "val INELIGIBLE get() = tr(\"This offer isn't available on your Google account. Pick the plan without it.\")"
  },
  "Yearly": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:41"
+   "app/heartpact/billing/PlusOffers.kt:48"
   ],
   "code": "0 -> tr(\"Yearly\")"
  },
  "Monthly": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:42"
+   "app/heartpact/billing/PlusOffers.kt:49"
   ],
   "code": "1 -> tr(\"Monthly\")"
  },
  "{price} each period": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:60"
+   "app/heartpact/billing/PlusOffers.kt:67"
   ],
   "code": "val match = Regex(\"^P(\\\\d+)([DWMY])$\").find(iso) ?: return tr(\"{price} each period\", \"price\" to price)"
  },
  "{length} free, then {recurring}": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:76"
+   "app/heartpact/billing/PlusOffers.kt:83"
   ],
   "code": "return if (intro.priceMicros == 0L) tr(\"{length} free, then {recurring}\", \"length\" to length, \"recurring\" to base)"
  },
  "{introPrice} for {length}, then {recurring}": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:77"
+   "app/heartpact/billing/PlusOffers.kt:84"
   ],
   "code": "else tr(\"{introPrice} for {length}, then {recurring}\", \"introPrice\" to intro.formattedPrice, \"length\" to length, \"recurring\" to base)"
  },
  "Save {percent}%": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:104"
+   "app/heartpact/billing/PlusOffers.kt:111"
   ],
   "code": "if (saving >= 5) plan.copy(savings = tr(\"Save {percent}%\", \"percent\" to saving)) else plan"
  },
  "{size} GB": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:112",
+   "app/heartpact/billing/PlusOffers.kt:119",
    "app/heartpact/ui/album/AlbumModel.kt:51"
   ],
   "code": "if (gb >= 1) return tr(\"{size} GB\", \"size\" to if (gb % 1.0 == 0.0) \"${gb.toInt()}\" else \"%.1f\".format(gb))"
@@ -484,7 +484,7 @@
  "{size} MB": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:113",
+   "app/heartpact/billing/PlusOffers.kt:120",
    "app/heartpact/ui/album/AlbumModel.kt:50"
   ],
   "code": "return tr(\"{size} MB\", \"size\" to (bytes / (1024.0 * 1024)).roundToInt())"
@@ -492,44 +492,44 @@
  "Daily dares": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:118"
+   "app/heartpact/billing/PlusOffers.kt:125"
   ],
   "code": "Triple(tr(\"Daily dares\"), dares(free.activeDaresPerPerson), dares(plus.activeDaresPerPerson)),"
  },
  "Food photo scans a day": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:119"
+   "app/heartpact/billing/PlusOffers.kt:126"
   ],
   "code": "Triple(tr(\"Food photo scans a day\"), free.foodScansPerDay.toString(), plus.foodScansPerDay.toString()),"
  },
  "Album space": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:120"
+   "app/heartpact/billing/PlusOffers.kt:127"
   ],
   "code": "Triple(tr(\"Album space\"), storage(free.memoriesBytes), storage(plus.memoriesBytes)),"
  },
  "Question history": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:121"
+   "app/heartpact/billing/PlusOffers.kt:128"
   ],
   "code": "Triple(tr(\"Question history\"), trn(free.questionHistoryDays, \"{count} day\", \"{count} days\"), trn(plus.questionHistoryDays, \"{count} day\", \"{count} days\")),"
  },
  "Unlimited": {
   "plural": false,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:125"
+   "app/heartpact/billing/PlusOffers.kt:132"
   ],
   "code": "fun dares(limit: Int?): String = limit?.let { trn(it, \"{count} each\", \"{count} each\") } ?: tr(\"Unlimited\")"
  },
  "{count} day|{count} days": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:51",
-   "app/heartpact/billing/PlusOffers.kt:121",
-   "app/heartpact/billing/PlusOffers.kt:121",
+   "app/heartpact/billing/PlusOffers.kt:58",
+   "app/heartpact/billing/PlusOffers.kt:128",
+   "app/heartpact/billing/PlusOffers.kt:128",
    "app/heartpact/ui/cycle/CycleScreen.kt:283",
    "app/heartpact/ui/cycle/CycleScreen.kt:284"
   ],
@@ -540,7 +540,7 @@
  "{count} week|{count} weeks": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:52"
+   "app/heartpact/billing/PlusOffers.kt:59"
   ],
   "code": "\"W\" -> trn(amount, \"{count} week\", \"{count} weeks\")",
   "one": "{count} week",
@@ -549,7 +549,7 @@
  "{count} month|{count} months": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:53"
+   "app/heartpact/billing/PlusOffers.kt:60"
   ],
   "code": "\"M\" -> trn(amount, \"{count} month\", \"{count} months\")",
   "one": "{count} month",
@@ -558,7 +558,7 @@
  "{count} year|{count} years": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:54"
+   "app/heartpact/billing/PlusOffers.kt:61"
   ],
   "code": "else -> trn(amount, \"{count} year\", \"{count} years\")",
   "one": "{count} year",
@@ -567,7 +567,7 @@
  "{price} a day|{price} every {count} days": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:63"
+   "app/heartpact/billing/PlusOffers.kt:70"
   ],
   "code": "\"D\" -> trn(amount, \"{price} a day\", \"{price} every {count} days\", \"price\" to price)",
   "one": "{price} a day",
@@ -576,7 +576,7 @@
  "{price} a week|{price} every {count} weeks": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:64"
+   "app/heartpact/billing/PlusOffers.kt:71"
   ],
   "code": "\"W\" -> trn(amount, \"{price} a week\", \"{price} every {count} weeks\", \"price\" to price)",
   "one": "{price} a week",
@@ -585,7 +585,7 @@
  "{price} a month|{price} every {count} months": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:65"
+   "app/heartpact/billing/PlusOffers.kt:72"
   ],
   "code": "\"M\" -> trn(amount, \"{price} a month\", \"{price} every {count} months\", \"price\" to price)",
   "one": "{price} a month",
@@ -594,7 +594,7 @@
  "{price} a year|{price} every {count} years": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:66"
+   "app/heartpact/billing/PlusOffers.kt:73"
   ],
   "code": "else -> trn(amount, \"{price} a year\", \"{price} every {count} years\", \"price\" to price)",
   "one": "{price} a year",
@@ -603,7 +603,7 @@
  "{count} each|{count} each": {
   "plural": true,
   "uses": [
-   "app/heartpact/billing/PlusOffers.kt:125"
+   "app/heartpact/billing/PlusOffers.kt:132"
   ],
   "code": "fun dares(limit: Int?): String = limit?.let { trn(it, \"{count} each\", \"{count} each\") } ?: tr(\"Unlimited\")",
   "one": "{count} each",
@@ -633,7 +633,9 @@
  "That didn't work. Try again.": {
   "plural": false,
   "uses": [
-   "app/heartpact/data/ApiResult.kt:32"
+   "app/heartpact/data/ApiResult.kt:32",
+   "app/heartpact/ui/plus/PlusViewModel.kt:198",
+   "app/heartpact/ui/plus/PlusViewModel.kt:240"
   ],
   "code": "else -> tr(\"That didn't work. Try again.\")"
  },
@@ -1278,7 +1280,7 @@
  "{partner}'s cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:408",
+   "app/heartpact/ui/AppNav.kt:409",
    "app/heartpact/ui/cycle/CycleScreen.kt:98"
   ],
   "code": "CardRow(if (cycleMode == CycleMode.Partner) tr(\"{partner}'s cycle\", \"partner\" to partner) else tr(\"Your cycle\"),"
@@ -1286,7 +1288,7 @@
  "Your cycle": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:408",
+   "app/heartpact/ui/AppNav.kt:409",
    "app/heartpact/ui/cycle/CycleScreen.kt:98"
   ],
   "code": "CardRow(if (cycleMode == CycleMode.Partner) tr(\"{partner}'s cycle\", \"partner\" to partner) else tr(\"Your cycle\"),"
@@ -1294,7 +1296,7 @@
  "Pregnancy mode": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:415",
+   "app/heartpact/ui/AppNav.kt:416",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:246"
   ],
   "code": "CardRow(tr(\"Pregnancy mode\"), subtitle = PregnancyText.usRow(pregnancySummaryUi.pregnancy, partner),"
@@ -1302,7 +1304,7 @@
  "You": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/AppNav.kt:537",
+   "app/heartpact/ui/AppNav.kt:545",
    "app/heartpact/ui/games/GameLife.kt:175",
    "app/heartpact/ui/games/GameLife.kt:322",
    "app/heartpact/ui/games/ICallOnBoard.kt:173",
@@ -1770,7 +1772,7 @@
   "plural": false,
   "uses": [
    "app/heartpact/ui/album/AlbumTab.kt:471",
-   "app/heartpact/ui/plus/PlusScreen.kt:121",
+   "app/heartpact/ui/plus/PlusScreen.kt:137",
    "app/heartpact/ui/pregnancy/PregnancyScreen.kt:232",
    "app/heartpact/ui/us/ProfileScreen.kt:166"
   ],
@@ -9122,233 +9124,310 @@
  "One plan covers both of you. Either of you can buy it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:62"
+   "app/heartpact/ui/plus/PlusScreen.kt:63"
   ],
   "code": "entitlement == null || entitlement.plan == app.heartpact.data.Plan.Free -> tr(\"One plan covers both of you. Either of you can buy it.\")"
  },
  "You have Plus. It covers you and {partner}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:63"
+   "app/heartpact/ui/plus/PlusScreen.kt:64"
   ],
   "code": "subscription != null && subscription.purchasedByMe -> tr(\"You have Plus. It covers you and {partner}.\", \"partner\" to partnerName)"
  },
  "{partner} pays for Plus. It covers you both.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:64"
+   "app/heartpact/ui/plus/PlusScreen.kt:65"
   ],
   "code": "subscription != null -> tr(\"{partner} pays for Plus. It covers you both.\", \"partner\" to partnerName)"
  },
  "Plus is on us until {date}. Subscribe to keep it after that.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:65"
+   "app/heartpact/ui/plus/PlusScreen.kt:66"
   ],
   "code": "entitlement.complimentary -> entitlement.complimentaryUntilUtc?.let { tr(\"Plus is on us until {date}. Subscribe to keep it after that.\", \"date\" to date(it)) } ?: tr(\"Plus is on us. It covers you both."
  },
  "Plus is on us. It covers you both.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:65"
+   "app/heartpact/ui/plus/PlusScreen.kt:66"
   ],
   "code": "entitlement.complimentary -> entitlement.complimentaryUntilUtc?.let { tr(\"Plus is on us until {date}. Subscribe to keep it after that.\", \"date\" to date(it)) } ?: tr(\"Plus is on us. It covers you both."
  },
  "You both have Plus.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:66"
+   "app/heartpact/ui/plus/PlusScreen.kt:67"
   ],
   "code": "else -> tr(\"You both have Plus.\")"
+ },
+ "Your last card payment didn't go through. Update your card in Manage billing by {date} to keep Plus.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:79"
+  ],
+  "code": "if (mine) tr(\"Your last card payment didn't go through. Update your card in Manage billing by {date} to keep Plus.\", \"date\" to until)"
+ },
+ "{partner}'s last card payment didn't go through. Plus stays until {date} while they fix it.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:80"
+  ],
+  "code": "else tr(\"{partner}'s last card payment didn't go through. Plus stays until {date} while they fix it.\", \"partner\" to partnerName, \"date\" to until)"
  },
  "Google couldn't take the last payment. Fix it in Google Play by {date} to keep Plus.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:78"
+   "app/heartpact/ui/plus/PlusScreen.kt:82"
   ],
   "code": "if (mine) tr(\"Google couldn't take the last payment. Fix it in Google Play by {date} to keep Plus.\", \"date\" to until)"
  },
  "Google couldn't take {partner}'s last payment. Plus stays until {date} while they fix it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:79"
+   "app/heartpact/ui/plus/PlusScreen.kt:83"
   ],
   "code": "else tr(\"Google couldn't take {partner}'s last payment. Plus stays until {date} while they fix it.\", \"partner\" to partnerName, \"date\" to until)"
  },
  "Your {plan} plan is set not to renew. Plus ends on {date}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:81"
+   "app/heartpact/ui/plus/PlusScreen.kt:85"
   ],
   "code": "if (mine) tr(\"Your {plan} plan is set not to renew. Plus ends on {date}.\", \"plan\" to plan, \"date\" to until)"
  },
  "{partner}'s {plan} plan is set not to renew. Plus ends on {date}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:82"
+   "app/heartpact/ui/plus/PlusScreen.kt:86"
   ],
   "code": "else tr(\"{partner}'s {plan} plan is set not to renew. Plus ends on {date}.\", \"partner\" to partnerName, \"plan\" to plan, \"date\" to until)"
  },
  "Your {plan} plan renews on {date}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:84"
+   "app/heartpact/ui/plus/PlusScreen.kt:88"
   ],
   "code": "if (mine) tr(\"Your {plan} plan renews on {date}.\", \"plan\" to plan, \"date\" to until)"
  },
  "{partner}'s {plan} plan renews on {date}.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:85"
+   "app/heartpact/ui/plus/PlusScreen.kt:89"
   ],
   "code": "else tr(\"{partner}'s {plan} plan renews on {date}.\", \"partner\" to partnerName, \"plan\" to plan, \"date\" to until)"
  },
  "More food scans, album space and history": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:93"
+   "app/heartpact/ui/plus/PlusScreen.kt:97"
   ],
   "code": "entitlement == null -> tr(\"More food scans, album space and history\")"
  },
  "Free plan · more scans, album space and history with Plus": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:94"
+   "app/heartpact/ui/plus/PlusScreen.kt:98"
   ],
   "code": "entitlement.plan == app.heartpact.data.Plan.Free -> tr(\"Free plan · more scans, album space and history with Plus\")"
  },
  "Plus · you pay, it covers you both": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:95"
+   "app/heartpact/ui/plus/PlusScreen.kt:99"
   ],
   "code": "subscription != null && subscription.purchasedByMe -> tr(\"Plus · you pay, it covers you both\")"
  },
  "Plus · {partner} pays, it covers you both": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:96"
+   "app/heartpact/ui/plus/PlusScreen.kt:100"
   ],
   "code": "subscription != null -> tr(\"Plus · {partner} pays, it covers you both\", \"partner\" to partnerName)"
  },
  "Plus · on us until {date}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:97"
+   "app/heartpact/ui/plus/PlusScreen.kt:101"
   ],
   "code": "else -> entitlement.complimentaryUntilUtc?.let { tr(\"Plus · on us until {date}\", \"date\" to date(it)) } ?: tr(\"Plus · on us\")"
  },
  "Plus · on us": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:97"
+   "app/heartpact/ui/plus/PlusScreen.kt:101"
   ],
   "code": "else -> entitlement.complimentaryUntilUtc?.let { tr(\"Plus · on us until {date}\", \"date\" to date(it)) } ?: tr(\"Plus · on us\")"
+ },
+ "Paid by card. Change the card or cancel in Manage billing.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:109"
+  ],
+  "code": "subscription?.isCard == true && subscription.purchasedByMe -> tr(\"Paid by card. Change the card or cancel in Manage billing.\")"
+ },
+ "{partner} pays by card and manages it": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:110"
+  ],
+  "code": "subscription?.isCard == true -> tr(\"{partner} pays by card and manages it\", \"partner\" to partnerName)"
+ },
+ "Managed in Google Play": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:111"
+  ],
+  "code": "subscription?.purchasedByMe == true -> tr(\"Managed in Google Play\")"
+ },
+ "{partner} manages it in Google Play": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:112"
+  ],
+  "code": "else -> tr(\"{partner} manages it in Google Play\", \"partner\" to partnerName)"
  },
  "Cancel anytime in the Play Store. Deleting your account doesn't cancel it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:101"
+   "app/heartpact/ui/plus/PlusScreen.kt:116"
   ],
   "code": "val FOOTER get() = tr(\"Cancel anytime in the Play Store. Deleting your account doesn't cancel it.\")"
  },
  "Welcome to Plus. {partner} has it too, from now on.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:131"
+   "app/heartpact/ui/plus/PlusScreen.kt:147"
   ],
   "code": "if (ui.welcomed) NoteCard(tr(\"Welcome to Plus. {partner} has it too, from now on.\", \"partner\" to partnerName), Modifier.padding(top = 16.dp))"
- },
- "Managed in Google Play": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:141"
-  ],
-  "code": "CardRow(status, subtitle = if (subscription?.purchasedByMe == true) tr(\"Managed in Google Play\") else tr(\"{partner} manages it in Google Play\", \"partner\" to partnerName))"
- },
- "{partner} manages it in Google Play": {
-  "plural": false,
-  "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:141"
-  ],
-  "code": "CardRow(status, subtitle = if (subscription?.purchasedByMe == true) tr(\"Managed in Google Play\") else tr(\"{partner} manages it in Google Play\", \"partner\" to partnerName))"
  },
  "Choose a plan": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:145"
+   "app/heartpact/ui/plus/PlusScreen.kt:162"
   ],
   "code": "Text(tr(\"Choose a plan\"), style = Heartpact.type.label, color = colors.ink, modifier = Modifier.padding(top = 20.dp))"
  },
  "Loading plans from Google Play…": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:147"
+   "app/heartpact/ui/plus/PlusScreen.kt:164"
   ],
   "code": "Text(ui.storeMessage ?: tr(\"Loading plans from Google Play…\"), style = Heartpact.type.body, color = colors.ink2, modifier = Modifier.padding(top = 8.dp))"
  },
  "Manage in Google Play": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:158"
+   "app/heartpact/ui/plus/PlusScreen.kt:175"
   ],
-  "code": "subscription?.purchasedByMe == true -> HeartButton(tr(\"Manage in Google Play\"), onClick = { onManage(subscription.productId) }, kind = ButtonKind.Tonal)"
+  "code": "PlusAction.ManageInPlay -> HeartButton(tr(\"Manage in Google Play\"), onClick = { subscription?.let { onManage(it.productId) } }, kind = ButtonKind.Tonal)"
+ },
+ "Manage billing": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusScreen.kt:176"
+  ],
+  "code": "PlusAction.ManageBilling -> HeartButton(tr(\"Manage billing\"), onClick = onManageBilling, kind = ButtonKind.Tonal, busy = ui.busy)"
  },
  "Continue with Google Play": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:159"
+   "app/heartpact/ui/plus/PlusScreen.kt:178"
   ],
-  "code": "showPlans -> HeartButton(tr(\"Continue with Google Play\"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending, busy = ui.busy)"
+  "code": "PlusAction.Buy -> HeartButton(tr(\"Continue with Google Play\"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending && !ui.awaitingCard, busy = ui.busy)"
  },
  "Restore a purchase": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:164"
+   "app/heartpact/ui/plus/PlusScreen.kt:183"
   ],
   "code": "HeartButton(tr(\"Restore a purchase\"), onClick = onRestore, kind = ButtonKind.Text, enabled = !ui.busy, height = 40.dp)"
  },
  "What you both get": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:175"
+   "app/heartpact/ui/plus/PlusScreen.kt:194"
   ],
   "code": "CardRow(tr(\"What you both get\"), trailing = {"
  },
  "Free": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusScreen.kt:176"
+   "app/heartpact/ui/plus/PlusScreen.kt:195"
   ],
   "code": "Text(tr(\"Free\"), style = Heartpact.type.labelSmall, color = colors.ink3, textAlign = TextAlign.End, modifier = Modifier.width(66.dp))"
  },
  "This Google account has no Plus subscription for you.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:105"
+   "app/heartpact/ui/plus/PlusViewModel.kt:128"
   ],
   "code": "is RestoreResult.NothingToRestore -> if (result.pending) PENDING else tr(\"This Google account has no Plus subscription for you.\")"
  },
  "Your payment went through, but we couldn't switch Plus on yet. {serverMessage}": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:129"
+   "app/heartpact/ui/plus/PlusViewModel.kt:152"
   ],
   "code": "is ApiResult.Failure -> _ui.update { it.copy(note = tr(\"Your payment went through, but we couldn't switch Plus on yet. {serverMessage}\", \"serverMessage\" to result.message)) }"
  },
  "Your payment went through. Plus switches on as soon as you're back online.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:130"
+   "app/heartpact/ui/plus/PlusViewModel.kt:153"
   ],
   "code": "ApiResult.Offline -> _ui.update { it.copy(note = tr(\"Your payment went through. Plus switches on as soon as you're back online.\")) }"
+ },
+ "We haven't heard about your card payment yet. If you paid, Plus switches on by itself in a few minutes.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusViewModel.kt:222"
+  ],
+  "code": "_ui.update { it.copy(awaitingCard = false, note = tr(\"We haven't heard about your card payment yet. If you paid, Plus switches on by itself in a few minutes.\")) }"
  },
  "Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.": {
   "plural": false,
   "uses": [
-   "app/heartpact/ui/plus/PlusViewModel.kt:146"
+   "app/heartpact/ui/plus/PlusViewModel.kt:231"
   ],
   "code": "val PENDING get() = tr(\"Your purchase is waiting for the payment to go through. Plus switches on as soon as Google confirms it.\")"
+ },
+ "Waiting for your payment to be confirmed…": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusViewModel.kt:232"
+  ],
+  "code": "val AWAITING_CARD get() = tr(\"Waiting for your payment to be confirmed…\")"
+ },
+ "Paying by card isn't available right now. Try again later, or pay with Google Play.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusViewModel.kt:236"
+  ],
+  "code": "\"billing.bachs_unavailable\" -> tr(\"Paying by card isn't available right now. Try again later, or pay with Google Play.\")"
+ },
+ "That plan can't be paid by card right now. Pay with Google Play instead.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusViewModel.kt:237"
+  ],
+  "code": "\"billing.unknown_plan\" -> tr(\"That plan can't be paid by card right now. Pay with Google Play instead.\")"
+ },
+ "You already have Plus, so there's nothing to pay.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusViewModel.kt:238"
+  ],
+  "code": "\"billing.already_plus\" -> tr(\"You already have Plus, so there's nothing to pay.\")"
+ },
+ "We couldn't find card billing for your account. If that's wrong, write to support@heartpact.me.": {
+  "plural": false,
+  "uses": [
+   "app/heartpact/ui/plus/PlusViewModel.kt:239"
+  ],
+  "code": "\"billing.no_bachs_customer\" -> tr(\"We couldn't find card billing for your account. If that's wrong, write to support@heartpact.me.\")"
  },
  "Pregnancy": {
   "plural": false,

@@ -36,6 +36,7 @@ import app.heartpact.ui.plus.PlusSummaryViewModel
 import app.heartpact.ui.plus.PlusText
 import app.heartpact.ui.plus.PlusViewModel
 import app.heartpact.ui.components.ReadableScreen
+import app.heartpact.ui.components.openInBrowser
 import app.heartpact.push.PushInbox
 import app.heartpact.ui.games.GameActions
 import app.heartpact.ui.games.GamesScreen
@@ -468,8 +469,15 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                         val activity = LocalActivity.current ?: return@composable
                         val model: PlusViewModel = viewModel(factory = viewModelFactory { initializer { PlusViewModel(container.plus, container.playStore, me.id) } })
                         val ui by model.ui.collectAsStateWithLifecycle()
+                        // Bachs' checkout and billing open in the browser; back here, a card payment is checked for.
+                        LaunchedEffect(model) { model.links.collect { url -> openInBrowser(activity, url) } }
+                        LifecycleResumeEffect(model) {
+                            model.resumed()
+                            onPauseOrDispose { }
+                        }
                         PlusScreen(ui, partner, onClose = { nav.popBackStack() }, onSelect = model::select, onBuy = { model.buy(activity) }, onRestore = model::restore,
-                            onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) })
+                            onManage = { productId -> activity.startActivity(Intent(Intent.ACTION_VIEW, PlusOffers.manageUrl(productId, activity.packageName).toUri())) },
+                            onManageBilling = model::manageBilling)
                     }
                 }
                 composable(Routes.PROFILE) {

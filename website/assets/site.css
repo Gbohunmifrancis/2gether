@@ -280,6 +280,8 @@ html.christmas .buy-plan.best, html.christmas .buy-plan.best p { color: #FFFFFF;
 @media (prefers-reduced-motion: no-preference) { .spinner { animation: spin 0.9s linear infinite; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .plus-page .back { margin-top: 32px; }
+/* Headings take focus only so screen readers announce the new state; they aren't controls. */
+.plus-page h2[tabindex="-1"]:focus { outline: none; }
 
 /* ---------- Phones and narrow screens ---------- */
 @media (max-width: 860px) {

@@ -2,6 +2,8 @@ package app.heartpact
 
 import android.app.Activity
 import app.heartpact.billing.PlayStore
+import app.heartpact.billing.PlusAction
+import app.heartpact.billing.PlusOffers
 import app.heartpact.billing.PlusRestore
 import app.heartpact.billing.ProductsResult
 import app.heartpact.billing.PurchaseState
@@ -16,6 +18,7 @@ import app.heartpact.data.Plan
 import app.heartpact.data.PlusRepository
 import app.heartpact.ui.plus.PlusUi
 import app.heartpact.ui.plus.PlusViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -46,6 +49,9 @@ class FakePlayStore(var products: ProductsResult = ProductsResult.Ok(emptyList()
     override val updates = MutableSharedFlow<PurchaseUpdate>(extraBufferCapacity = 8)
     val launched = mutableListOf<Triple<String, String, String>>()
     var buyError: String? = null
+    /** What the Plus screen last asked for: Google's billing choice screen on purchases, or not. */
+    var cardChoice: Boolean? = null
+    override fun offerCardChoice(enabled: Boolean) { cardChoice = enabled }
     override suspend fun products(ids: List<String>) = products
     override suspend fun owned() = ownedList
     override suspend fun buy(activity: Activity, productId: String, offerToken: String, accountId: String): String? {
@@ -164,6 +170,102 @@ class PlusViewModelTest {
         assertEquals(RestoreResult.NothingToRestore(pending = true), PlusRestore.run(store, plus, userId, onlyUnacknowledged = true))
         assertEquals(1, server.requestCount)
         assertEquals(RestoreResult.StoreUnavailable, PlusRestore.run(FakePlayStore(ownedList = null), plus, userId, onlyUnacknowledged = true))
+    }
+
+    private val freeCard = free.replace("\"canPurchase\":true", "\"canPurchase\":true,\"webCheckout\":true,\"cardInApp\":true")
+    private val plusCard = plusMine.replace("\"store\":\"googlePlay\"", "\"store\":\"bachs\"")
+
+    @Test fun `Google's choice screen is asked for only when the server allows card in the app`() = runTest {
+        server.enqueue(MockResponse().setBody(free))
+        val off = FakePlayStore(products)
+        PlusViewModel(plus, off, userId).awaitUi { it.options.isNotEmpty() }
+        assertEquals(false, off.cardChoice)
+
+        server.enqueue(MockResponse().setBody(freeCard))
+        val on = FakePlayStore(products)
+        PlusViewModel(plus, on, userId).awaitUi { it.options.isNotEmpty() }
+        assertEquals(true, on.cardChoice)
+    }
+
+    @Test fun `choosing card on Google's screen opens a Bachs checkout, then waits for the server to say Plus`() = runTest {
+        server.enqueue(MockResponse().setBody(freeCard))
+        val store = FakePlayStore(products)
+        val model = PlusViewModel(plus, store, userId, pollEveryMs = 50, pollForMs = 2_000)
+        model.awaitUi { it.options.isNotEmpty() }
+        server.takeRequest()
+        model.buy(Activity())
+
+        server.enqueue(MockResponse().setBody("""{"checkoutUrl":"https://checkout.bachs.io/c/abc"}"""))
+        val link = async(Dispatchers.IO) { withTimeout(5_000) { model.links.first() } }
+        store.updates.emit(PurchaseUpdate.ChoseCard(listOf("heartpact_plus_yearly"), "ext-token"))
+        assertEquals("https://checkout.bachs.io/c/abc", link.await())
+        val checkout = server.takeRequest()
+        assertEquals("/api/billing/bachs/checkout", checkout.path)
+        assertEquals("""{"plan":"yearly","from":"app","externalTransactionToken":"ext-token"}""", checkout.body.readUtf8())
+        model.awaitUi { it.awaitingCard && !it.busy }
+
+        // Back from the browser: still Free once, then Bachs' webhook has reached the server.
+        server.enqueue(MockResponse().setBody(freeCard))
+        server.enqueue(MockResponse().setBody(plusCard))
+        model.resumed()
+        model.awaitUi { it.isPlus && !it.awaitingCard }
+        assertTrue(model.ui.value.welcomed)
+        assertTrue(model.ui.value.entitlement!!.subscription!!.isCard)
+    }
+
+    @Test fun `when the payment isn't confirmed in time the screen stops waiting and says so`() = runTest {
+        server.enqueue(MockResponse().setBody(freeCard))
+        val store = FakePlayStore(products)
+        val model = PlusViewModel(plus, store, userId, pollEveryMs = 20, pollForMs = 100)
+        model.awaitUi { it.options.isNotEmpty() }
+        server.enqueue(MockResponse().setBody("""{"checkoutUrl":"https://checkout.bachs.io/c/abc"}"""))
+        store.updates.emit(PurchaseUpdate.ChoseCard(listOf("heartpact_plus_monthly"), "t"))
+        model.awaitUi { it.awaitingCard }
+        repeat(5) { server.enqueue(MockResponse().setBody(freeCard)) }
+        model.resumed()
+        val ui = model.awaitUi { !it.awaitingCard }
+        assertFalse(ui.isPlus)
+        assertTrue(ui.note!!.startsWith("We haven't heard about your card payment yet."))
+    }
+
+    @Test fun `a refused card checkout says why, and an unknown product never reaches the server`() = runTest {
+        server.enqueue(MockResponse().setBody(freeCard))
+        val store = FakePlayStore(products)
+        val model = PlusViewModel(plus, store, userId)
+        model.awaitUi { it.options.isNotEmpty() }
+        server.enqueue(MockResponse().setResponseCode(503).setBody("""{"code":"billing.bachs_unavailable","message":"Card payments are not set up."}"""))
+        store.updates.emit(PurchaseUpdate.ChoseCard(listOf("heartpact_plus_monthly"), "t"))
+        assertEquals("Paying by card isn't available right now. Try again later, or pay with Google Play.", model.awaitUi { it.note != null && !it.busy }.note)
+        assertFalse(model.ui.value.awaitingCard)
+
+        val before = server.requestCount
+        store.updates.emit(PurchaseUpdate.ChoseCard(listOf("heartpact_test_product"), "t"))
+        assertEquals("That plan can't be paid by card right now. Pay with Google Play instead.", model.ui.value.note)
+        assertEquals(before, server.requestCount)
+
+        // Already Plus (bought on the website meanwhile): say so and show the plan.
+        server.enqueue(MockResponse().setResponseCode(409).setBody("""{"code":"billing.already_plus","message":"x"}"""))
+        server.enqueue(MockResponse().setBody(plusCard))
+        store.updates.emit(PurchaseUpdate.ChoseCard(listOf("heartpact_plus_yearly"), "t"))
+        model.awaitUi { it.isPlus }
+        assertEquals(PlusAction.ManageBilling, PlusOffers.action(model.ui.value.entitlement))
+    }
+
+    @Test fun `manage billing opens Bachs' portal, made on tap`() = runTest {
+        server.enqueue(MockResponse().setBody(plusCard))
+        val model = PlusViewModel(plus, FakePlayStore(products), userId)
+        model.awaitUi { it.isPlus }
+        server.takeRequest()
+        server.enqueue(MockResponse().setBody("""{"url":"https://billing.bachs.io/p/xyz"}"""))
+        val link = async(Dispatchers.IO) { withTimeout(5_000) { model.links.first() } }
+        model.manageBilling()
+        assertEquals("https://billing.bachs.io/p/xyz", link.await())
+        assertEquals("/api/billing/bachs/portal", server.takeRequest().path)
+        assertFalse(model.awaitUi { !it.busy }.awaitingCard)
+
+        server.enqueue(MockResponse().setResponseCode(404).setBody("""{"code":"billing.no_bachs_customer","message":"x"}"""))
+        model.manageBilling()
+        assertTrue(model.awaitUi { it.note != null }.note!!.startsWith("We couldn't find card billing"))
     }
 
     @Test fun `a refused purchase keeps the server's words`() = runTest {

@@ -26,7 +26,14 @@ data class SubscriptionSummary(
     val autoRenewing: Boolean = false,
     val purchasedByUserId: String = "",
     val purchasedByMe: Boolean = false,
-)
+) {
+    /** Paid by card through Bachs (on the website, or after Google Play's billing choice screen), not Google Play. */
+    val isCard get() = store == STORE_BACHS
+
+    companion object {
+        const val STORE_BACHS = "bachs"
+    }
+}
 
 /**
  * [canPurchase] is false when the partner already pays. [complimentary] is Plus given by Heartpact
@@ -44,7 +51,28 @@ data class Entitlement(
     val freeLimits: PlanLimits? = null,
     val plusLimits: PlanLimits? = null,
     val productIds: List<String> = emptyList(),
+    /** The server sells Plus by card through Bachs (on the website). */
+    val webCheckout: Boolean = false,
+    /**
+     * Card payment may be offered in the app: Bachs is set up, the admin flag is on and this person is in a country
+     * where it's allowed. Google Play's purchase sheet then shows Google's billing choice screen (PlayStore).
+     */
+    val cardInApp: Boolean = false,
 )
 
 @Serializable
 data class VerifyPurchaseRequest(val productId: String, val purchaseToken: String)
+
+/**
+ * `POST api/billing/bachs/checkout`. [externalTransactionToken] is Google Play's token from its billing choice screen
+ * when the person chose to pay by card there; the server reports the sale to Google with it.
+ */
+@Serializable
+data class BachsCheckoutRequest(val plan: String, val from: String = "app", val externalTransactionToken: String? = null)
+
+@Serializable
+data class BachsCheckout(val checkoutUrl: String)
+
+/** Bachs' customer portal for my own card subscription: change the card, see receipts, cancel. */
+@Serializable
+data class BachsPortal(val url: String)

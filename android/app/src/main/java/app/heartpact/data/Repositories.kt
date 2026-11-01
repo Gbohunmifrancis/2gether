@@ -143,6 +143,10 @@ class GameRepository(private val api: HeartpactApi, private val json: Json) {
 class PlusRepository(private val api: HeartpactApi, private val json: Json) {
     suspend fun entitlement(): ApiResult<Entitlement> = apiCall(json) { api.entitlement() }
     suspend fun verify(productId: String, purchaseToken: String): ApiResult<Entitlement> = apiCall(json) { api.verifyPurchase(VerifyPurchaseRequest(productId, purchaseToken)) }
+    /** A Bachs checkout page for [plan] ("monthly" or "yearly"). Plus arrives later, when Bachs tells the server it was paid. */
+    suspend fun cardCheckout(plan: String, externalTransactionToken: String?): ApiResult<BachsCheckout> =
+        apiCall(json) { api.bachsCheckout(BachsCheckoutRequest(plan, "app", externalTransactionToken)) }
+    suspend fun cardPortal(): ApiResult<BachsPortal> = apiCall(json) { api.bachsPortal() }
 }
 
 /**
