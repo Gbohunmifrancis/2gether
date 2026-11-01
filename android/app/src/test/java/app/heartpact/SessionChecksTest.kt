@@ -202,4 +202,27 @@ class SessionChecksTest {
         assertNull(OccurrenceChecks().partnerLine())
         assertNotNull(OccurrenceChecks(flags = listOf("unverifiedApp")).partnerLine())
     }
+
+    @Test fun `side plank asks for a hip dip, mountain climbers for hips up`() {
+        val runner = ChallengeRunner(ExerciseType.SidePlank, 60, Random(5))
+        var t = 0L
+        fun at(sag: Float) = Bodies.pose(Bodies.sidePlank(hipSag = sag), t)
+        var ui = runner.update(at(0f), t)
+        while (ui?.kind == null) { t += frameMs; ui = runner.update(at(0f), t) }
+        assertEquals(ChallengeKind.HipDip, ui.kind)
+        assertEquals("Check-in: hip dip!", ui.title)
+        // Hips up first is the wrong way: nothing yet.
+        repeat(5) { t += frameMs; ui = runner.update(at(-0.15f), t) }
+        repeat(3) { t += frameMs; ui = runner.update(at(0f), t) }
+        assertEquals(null, ui?.passed)
+        repeat(5) { t += frameMs; runner.update(at(0.22f), t) }
+        repeat(3) { t += frameMs; ui = runner.update(at(0f), t) }
+        assertEquals(true, ui?.passed)
+
+        val climber = ChallengeRunner(ExerciseType.MountainClimber, 60, Random(5))
+        var c = 0L
+        var opened = climber.update(Bodies.pose(Bodies.climber(175f, 175f), c), c)
+        while (opened?.kind == null) { c += frameMs; opened = climber.update(Bodies.pose(Bodies.climber(175f, 175f), c), c) }
+        assertEquals(ChallengeKind.HipsUp, opened.kind)
+    }
 }

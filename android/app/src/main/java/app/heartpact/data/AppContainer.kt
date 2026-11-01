@@ -75,7 +75,7 @@ class AppContainer(context: Context, baseUrl: String = BuildConfig.API_BASE_URL)
     val pushEvents = MutableSharedFlow<String>(extraBufferCapacity = 16)
 
     /** The couple hub. Its "something changed" events join [pushEvents], so screens refresh either way. */
-    val live = LiveHub(baseUrl, session) { event -> pushEvents.tryEmit(LiveHub.appName(event.name)) }
+    val live = LiveHub(baseUrl, session) { event -> if (event.name !in LiveHub.STREAM) pushEvents.tryEmit(LiveHub.appName(event.name)) }
 
     val auth = AuthRepository(api, session, json)
     val couple = CoupleRepository(api, session, json)

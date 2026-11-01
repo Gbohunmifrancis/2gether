@@ -55,8 +55,10 @@ enum class ChallengeKind {
     /** Raise the left hand, or the right, picked at random when it opens: a recording, playing or paused, can't follow the cue. */
     RaiseLeft,
     RaiseRight,
-    /** Plank only, where the hands hold the body up: hips up, then back into the line. */
+    /** Plank and mountain climbers, where the hands hold the body up: hips up, then back into the line. */
     HipsUp,
+    /** Side plank, one arm holding the body up: hips down toward the floor, then back into the line. */
+    HipDip,
 }
 
 /** A check-in on screen: what to do, how long is left, how far along the hold is, then how it went. */
@@ -66,6 +68,7 @@ data class ChallengeUi(val kind: ChallengeKind, val msLeft: Long, val progress: 
         passed == false -> tr("Missed the check-in")
         kind == ChallengeKind.RaiseLeft -> tr("Check-in: left hand up!")
         kind == ChallengeKind.RaiseRight -> tr("Check-in: right hand up!")
+        kind == ChallengeKind.HipDip -> tr("Check-in: hip dip!")
         else -> tr("Check-in: hips up!")
     }
     val body: String get() = when {
@@ -73,6 +76,7 @@ data class ChallengeUi(val kind: ChallengeKind, val msLeft: Long, val progress: 
         passed == false -> tr("Your partner will see that one was missed. Keep going.")
         kind == ChallengeKind.RaiseLeft -> tr("Raise your left hand above your shoulder for a second.")
         kind == ChallengeKind.RaiseRight -> tr("Raise your right hand above your shoulder for a second.")
+        kind == ChallengeKind.HipDip -> tr("Lower your hips toward the floor, then lift back into a straight line.")
         else -> tr("Raise your hips, then back into a straight line.")
     }
 }
@@ -92,8 +96,8 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, private val r
     private var lastPassed: Boolean? = null
     // Raise a hand: since when the asked-for hand has been up on its own.
     private var raisedSinceMs: Long? = null
-    // Hips up: seen high, then seen back in line.
-    private var hipsWentUp = false
+    // Hips up or a hip dip: seen out of the line, then seen back in it.
+    private var hipsMoved = false
 
     var passed = 0; private set
     var missed = 0; private set
@@ -117,9 +121,10 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, private val r
         if (open == null) {
             resultAtMs?.let { if (nowMs - it < RESULT_MS) return ChallengeUi(kind, 0, 1f, lastPassed) else resultAtMs = null }
             if (opening && next < schedule.size && elapsed >= schedule[next]) {
-                next++; openedAtMs = nowMs; raisedSinceMs = null; hipsWentUp = false
+                next++; openedAtMs = nowMs; raisedSinceMs = null; hipsMoved = false
                 kind = when {
-                    type == ExerciseType.Plank -> ChallengeKind.HipsUp
+                    type == ExerciseType.Plank || type == ExerciseType.MountainClimber -> ChallengeKind.HipsUp
+                    type == ExerciseType.SidePlank -> ChallengeKind.HipDip
                     random.nextBoolean() -> ChallengeKind.RaiseLeft
                     else -> ChallengeKind.RaiseRight
                 }
@@ -131,7 +136,8 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, private val r
         val progress = when (kind) {
             ChallengeKind.RaiseLeft -> raise(pose, nowMs, left = !mirrored)
             ChallengeKind.RaiseRight -> raise(pose, nowMs, left = mirrored)
-            ChallengeKind.HipsUp -> hipsUp(pose)
+            ChallengeKind.HipsUp -> hips(pose, up = true)
+            ChallengeKind.HipDip -> hips(pose, up = false)
         }
         return when {
             progress >= 1f -> close(true, nowMs)
@@ -159,15 +165,30 @@ class ChallengeRunner(private val type: ExerciseType, target: Int, private val r
         return ((nowMs - since).toFloat() / RAISE_HOLD_MS).coerceIn(0f, 1f)
     }
 
-    private fun hipsUp(pose: Pose?): Float {
-        if (pose == null) return if (hipsWentUp) 0.5f else 0f
+    /**
+     * Hips out of the line and back: [up] above the line from shoulders to ankles (a plank), or below it (a side plank's
+     * hip dip). Half way once they have left the line, done when the body is straight again.
+     */
+    private fun hips(pose: Pose?, up: Boolean): Float {
+        val line = pose?.let { bodyLine(it) } ?: return if (hipsMoved) 0.5f else 0f
+        val (shoulder, hip, ankle) = line
+        val angle = angleAt(shoulder, hip, ankle)
+        val sag = sagOf(shoulder, hip, ankle)
+        if (angle <= 150f && (if (up) sag < 0 else sag > 0)) hipsMoved = true
+        if (hipsMoved && angle >= 160f) return 1f
+        return if (hipsMoved) 0.5f else 0f
+    }
+
+    /** Shoulder, hip and ankle: the side the camera sees for a plank; the middle of the body for a side plank, which faces it. */
+    private fun bodyLine(pose: Pose): Triple<Point3, Point3, Point3>? {
+        if (type == ExerciseType.SidePlank) {
+            val all = intArrayOf(L_SHOULDER, R_SHOULDER, L_HIP, R_HIP, L_ANKLE, R_ANKLE)
+            if (pose.visibility(*all) < MIN_VISIBILITY) return null
+            return Triple(pose.mid(L_SHOULDER, R_SHOULDER), pose.mid(L_HIP, R_HIP), pose.mid(L_ANKLE, R_ANKLE))
+        }
         val s = pose.betterSide(intArrayOf(L_SHOULDER, L_HIP, L_ANKLE), intArrayOf(R_SHOULDER, R_HIP, R_ANKLE))
-        if (pose.visibility(*s) < MIN_VISIBILITY) return if (hipsWentUp) 0.5f else 0f
-        val angle = pose.angle(s[0], s[1], s[2])
-        val above = pose[s[1]].y < pose.lineY(s[0], s[2], pose[s[1]].x)
-        if (above && angle <= 150f) hipsWentUp = true
-        if (hipsWentUp && angle >= 160f) return 1f
-        return if (hipsWentUp) 0.5f else 0f
+        if (pose.visibility(*s) < MIN_VISIBILITY) return null
+        return Triple(pose.at(s[0]), pose.at(s[1]), pose.at(s[2]))
     }
 
     companion object {

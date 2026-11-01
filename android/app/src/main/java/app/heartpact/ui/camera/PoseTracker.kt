@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import app.heartpact.exercise.Landmark
+import app.heartpact.exercise.Point3
 import app.heartpact.exercise.Pose
 import app.heartpact.i18n.tr
 import com.google.mediapipe.framework.image.BitmapImageBuilder
@@ -19,7 +20,8 @@ import java.io.Closeable
 /**
  * Runs MediaPipe's pose landmarker on camera frames, on the device: frames never leave the phone.
  * Each frame is turned upright (and mirrored for the front camera, so the overlay matches what the
- * person sees) before detection; [onPose] gets null when nobody is in frame.
+ * person sees) before detection; [onPose] gets null when nobody is in frame. Each pose carries the
+ * picture's landmarks and the model's world landmarks, in metres, for measuring from any angle.
  */
 class PoseTracker(context: Context, private val onPose: (Pose?) -> Unit, private val onError: (String) -> Unit) : Closeable {
     private val landmarker: PoseLandmarker = PoseLandmarker.createFromOptions(
@@ -33,8 +35,10 @@ class PoseTracker(context: Context, private val onPose: (Pose?) -> Unit, private
             .setMinTrackingConfidence(0.5f)
             .setResultListener { result, image ->
                 val aspect = image.width.toFloat() / image.height
+                // The world landmarks (metres, centred between the hips) measure angles from any side; the picture's are for drawing.
+                val world = result.worldLandmarks().firstOrNull()?.takeIf { it.size >= Pose.COUNT }?.map { Point3(it.x(), it.y(), it.z()) }
                 val pose = result.landmarks().firstOrNull()?.takeIf { it.size >= Pose.COUNT }?.let { points ->
-                    Pose(points.map { Landmark(it.x(), it.y(), it.visibility().orElse(0f)) }, result.timestampMs(), aspect)
+                    Pose(points.map { Landmark(it.x(), it.y(), it.visibility().orElse(0f)) }, result.timestampMs(), aspect, world)
                 }
                 onPose(pose)
             }

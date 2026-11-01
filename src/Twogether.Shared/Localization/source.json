@@ -20,6 +20,7 @@
    "Twogether.Api/Controllers/PregnancyController.cs:262",
    "Twogether.Api/Controllers/PregnancyController.cs:287",
    "Twogether.Api/Controllers/QuestionsController.cs:80",
+   "Twogether.Api/Hubs/CoupleHub.ExerciseLive.cs:144",
    "Twogether.Api/Hubs/CoupleHub.cs:56",
    "Twogether.Application/Features/Questions/DailyQuestionContracts.cs:52"
   ],
@@ -1223,6 +1224,20 @@
   ],
   "code": "partnerAnswered ? Loc.T(\"{name} answered today's question too.\", (\"name\", me)) : Loc.T(\"{name} answered today's question. Answer yours to see theirs.\", (\"name\", me)),"
  },
+ "{name} started their {exercise}": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Hubs/CoupleHub.ExerciseLive.cs:126"
+  ],
+  "code": "Loc.T(\"{name} started their {exercise}\", (\"name\", name), (\"exercise\", ExerciseText.InSentence(title, pass.Type))),"
+ },
+ "Watch live and cheer them on.": {
+  "plural": false,
+  "uses": [
+   "Twogether.Api/Hubs/CoupleHub.ExerciseLive.cs:127"
+  ],
+  "code": "Loc.T(\"Watch live and cheer them on.\"), data, now);"
+ },
  "It is not this player's turn.": {
   "plural": false,
   "uses": [
@@ -1425,8 +1440,8 @@
   "plural": false,
   "uses": [
    "Twogether.Application/Features/Billing/BachsCheckoutService.cs:115",
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:156",
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:169"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:166",
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:180"
   ],
   "code": "private static Error NotSetUp() => Error.Failure(Unavailable, Loc.T(\"Card payments are not set up on this server.\"));"
  },
@@ -8493,7 +8508,49 @@
   "uses": [
    "Twogether.Core/Exercise/ExerciseCatalog.cs:33"
   ],
-  "code": "new(ExerciseType.SitUp, Loc.N(\"Sit-ups\"), ExerciseMeasure.Reps, 10, 1, 200, 0.8, \"Turn sideways. Sit all the way up, then lower back down.\")"
+  "code": "new(ExerciseType.SitUp, Loc.N(\"Sit-ups\"), ExerciseMeasure.Reps, 10, 1, 200, 0.8, \"Turn sideways. Sit all the way up, then lower back down.\"),"
+ },
+ "Lunges": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:35"
+  ],
+  "code": "new(ExerciseType.Lunge, Loc.N(\"Lunges\"), ExerciseMeasure.Reps, 20, 1, 200, 0.8, \"Step forward and lower until both knees bend, then push back up. Each leg counts.\"),"
+ },
+ "Glute bridges": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:36"
+  ],
+  "code": "new(ExerciseType.GluteBridge, Loc.N(\"Glute bridges\"), ExerciseMeasure.Reps, 15, 1, 200, 0.8, \"Turn sideways, lying on your back with knees bent. Lift your hips into a line, then lower.\"),"
+ },
+ "Mountain climbers": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:38"
+  ],
+  "code": "new(ExerciseType.MountainClimber, Loc.N(\"Mountain climbers\"), ExerciseMeasure.Reps, 30, 1, 400, 0.25, \"Turn sideways in a high plank. Drive each knee toward your chest.\"),"
+ },
+ "Burpees": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:39"
+  ],
+  "code": "new(ExerciseType.Burpee, Loc.N(\"Burpees\"), ExerciseMeasure.Reps, 10, 1, 100, 1.2, \"Turn sideways. Drop into a plank, then jump back up to standing.\"),"
+ },
+ "Wall sit": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:40"
+  ],
+  "code": "new(ExerciseType.WallSit, Loc.N(\"Wall sit\"), ExerciseMeasure.Seconds, 30, 5, 600, 0.9, \"Back against a wall, thighs level with the floor. Hold.\"),"
+ },
+ "Side plank": {
+  "plural": false,
+  "uses": [
+   "Twogether.Core/Exercise/ExerciseCatalog.cs:41"
+  ],
+  "code": "new(ExerciseType.SidePlank, Loc.N(\"Side plank\"), ExerciseMeasure.Seconds, 20, 5, 300, 0.9, \"On your side facing the camera, up on one forearm, body in a straight line. Hold.\")"
  },
  "the app couldn't be verified": {
   "plural": false,
@@ -9148,21 +9205,21 @@
  "Card payments couldn't find this subscription.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:123"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:133"
   ],
   "code": "HttpStatusCode.NotFound => Error.NotFound(\"billing.bachs_not_found\", Loc.T(\"Card payments couldn't find this subscription.\")),"
  },
  "Card payments refused this request.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:125"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:135"
   ],
   "code": "=> Error.Conflict(\"billing.bachs_refused\", Loc.T(\"Card payments refused this request.\")),"
  },
  "Card payments couldn't be reached. Try again shortly.": {
   "plural": false,
   "uses": [
-   "Twogether.Infrastructure/Billing/BachsBilling.cs:155"
+   "Twogether.Infrastructure/Billing/BachsBilling.cs:165"
   ],
   "code": "private static Error Failed() => new(\"billing.bachs_failed\", Loc.T(\"Card payments couldn't be reached. Try again shortly.\"), ErrorType.Network);"
  },

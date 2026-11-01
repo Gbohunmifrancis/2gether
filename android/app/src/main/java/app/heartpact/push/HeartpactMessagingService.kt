@@ -56,7 +56,8 @@ class HeartpactMessagingService : FirebaseMessagingService() {
         when (type) {
             "exerciseDue" -> ring(data["data"])
             "albumSyncReminder" -> remindOnWifi()
-            else -> show(id, type, data["title"] ?: message.notification?.title ?: return, data["body"] ?: message.notification?.body.orEmpty(), data["quiet"] == "true")
+            else -> show(id, type, data["title"] ?: message.notification?.title ?: return, data["body"] ?: message.notification?.body.orEmpty(), data["quiet"] == "true",
+                target = PushInbox.openFor(type, data["data"]))
         }
         if (type == "memoriesSynced" || PushInbox.refreshesHome(type)) container.pushEvents.tryEmit(type!!)
         // The partner ended the pact: their dares must not ring here any more.
@@ -95,12 +96,13 @@ class HeartpactMessagingService : FirebaseMessagingService() {
         WorkManager.getInstance(this).enqueueUniqueWork("album-reminder-push", ExistingWorkPolicy.REPLACE, request)
     }
 
-    private fun show(id: String, type: String?, title: String, body: String, quiet: Boolean) {
+    /** [target]: the tab, the games, or the partner's live view (`watch/{occurrenceId}`) a tap opens. */
+    private fun show(id: String, type: String?, title: String, body: String, quiet: Boolean, target: String = PushInbox.tabFor(type)) {
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
         Push.ensureChannels(this)
         val open = PendingIntent.getActivity(
             this, id.hashCode(),
-            Intent(this, MainActivity::class.java).putExtra(AlbumNotices.EXTRA_OPEN_TAB, PushInbox.tabFor(type)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            Intent(this, MainActivity::class.java).putExtra(AlbumNotices.EXTRA_OPEN_TAB, target).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val notification = NotificationCompat.Builder(this, if (quiet) Push.QUIET else Push.GENERAL)

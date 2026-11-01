@@ -52,7 +52,7 @@ public sealed class DrawAndGuessInkTests : IDisposable
 
     private CoupleHub Hub(ApplicationDbContext db, Guid userId, Guid? coupleId, Recorder clients)
         => new(db, new FakeCurrentUser(userId, coupleId), clock, new CouplePresenceTracker(), new GameLiveState(), new HubConnectionRegistry(),
-            new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), inkGate)
+            new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), inkGate, new ExerciseLiveGate())
         {
             Clients = clients,
             Context = new Caller(),

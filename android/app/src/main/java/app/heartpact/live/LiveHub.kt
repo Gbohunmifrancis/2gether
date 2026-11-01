@@ -58,6 +58,16 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
     fun updateLocation(latitude: Double, longitude: Double, accuracy: Double, fixedAtMs: Long = System.currentTimeMillis()) =
         send("UpdateLocationAt", latitude, longitude, accuracy, fixedAtMs)
     fun reportExerciseProgress(occurrenceId: String, count: Int, confidence: Double) = send("ReportExerciseProgress", occurrenceId, count, confidence)
+    /**
+     * Watching live (docs/couple-goals.md): the stick figure's joints ([app.heartpact.exercise.LiveCodec]), the count, the
+     * coach's phase and a cue code, about eight times a second, for the partner's screen. Never video; never stored.
+     */
+    fun exerciseLive(occurrenceId: String, count: Int, phase: String, cue: String?, aspect: Int, joints: IntArray) =
+        send("ExerciseLive", occurrenceId, count, phase, cue.orEmpty(), aspect, joints)
+    /** The partner's live view is open (repeated while it is) or closed, so the camera can say they're watching. */
+    fun watchExercise(occurrenceId: String, watching: Boolean) = send("WatchExercise", occurrenceId, watching)
+    /** A cheer from the live view: "heart", "gotThis" or "almostThere". */
+    fun cheerExercise(occurrenceId: String, cheer: String) = send("CheerExercise", occurrenceId, cheer)
     /** Live ink for the partner (docs/games.md): a place (a Tic-tac-toe square, a stroke's place in a Draw and guess drawing; -1 un-draws), a stroke number, and x,y pairs as fractions of the square or canvas. */
     fun ink(sessionId: String, cell: Int, stroke: Int, points: FloatArray) = send("Ink", sessionId, cell, stroke, points)
     /** I call on: what's typed so far this round, so it still counts if the clock runs out (docs/games.md). */
@@ -127,12 +137,18 @@ class LiveHub(private val baseUrl: String, private val session: SessionStore, pr
         /** What the app listens for; everything else on the hub is for the web app. */
         val EVENTS = listOf(
             "ExerciseAlarmStarted", "ExerciseStarted", "ExerciseProgress", "ExerciseCompleted", "ExerciseMissed",
-            "ExerciseCancelled", "ExerciseCallOffAsked", "ExerciseGoalsChanged",
+            "ExerciseCancelled", "ExerciseCallOffAsked", "ExerciseGoalsChanged", "ExerciseLive", "ExerciseWatching", "ExerciseCheer",
             "LocationUpdated", "LocationStopped", "LocationSharingChanged",
             "FoodDayUpdated", "DailyQuestionAnswered", "PregnancyChanged", "MemoriesChanged",
             "CoupleEnded", "AccountDeleted", "NotificationCreated",
             "GameInvitation", "GameCountdown", "GameStarted", "GameStateChanged", "GameCompleted", "GameEnded", "GameInk", "GameProgress",
         )
+
+        /**
+         * The live view's stream (several a second) and its replies: for the screens that show them, never a reason to
+         * refetch anything.
+         */
+        val STREAM = setOf("ExerciseLive", "ExerciseWatching", "ExerciseCheer")
 
         /** Hub names to the app's event names: "ExerciseCompleted" becomes "exerciseCompleted", as pushes use. */
         fun appName(hubName: String) = hubName.replaceFirstChar { it.lowercase() }

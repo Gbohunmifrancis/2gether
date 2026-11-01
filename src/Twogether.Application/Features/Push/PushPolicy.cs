@@ -22,6 +22,8 @@ public static class PushPolicy
     public static TimeSpan TimeToLive(NotificationType type) => type switch
     {
         NotificationType.ExerciseDue => TimeSpan.FromMinutes(30),
+        // "Watch live" is worth a tap only while the workout lasts.
+        NotificationType.ExerciseStarted => TimeSpan.FromMinutes(10),
         // A call-off request only matters while the alarm window is open.
         NotificationType.Message or NotificationType.GameInvite or NotificationType.GameStarted or NotificationType.ExerciseCallOffAsked => TimeSpan.FromHours(1),
         _ => TimeSpan.FromDays(1)

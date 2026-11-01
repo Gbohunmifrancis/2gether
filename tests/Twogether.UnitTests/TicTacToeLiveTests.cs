@@ -89,7 +89,7 @@ public sealed class TicTacToeLiveTests : IDisposable
 
     private CoupleHub Hub(ApplicationDbContext db, TestCouple couple, Guid userId, Recorder clients, Guid? coupleId = null)
         => new(db, new FakeCurrentUser(userId, coupleId ?? couple.CoupleId), clock, new CouplePresenceTracker(), new GameLiveState(), new HubConnectionRegistry(),
-            new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), inkGate)
+            new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), inkGate, new ExerciseLiveGate())
         {
             Clients = clients,
             Context = new Caller(),
@@ -131,7 +131,7 @@ public sealed class TicTacToeLiveTests : IDisposable
         await using var db = database.CreateContext();
         Assert.False(await Hub(db, couple, stranger, clients, otherCoupleId).Ink(sessionId, 4, 0, Stroke));
         Assert.False(await new CoupleHub(db, new FakeCurrentUser(stranger, null), clock, new CouplePresenceTracker(), new GameLiveState(), new HubConnectionRegistry(),
-            new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), inkGate) { Clients = clients, Context = new Caller() }.Ink(sessionId, 4, 0, Stroke));
+            new LocationSharingStopper(db, hub, clock), new LocationFixThrottle(), inkGate, new ExerciseLiveGate()) { Clients = clients, Context = new Caller() }.Ink(sessionId, 4, 0, Stroke));
         Assert.Empty(clients.Sent);
     }
 

@@ -35,4 +35,19 @@ class PushInboxTest {
         assertFalse(PushInbox.refreshesHome("plusEnding"))
         assertFalse(PushInbox.refreshesHome(null))
     }
+
+    @Test fun `the partner starting their dare opens the live view of it`() {
+        val id = "6f1c2a52-6a3c-4c76-9b1e-2f0a0d5b9c11"
+        val target = PushInbox.openFor("exerciseStarted", "{\"occurrenceId\":\"$id\",\"exercise\":\"squat\"}")
+        assertEquals("watch/$id", target)
+        assertEquals(id, PushInbox.watchedOccurrence(target))
+        // Without the dare in its data it falls back to Today; other kinds go where they always did.
+        assertEquals("today", PushInbox.openFor("exerciseStarted", null))
+        assertEquals("today", PushInbox.openFor("exerciseCompleted", "{\"occurrenceId\":\"$id\"}"))
+        assertNull(PushInbox.watchedOccurrence("today"))
+        assertNull(PushInbox.watchedOccurrence("watch/../us"))
+        // It changes what Today shows; the live stream itself never makes anything refetch.
+        assertTrue(PushInbox.refreshesToday("exerciseStarted"))
+        listOf("exerciseLive", "exerciseWatching", "exerciseCheer").forEach { assertFalse(it, PushInbox.refreshesToday(it)) }
+    }
 }

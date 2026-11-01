@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.ReportGmailerrorred
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -85,6 +86,8 @@ fun TodayTab(
     onDeclineGame: (String) -> Unit = {},
     /** The couple has Heartpact Plus: a small gold badge by the title. */
     isPlus: Boolean = false,
+    /** Opens the live view of the partner's dare (the occurrence id). */
+    onWatch: (String) -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val view = ui.view
@@ -109,9 +112,17 @@ fun TodayTab(
                 val next = v.partnerNext
                 val done = v.partnerDone
                 when {
-                    ringing != null -> CardRow(tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.exerciseType.titleOf(ringing.title).lowercase()),
-                        subtitle = tr("{progress} · rings until {time}", "progress" to ringing.exerciseType.progress(ringing.achievedCount, ringing.target),
-                            "time" to time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))), icon = Icons.Rounded.Alarm)
+                    ringing != null -> {
+                        val onCamera = ringing.status == app.heartpact.data.OccurrenceStatus.InProgress
+                        CardRow(
+                            if (onCamera) tr("{partner} is doing their {exercise}", "partner" to partnerName, "exercise" to ringing.exerciseType.titleOf(ringing.title).lowercase())
+                            else tr("{partner}'s {exercise} is ringing", "partner" to partnerName, "exercise" to ringing.exerciseType.titleOf(ringing.title).lowercase()),
+                            subtitle = tr("{progress} · rings until {time}", "progress" to ringing.exerciseType.progress(ringing.achievedCount, ringing.target),
+                                "time" to time(utc(ringing.completeByUtc ?: ringing.deadlineUtc))), icon = Icons.Rounded.Alarm)
+                        // Their stick figure, live, never the camera.
+                        HeartButton(tr("Watch live"), { onWatch(ringing.id) }, Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                            kind = if (onCamera) ButtonKind.Filled else ButtonKind.Tonal, icon = Icons.Rounded.Visibility, height = 48.dp)
+                    }
                     done != null -> PartnerDone(done, partnerName)
                     next != null -> CardRow(tr("Your dare for {partner}", "partner" to partnerName), subtitle = tr("{dare} · rings at {time}", "dare" to next.exerciseType.label(next.target).replaceFirstChar { it.uppercase() },
                         "time" to time(utc(next.nextDueAtUtc))), icon = Icons.Rounded.Alarm)

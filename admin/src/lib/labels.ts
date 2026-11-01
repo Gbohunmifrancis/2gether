@@ -12,6 +12,12 @@ const EXERCISES: Record<string, string> = {
   armRaise: "Arm raises",
   highKnees: "High knees",
   sitUp: "Sit-ups",
+  lunge: "Lunges",
+  gluteBridge: "Glute bridges",
+  mountainClimber: "Mountain climbers",
+  burpee: "Burpees",
+  wallSit: "Wall sit",
+  sidePlank: "Side plank",
 };
 export const exerciseLabel = (name: string) => EXERCISES[name] ?? humanize(name);
 

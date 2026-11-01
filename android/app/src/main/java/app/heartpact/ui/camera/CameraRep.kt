@@ -84,9 +84,15 @@ import app.heartpact.exercise.ExerciseChecks
 import app.heartpact.exercise.ExerciseType
 import app.heartpact.exercise.Measure
 import app.heartpact.exercise.MotionLog
+import app.heartpact.exercise.CheerShown
+import app.heartpact.exercise.LiveCodec
+import app.heartpact.exercise.LiveCues
+import app.heartpact.exercise.LiveFrame
 import app.heartpact.exercise.Pose
+import app.heartpact.exercise.PoseSmoother
 import app.heartpact.exercise.RepCounter
 import app.heartpact.exercise.SessionChecks
+import app.heartpact.exercise.livePhase
 import app.heartpact.i18n.tr
 import app.heartpact.i18n.trn
 import app.heartpact.ui.components.HeartButton
@@ -112,8 +118,8 @@ private val OutOfFrame = Color(0xFFFFB4AB)
 /** How far the sheet reaches over the picture. */
 private val Overlap = 30.dp
 
-/** Lines drawn between landmarks for the overlay: shoulders, arms, torso, legs. */
-private val BONES = listOf(11 to 12, 11 to 13, 13 to 15, 12 to 14, 14 to 16, 11 to 23, 12 to 24, 23 to 24, 23 to 25, 25 to 27, 24 to 26, 26 to 28)
+/** The partner's live view gets a frame this often: about eight a second, smoothed between on their side. */
+private const val LIVE_EVERY_MS = 125L
 
 /** What the camera screen shows, apart from the live picture. Pure, so it can be rendered in tests. */
 data class CameraUi(
@@ -139,6 +145,10 @@ data class CameraUi(
     val coach: CoachState? = null,
     /** Whether the coach speaks; null hides the switch. */
     val voiceOn: Boolean? = null,
+    /** The partner has the live view open: their name. Only the stick figure goes to them, never the picture. */
+    val watching: String? = null,
+    /** A cheer from the partner's live view, on screen for a moment. */
+    val cheer: CheerShown? = null,
 )
 
 /** A finish that didn't save: why, and whether it is being retried by itself. */
@@ -222,13 +232,7 @@ private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, onVoice: () -
         preview()
         ui.pose?.let { pose ->
             Canvas(Modifier.fillMaxSize()) {
-                val points = pose.landmarks.map { Offset(it.x * size.width, it.y * size.height) }
-                BONES.forEach { (a, b) ->
-                    if (pose[a].visibility > 0.5f && pose[b].visibility > 0.5f) drawLine(Bone, points[a], points[b], 3.5.dp.toPx(), StrokeCap.Round)
-                }
-                listOf(11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28).filter { pose[it].visibility > 0.5f }.forEach {
-                    drawCircle(Color.White, 6.dp.toPx(), points[it]); drawCircle(Joint, 6.dp.toPx(), points[it], style = Stroke(2.5.dp.toPx()))
-                }
+                stickFigure({ i -> pose[i].takeIf { it.visibility > 0.5f }?.let { Offset(it.x * size.width, it.y * size.height) } }, Bone, Joint)
             }
         }
         // Keeps the title readable over a bright room.
@@ -265,17 +269,25 @@ private fun Stage(ui: CameraUi, wide: Boolean, onFlip: () -> Unit, onVoice: () -
             if (!checkingIn && !gettingSet) Progress(ui, trackHeight = if (wide) 76.dp else 150.dp, modifier = Modifier.align(if (wide) Alignment.BottomEnd else Alignment.CenterEnd))
             if (gettingSet) GetSet(ui.coach!!, Modifier.align(Alignment.Center).padding(horizontal = if (wide) 0.dp else 24.dp))
             else ui.challenge?.let { CheckIn(it, Modifier.align(Alignment.Center).padding(horizontal = if (wide) 0.dp else 24.dp)) }
-            ui.setBy?.let { partner ->
+            val corner = if (wide) Alignment.BottomStart else Alignment.BottomEnd
+            ui.watching?.let { partner ->
                 val who = if (ui.mySide == Side.Left) Who.Right else Who.Left
                 Row(
-                    Modifier.align(if (wide) Alignment.BottomStart else Alignment.BottomEnd).clip(Shapes.Pill).background(Glass.copy(alpha = 0.62f)).padding(start = 6.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
+                    Modifier.align(corner).widthIn(max = 250.dp).clip(Shapes.Card).background(Glass.copy(alpha = 0.72f)).padding(start = 6.dp, end = 14.dp, top = 4.dp, bottom = 6.dp)
+                        .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Character(who, CharacterPose.Cheer, 36.dp)
-                    Text(tr("{partner} is watching", "partner" to partner), style = Heartpact.type.labelSmall, color = Color.White)
+                    Column {
+                        Text(tr("{partner} is watching", "partner" to partner), style = Heartpact.type.labelSmall, color = Color.White)
+                        Text(tr("Only the stick figure is shared, never the camera"), style = Heartpact.type.small.copy(fontSize = 11.sp, lineHeight = 13.sp), color = Color.White.copy(alpha = 0.75f))
+                    }
                 }
             }
+            // Opposite the partner's chip and clear of the progress bar.
+            CheerBurst(ui.cheer, Modifier.align(if (wide) Alignment.TopCenter else Alignment.BottomStart)
+                .padding(top = if (wide) 40.dp else 0.dp, bottom = if (!wide && ui.watching != null) 66.dp else 0.dp), burst = 120.dp)
         }
     }
 }
@@ -455,6 +467,12 @@ fun CameraRepScreen(
     setBy: String? = null,
     silenced: Boolean? = null,
     onSilence: () -> Unit = {},
+    /** About eight times a second: the stick figure and the numbers for the partner's live view. */
+    onLive: (LiveFrame) -> Unit = {},
+    /** The partner has the live view open: their name. */
+    watching: String? = null,
+    /** The latest cheer from the live view. */
+    cheer: CheerShown? = null,
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current
@@ -469,8 +487,16 @@ fun CameraRepScreen(
     var sealing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val counter = remember { RepCounter(type) }
-    // Gets the person into position and counts down; the counter only sees frames after "Go!".
+    // Gets the person into position and counts down; the counter only sees frames after "Go!", fitted to the start position.
     val coach = remember { PoseCoach(type, target) }
+    // Steadies the model's jitter before anything is measured or drawn.
+    val smoother = remember { PoseSmoother() }
+    var calibrated by remember { mutableStateOf(false) }
+    var lastLiveMs by remember { mutableLongStateOf(0L) }
+    val live by rememberUpdatedState(onLive)
+    // A cheer shows for a moment, with a soft chime when the voice is on.
+    var cheerShown by remember { mutableStateOf<CheerShown?>(null) }
+    val cheerSound = rememberCheerSound()
     var coaching by remember { mutableStateOf(CoachState()) }
     val prefs = remember { context.getSharedPreferences("workout", android.content.Context.MODE_PRIVATE) }
     var voiceOn by remember { mutableStateOf(prefs.getBoolean("voice", true)) }
@@ -480,6 +506,13 @@ fun CameraRepScreen(
     }
     DisposableEffect(Unit) { onDispose { voice?.close() } }
     LaunchedEffect(voiceOn) { voice?.muted = !voiceOn }
+    LaunchedEffect(cheer?.id) {
+        val next = cheer ?: return@LaunchedEffect
+        cheerShown = next
+        if (voiceOn) cheerSound?.play()
+        delay(CHEER_MS)
+        if (cheerShown?.id == next.id) cheerShown = null
+    }
     var challenge by remember { mutableStateOf<ChallengeUi?>(null) }
     val motion = remember { MotionLog() }
     val checks = remember { SessionChecks(type, target, motion) }
@@ -537,6 +570,8 @@ fun CameraRepScreen(
         unsaved = unsaved,
         coach = coaching,
         voiceOn = voiceOn,
+        watching = watching,
+        cheer = cheerShown,
     )
     val toggleVoice = { voiceOn = !voiceOn; prefs.edit().putBoolean("voice", voiceOn).apply() }
     CameraRepContent(shown, onFlip = { front = !front }, onStop = onStop, onSilence = onSilence, onRetry = { attempt++ }, onVoice = toggleVoice) {
@@ -546,8 +581,10 @@ fun CameraRepScreen(
             DisposableEffect(front) {
                 val executor = Executors.newSingleThreadExecutor()
                 val tracker = runCatching {
-                    PoseTracker(context, onPose = { detected ->
+                    PoseTracker(context, onPose = { raw ->
+                        val detected = smoother.smooth(raw)
                         val now = detected?.timestampMs ?: SystemClock.uptimeMillis()
+                        if (coach.counting && !calibrated) { counter.calibrate(coach.calibration); calibrated = true }
                         val tick = if (coach.counting) {
                             val state = counter.update(detected)
                             challenge = checks.update(detected, state, now, mirrored = front)
@@ -557,6 +594,12 @@ fun CameraRepScreen(
                         coaching = tick.state
                         tick.speak?.let { voice?.say(it) }
                         pose = detected
+                        // The partner's live view: the figure and the numbers, never the picture.
+                        if (now - lastLiveMs >= LIVE_EVERY_MS || now < lastLiveMs) {
+                            lastLiveMs = now
+                            live(LiveFrame(counted.count, livePhase(tick.state, counted.count, target), LiveCues.of(tick.state, counted, challenge),
+                                detected?.aspect ?: 0.75f, LiveCodec.figure(detected)))
+                        }
                     }, onError = { error = it })
                 }.onFailure {
                     // The reason goes to the log (adb logcat -s PoseTracker): a phone that can't run the model, or a build problem.
