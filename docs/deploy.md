@@ -99,7 +99,7 @@ Every run also attaches `heartpact-release-apk`: the same production build as an
 to install directly (Actions → the Deploy run → Artifacts). To build one without touching the Play track, run Deploy
 by hand with only Android ticked and no `PLAY_SERVICE_ACCOUNT_JSON`, or ignore the upload.
 
-Each build is numbered by the pipeline: version code `101000 + run × 10 + attempt` (above the hand-built 0.2.0, 100200), name `0.1.<run>`. A re-run
+Each build is numbered by the pipeline: version code `101000 + run × 10 + attempt` (above the hand-built 0.2.0, 100200), name `0.2.<run>`. A re-run
 counts up, as Play requires. Release notes are the commit's first line.
 
 **Roll back:** Play Console → the track → halt the release, or promote an earlier one.

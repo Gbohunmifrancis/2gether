@@ -401,7 +401,7 @@ jobs:
           # Play needs every upload's version code higher than the last; a re-run counts up too.
           # 101000 and up: above the 0.2.0 build made by hand (100200).
           echo "ANDROID_VERSION_CODE=$((101000 + GITHUB_RUN_NUMBER * 10 + GITHUB_RUN_ATTEMPT))" >> "$GITHUB_ENV"
-          echo "ANDROID_VERSION_NAME=0.1.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_NAME=0.2.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
           echo "present=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v4
         if: steps.key.outputs.present == 'true'
