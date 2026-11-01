@@ -43,6 +43,19 @@ reached) follows mockup 18:
   Heartpact account on the same Google account are left alone.
 - When the partner pays, nothing is offered. The buyer gets "Manage in Google Play", which opens Play's
   subscription page, the only place a subscription is cancelled or its payment fixed.
+- Card in the app (Google Play's billing choice programme, "alternative billing with user choice"): when the
+  entitlement says `cardInApp`, `GooglePlayStore` builds its BillingClient with `enableUserChoiceBilling` (rebuilt
+  before the next Play call when the flag changes; without it the client is built as before). Buying still starts
+  from the Google Play plans and `launchBillingFlow`; where Google offers it, Play's own choice screen comes first.
+  Choosing Google Play carries on as above. Choosing card calls the listener instead: the product id becomes
+  `monthly` or `yearly` (`PlusOffers.cardPlan`), the app posts `bachs/checkout {plan, from: "app",
+  externalTransactionToken}` and opens the `checkoutUrl` in the browser. Back in the app it shows "Waiting for your
+  payment to be confirmed…" and asks for the entitlement every 3 seconds for up to 90 until Bachs' webhook has
+  switched Plus on. Refusals (`billing.bachs_unavailable`, `billing.unknown_plan`, `billing.already_plus`, offline)
+  show as notes (`billing.card_in_app_unavailable` reads like `bachs_unavailable`). There is no card button of the
+  app's own.
+- A card subscription I bought (`subscription.store == "bachs"`) gets "Manage billing" instead of "Manage in Google
+  Play": `bachs/portal` is called on tap and its page opens in the browser.
 
 Testing: create `heartpact_plus_monthly` and `heartpact_plus_yearly` (each with one base plan, optionally a trial
 offer) in Play Console, add license testers, and install from an internal testing track. Play only sells to an app it knows: a build with

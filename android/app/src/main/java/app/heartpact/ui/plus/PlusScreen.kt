@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.heartpact.billing.PlanOption
+import app.heartpact.billing.PlusAction
 import app.heartpact.billing.PlusOffers
 import app.heartpact.data.Entitlement
 import app.heartpact.data.PlanLimits
@@ -74,6 +75,9 @@ object PlusText {
         val plan = PlusOffers.planName(subscription.productId).lowercase()
         val mine = subscription.purchasedByMe
         return when {
+            subscription.status == "inGracePeriod" && subscription.isCard ->
+                if (mine) tr("Your last card payment didn't go through. Update your card in Manage billing by {date} to keep Plus.", "date" to until)
+                else tr("{partner}'s last card payment didn't go through. Plus stays until {date} while they fix it.", "partner" to partnerName, "date" to until)
             subscription.status == "inGracePeriod" ->
                 if (mine) tr("Google couldn't take the last payment. Fix it in Google Play by {date} to keep Plus.", "date" to until)
                 else tr("Google couldn't take {partner}'s last payment. Plus stays until {date} while they fix it.", "partner" to partnerName, "date" to until)
@@ -98,6 +102,17 @@ object PlusText {
         }
     }
 
+    /** Under the subscription's status: where it is managed. */
+    fun managedBy(entitlement: Entitlement?, partnerName: String): String {
+        val subscription = entitlement?.subscription
+        return when {
+            subscription?.isCard == true && subscription.purchasedByMe -> tr("Paid by card. Change the card or cancel in Manage billing.")
+            subscription?.isCard == true -> tr("{partner} pays by card and manages it", "partner" to partnerName)
+            subscription?.purchasedByMe == true -> tr("Managed in Google Play")
+            else -> tr("{partner} manages it in Google Play", "partner" to partnerName)
+        }
+    }
+
     val FOOTER get() = tr("Cancel anytime in the Play Store. Deleting your account doesn't cancel it.")
 }
 
@@ -111,6 +126,7 @@ fun PlusScreen(
     onBuy: () -> Unit,
     onRestore: () -> Unit,
     onManage: (String) -> Unit,
+    onManageBilling: () -> Unit = {},
 ) {
     val colors = Heartpact.colors
     val entitlement = ui.entitlement
@@ -131,6 +147,7 @@ fun PlusScreen(
             if (ui.welcomed) NoteCard(tr("Welcome to Plus. {partner} has it too, from now on.", "partner" to partnerName), Modifier.padding(top = 16.dp))
             ui.note?.let { NoteCard(it, Modifier.padding(top = 16.dp)) }
             if (ui.pending) NoteCard(PlusViewModel.PENDING, Modifier.padding(top = 16.dp))
+            if (ui.awaitingCard) NoteCard(PlusViewModel.AWAITING_CARD, Modifier.padding(top = 16.dp))
 
             if (ui.loading) {
                 Box(Modifier.fillMaxWidth().padding(top = 48.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Heartpact.actor.action) }
@@ -138,7 +155,7 @@ fun PlusScreen(
                 Comparison(entitlement.freeLimits, entitlement.plusLimits, Modifier.padding(top = 18.dp))
                 PlusText.subscriptionStatus(entitlement, partnerName)?.let { status ->
                     StickerCard(Modifier.fillMaxWidth().padding(top = 14.dp)) {
-                        CardRow(status, subtitle = if (subscription?.purchasedByMe == true) tr("Managed in Google Play") else tr("{partner} manages it in Google Play", "partner" to partnerName))
+                        CardRow(status, subtitle = PlusText.managedBy(entitlement, partnerName))
                     }
                 }
                 if (showPlans) {
@@ -154,10 +171,12 @@ fun PlusScreen(
             androidx.compose.foundation.layout.Spacer(Modifier.height(16.dp))
         }
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp)) {
-            when {
-                subscription?.purchasedByMe == true -> HeartButton(tr("Manage in Google Play"), onClick = { onManage(subscription.productId) }, kind = ButtonKind.Tonal)
-                showPlans -> HeartButton(tr("Continue with Google Play"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending, busy = ui.busy)
-                else -> HeartButton(tr("Done"), onClick = onClose, kind = ButtonKind.Tonal)
+            when (PlusOffers.action(entitlement)) {
+                PlusAction.ManageInPlay -> HeartButton(tr("Manage in Google Play"), onClick = { subscription?.let { onManage(it.productId) } }, kind = ButtonKind.Tonal)
+                PlusAction.ManageBilling -> HeartButton(tr("Manage billing"), onClick = onManageBilling, kind = ButtonKind.Tonal, busy = ui.busy)
+                // With cardInApp, Google's own choice screen offers card after this: there is no separate card button.
+                PlusAction.Buy -> HeartButton(tr("Continue with Google Play"), onClick = onBuy, enabled = ui.selectedOption != null && !ui.pending && !ui.awaitingCard, busy = ui.busy)
+                PlusAction.Done -> HeartButton(tr("Done"), onClick = onClose, kind = ButtonKind.Tonal)
             }
             if (showPlans) {
                 Text(PlusText.FOOTER, style = Heartpact.type.small, color = colors.ink2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 10.dp))

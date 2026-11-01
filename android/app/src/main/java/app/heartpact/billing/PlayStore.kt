@@ -15,6 +15,7 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.UserChoiceDetails
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import kotlinx.coroutines.CompletableDeferred
@@ -58,6 +59,11 @@ sealed interface PurchaseUpdate {
     /** Play says this account already has it: restore instead of buying again. */
     data object AlreadyOwned : PurchaseUpdate
     data class Failed(val message: String) : PurchaseUpdate
+    /**
+     * On Google Play's billing choice screen the person chose to pay by card instead (user choice billing). Nothing
+     * was bought from Google: the app starts a Bachs checkout for [productIds] with [externalTransactionToken].
+     */
+    data class ChoseCard(val productIds: List<String>, val externalTransactionToken: String) : PurchaseUpdate
 }
 
 /** Google Play Billing, narrowed to what Plus needs, so screens and tests don't depend on Play. */
@@ -68,6 +74,11 @@ interface PlayStore {
     suspend fun owned(): List<StorePurchase>?
     /** Opens Play's purchase sheet. Returns an error to show, or null when the sheet opened. */
     suspend fun buy(activity: Activity, productId: String, offerToken: String, accountId: String): String?
+    /**
+     * Whether purchases offer Google Play's billing choice screen (the entitlement's `cardInApp`). Takes effect on the
+     * next purchase.
+     */
+    fun offerCardChoice(enabled: Boolean) {}
 }
 
 object PlayMessages {
@@ -98,23 +109,50 @@ object PlayMessages {
     }
 }
 
-/** The real store. Connects on first use; the client reconnects by itself after that. */
+/**
+ * The real store. Connects on first use; the client reconnects by itself after that.
+ *
+ * With [offerCardChoice] on, the client is built with user choice billing, so in the countries where Google allows it
+ * Play's purchase sheet first asks whether to pay with Google Play or by card. Choosing Google Play carries on as
+ * usual; choosing card calls [onCardChosen] instead of the purchase listener. Off, the client is built exactly as
+ * without the programme. A change rebuilds the client before the next purchase.
+ */
 class GooglePlayStore(context: Context) : PlayStore {
+    private val appContext = context.applicationContext
     private val _updates = MutableSharedFlow<PurchaseUpdate>(extraBufferCapacity = 8)
     override val updates: SharedFlow<PurchaseUpdate> = _updates.asSharedFlow()
 
-    private val client: BillingClient = BillingClient.newBuilder(context.applicationContext)
-        .setListener { result, purchases -> _updates.tryEmit(update(result, purchases)) }
-        // Cash and bank-transfer purchases complete later: Play reports them as pending first.
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().enablePrepaidPlans().build())
-        .enableAutoServiceReconnection()
-        .build()
+    @Volatile private var cardChoice = false
+    private var builtWithCardChoice = false
+    private var client: BillingClient = build(cardChoice = false)
+
+    private fun build(cardChoice: Boolean): BillingClient {
+        val builder = BillingClient.newBuilder(appContext)
+            .setListener { result, purchases -> _updates.tryEmit(update(result, purchases)) }
+            // Cash and bank-transfer purchases complete later: Play reports them as pending first.
+            .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().enablePrepaidPlans().build())
+            .enableAutoServiceReconnection()
+        if (cardChoice) builder.enableUserChoiceBilling(::onCardChosen)
+        builtWithCardChoice = cardChoice
+        return builder.build()
+    }
+
+    /** Kept thin: Google's token and the products go straight to the Plus screen, which asks the server for a checkout. */
+    private fun onCardChosen(details: UserChoiceDetails) {
+        _updates.tryEmit(PurchaseUpdate.ChoseCard(details.products.map { it.id }, details.externalTransactionToken))
+    }
+
+    override fun offerCardChoice(enabled: Boolean) { cardChoice = enabled }
 
     private val connecting = Mutex()
     /** Play needs the exact ProductDetails object to open the sheet, so keep what [products] returned. */
     private val details = mutableMapOf<String, ProductDetails>()
 
     private suspend fun ready(): BillingResult? = connecting.withLock {
+        if (builtWithCardChoice != cardChoice) {
+            client.endConnection()
+            client = build(cardChoice)
+        }
         if (client.isReady) return@withLock null
         val done = CompletableDeferred<BillingResult>()
         client.startConnection(object : BillingClientStateListener {

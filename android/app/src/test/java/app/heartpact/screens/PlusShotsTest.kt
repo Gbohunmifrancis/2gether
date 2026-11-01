@@ -7,6 +7,7 @@ import app.heartpact.data.PlanLimits
 import app.heartpact.data.SubscriptionSummary
 import app.heartpact.ui.plus.PlusScreen
 import app.heartpact.ui.plus.PlusUi
+import app.heartpact.ui.plus.PlusViewModel
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -40,6 +41,22 @@ class PlusShotsTest {
 
     @Test fun partnerPays() = plus(PlusUi(loading = false, entitlement = free.copy(plan = Plan.Plus, canPurchase = false,
         subscription = mine.copy(purchasedByMe = false, autoRenewing = false, status = "canceled"))), "plus-partner")
+
+    private val card = mine.copy(store = "bachs")
+
+    /** Card in the app: the same Google Play plans (Google's own choice screen comes after), nothing extra. */
+    @Test fun cardInApp() = plus(PlusUi(loading = false, entitlement = free.copy(cardInApp = true, webCheckout = true), options = options, selected = "heartpact_plus_yearly"), "plus-card-in-app")
+
+    @Test fun awaitingCard() = plus(PlusUi(loading = false, entitlement = free.copy(cardInApp = true, webCheckout = true), options = options, selected = "heartpact_plus_yearly", awaitingCard = true), "plus-card-waiting")
+
+    @Test fun cardRefused() = plus(PlusUi(loading = false, entitlement = free.copy(cardInApp = true), options = options, selected = "heartpact_plus_yearly",
+        note = PlusViewModel.cardMessage("billing.bachs_unavailable", "")), "plus-card-unavailable")
+
+    @Test fun mineByCard() = plus(PlusUi(loading = false, entitlement = free.copy(plan = Plan.Plus, limits = plusLimits, subscription = card)), "plus-mine-card")
+
+    @Test fun mineByCardNight() = plus(PlusUi(loading = false, entitlement = free.copy(plan = Plan.Plus, limits = plusLimits, subscription = card.copy(status = "inGracePeriod"))), "plus-mine-card-grace-night", night = true)
+
+    @Test fun partnerPaysByCard() = plus(PlusUi(loading = false, entitlement = free.copy(plan = Plan.Plus, canPurchase = false, subscription = card.copy(purchasedByMe = false))), "plus-partner-card")
 
     @Test fun complimentary() = plus(PlusUi(loading = false, options = options, selected = "heartpact_plus_yearly",
         entitlement = free.copy(plan = Plan.Plus, complimentary = true, complimentaryUntilUtc = "2026-11-10T16:00:00Z")), "plus-complimentary")

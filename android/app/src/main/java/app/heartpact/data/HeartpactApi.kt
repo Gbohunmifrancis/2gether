@@ -105,6 +105,12 @@ interface HeartpactApi {
     @POST("api/billing/google/verify")
     suspend fun verifyPurchase(@Body request: VerifyPurchaseRequest): Response<Entitlement>
 
+    @POST("api/billing/bachs/checkout")
+    suspend fun bachsCheckout(@Body request: BachsCheckoutRequest): Response<BachsCheckout>
+
+    @POST("api/billing/bachs/portal")
+    suspend fun bachsPortal(): Response<BachsPortal>
+
     @PUT("api/devices")
     suspend fun registerDevice(@Body request: RegisterDeviceRequest): Response<Unit>
 

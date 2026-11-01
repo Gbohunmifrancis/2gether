@@ -1,8 +1,8 @@
 // Deleting an account without the app: sign in, then the same call the app makes (docs/account-deletion.md).
-// The token lives only in this page's memory and is gone when the tab closes.
+// The token lives only in this page's memory and is gone when the tab closes. Signing in is assets/account.js.
 (function () {
   "use strict";
-  var api = (window.HEARTPACT_API || "").replace(/\/+$/, "");
+  var account = window.HeartpactAccount;
   var form = document.getElementById("delete-form");
   var status = document.getElementById("delete-status");
   var renewBox = document.getElementById("renew-box");
@@ -16,16 +16,6 @@
     status.focus();
   }
 
-  async function call(path, body, token) {
-    // The API answers in the page's language.
-    var headers = { "Content-Type": "application/json", "Accept-Language": document.documentElement.lang || "en" };
-    if (token) headers.Authorization = "Bearer " + token;
-    var response = await fetch(api + path, { method: "POST", headers: headers, body: JSON.stringify(body), credentials: "omit" });
-    var data = null;
-    if (response.status !== 204) { try { data = await response.json(); } catch (e) { data = null; } }
-    return { status: response.status, data: data };
-  }
-
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
     var email = form.email.value.trim();
@@ -34,17 +24,19 @@
     button.disabled = true;
     show(T("Checking your account…"));
     try {
-      var login = await call("/api/auth/login", { email: email, password: password });
+      var login = await account.signIn(email, password);
+      if (login.status === 0) { show(T("We couldn't reach Heartpact. Check your connection and try again."), "error"); return; }
       if (login.status === 429) { show(T("Too many attempts. Wait a few minutes and try again."), "error"); return; }
       if (login.status !== 200 || !login.data || !login.data.accessToken) {
         show(T("Email or password is incorrect. If you signed up with Google, email support@heartpact.me from that address and we\u2019ll delete it."), "error");
         return;
       }
-      var result = await call("/api/account/delete", {
+      var result = await account.request("POST", "/api/account/delete", {
         password: password,
         confirmEmail: null,
         acknowledgeActiveSubscription: !renewBox.hidden && renewAck.checked
       }, login.data.accessToken);
+      if (result.status === 0) { show(T("We couldn't reach Heartpact. Check your connection and try again."), "error"); return; }
       if (result.status === 204) {
         form.hidden = true;
         show(T("Your account and everything in it has been deleted. If you were linked, your partner has been unlinked."), "done");
