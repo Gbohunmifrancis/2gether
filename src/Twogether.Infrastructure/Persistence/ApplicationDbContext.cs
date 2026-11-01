@@ -41,6 +41,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<AppSetting> AppSettings => Set<AppSetting>();
     public DbSet<BachsWebhookEvent> BachsWebhookEvents => Set<BachsWebhookEvent>();
     public DbSet<GoogleExternalTransaction> GoogleExternalTransactions => Set<GoogleExternalTransaction>();
+    public DbSet<AiRequest> AiRequests => Set<AiRequest>();
+    public DbSet<AiCoachNote> AiCoachNotes => Set<AiCoachNote>();
+    public DbSet<WeeklyRecap> WeeklyRecaps => Set<WeeklyRecap>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -562,5 +562,60 @@ public static class DatabaseSchemaUpgrade
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_google_external_transactions_ExternalTransactionId" ON google_external_transactions ("ExternalTransactionId");
         CREATE INDEX IF NOT EXISTS "IX_google_external_transactions_BachsSubscriptionId" ON google_external_transactions ("BachsSubscriptionId");
         CREATE INDEX IF NOT EXISTS "IX_google_external_transactions_ReportedAtUtc" ON google_external_transactions ("ReportedAtUtc");
+
+        -- AI features (docs/ai.md): every call to Claude (for the daily caps and the cost view, never what was sent),
+        -- the coach's note on a finished dare (one per occurrence), and the couple's weekly recap (one per couple per week).
+        CREATE TABLE IF NOT EXISTS ai_requests (
+            "Id" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "Feature" character varying(20) NOT NULL,
+            "Model" character varying(80) NOT NULL,
+            "Succeeded" boolean NOT NULL,
+            "ErrorCode" character varying(60) NULL,
+            "InputTokens" integer NOT NULL,
+            "OutputTokens" integer NOT NULL,
+            "LatencyMs" integer NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_ai_requests" PRIMARY KEY ("Id")
+        );
+        CREATE INDEX IF NOT EXISTS "IX_ai_requests_UserId_Feature_CreatedAtUtc" ON ai_requests ("UserId", "Feature", "CreatedAtUtc");
+        CREATE INDEX IF NOT EXISTS "IX_ai_requests_CreatedAtUtc" ON ai_requests ("CreatedAtUtc");
+        CREATE TABLE IF NOT EXISTS ai_coach_notes (
+            "Id" uuid NOT NULL,
+            "OccurrenceId" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "UserId" uuid NOT NULL,
+            "Language" character varying(8) NOT NULL,
+            "State" character varying(20) NOT NULL,
+            "Text" character varying(400) NULL,
+            "Attempts" integer NOT NULL,
+            "ClaimedAtUtc" timestamp with time zone NOT NULL,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_ai_coach_notes" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_ai_coach_notes_exercise_occurrences_OccurrenceId" FOREIGN KEY ("OccurrenceId") REFERENCES exercise_occurrences ("Id") ON DELETE CASCADE
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_ai_coach_notes_OccurrenceId" ON ai_coach_notes ("OccurrenceId");
+        CREATE INDEX IF NOT EXISTS "IX_ai_coach_notes_UserId" ON ai_coach_notes ("UserId");
+        CREATE TABLE IF NOT EXISTS weekly_recaps (
+            "Id" uuid NOT NULL,
+            "CoupleId" uuid NOT NULL,
+            "WeekEnding" date NOT NULL,
+            "TimeZoneId" character varying(100) NOT NULL,
+            "PeriodStartUtc" timestamp with time zone NOT NULL,
+            "PeriodEndUtc" timestamp with time zone NOT NULL,
+            "State" character varying(20) NOT NULL,
+            "Attempts" integer NOT NULL,
+            "ClaimedAtUtc" timestamp with time zone NOT NULL,
+            "StatsJson" jsonb NOT NULL DEFAULT '{{}}'::jsonb,
+            "NotesJson" jsonb NOT NULL DEFAULT '[]'::jsonb,
+            "CreatedAtUtc" timestamp with time zone NOT NULL,
+            "UpdatedAtUtc" timestamp with time zone NOT NULL,
+            CONSTRAINT "PK_weekly_recaps" PRIMARY KEY ("Id"),
+            CONSTRAINT "FK_weekly_recaps_couples_CoupleId" FOREIGN KEY ("CoupleId") REFERENCES couples ("Id") ON DELETE CASCADE
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_weekly_recaps_CoupleId_WeekEnding" ON weekly_recaps ("CoupleId", "WeekEnding");
         """;
 }
