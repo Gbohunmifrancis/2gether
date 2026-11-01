@@ -119,6 +119,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -402,6 +403,7 @@ fun HeartpactApp(container: AppContainer, appModel: AppViewModel) {
                             }
                         }
                         LaunchedEffect(state.linked) { if (state.linked) appModel.refresh() }
+                        DisposableEffect(Unit) { appModel.pairShowing = true; onDispose { appModel.pairShowing = false } }
                         // Over Home ("Connect"), Back returns there; straight after signing up, "Connect later" goes there.
                         val fromHome = destination == Destination.Home
                         PairScreen(state, PairActions(

@@ -131,8 +131,11 @@ class AppViewModel(private val app: AppContainer) : ViewModel() {
     }
 
     /** On Home before linking: has the partner joined with this person's code meanwhile? Linking sends no push. */
+    /** The pair screen is up (over Home too): it notices the partner itself and celebrates before moving on. */
+    @Volatile var pairShowing = false
+
     fun checkLinked() = viewModelScope.launch {
-        if (_linked.value || _destination.value != Destination.Home) return@launch
+        if (_linked.value || _destination.value != Destination.Home || pairShowing) return@launch
         val userId = session.value?.user?.id ?: return@launch
         val fresh = app.couple.current(userId)
         if ((fresh as? ApiResult.Ok)?.value?.status == CoupleStatus.Active) decideAndRoute()
