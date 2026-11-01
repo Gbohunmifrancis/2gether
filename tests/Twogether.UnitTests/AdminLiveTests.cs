@@ -442,6 +442,7 @@ public sealed class AdminStepUpTests : IDisposable
     private readonly FakeClock clock = new(Now);
     private readonly AdminSecretProtector secrets = new("admin-key");
     private readonly AttemptLimiter limiter;
+    private readonly StepUpGrace grace = new();
     private string secret = "";
     private Guid adminId;
 
@@ -462,22 +463,23 @@ public sealed class AdminStepUpTests : IDisposable
         adminId = admin.Id;
     }
 
-    private static DefaultHttpContext Http(Guid adminId, string? code)
+    private static DefaultHttpContext Http(Guid adminId, string? code, string session = "Bearer one")
     {
         var http = new DefaultHttpContext
         {
             User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, adminId.ToString()), new Claim(ClaimTypes.Email, "ops@heartpact.me")], "test")),
         };
         http.Request.Path = "/api/admin/users/x/disable";
+        http.Request.Headers.Authorization = session;
         if (code is not null) http.Request.Headers[StepUpFilter.Header] = code;
         return http;
     }
 
-    private async Task<(IActionResult? Result, bool Ran)> RunAsync(string? code)
+    private async Task<(IActionResult? Result, bool Ran)> RunAsync(string? code, string session = "Bearer one")
     {
         await using var db = database.CreateContext();
-        var http = Http(adminId, code);
-        var filter = new StepUpFilter(db, clock, secrets, limiter, new AdminAudit(db, clock, new HttpContextAccessor { HttpContext = http }));
+        var http = Http(adminId, code, session);
+        var filter = new StepUpFilter(db, clock, secrets, limiter, new AdminAudit(db, clock, new HttpContextAccessor { HttpContext = http }), grace);
         var action = new ActionContext(http, new RouteData(), new ActionDescriptor());
         var context = new ActionExecutingContext(action, [], new Dictionary<string, object?>(), controller: new object());
         var ran = false;
@@ -514,13 +516,29 @@ public sealed class AdminStepUpTests : IDisposable
         Assert.True(right.Ran);
         Assert.Null(right.Result);
 
-        var reused = await RunAsync(code);
+        // Another session (a stolen token, another browser) still needs its own code; the spent one won't do.
+        var reused = await RunAsync(code, session: "Bearer two");
         Assert.False(reused.Ran);
         Assert.Equal(StepUpFilter.InvalidCode, CodeOf(reused.Result));
 
         await using var db = database.CreateContext();
         Assert.Equal(Totp.StepAt(Now), (await db.AdminAccounts.SingleAsync()).LastUsedStep);
         Assert.Equal(3, await db.AdminAuditEvents.CountAsync(item => item.Action == "admin.step_up_failed" && !item.Succeeded));
+    }
+
+    [Fact]
+    public async Task One_code_covers_five_minutes_of_actions_in_the_same_session()
+    {
+        await EnrollAsync();
+        Assert.True((await RunAsync(Totp.Code(secret, Totp.StepAt(Now)))).Ran);
+
+        clock.UtcNow = Now.AddMinutes(4);
+        Assert.True((await RunAsync(null)).Ran);
+
+        clock.UtcNow = Now.AddMinutes(5);
+        var expired = await RunAsync(null);
+        Assert.False(expired.Ran);
+        Assert.Equal(StepUpFilter.RequiredCode, CodeOf(expired.Result));
     }
 
     [Fact]
@@ -542,9 +560,10 @@ public sealed class AdminStepUpTests : IDisposable
         Assert.True(Requires(typeof(AdminSubscriptionsController), nameof(AdminSubscriptionsController.Cancel)));
         Assert.True(Requires(typeof(AdminSubscriptionsController), nameof(AdminSubscriptionsController.Refund)));
         Assert.True(Requires(typeof(AdminSubscriptionsController), nameof(AdminSubscriptionsController.Revoke)));
-        Assert.True(Requires(typeof(AdminSubscriptionsController), nameof(AdminSubscriptionsController.Grant)));
         Assert.True(Requires(typeof(AdminSystemController), nameof(AdminSystemController.ResetAuthenticator)));
-        Assert.True(Requires(typeof(AdminPeopleController), nameof(AdminPeopleController.Internal)));
+        // Gifting Plus and marking an account internal take nothing away: the signed-in session is enough.
+        Assert.False(Requires(typeof(AdminSubscriptionsController), nameof(AdminSubscriptionsController.Grant)));
+        Assert.False(Requires(typeof(AdminPeopleController), nameof(AdminPeopleController.Internal)));
         Assert.False(Requires(typeof(AdminUsersController), nameof(AdminUsersController.Enable)));
     }
 }

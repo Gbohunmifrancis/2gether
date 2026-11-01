@@ -12,17 +12,36 @@ namespace Twogether.Api.Admin;
 /// <summary>
 /// Destructive admin actions need a fresh authenticator code in <c>X-Admin-Code</c>, checked like a sign-in:
 /// the code is used up (the account's last used step moves past it) before the action runs, so a stolen
-/// session token alone can't disable, delete, refund or give anything away.
+/// session token alone can't disable, delete, refund or cancel anything. One code covers
+/// <see cref="StepUpGrace.Window"/> of such actions from the same session, so a few in a row ask once.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class RequireStepUpAttribute() : TypeFilterAttribute(typeof(StepUpFilter));
+
+/// <summary>Which admin sessions gave a code lately, in memory: a restart only means one more code.</summary>
+public sealed class StepUpGrace
+{
+    public static readonly TimeSpan Window = TimeSpan.FromMinutes(5);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> confirmed = new();
+
+    public bool IsOpen(string key, DateTime utcNow) => confirmed.TryGetValue(key, out var at) && utcNow - at < Window;
+
+    public void Open(string key, DateTime utcNow)
+    {
+        confirmed[key] = utcNow;
+        // Forget the stale ones as we go; there are only ever a handful of admins.
+        foreach (var (k, at) in confirmed)
+            if (utcNow - at >= Window) confirmed.TryRemove(k, out _);
+    }
+}
 
 public sealed class StepUpFilter(
     IApplicationDbContext db,
     IDateTimeProvider clock,
     AdminSecretProtector secrets,
     AttemptLimiter limiter,
-    AdminAudit audit) : IAsyncActionFilter
+    AdminAudit audit,
+    StepUpGrace? grace = null) : IAsyncActionFilter
 {
     public const string Header = "X-Admin-Code";
     public const string RequiredCode = "admin.step_up_required";
@@ -33,6 +52,13 @@ public sealed class StepUpFilter(
         var ct = context.HttpContext.RequestAborted;
         var admin = context.HttpContext.User;
         var code = context.HttpContext.Request.Headers[Header].ToString().Trim();
+        // The same admin in the same session (the bearer token, hashed) gave a code in the last few minutes.
+        var session = SessionKey(admin, context.HttpContext.Request.Headers.Authorization.ToString());
+        if (grace is not null && session is not null && grace.IsOpen(session, clock.UtcNow))
+        {
+            await next();
+            return;
+        }
         if (code.Length == 0)
         {
             context.Result = Forbidden(RequiredCode, "Enter a fresh code from your authenticator app to do this.");
@@ -68,7 +94,16 @@ public sealed class StepUpFilter(
             return;
         }
         limiter.Reset(AttemptRules.AdminStepUpPerAdmin, key);
+        if (session is not null) grace?.Open(session, now);
         await next();
+    }
+
+    private static string? SessionKey(ClaimsPrincipal admin, string authorization)
+    {
+        var id = admin.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (id is null) return null;
+        var token = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(authorization)));
+        return $"{id}:{token}";
     }
 
     private static ObjectResult Forbidden(string code, string message) => new(new ApiError(code, message)) { StatusCode = StatusCodes.Status403Forbidden };

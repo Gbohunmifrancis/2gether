@@ -1,7 +1,7 @@
 import type { AdminSession } from "../api/types";
 
-// The admin token lives for this tab only: sessionStorage, never localStorage, so closing the tab
-// signs out and nothing outlives the browser session. It expires on the server after a few hours anyway.
+// The admin token is kept in this browser (localStorage) until it expires on the server, a week after sign-in
+// (Admin__TokenHours), so closing the tab doesn't sign out. Sign out forgets it; it is never sent anywhere but the API.
 const KEY = "heartpact.admin.session";
 
 type Listener = (session: AdminSession | null) => void;
@@ -11,7 +11,7 @@ let expiryTimer: ReturnType<typeof setTimeout> | undefined;
 
 function read(): AdminSession | null {
   try {
-    const raw = sessionStorage.getItem(KEY);
+    const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const session = JSON.parse(raw) as AdminSession;
     return isLive(session) ? session : null;
@@ -27,7 +27,7 @@ export function isLive(session: AdminSession, now = Date.now()): boolean {
 function schedule() {
   clearTimeout(expiryTimer);
   if (!current) return;
-  // Timers clamp at ~24.8 days; admin tokens last hours, so this always fits.
+  // Timers clamp at ~24.8 days; admin tokens last a week at most, so this always fits.
   expiryTimer = setTimeout(() => setSession(null), Math.max(0, Date.parse(current.expiresAtUtc) - Date.now()));
 }
 
@@ -39,8 +39,8 @@ export function getSession(): AdminSession | null {
 export function setSession(session: AdminSession | null) {
   current = session;
   try {
-    if (session) sessionStorage.setItem(KEY, JSON.stringify(session));
-    else sessionStorage.removeItem(KEY);
+    if (session) localStorage.setItem(KEY, JSON.stringify(session));
+    else localStorage.removeItem(KEY);
   } catch {
     // Storage blocked: the session still works in memory for this page.
   }

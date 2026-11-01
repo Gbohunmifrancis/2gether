@@ -324,7 +324,6 @@ public sealed class AdminSubscriptionsController(
 
     /// <summary>Complimentary Plus for a couple, for 1 to 366 days.</summary>
     [HttpPost("couples/{coupleId:guid}/grants")]
-    [RequireStepUp]
     public async Task<ActionResult<AdminGrant>> Grant(Guid coupleId, AdminGrantRequest request, CancellationToken ct)
     {
         if (request.Days is < 1 or > 366) return UnprocessableEntity(new ApiError("admin.invalid_days", "Grant between 1 and 366 days."));
@@ -463,7 +462,6 @@ public sealed class AdminFeaturesController(FeatureFlagService flags, AdminAudit
 
     /// <summary>Changes what every app shows within about a minute (the public answer is cached for 60 s). Needs a fresh code, like other changes that reach every user.</summary>
     [HttpPut]
-    [RequireStepUp]
     public async Task<ActionResult<FeatureFlagsDto>> Put(AdminFeaturesRequest request, CancellationToken ct)
     {
         var update = new FeatureFlagsUpdate(request.Christmas, request.BachsInApp);

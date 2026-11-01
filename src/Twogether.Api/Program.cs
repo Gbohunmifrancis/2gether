@@ -35,7 +35,7 @@ builder.Services.AddSingleton<Twogether.Application.Common.Interfaces.ITokenServ
 var adminSettings = new Twogether.Application.Features.Admin.AdminSettings
 {
     Emails = (builder.Configuration["Admin:Emails"] ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-    TokenLifetime = TimeSpan.FromHours(Math.Clamp(builder.Configuration.GetValue<double?>("Admin:TokenHours") ?? 4, 0.25, 12)),
+    TokenLifetime = TimeSpan.FromHours(Math.Clamp(builder.Configuration.GetValue<double?>("Admin:TokenHours") ?? 168, 0.25, 168)),
     MonthlyPrices = builder.Configuration.GetSection("Admin:MonthlyPrices").GetChildren()
         .Where(item => decimal.TryParse(item.Value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out _))
         .ToDictionary(item => item.Key, item => decimal.Parse(item.Value!, System.Globalization.CultureInfo.InvariantCulture)),
@@ -228,6 +228,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // On unless turned off for local load or smoke tests; Production refuses to run without it.
 var rateLimitsEnabled = builder.Configuration.GetValue<bool?>("RateLimits:Enabled") ?? true;
+builder.Services.AddSingleton<Twogether.Api.Admin.StepUpGrace>();
 builder.Services.AddSingleton(provider => new Twogether.Application.Common.Security.AttemptLimiter(
     provider.GetRequiredService<Twogether.Application.Common.Interfaces.IDateTimeProvider>(), rateLimitsEnabled));
 var inviteDigits = builder.Configuration.GetValue<int?>("Invites:CodeDigits") ?? Twogether.Application.Features.Couple.InviteSettings.MinCodeDigits;

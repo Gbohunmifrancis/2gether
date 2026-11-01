@@ -15,7 +15,9 @@ const json = (status: number, body?: unknown) =>
   new Response(body === undefined ? null : JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const error = (status: number, code: string, message: string) => json(status, { code, message });
 
-const STEP_UP = new Set(["disable", "delete", "refund", "revoke", "cancel", "grants", "reset-authenticator", "internal"]);
+const STEP_UP = new Set(["disable", "delete", "refund", "revoke", "cancel", "reset-authenticator"]);
+/** One code covers this long of such actions, as the real API's `StepUpGrace`. */
+const STEP_UP_GRACE_MS = 5 * 60_000;
 
 interface Stream {
   push: (event: LiveEvent) => void;
@@ -31,6 +33,8 @@ class DemoServer {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private lastAlertAt = 0;
   private wrongCodes = 0;
+  /** When a code was last accepted (the five minutes it covers). */
+  private steppedUpAt = 0;
   private paused = false;
   private features: Features = { christmas: false, bachsInApp: false };
 
@@ -210,8 +214,8 @@ class DemoServer {
     const days = Number(params.get("days") ?? 30) || 30;
     const parts = path.split("/").filter(Boolean);
 
-    // Step-up: destructive actions want a code, like the real API.
-    if ((method === "POST" && STEP_UP.has(parts[parts.length - 1]!)) || (method === "PUT" && path === "features")) {
+    // Step-up: destructive actions want a code, like the real API; one covers the next five minutes.
+    if (method === "POST" && STEP_UP.has(parts[parts.length - 1]!) && Date.now() - this.steppedUpAt >= STEP_UP_GRACE_MS) {
       const code = headers.get("x-admin-code");
       if (!code) return error(403, "admin.step_up_required", "Enter a fresh code from your authenticator to do this.");
       if (this.wrongCodes >= 5) return error(429, "admin.step_up_locked", "Too many tries. Wait a few minutes and try again.");
@@ -220,6 +224,7 @@ class DemoServer {
         return error(403, "admin.step_up_invalid", "That code didn't work. Codes change every 30 seconds.");
       }
       this.wrongCodes = 0;
+      this.steppedUpAt = Date.now();
     }
 
     if (method === "POST" && path === "auth/login") {
@@ -227,7 +232,7 @@ class DemoServer {
       if (!body.email || !body.password) return error(401, "admin.invalid_credentials", "Email or password is incorrect.");
       if (!code) return error(401, "admin.code_required", "Enter the code from your authenticator app.");
       if (code === "000000") return error(401, "admin.invalid_code", "That code didn't work. Codes change every 30 seconds.");
-      return json(200, { accessToken: "demo-token", expiresAtUtc: iso(Date.now() + 4 * 3_600_000), admin: w.admin });
+      return json(200, { accessToken: "demo-token", expiresAtUtc: iso(Date.now() + 7 * 24 * 3_600_000), admin: w.admin });
     }
     if (path === "auth/me") return json(200, w.admin);
 

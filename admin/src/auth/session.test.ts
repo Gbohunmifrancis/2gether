@@ -20,14 +20,14 @@ describe("session", () => {
     const live = session(60_000);
     store.setSession(live);
     expect(store.getSession()).toEqual(live);
-    expect(JSON.parse(sessionStorage.getItem("heartpact.admin.session")!)).toEqual(live);
+    expect(JSON.parse(localStorage.getItem("heartpact.admin.session")!)).toEqual(live);
     store.setSession(null);
-    expect(sessionStorage.getItem("heartpact.admin.session")).toBeNull();
+    expect(localStorage.getItem("heartpact.admin.session")).toBeNull();
     expect(seen).toEqual([live, null]);
   });
 
   it("ignores an expired stored session on load", async () => {
-    sessionStorage.setItem("heartpact.admin.session", JSON.stringify(session(-1000)));
+    localStorage.setItem("heartpact.admin.session", JSON.stringify(session(-1000)));
     const store = await import("./session");
     expect(store.getSession()).toBeNull();
   });

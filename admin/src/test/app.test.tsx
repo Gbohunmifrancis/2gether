@@ -243,7 +243,8 @@ describe("the dashboard", () => {
       if (url.pathname !== "/api/admin/features") return reply(404);
       if ((init?.method ?? "GET") === "GET") return reply(200, state);
       if (init?.method === "PUT") {
-        if (!headers["x-admin-code"]) return reply(403, { code: "admin.step_up_required", message: "Fresh code, please." });
+        // A feature switch no longer wants a fresh authenticator code.
+        expect(headers["x-admin-code"]).toBeUndefined();
         const body = JSON.parse(String(init.body)) as Partial<typeof state>;
         puts.push(body);
         state = { ...state, ...body };
@@ -256,15 +257,11 @@ describe("the dashboard", () => {
 
     const toggle = await screen.findByRole("switch", { name: "Card payments in the app" });
     expect(toggle.getAttribute("aria-checked")).toBe("false");
-    expect(screen.getByText(/Keep it off until alternative billing is turned on/)).toBeTruthy();
+    expect(screen.getByText(/Google Play's payments policy doesn't allow it/)).toBeTruthy();
 
     await user.click(toggle);
     expect(await screen.findByText("Turn card payments in the app on?")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Turn on" }));
-    const code = await screen.findByLabelText("Authenticator code");
-    await waitFor(() => expect((code as HTMLInputElement).disabled).toBe(false));
-    await user.type(code, "123456");
-    await user.click(screen.getByRole("button", { name: "Confirm" }));
 
     await waitFor(() => expect(screen.getByRole("switch", { name: "Card payments in the app" }).getAttribute("aria-checked")).toBe("true"));
     expect(puts).toEqual([{ bachsInApp: true }]);

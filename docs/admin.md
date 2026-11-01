@@ -24,8 +24,8 @@ describes this to users; change it when what admins see changes.
 3. Their first sign-in on the dashboard shows a QR code: they scan it with an authenticator app (Google
    Authenticator, 1Password, Authy…) and enter the six-digit code. From then on every sign-in needs email,
    password and a fresh code. A code works once.
-4. The admin session lasts `Admin__TokenHours` (default 4, between 0.25 and 12) and lives in the tab's
-   `sessionStorage`: closing the tab signs out. Admin tokens use their own audience; app tokens don't work on
+4. The admin session lasts `Admin__TokenHours` (default 168, a week; between 0.25 and 168) and is kept in the
+   browser's `localStorage`: closing the tab doesn't sign out, Sign out does. Admin tokens use their own audience; app tokens don't work on
    the admin API and admin tokens don't work in the app.
 
 A lost phone: another admin opens System → Admins → **Reset authenticator**. That admin is signed out and enrolls
@@ -33,11 +33,12 @@ again at their next sign-in. Nobody can reset their own.
 
 ### A fresh code for destructive actions
 
-Disabling or deleting an account, refunding, revoking or stopping a subscription, giving a couple Plus, resetting
-another admin's authenticator, marking an account internal and switching a feature (Features page) also need a **fresh authenticator code**, sent as the
-`X-Admin-Code` header. It is checked like a sign-in code: it works once (the same "last used step" as sign-in, so the
-code you just signed in with doesn't count again), and it is used up before the action runs, so a copied session token
-alone can't do any of these. Without a code the API answers `403 admin.step_up_required`; with a wrong or used one,
+Disabling or deleting an account, refunding, revoking or stopping a subscription and resetting another admin's
+authenticator also need a **fresh authenticator code**, sent as the `X-Admin-Code` header. It is checked like a sign-in
+code: it works once (the same "last used step" as sign-in, so the code you just signed in with doesn't count again), and
+it is used up before the action runs, so a copied session token alone can't do any of these. One code covers five minutes
+of such actions from the same session (`StepUpGrace`, in memory), so a few in a row ask once. Giving a couple Plus,
+marking an account internal and switching a feature need only the signed-in session. Without a code the API answers `403 admin.step_up_required`; with a wrong or used one,
 `403 admin.step_up_invalid` (audited as `admin.step_up_failed`). Five wrong codes in 15 minutes lock step-up for that
 admin for a while (`429`). The dashboard asks for the code in a dialog and retries with it.
 
@@ -118,7 +119,7 @@ alone, and another admin resets their authenticator. Changing `Jwt__SigningKey` 
 | Variable | Meaning |
 |---|---|
 | `Admin__Emails` | Who may sign in, comma-separated. Empty: nobody |
-| `Admin__TokenHours` | Admin session length in hours, default 4 |
+| `Admin__TokenHours` | Admin session length in hours, default 168 (a week), at most 168 |
 | `Admin__MonthlyPrices__heartpact_plus_monthly`, `Admin__MonthlyPrices__heartpact_plus_yearly` | Monthly list price per product, for the revenue estimate |
 | `Admin__Currency` | Currency of those prices (and of the food scan cost), default `USD` |
 | `Admin__FoodScanPricePerMillionInput`, `Admin__FoodScanPricePerMillionOutput` | Food photo estimate price per million input and output tokens, for the cost on System → Health. Without both, the cost shows "—" |

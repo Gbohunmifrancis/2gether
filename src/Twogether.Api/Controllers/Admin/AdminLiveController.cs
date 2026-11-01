@@ -113,7 +113,6 @@ public sealed class AdminPeopleController(IApplicationDbContext db, IDateTimePro
 {
     /// <summary>Internal accounts work as usual but are left out of every analytics figure.</summary>
     [HttpPost("{userId:guid}/internal")]
-    [RequireStepUp]
     public async Task<IActionResult> Internal(Guid userId, AdminInternalRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Reason)) return UnprocessableEntity(new ApiError("admin.reason_required", "Say why, for the record."));

@@ -74,7 +74,7 @@ public sealed class AdminSettings
 {
     /// <summary>Accounts allowed into the admin dashboard (Admin:Emails, comma-separated). Empty: nobody.</summary>
     public IReadOnlyList<string> Emails { get; init; } = [];
-    public TimeSpan TokenLifetime { get; init; } = TimeSpan.FromHours(4);
+    public TimeSpan TokenLifetime { get; init; } = TimeSpan.FromDays(7);
     /// <summary>Estimated monthly revenue per product id, in the currency below (Admin:MonthlyPrices:{productId}).</summary>
     public IReadOnlyDictionary<string, decimal> MonthlyPrices { get; init; } = new Dictionary<string, decimal>();
     public string Currency { get; init; } = "USD";

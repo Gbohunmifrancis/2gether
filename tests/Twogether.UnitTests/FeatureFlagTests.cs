@@ -159,10 +159,10 @@ public sealed class FeatureFlagTests : IDisposable
     }
 
     [Fact]
-    public void Changing_the_flag_needs_a_fresh_code_and_the_admin_policy()
+    public void Changing_the_flag_needs_the_admin_policy_but_no_fresh_code()
     {
         var put = typeof(AdminFeaturesController).GetMethod(nameof(AdminFeaturesController.Put))!;
-        Assert.NotEmpty(put.GetCustomAttributes(typeof(RequireStepUpAttribute), false));
+        Assert.Empty(put.GetCustomAttributes(typeof(RequireStepUpAttribute), false));
         var authorize = Assert.IsType<AuthorizeAttribute>(typeof(AdminFeaturesController).GetCustomAttributes(typeof(AuthorizeAttribute), true).Single());
         Assert.Equal(AdminAuth.Policy, authorize.Policy);
     }
